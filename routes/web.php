@@ -3,12 +3,11 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 
-// Helper to check authentication state (defaults to true for initial visit, set to false on logout)
+// Helper to check authentication state
 function checkAuth() {
     if (session()->has('logged_in')) {
         return session('logged_in');
     }
-    // Default to logged in on first visit so user can explore, but once logged out, block access
     session(['logged_in' => true]);
     return true;
 }
@@ -18,53 +17,62 @@ Route::get('/', function () {
     if (!checkAuth()) {
         return redirect()->route('signin')->with('error', 'Anda harus masuk terlebih dahulu.');
     }
-    return view('pages.dashboard.ecommerce', ['title' => 'Studio Composer Dokumen']);
-})->name('dashboard');
+    return view('pages.editor', ['title' => 'Studio Composer Dokumen']);
+})->name('editor');
 
-Route::get('/basic-tables', function () {
+// Dokumen Saya / Library Hub
+Route::get('/documents', function () {
     if (!checkAuth()) {
         return redirect()->route('signin')->with('error', 'Anda harus masuk terlebih dahulu.');
     }
-    return view('pages.tables.basic-tables', ['title' => 'Dokumen Saya & Arsip']);
-})->name('basic-tables');
+    return view('pages.documents', ['title' => 'Dokumen Saya & Arsip']);
+})->name('documents');
 
-Route::get('/form-elements', function () {
+// Galeri Template Dokumen
+Route::get('/templates', function () {
     if (!checkAuth()) {
         return redirect()->route('signin')->with('error', 'Anda harus masuk terlebih dahulu.');
     }
-    return view('pages.form.form-elements', ['title' => 'Galeri Template Dokumen']);
-})->name('form-elements');
+    return view('pages.templates', ['title' => 'Galeri Template Dokumen']);
+})->name('templates');
 
-Route::get('/profile', function () {
+// Studio Tanda Tangan & e-Sign BSRE
+Route::get('/signatures', function () {
     if (!checkAuth()) {
         return redirect()->route('signin')->with('error', 'Anda harus masuk terlebih dahulu.');
     }
-    return view('pages.profile', ['title' => 'Studio Tanda Tangan & e-Sign']);
-})->name('profile');
+    return view('pages.signatures', ['title' => 'Studio Tanda Tangan & e-Sign']);
+})->name('signatures');
 
-Route::get('/blank', function () {
+// Settings Page
+Route::get('/settings', function () {
     if (!checkAuth()) {
         return redirect()->route('signin')->with('error', 'Anda harus masuk terlebih dahulu.');
     }
-    return view('pages.blank', ['title' => 'Pengaturan Workspace']);
-})->name('blank');
+    return view('pages.settings', ['title' => 'Pengaturan Workspace']);
+})->name('settings');
+
+// Backwards compatibility alias redirects for old template routes
+Route::get('/basic-tables', fn() => redirect()->route('documents'));
+Route::get('/form-elements', fn() => redirect()->route('templates'));
+Route::get('/profile', fn() => redirect()->route('signatures'));
+Route::get('/blank', fn() => redirect()->route('settings'));
 
 // Login Handler Action
 Route::get('/do-login', function (Request $request) {
     session(['logged_in' => true]);
-    return redirect()->route('dashboard');
+    return redirect()->route('editor');
 })->name('do-login');
 
 Route::post('/do-login', function (Request $request) {
     session(['logged_in' => true]);
-    return redirect()->route('dashboard');
+    return redirect()->route('editor');
 });
 
 // Authentication Routes
 Route::get('/signin', function () {
-    // If already logged in, redirect to studio
     if (session('logged_in') === true) {
-        return redirect()->route('dashboard');
+        return redirect()->route('editor');
     }
     return view('pages.auth.signin', ['title' => 'Masuk ke Studio Papercraft']);
 })->name('signin');
