@@ -39,13 +39,14 @@ class AuthController extends Controller
     public function signup(Request $request)
     {
         $data = $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
+            'fname'     => ['required', 'string', 'max:255'],
+            'lname'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'email', 'unique:users,email'],
-            'password' => ['required', 'confirmed', 'min:8'],
+            'password' => ['required', 'min:8'],
         ]);
 
         $user = \App\Models\User::create([
-            'name'     => $data['name'],
+            'name'     => $data['fname'],''.$data['lname'],
             'email'    => $data['email'],
             'password' => Hash::make($data['password']),
         ]);

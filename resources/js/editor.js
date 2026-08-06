@@ -18,6 +18,7 @@ import 'tinymce/skins/content/default/content.css';
 window.initDocumentEditor = function (selector, initialContent = '') {
     tinymce.init({
         selector: selector,
+        license_key: 'gpl',
         height: 400,
         menubar: false,
         plugins: 'lists link table image',

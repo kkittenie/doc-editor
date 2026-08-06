@@ -37,7 +37,8 @@
 
         <!-- Login Form Card -->
         <div class="rounded-2xl border border-parchment-300 bg-white p-8 shadow-paper dark:bg-slate-warm-900 dark:border-slate-warm-800">
-            <form action="{{ route('do-login') }}" method="GET" class="space-y-5">
+            <form action="{{ route('signin') }}" method="POST">
+                    @csrf
                 <div>
                     <label for="signin-email" class="block text-xs font-semibold text-ink-900 dark:text-parchment-200 mb-1.5">Email</label>
                     <input id="signin-email" type="email" name="email" required placeholder="nama@perusahaan.co.id" value="aris.budiman@ncm-media.co.id" autocomplete="email"
