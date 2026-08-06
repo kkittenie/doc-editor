@@ -356,18 +356,28 @@
 }
 
 @utility custom-scrollbar {
+  scroll-behavior: smooth;
   &::-webkit-scrollbar {
-    @apply size-1.5;
+    width: 6px;
+    height: 6px;
   }
   &::-webkit-scrollbar-track {
-    @apply rounded-full;
+    background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    @apply bg-parchment-300 rounded-full dark:bg-slate-warm-700;
+    background-color: var(--color-parchment-300);
+    border-radius: 9999px;
+    transition: background-color 0.2s ease;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-parchment-400);
   }
 }
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #344054;
+  background-color: var(--color-slate-warm-700);
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-slate-warm-600);
 }
 
 @layer utilities {
@@ -459,15 +469,25 @@
 
 /* A4 Page Proportions (210mm × 297mm = 1:1.4142) */
 .paper-a4 {
-  aspect-ratio: 210 / 297;
+  min-height: 841px;
   width: 100%;
   max-width: 595px; /* Roughly A4 at 72dpi */
+}
+@media (min-width: 768px) {
+  .paper-a4 {
+    aspect-ratio: 210 / 297;
+  }
 }
 
 /* Paper page with subtle inset lines (ruler margins) */
 .paper-margins {
   padding: 60px 54px;
   position: relative;
+}
+@media (max-width: 640px) {
+  .paper-margins {
+    padding: 28px 20px;
+  }
 }
 .paper-margins::before {
   content: '';
@@ -477,6 +497,11 @@
   bottom: 0;
   width: 1px;
   background: rgba(184, 134, 11, 0.12);
+}
+@media (max-width: 640px) {
+  .paper-margins::before {
+    left: 14px;
+  }
 }
 
 /* Page break indicator */
@@ -923,6 +948,50 @@
 .stagger-4 { animation-delay: 0.2s; }
 .stagger-5 { animation-delay: 0.25s; }
 .stagger-6 { animation-delay: 0.3s; }
+
+/* ─── MOBILE RESPONSIVE OVERRIDES ─── */
+@media (max-width: 767px) {
+  /* Force paper preview column to be full-width and fit naturally */
+  .document-canvas {
+    padding: 12px 6px !important;
+    border-radius: 12px !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+  /* Disable zoom transform on mobile — let natural sizing handle it */
+  .document-canvas[style*="transform"] {
+    transform: none !important;
+  }
+  .paper-a4 {
+    aspect-ratio: auto !important;
+    min-height: auto !important;
+    height: auto !important;
+    max-width: 100% !important;
+  }
+  .paper-sheet {
+    font-size: 11px;
+    margin-bottom: 1.25rem !important;
+  }
+  /* Ensure page watermark sits naturally at bottom without absolute overflow collision */
+  .paper-sheet > .absolute.bottom-4 {
+    position: relative !important;
+    bottom: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin-top: 20px !important;
+    padding-top: 8px !important;
+    font-size: 9px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .paper-sheet {
+    font-size: 10px;
+  }
+  .paper-margins {
+    padding: 16px 12px;
+  }
+}
 
 /* ─── PRINT STYLES ─── */
 @media print {

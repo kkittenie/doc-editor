@@ -1,3 +1,10 @@
+@php
+    $user = Auth::user();
+    $userName = $user ? $user->name : 'Pengguna';
+    $userEmail = $user ? $user->email : '';
+    $words = explode(' ', trim($userName));
+    $initials = strtoupper(substr($words[0] ?? 'P', 0, 1) . (isset($words[1]) && $words[1] !== '' ? substr($words[1], 0, 1) : ''));
+@endphp
 <div class="relative" x-data="{
     dropdownOpen: false,
     toggleDropdown() {
@@ -14,10 +21,10 @@
         type="button"
     >
         <span class="mr-2.5 flex h-9 w-9 items-center justify-center rounded-full bg-ink-900 text-parchment-100 font-serif font-bold text-xs shadow-xs dark:bg-parchment-100 dark:text-ink-900 border border-parchment-300">
-            AB
+            {{ $initials }}
         </span>
 
-        <span class="hidden md:block mr-1 font-serif font-bold text-xs">Aris Budiman</span>
+        <span class="hidden md:block mr-1 font-serif font-bold text-xs">{{ $userName }}</span>
 
         <!-- Chevron Icon -->
         <svg
@@ -45,9 +52,9 @@
     >
         <!-- User Info Header -->
         <div class="px-2 py-1.5 border-b border-parchment-200 dark:border-slate-warm-800 pb-2.5 mb-1">
-            <span class="block font-serif font-bold text-sm text-ink-900 dark:text-parchment-100">Drs. H. Aris Budiman, M.B.A.</span>
-            <span class="block text-[11px] font-mono text-bronze-700 dark:text-bronze-400 mt-0.5">Direktur Utama</span>
-            <span class="block text-[10px] font-mono text-slate-warm-400 truncate">aris.budiman@ncm-media.co.id</span>
+            <span class="block font-serif font-bold text-sm text-ink-900 dark:text-parchment-100">{{ $userName }}</span>
+            <span class="block text-[11px] font-mono text-bronze-700 dark:text-bronze-400 mt-0.5">Penandatangan Resmi</span>
+            <span class="block text-[10px] font-mono text-slate-warm-400 truncate">{{ $userEmail }}</span>
         </div>
 
         <!-- Menu Items -->

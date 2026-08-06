@@ -5,7 +5,8 @@
 @endphp
 
 <aside id="sidebar"
-    class="fixed flex flex-col mt-0 top-0 px-4 left-0 bg-parchment-50 dark:bg-slate-warm-900 dark:border-slate-warm-800 text-ink-900 h-screen transition-all duration-300 ease-in-out z-99999 border-r border-parchment-200"
+    class="fixed flex flex-col mt-0 top-0 px-4 left-0 bg-parchment-50 dark:bg-slate-warm-900 dark:border-slate-warm-800 text-ink-900 h-screen z-99999 border-r border-parchment-200"
+    style="transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); will-change: width, transform;"
     x-data="{
         openSubmenus: {},
         init() {

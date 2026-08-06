@@ -1,5 +1,11 @@
 <!-- TAB 2: ISI DOKUMEN / BODY COMPONENT EDITOR -->
-<div x-show="activeZone === 'body'" x-transition
+<div x-show="activeZone === 'body'"
+    x-transition:enter="transition ease-out duration-300 transform"
+    x-transition:enter-start="opacity-0 translate-y-3 scale-[0.98]"
+    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+    x-transition:leave="transition ease-in duration-150 transform"
+    x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+    x-transition:leave-end="opacity-0 -translate-y-2 scale-[0.98]"
     class="rounded-xl border border-parchment-300 bg-white p-5 shadow-theme-sm dark:border-slate-warm-800 dark:bg-slate-warm-900 space-y-4">
     <div class="flex items-center justify-between border-b border-parchment-200 pb-3 dark:border-slate-warm-800">
         <div class="flex items-center gap-2">
