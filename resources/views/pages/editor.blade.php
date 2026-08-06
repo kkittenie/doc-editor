@@ -86,4 +86,13 @@
 
     </div>
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        initDocumentEditor('#editor-pasal1');
+        initDocumentEditor('#editor-pasal2');
+    });
+</script>
+@endpush
 @endsection
