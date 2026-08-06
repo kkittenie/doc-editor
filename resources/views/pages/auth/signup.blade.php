@@ -36,7 +36,6 @@
         </div>
 
         <!-- Register Form Card -->
-<<<<<<< HEAD
         <div
             class="rounded-2xl border border-parchment-300 bg-white p-8 shadow-paper dark:bg-slate-warm-900 dark:border-slate-warm-800">
             <form action="{{ route('signup') }}" method="POST">
@@ -56,50 +55,15 @@
                             Belakang</label>
                         <input id="signup-lname" name="lname" type="text" required placeholder="Budiman"
                             autocomplete="family-name"
-=======
-        <div class="rounded-2xl border border-parchment-300 bg-white p-8 shadow-paper dark:bg-slate-warm-900 dark:border-slate-warm-800">
-            @if ($errors->any())
-                <div class="mb-5 p-3 rounded-lg border border-seal-200 bg-seal-50 text-seal-800 text-xs font-medium dark:bg-seal-950 dark:border-seal-800 dark:text-seal-200">
-                    <ul class="list-disc list-inside space-y-1">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <form action="{{ route('do-register') }}" method="POST" class="space-y-4">
-                @csrf
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label for="signup-fname" class="block text-xs font-semibold text-ink-900 dark:text-parchment-200 mb-1.5">Nama Depan</label>
-                        <input id="signup-fname" name="first_name" type="text" required value="{{ old('first_name') }}" placeholder="Aris" autocomplete="given-name"
-                            class="w-full text-sm rounded-lg border border-parchment-300 bg-parchment-50 p-3 text-ink-900 placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 focus:outline-none transition-colors dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100 dark:placeholder:text-slate-warm-500 dark:focus:border-parchment-300" />
-                    </div>
-                    <div>
-                        <label for="signup-lname" class="block text-xs font-semibold text-ink-900 dark:text-parchment-200 mb-1.5">Nama Belakang</label>
-                        <input id="signup-lname" name="last_name" type="text" value="{{ old('last_name') }}" placeholder="Budiman" autocomplete="family-name"
->>>>>>> b895488bd17b0375d2c9a5e1f97bb8bec3dcc502
                             class="w-full text-sm rounded-lg border border-parchment-300 bg-parchment-50 p-3 text-ink-900 placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 focus:outline-none transition-colors dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100 dark:placeholder:text-slate-warm-500 dark:focus:border-parchment-300" />
                     </div>
                 </div>
 
                 <div>
-<<<<<<< HEAD
                     <label for="signup-email"
                         class="block text-xs font-semibold text-ink-900 dark:text-parchment-200 mb-1.5">Email</label>
                     <input id="signup-email" name="email" type="email" required placeholder="nama@perusahaan.co.id"
                         autocomplete="email"
-=======
-                    <label for="signup-username" class="block text-xs font-semibold text-ink-900 dark:text-parchment-200 mb-1.5">Username</label>
-                    <input id="signup-username" name="username" type="text" required value="{{ old('username') }}" placeholder="arisbudiman" autocomplete="username"
-                        class="w-full text-sm rounded-lg border border-parchment-300 bg-parchment-50 p-3 text-ink-900 placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 focus:outline-none transition-colors dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100 dark:placeholder:text-slate-warm-500 dark:focus:border-parchment-300" />
-                </div>
-
-                <div>
-                    <label for="signup-email" class="block text-xs font-semibold text-ink-900 dark:text-parchment-200 mb-1.5">Email</label>
-                    <input id="signup-email" name="email" type="email" required value="{{ old('email') }}" placeholder="nama@perusahaan.co.id" autocomplete="email"
->>>>>>> b895488bd17b0375d2c9a5e1f97bb8bec3dcc502
                         class="w-full text-sm rounded-lg border border-parchment-300 bg-parchment-50 p-3 text-ink-900 placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 focus:outline-none transition-colors dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100 dark:placeholder:text-slate-warm-500 dark:focus:border-parchment-300" />
                 </div>
 
@@ -108,12 +72,8 @@
                         class="block text-xs font-semibold text-ink-900 dark:text-parchment-200 mb-1.5">Kata
                         Sandi</label>
                     <div x-data="{ show: false }" class="relative">
-<<<<<<< HEAD
                         <input id="signup-password" name="password" :type="show ? 'text' : 'password'" required
                             placeholder="Minimal 8 karakter" autocomplete="new-password"
-=======
-                        <input id="signup-password" name="password" :type="show ? 'text' : 'password'" required placeholder="Minimal 8 karakter" autocomplete="new-password"
->>>>>>> b895488bd17b0375d2c9a5e1f97bb8bec3dcc502
                             class="w-full text-sm rounded-lg border border-parchment-300 bg-parchment-50 p-3 pr-10 text-ink-900 placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 focus:outline-none transition-colors dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100 dark:placeholder:text-slate-warm-500 dark:focus:border-parchment-300" />
                         <button type="button" @click="show = !show"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-warm-400 hover:text-ink-700 dark:hover:text-parchment-300 transition-colors"
