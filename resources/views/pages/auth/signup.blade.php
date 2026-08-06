@@ -35,7 +35,7 @@
 
             <form action="{{ route('do-register') }}" method="POST" class="space-y-4">
                 @csrf
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label for="signup-fname" class="block text-xs font-semibold text-ink-900 dark:text-parchment-200 mb-1.5">Nama Depan</label>
                         <input id="signup-fname" name="first_name" type="text" required value="{{ old('first_name') }}" placeholder="Aris" autocomplete="given-name"

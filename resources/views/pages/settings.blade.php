@@ -19,7 +19,7 @@
 
         <div>
             <label class="block font-semibold text-ink-900 dark:text-parchment-200 mb-1">Batas Margin Standar A4 (mm)</label>
-            <div class="grid grid-cols-4 gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
                     <span class="text-[10px] text-slate-warm-500 block mb-0.5">Atas</span>
                     <input type="text" value="20 mm" class="w-full text-xs rounded-lg border border-parchment-300 p-2 bg-parchment-25 font-mono dark:bg-slate-warm-800 dark:border-slate-warm-700 dark:text-parchment-100" />

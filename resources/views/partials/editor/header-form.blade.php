@@ -1,5 +1,12 @@
 <!-- TAB 1: KOP SURAT / HEADER COMPONENT EDITOR -->
-<div x-show="activeZone === 'header'" x-transition class="rounded-xl border border-parchment-300 bg-white p-5 shadow-theme-sm dark:border-slate-warm-800 dark:bg-slate-warm-900 space-y-4">
+<div x-show="activeZone === 'header'"
+    x-transition:enter="transition ease-out duration-300 transform"
+    x-transition:enter-start="opacity-0 translate-y-3 scale-[0.98]"
+    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+    x-transition:leave="transition ease-in duration-150 transform"
+    x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+    x-transition:leave-end="opacity-0 -translate-y-2 scale-[0.98]"
+    class="rounded-xl border border-parchment-300 bg-white p-5 shadow-theme-sm dark:border-slate-warm-800 dark:bg-slate-warm-900 space-y-4">
     <div class="flex items-center justify-between border-b border-parchment-200 pb-3 dark:border-slate-warm-800">
         <div class="flex items-center gap-2">
             <span class="flex h-6 w-6 items-center justify-center rounded bg-ink-900 text-parchment-100 font-mono text-xs">1</span>
@@ -23,7 +30,7 @@
         <input type="text" x-model="kopKontrak" class="w-full text-xs rounded-lg border border-parchment-300 p-2.5 bg-parchment-25 focus:border-ink-900 dark:bg-slate-warm-800 dark:border-slate-warm-700 dark:text-parchment-100" />
     </div>
 
-    <div class="grid grid-cols-2 gap-3 pt-2">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
         <div>
             <label class="block text-xs font-semibold text-ink-800 dark:text-parchment-200 mb-1">Nomor Surat</label>
             <input type="text" x-model="nomorSurat" class="w-full text-xs rounded-lg border border-parchment-300 p-2 bg-parchment-25 font-mono dark:bg-slate-warm-800 dark:border-slate-warm-700 dark:text-parchment-100" />

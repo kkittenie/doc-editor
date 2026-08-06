@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div x-data="{
+<div class="flex flex-col lg:h-[calc(100vh-105px)] lg:overflow-hidden space-y-3" x-data="{
     // Active Tab in Component Editor
     activeZone: 'header', // 'header', 'body', 'footer', 'signature'
     
@@ -44,14 +44,14 @@
     <div class="mb-5 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-parchment-200 bg-white p-3.5 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
         <!-- Left: Workspace Breadcrumb & Page Info -->
         <div class="flex items-center gap-3">
-            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-ink-900 text-parchment-100 dark:bg-parchment-100 dark:text-ink-900">
+            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-ink-900 text-parchment-100 dark:bg-parchment-100 dark:text-ink-900 shrink-0">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                 </svg>
             </div>
             <div>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                     <h1 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-50">
                         Editor Komponen Dokumen
                     </h1>
@@ -64,7 +64,7 @@
         </div>
 
         <!-- Right: Zoom & Preview Mode Switches -->
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
             <div class="flex items-center gap-1 rounded-lg border border-parchment-300 bg-parchment-50 p-1 dark:border-slate-warm-700 dark:bg-slate-warm-800">
                 <button @click="zoomLevel = Math.max(75, zoomLevel - 10)" class="px-2 py-1 text-xs font-mono text-ink-700 hover:bg-parchment-200 rounded dark:text-parchment-300 dark:hover:bg-slate-warm-700">
                     -
@@ -75,7 +75,7 @@
                 </button>
             </div>
 
-            <button @click="hasSignature = !hasSignature" :class="hasSignature ? 'bg-seal-50 border-seal-200 text-seal-700' : 'bg-parchment-50 border-parchment-300 text-slate-warm-600'" class="btn-secondary text-xs px-3 py-1.5 h-8">
+            <button @click="hasSignature = !hasSignature" :class="hasSignature ? 'bg-seal-50 border-seal-200 text-seal-700' : 'bg-parchment-50 border-parchment-300 text-slate-warm-600'" class="btn-secondary text-xs px-3 py-1.5 h-8 shrink-0">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/>
                     <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/>
@@ -86,29 +86,29 @@
     </div>
 
     <!-- Main Workspace Split: Left (Component Form Editor) vs Right (Live Realistic Paper Stage) -->
-    <div class="grid grid-cols-12 gap-5 items-start">
+    <div class="grid grid-cols-12 gap-5 items-start lg:h-full lg:overflow-hidden pb-2">
         
         <!-- LEFT COLUMN: Component Input Editor (5 / 12) -->
-        <div class="col-span-12 lg:col-span-5 space-y-4">
+        <div class="col-span-12 lg:col-span-5 space-y-4 lg:h-full lg:overflow-y-auto custom-scrollbar lg:pr-2.5 pb-12">
             
             <!-- Component Zone Selector Tabs -->
             <div class="flex rounded-xl border border-parchment-300 bg-parchment-100 p-1 dark:border-slate-warm-700 dark:bg-slate-warm-800">
                 <button @click="activeZone = 'header'"
                     :class="activeZone === 'header' ? 'bg-white text-ink-900 shadow-xs font-semibold dark:bg-slate-warm-900 dark:text-parchment-50' : 'text-slate-warm-600 hover:text-ink-900 dark:text-parchment-400'"
-                    class="flex-1 py-2 text-xs rounded-lg transition-all flex items-center justify-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-ink-900 dark:bg-bronze-400"></span>
+                    class="flex-1 py-2 text-[11px] sm:text-xs rounded-lg transition-all flex items-center justify-center gap-1 sm:gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-ink-900 dark:bg-bronze-400 shrink-0"></span>
                     1. Kop Surat
                 </button>
                 <button @click="activeZone = 'body'"
                     :class="activeZone === 'body' ? 'bg-white text-ink-900 shadow-xs font-semibold dark:bg-slate-warm-900 dark:text-parchment-50' : 'text-slate-warm-600 hover:text-ink-900 dark:text-parchment-400'"
-                    class="flex-1 py-2 text-xs rounded-lg transition-all flex items-center justify-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-bronze-600"></span>
+                    class="flex-1 py-2 text-[11px] sm:text-xs rounded-lg transition-all flex items-center justify-center gap-1 sm:gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-bronze-600 shrink-0"></span>
                     2. Isi Dokumen
                 </button>
                 <button @click="activeZone = 'footer'"
                     :class="activeZone === 'footer' ? 'bg-white text-ink-900 shadow-xs font-semibold dark:bg-slate-warm-900 dark:text-parchment-50' : 'text-slate-warm-600 hover:text-ink-900 dark:text-parchment-400'"
-                    class="flex-1 py-2 text-xs rounded-lg transition-all flex items-center justify-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-seal-700"></span>
+                    class="flex-1 py-2 text-[11px] sm:text-xs rounded-lg transition-all flex items-center justify-center gap-1 sm:gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-seal-700 shrink-0"></span>
                     3. Legalese & TTD
                 </button>
             </div>
@@ -256,7 +256,7 @@
         </div>
 
         <!-- RIGHT COLUMN: Real-Time Multi-Page Realistic A4 Paper Preview Stage (7 / 12) -->
-        <div class="col-span-12 lg:col-span-7 flex flex-col items-center">
+        <div class="col-span-12 lg:col-span-7 flex flex-col items-center lg:h-full lg:overflow-y-auto custom-scrollbar lg:px-2 pb-16">
             
             <!-- Paper Canvas Background Container -->
             <div class="document-canvas p-6 md:p-10 rounded-2xl border border-parchment-300/80 dark:border-slate-warm-800 w-full flex flex-col items-center shadow-inner min-h-[850px] relative overflow-hidden"
@@ -265,8 +265,7 @@
                 <!-- Page 1 Header Indicator -->
                 <div class="w-full max-w-[595px] flex items-center justify-between mb-3 text-xs font-mono text-slate-warm-500 dark:text-parchment-400">
                     <span class="flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-success-500 animate-pulse"></span>
-                        PREVIEW REAL-TIME A4 (210 × 297 mm)
+                        PREVIEW A4 (210 × 297 mm)
                     </span>
                     <span class="page-number">Lembar 1 dari 2</span>
                 </div>
@@ -331,9 +330,8 @@
                     </div>
                 </div>
 
-                <!-- NATURAL VISUAL PAGE BREAK SEPARATOR -->
                 <div class="w-full max-w-[595px] page-break my-4">
-                    <span class="page-break-label">Otomatik Sambungan Halaman 2 (Auto-Pagination)</span>
+                    <span class="page-break-label">Halaman 2</span>
                 </div>
 
                 <!-- REALISTIC A4 SHEET 2 -->

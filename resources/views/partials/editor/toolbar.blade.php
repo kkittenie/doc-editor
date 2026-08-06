@@ -1,5 +1,5 @@
 <!-- Top Action & View Toolbar -->
-<div class="mb-5 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-parchment-200 bg-white p-3.5 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
+<div class="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-parchment-200 bg-white p-3.5 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
     <!-- Left: Workspace Breadcrumb & Page Info -->
     <div class="flex items-center gap-3">
         <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-ink-900 text-parchment-100 dark:bg-parchment-100 dark:text-ink-900">
@@ -15,14 +15,11 @@
                 </h1>
                 <span class="doc-status doc-status-pending text-[10px]">Menunggu TTD</span>
             </div>
-            <p class="text-xs text-slate-warm-500 dark:text-parchment-400">
-                Otomatis menyusun Kop, Isi, Footer & Tanda Tangan ke lembar A4 real-time.
-            </p>
         </div>
     </div>
 
     <!-- Right: Zoom & Preview Mode Switches -->
-    <div class="flex items-center gap-2">
+    <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
         <div class="flex items-center gap-1 rounded-lg border border-parchment-300 bg-parchment-50 p-1 dark:border-slate-warm-700 dark:bg-slate-warm-800">
             <button @click="zoomLevel = Math.max(75, zoomLevel - 10)" class="px-2 py-1 text-xs font-mono text-ink-700 hover:bg-parchment-200 rounded dark:text-parchment-300 dark:hover:bg-slate-warm-700">
                 -
@@ -33,7 +30,7 @@
             </button>
         </div>
 
-        <button @click="hasSignature = !hasSignature" :class="hasSignature ? 'bg-seal-50 border-seal-200 text-seal-700' : 'bg-parchment-50 border-parchment-300 text-slate-warm-600'" class="btn-secondary text-xs px-3 py-1.5 h-8">
+        <button @click="hasSignature = !hasSignature" :class="hasSignature ? 'bg-seal-50 border-seal-200 text-seal-700' : 'bg-parchment-50 border-parchment-300 text-slate-warm-600'" class="btn-secondary text-xs px-3 py-1.5 h-8 shrink-0">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/>
                 <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/>

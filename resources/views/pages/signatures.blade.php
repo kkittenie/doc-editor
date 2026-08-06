@@ -143,21 +143,21 @@
         <div class="col-span-12 lg:col-span-8 space-y-4">
             
             <!-- Studio Tab Switcher -->
-            <div class="flex rounded-xl border border-parchment-300 bg-white p-1 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
-                <button @click="activeTab = 'draw'; $nextTick(() => initCanvas())" :class="activeTab === 'draw' ? 'bg-ink-900 text-white font-semibold' : 'text-slate-warm-600 hover:text-ink-900 dark:text-parchment-400'" class="flex-1 py-2 text-xs rounded-lg transition-all">
+            <div class="flex flex-wrap sm:flex-nowrap rounded-xl border border-parchment-300 bg-white p-1 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900 gap-1">
+                <button @click="activeTab = 'draw'; $nextTick(() => initCanvas())" :class="activeTab === 'draw' ? 'bg-ink-900 text-white font-semibold' : 'text-slate-warm-600 hover:text-ink-900 dark:text-parchment-400'" class="flex-1 py-2 text-[11px] sm:text-xs rounded-lg transition-all min-w-[120px]">
                     ✍️ Gores Tanda Tangan
                 </button>
-                <button @click="activeTab = 'upload'" :class="activeTab === 'upload' ? 'bg-ink-900 text-white font-semibold' : 'text-slate-warm-600 hover:text-ink-900 dark:text-parchment-400'" class="flex-1 py-2 text-xs rounded-lg transition-all">
-                    📁 Upload File TTD / Stempel
+                <button @click="activeTab = 'upload'" :class="activeTab === 'upload' ? 'bg-ink-900 text-white font-semibold' : 'text-slate-warm-600 hover:text-ink-900 dark:text-parchment-400'" class="flex-1 py-2 text-[11px] sm:text-xs rounded-lg transition-all min-w-[120px]">
+                    📁 Upload File
                 </button>
-                <button @click="activeTab = 'saved'" :class="activeTab === 'saved' ? 'bg-ink-900 text-white font-semibold' : 'text-slate-warm-600 hover:text-ink-900 dark:text-parchment-400'" class="flex-1 py-2 text-xs rounded-lg transition-all">
-                    🎨 Koleksi TTD Tersimpan
+                <button @click="activeTab = 'saved'" :class="activeTab === 'saved' ? 'bg-ink-900 text-white font-semibold' : 'text-slate-warm-600 hover:text-ink-900 dark:text-parchment-400'" class="flex-1 py-2 text-[11px] sm:text-xs rounded-lg transition-all min-w-[120px]">
+                    🎨 Koleksi TTD
                 </button>
             </div>
 
             <!-- TAB 1: DRAW CANVAS -->
             <div x-show="activeTab === 'draw'" x-transition class="rounded-xl border border-parchment-300 bg-white p-5 shadow-theme-sm dark:border-slate-warm-800 dark:bg-slate-warm-900 space-y-4">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-wrap items-center justify-between gap-2">
                     <div>
                         <h3 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-100">Canvas Gores Tanda Tangan Tinta</h3>
                         <p class="text-xs text-slate-warm-500">Goreskan tanda tangan Anda menggunakan kursor mouse atau layar sentuh.</p>
@@ -168,20 +168,20 @@
                 </div>
 
                 <!-- Canvas Component -->
-                <div class="signature-pad-container h-[220px] w-full flex items-center justify-center">
-                    <canvas id="signatureCanvas" width="550" height="200"></canvas>
-                    <div x-show="!hasDrawn" class="absolute pointer-events-none text-center text-slate-warm-400 text-xs">
+                <div class="signature-pad-container h-[220px] w-full flex items-center justify-center overflow-hidden">
+                    <canvas id="signatureCanvas" width="550" height="200" class="max-w-full"></canvas>
+                    <div x-show="!hasDrawn" class="absolute pointer-events-none text-center text-slate-warm-400 text-xs px-2">
                         <span class="block font-serif italic mb-1">Goreskan tanda tangan di sini...</span>
                         <span class="text-[10px] font-mono">Sensitivitas Tinta TTE Aktif</span>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between pt-2">
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
                     <div class="flex items-center gap-2">
                         <span class="w-3 h-3 rounded-full bg-ink-900 border border-parchment-300"></span>
                         <span class="text-xs text-slate-warm-600">Tinta Biru Tua (Deep Ink Navy)</span>
                     </div>
-                    <button @click="alert('Tanda tangan berhasil disimpan ke vault!')" class="btn-primary text-xs shadow-sm">
+                    <button @click="alert('Tanda tangan berhasil disimpan ke vault!')" class="btn-primary text-xs shadow-sm w-full sm:w-auto">
                         Simpan ke Vault TTD →
                     </button>
                 </div>
@@ -204,7 +204,7 @@
             <div x-show="activeTab === 'saved'" x-transition class="rounded-xl border border-parchment-300 bg-white p-5 shadow-theme-sm dark:border-slate-warm-800 dark:bg-slate-warm-900 space-y-4">
                 <h3 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-100">Koleksi Tanda Tangan Tersimpan</h3>
                 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <!-- Saved TTD 1 -->
                     <div class="border border-bronze-400 rounded-xl p-4 bg-bronze-25 dark:bg-slate-warm-800 relative">
                         <span class="absolute top-2 right-2 px-2 py-0.5 rounded text-[9px] font-bold bg-bronze-600 text-white">Utama</span>
