@@ -40,10 +40,12 @@ Route::get('/blank', fn() => redirect()->route('settings'));
 Route::get('/signin', [AuthController::class, 'showSignin'])->name('signin');
 Route::get('/login', [AuthController::class, 'showSignin'])->name('login');
 Route::post('/do-login', [AuthController::class, 'login'])->name('do-login');
+Route::post('/signin', [AuthController::class, 'login']);
 
 Route::get('/signup', [AuthController::class, 'showSignup'])->name('signup');
 Route::get('/register', [AuthController::class, 'showSignup'])->name('register');
 Route::post('/do-register', [AuthController::class, 'register'])->name('do-register');
+Route::post('/signup', [AuthController::class, 'register']);
 
 // Logout Route
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -57,4 +59,3 @@ Route::get('/calendar', function () {
 Route::get('/error-404', function () {
     return view('pages.errors.error-404', ['title' => 'Halaman Tidak Ditemukan']);
 })->name('error-404');
-
