@@ -35,12 +35,23 @@
             </div>
         @endif
 
+        @if ($errors->any())
+            <div class="mb-6 p-3 rounded-lg border border-seal-200 bg-seal-50 text-seal-800 text-xs font-medium dark:bg-seal-950 dark:border-seal-800 dark:text-seal-200">
+                <ul class="list-disc list-inside space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <!-- Login Form Card -->
         <div class="rounded-2xl border border-parchment-300 bg-white p-8 shadow-paper dark:bg-slate-warm-900 dark:border-slate-warm-800">
-            <form action="{{ route('do-login') }}" method="GET" class="space-y-5">
+            <form action="{{ route('do-login') }}" method="POST" class="space-y-5">
+                @csrf
                 <div>
-                    <label for="signin-email" class="block text-xs font-semibold text-ink-900 dark:text-parchment-200 mb-1.5">Email</label>
-                    <input id="signin-email" type="email" name="email" required placeholder="nama@perusahaan.co.id" value="aris.budiman@ncm-media.co.id" autocomplete="email"
+                    <label for="signin-login" class="block text-xs font-semibold text-ink-900 dark:text-parchment-200 mb-1.5">Email atau Username</label>
+                    <input id="signin-login" type="text" name="login" required placeholder="nama@perusahaan.co.id atau username" value="{{ old('login') }}" autocomplete="username"
                         class="w-full text-sm rounded-lg border border-parchment-300 bg-parchment-50 p-3 text-ink-900 placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 focus:outline-none transition-colors dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100 dark:placeholder:text-slate-warm-500 dark:focus:border-parchment-300" />
                 </div>
 
@@ -50,7 +61,7 @@
                         <a href="#" class="text-xs text-bronze-700 hover:text-bronze-900 dark:text-bronze-400 dark:hover:text-bronze-300 transition-colors">Lupa sandi?</a>
                     </div>
                     <div x-data="{ show: false }" class="relative">
-                        <input id="signin-password" :type="show ? 'text' : 'password'" name="password" required value="papercraft2026" placeholder="Masukkan kata sandi" autocomplete="current-password"
+                        <input id="signin-password" :type="show ? 'text' : 'password'" name="password" required placeholder="Masukkan kata sandi" autocomplete="current-password"
                             class="w-full text-sm rounded-lg border border-parchment-300 bg-parchment-50 p-3 pr-10 text-ink-900 placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 focus:outline-none transition-colors dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100 dark:placeholder:text-slate-warm-500 dark:focus:border-parchment-300" />
                         <button type="button" @click="show = !show" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-warm-400 hover:text-ink-700 dark:hover:text-parchment-300 transition-colors" aria-label="Toggle password visibility">
                             <svg x-show="!show" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -60,7 +71,7 @@
                 </div>
 
                 <div class="flex items-center gap-2.5">
-                    <input type="checkbox" id="remember" checked class="rounded border-parchment-400 text-ink-900 focus:ring-ink-900/20 dark:border-slate-warm-600 dark:bg-slate-warm-700" />
+                    <input type="checkbox" id="remember" name="remember" class="rounded border-parchment-400 text-ink-900 focus:ring-ink-900/20 dark:border-slate-warm-600 dark:bg-slate-warm-700" />
                     <label for="remember" class="text-xs text-slate-warm-600 dark:text-parchment-300 select-none">Ingat saya di perangkat ini</label>
                 </div>
 
