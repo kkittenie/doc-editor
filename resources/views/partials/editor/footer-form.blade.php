@@ -56,13 +56,13 @@
 <div class="rounded-xl border border-parchment-200 bg-parchment-100 p-3 dark:border-slate-warm-800 dark:bg-slate-warm-800">
     <span class="text-[11px] font-mono font-semibold uppercase text-slate-warm-500 dark:text-parchment-400 block mb-2">Preset Komponen Cepat</span>
     <div class="flex flex-wrap gap-2">
-        <button @click="perihalSurat='Surat Keputusan Pembentukan Panitia Kerja'; nomerSurat='055/SK-DIR/VIII/2026'" class="px-2.5 py-1 bg-white border border-parchment-300 rounded text-[11px] text-ink-800 hover:bg-parchment-50 dark:bg-slate-warm-900 dark:border-slate-warm-700 dark:text-parchment-200">
+        <button @click="perihalSurat='Surat Keputusan Pembentukan Panitia Kerja'; nomorSurat='055/SK-DIR/VIII/2026'" class="px-2.5 py-1 bg-white border border-parchment-300 rounded text-[11px] text-ink-800 hover:bg-parchment-50 dark:bg-slate-warm-900 dark:border-slate-warm-700 dark:text-parchment-200">
             SK Direksi
         </button>
-        <button @click="perihalSurat='Memorandum Penyesuaian Jam Kerja Operasional'; nomerSurat='012/MEMO-HRD/VIII/2026'" class="px-2.5 py-1 bg-white border border-parchment-300 rounded text-[11px] text-ink-800 hover:bg-parchment-50 dark:bg-slate-warm-900 dark:border-slate-warm-700 dark:text-parchment-200">
+        <button @click="perihalSurat='Memorandum Penyesuaian Jam Kerja Operasional'; nomorSurat='012/MEMO-HRD/VIII/2026'" class="px-2.5 py-1 bg-white border border-parchment-300 rounded text-[11px] text-ink-800 hover:bg-parchment-50 dark:bg-slate-warm-900 dark:border-slate-warm-700 dark:text-parchment-200">
             Internal Memo
         </button>
-        <button @click="perihalSurat='Perjanjian Kerja Sama Kemitraan Digital'; nomerSurat='088/PKS-LEGAL/VIII/2026'" class="px-2.5 py-1 bg-white border border-parchment-300 rounded text-[11px] text-ink-800 hover:bg-parchment-50 dark:bg-slate-warm-900 dark:border-slate-warm-700 dark:text-parchment-200">
+        <button @click="perihalSurat='Perjanjian Kerja Sama Kemitraan Digital'; nomorSurat='088/PKS-LEGAL/VIII/2026'" class="px-2.5 py-1 bg-white border border-parchment-300 rounded text-[11px] text-ink-800 hover:bg-parchment-50 dark:bg-slate-warm-900 dark:border-slate-warm-700 dark:text-parchment-200">
             Perjanjian / PKS
         </button>
     </div>

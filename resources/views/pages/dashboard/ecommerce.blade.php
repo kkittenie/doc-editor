@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="flex flex-col lg:h-[calc(100vh-105px)] lg:overflow-hidden space-y-3" x-data="{
+<div class="flex flex-col lg:h-[calc(100vh-105px)] lg:overflow-hidden space-y-2" x-data="{
     // Active Tab in Component Editor
     activeZone: 'header', // 'header', 'body', 'footer', 'signature'
     
@@ -41,7 +41,7 @@
 }">
 
     <!-- Top Action & View Toolbar -->
-    <div class="mb-5 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-parchment-200 bg-white p-3.5 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
+    <div class="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-parchment-200 bg-white p-3 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
         <!-- Left: Workspace Breadcrumb & Page Info -->
         <div class="flex items-center gap-3">
             <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-ink-900 text-parchment-100 dark:bg-parchment-100 dark:text-ink-900 shrink-0">
@@ -150,6 +150,11 @@
                 </div>
 
                 <div>
+                    <label class="block text-xs font-semibold text-ink-800 dark:text-parchment-200 mb-1">Sifat Surat</label>
+                    <input type="text" x-model="sifatSurat" class="w-full text-xs rounded-lg border border-parchment-300 p-2.5 bg-parchment-25 dark:bg-slate-warm-800 dark:border-slate-warm-700 dark:text-parchment-100 font-medium" />
+                </div>
+
+                <div>
                     <label class="block text-xs font-semibold text-ink-800 dark:text-parchment-200 mb-1">Perihal Dokumen</label>
                     <input type="text" x-model="perihalSurat" class="w-full text-xs rounded-lg border border-parchment-300 p-2.5 bg-parchment-25 dark:bg-slate-warm-800 dark:border-slate-warm-700 dark:text-parchment-100 font-medium" />
                 </div>
@@ -242,13 +247,13 @@
             <div class="rounded-xl border border-parchment-200 bg-parchment-100 p-3 dark:border-slate-warm-800 dark:bg-slate-warm-800">
                 <span class="text-[11px] font-mono font-semibold uppercase text-slate-warm-500 dark:text-parchment-400 block mb-2">Preset Komponen Cepat</span>
                 <div class="flex flex-wrap gap-2">
-                    <button @click="perihalSurat='Surat Keputusan Pembentukan Panitia Kerja'; nomerSurat='055/SK-DIR/VIII/2026'" class="px-2.5 py-1 bg-white border border-parchment-300 rounded text-[11px] text-ink-800 hover:bg-parchment-50 dark:bg-slate-warm-900 dark:border-slate-warm-700 dark:text-parchment-200">
+                    <button @click="perihalSurat='Surat Keputusan Pembentukan Panitia Kerja'; nomorSurat='055/SK-DIR/VIII/2026'" class="px-2.5 py-1 bg-white border border-parchment-300 rounded text-[11px] text-ink-800 hover:bg-parchment-50 dark:bg-slate-warm-900 dark:border-slate-warm-700 dark:text-parchment-200">
                         SK Direksi
                     </button>
-                    <button @click="perihalSurat='Memorandum Penyesuaian Jam Kerja Operasional'; nomerSurat='012/MEMO-HRD/VIII/2026'" class="px-2.5 py-1 bg-white border border-parchment-300 rounded text-[11px] text-ink-800 hover:bg-parchment-50 dark:bg-slate-warm-900 dark:border-slate-warm-700 dark:text-parchment-200">
+                    <button @click="perihalSurat='Memorandum Penyesuaian Jam Kerja Operasional'; nomorSurat='012/MEMO-HRD/VIII/2026'" class="px-2.5 py-1 bg-white border border-parchment-300 rounded text-[11px] text-ink-800 hover:bg-parchment-50 dark:bg-slate-warm-900 dark:border-slate-warm-700 dark:text-parchment-200">
                         Internal Memo
                     </button>
-                    <button @click="perihalSurat='Perjanjian Kerja Sama Kemitraan Digital'; nomerSurat='088/PKS-LEGAL/VIII/2026'" class="px-2.5 py-1 bg-white border border-parchment-300 rounded text-[11px] text-ink-800 hover:bg-parchment-50 dark:bg-slate-warm-900 dark:border-slate-warm-700 dark:text-parchment-200">
+                    <button @click="perihalSurat='Perjanjian Kerja Sama Kemitraan Digital'; nomorSurat='088/PKS-LEGAL/VIII/2026'" class="px-2.5 py-1 bg-white border border-parchment-300 rounded text-[11px] text-ink-800 hover:bg-parchment-50 dark:bg-slate-warm-900 dark:border-slate-warm-700 dark:text-parchment-200">
                         Perjanjian / PKS
                     </button>
                 </div>
@@ -267,7 +272,7 @@
                     <span class="flex items-center gap-1.5">
                         PREVIEW A4 (210 × 297 mm)
                     </span>
-                    <span class="page-number">Lembar 1 dari 2</span>
+                    <span class="page-number" x-text="'Lembar ' + currentPage + ' dari ' + totalPages"></span>
                 </div>
 
                 <!-- REALISTIC A4 SHEET 1 -->
@@ -290,6 +295,7 @@
                     <div class="text-center mb-6">
                         <h3 class="font-serif font-bold text-base uppercase underline tracking-wider text-ink-900">KEPUTUSAN DIREKSI</h3>
                         <p class="font-mono text-xs text-ink-800 mt-1" x-text="'Nomor: ' + nomorSurat"></p>
+                        <p class="font-sans text-xs text-slate-warm-600 mt-1" x-text="'Sifat: ' + sifatSurat"></p>
                         <p class="font-sans text-xs text-slate-warm-600 mt-1 italic" x-text="'Tentang: ' + perihalSurat"></p>
                     </div>
 
