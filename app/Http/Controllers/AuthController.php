@@ -63,7 +63,7 @@ class AuthController extends Controller
         ]);
 
         $user = \App\Models\User::create([
-            'name'     => $data['fname'],''.$data['lname'],
+            'name'     => $data['fname'].' '.$data['lname'],
             'email'    => $data['email'],
             'password' => Hash::make($data['password']),
         ]);

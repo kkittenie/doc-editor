@@ -23,6 +23,7 @@ class Document extends Model
 
     protected $casts = [
         'header_data'    => 'array',
+        'body_content'   => 'array',
         'footer_data'    => 'array',
         'signature_data' => 'array',
     ];
