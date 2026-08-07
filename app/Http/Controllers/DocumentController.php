@@ -31,30 +31,60 @@ class DocumentController extends Controller
     // Simpan dokumen baru
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'title'          => ['required', 'string', 'max:255'],
-            'type'           => ['nullable', 'string'],
-            'header_data'    => ['required', 'array'],
-            'body_content'   => ['nullable', 'array'],
-            'footer_data'    => ['required', 'array'],
-            'signature_data' => ['nullable', 'array'],
-            'status'         => ['nullable', 'in:draft,final,archived'],
-        ]);
+        return response()->json(['message' => 'Dokumen masuk controller']);
 
-        $document = Document::create([
-            'user_id'        => Auth::id(),
-            'title'          => $data['title'],
-            'type'           => $data['type'] ?? 'umum',
-            'header_data'    => $data['header_data'],
-            'body_content'   => $data['body_content'] ?? [],
-            'footer_data'    => $data['footer_data'],
-            'signature_data' => $data['signature_data'] ?? null,
-            'status'         => $data['status'] ?? 'draft',
-        ]);
+        // $document = Document::create([
 
-        return response()->json([
-            'message' => 'Dokumen berhasil disimpan.',
-            'id'      => $document->id,
-        ]);
-}
+
+        //     'user_id' => Auth::id(),
+
+
+        //     'title' => 'Dokumen Baru',
+
+
+        //     'type' => 'kontrak',
+
+
+        //     'header_data' => [
+
+        //         'kopInstansi' => $request->kopInstansi,
+
+        //         'kopAlamat' => $request->kopAlamat,
+
+        //     ],
+
+
+
+        //     'body_content' => $request->isiDokumen,
+
+
+
+        //     'footer_data' => [
+
+        //         'kota' => $request->kota,
+
+        //         'jabatan' => $request->jabatan,
+
+        //     ],
+
+
+
+        //     'signature_data' => [
+
+        //         'nama' => $request->nama,
+
+        //     ],
+
+
+
+        //     'status' => 'draft'
+
+
+        // ]);
+
+
+
+        // dd($document);
+
+    }
 }

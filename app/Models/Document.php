@@ -11,8 +11,14 @@ class Document extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'user_id', 'title', 'type', 'header_data',
-        'body_content', 'footer_data', 'signature_data', 'status',
+        'user_id',
+        'title',
+        'type',
+        'header_data',
+        'body_content',
+        'footer_data',
+        'signature_data',
+        'status',
     ];
 
     protected $casts = [

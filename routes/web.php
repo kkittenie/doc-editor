@@ -24,6 +24,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/documents', function () {
         return view('pages.documents', ['title' => 'Dokumen Saya & Arsip']);
     })->name('documents');
+    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
 
     // Galeri Template Dokumen
     Route::get('/templates', function () {
