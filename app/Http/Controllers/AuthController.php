@@ -55,7 +55,6 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-<<<<<<< HEAD
         $data = $request->validate([
             'fname'     => ['required', 'string', 'max:255'],
             'lname'     => ['required', 'string', 'max:255'],
@@ -67,33 +66,6 @@ class AuthController extends Controller
             'name'     => $data['fname'],''.$data['lname'],
             'email'    => $data['email'],
             'password' => Hash::make($data['password']),
-=======
-        $request->validate([
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['nullable', 'string', 'max:255'],
-            'username' => ['required', 'string', 'alpha_dash', 'max:255', 'unique:users,username'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8'],
-        ], [
-            'first_name.required' => 'Nama depan wajib diisi.',
-            'username.required' => 'Username wajib diisi.',
-            'username.alpha_dash' => 'Username hanya boleh berisi huruf, angka, strip (-), dan garis bawah (_).',
-            'username.unique' => 'Username ini sudah digunakan, silakan pilih username lain.',
-            'email.required' => 'Alamat email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
-            'email.unique' => 'Email sudah terdaftar. Silakan gunakan email lain atau masuk.',
-            'password.required' => 'Kata sandi wajib diisi.',
-            'password.min' => 'Kata sandi minimal 8 karakter.',
-        ]);
-
-        $name = trim($request->first_name . ' ' . $request->last_name);
-
-        $user = User::create([
-            'name' => $name,
-            'username' => strtolower($request->username),
-            'email' => strtolower($request->email),
-            'password' => Hash::make($request->password),
->>>>>>> b895488bd17b0375d2c9a5e1f97bb8bec3dcc502
         ]);
 
         Auth::login($user);

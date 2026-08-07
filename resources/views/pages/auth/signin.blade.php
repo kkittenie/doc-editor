@@ -47,13 +47,8 @@
 
         <!-- Login Form Card -->
         <div class="rounded-2xl border border-parchment-300 bg-white p-8 shadow-paper dark:bg-slate-warm-900 dark:border-slate-warm-800">
-<<<<<<< HEAD
             <form action="{{ route('signin') }}" method="POST">
                     @csrf
-=======
-            <form action="{{ route('do-login') }}" method="POST" class="space-y-5">
-                @csrf
->>>>>>> b895488bd17b0375d2c9a5e1f97bb8bec3dcc502
                 <div>
                     <label for="signin-login" class="block text-xs font-semibold text-ink-900 dark:text-parchment-200 mb-1.5">Email atau Username</label>
                     <input id="signin-login" type="text" name="login" required placeholder="nama@perusahaan.co.id atau username" value="{{ old('login') }}" autocomplete="username"
