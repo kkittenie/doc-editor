@@ -20,6 +20,14 @@
             <h1 class="font-serif font-bold text-2xl text-ink-900 dark:text-parchment-50 tracking-tight">
                 Buat Akun Papercraft
             </h1>
+            <p class="text-sm text-slate-warm-500 dark:text-parchment-400 mt-1.5">
+                Mulai susun dokumen resmi & tanda tangan digital.
+            </p>
+        </div>
+
+        <!-- Register Form Card -->
+        <div
+            class="rounded-2xl border border-parchment-300 bg-white p-8 shadow-paper dark:bg-slate-warm-900 dark:border-slate-warm-800">
             @if ($errors->any())
             <div
                 class="mb-6 p-3 rounded-lg border border-seal-200 bg-seal-50 text-seal-800 text-xs font-medium dark:bg-seal-950 dark:border-seal-800 dark:text-seal-200">
@@ -30,14 +38,6 @@
                 </ul>
             </div>
             @endif
-            <p class="text-sm text-slate-warm-500 dark:text-parchment-400 mt-1.5">
-                Mulai susun dokumen resmi & tanda tangan digital.
-            </p>
-        </div>
-
-        <!-- Register Form Card -->
-        <div
-            class="rounded-2xl border border-parchment-300 bg-white p-8 shadow-paper dark:bg-slate-warm-900 dark:border-slate-warm-800">
             <form action="{{ route('signup') }}" method="POST">
                 @csrf
                 <div class="grid grid-cols-2 gap-3">
