@@ -8,6 +8,18 @@ use Illuminate\Support\Facades\Auth;
 
 class DocumentController extends Controller
 {
+    public function index()
+    {
+       $documents = Document::where('user_id', auth()->id())
+            ->latest()
+            ->paginate(12);
+
+        return view('pages.documents', [
+            'title' => 'Dokumen Saya & Arsip',
+            'documents' => $documents,
+        ]);
+    }
+
     public function create()
     {
         return view('pages.editor', [

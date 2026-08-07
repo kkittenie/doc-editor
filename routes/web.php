@@ -11,7 +11,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
-    Route::get('/documents', fn() => view('pages.documents', ['title' => 'Dokumen Saya & Arsip']))->name('documents');
+    Route::get('/documents', [DocumentController::class, 'index'])->name('documents');
     Route::get('/templates', fn() => view('pages.templates', ['title' => 'Galeri Template Dokumen']))->name('templates');
     Route::get('/signatures', fn() => view('pages.signatures', ['title' => 'Studio Tanda Tangan & e-Sign']))->name('signatures');
     Route::get('/settings', fn() => view('pages.settings', ['title' => 'Pengaturan Workspace']))->name('settings');

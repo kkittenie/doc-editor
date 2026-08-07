@@ -1,75 +1,63 @@
 @extends('layouts.app')
 
 @section('content')
-<div x-data="{
-    filterStatus: 'all',
-    searchQuery: '',
-    selectedDoc: null,
-    
-    documents: [
-        {
-            id: 'DOC-2026-042',
-            title: 'SK Direksi tentang Standar Operasional Prosedur Penyusunan Dokumen',
-            category: 'Surat Keputusan',
-            date: '05 Agt 2026',
-            status: 'signed',
-            statusLabel: 'Terverifikasi Digital',
-            signer: 'Drs. H. Aris Budiman, M.B.A.',
-            signerRole: 'Direktur Utama',
-            pages: 2,
-            hasMaterai: true
-        },
-        {
-            id: 'DOC-2026-039',
-            title: 'Perjanjian Kerja Sama Kemitraan Strategis Layanan Cloud',
-            category: 'Kontrak / PKS',
-            date: '02 Agt 2026',
-            status: 'pending',
-            statusLabel: 'Menunggu TTD',
-            signer: 'Bambang Sudiro, S.H.',
-            signerRole: 'Head of Legal',
-            pages: 5,
-            hasMaterai: true
-        },
-        {
-            id: 'DOC-2026-035',
-            title: 'Internal Memorandum Jam Operasional Kerja Bulan Agustus',
-            category: 'Memorandum',
-            date: '28 Jul 2026',
-            status: 'verified',
-            statusLabel: 'Sah & TTE BSRE',
-            signer: 'Rina Sulistyo, M.M.',
-            signerRole: 'VP Human Capital',
-            pages: 1,
-            hasMaterai: false
-        },
-        {
-            id: 'DOC-2026-028',
-            title: 'Berita Acara Serah Terima Aset & Inventaris Kantor',
-            category: 'Berita Acara',
-            date: '15 Jul 2026',
-            status: 'draft',
-            statusLabel: 'Draft Rencana',
-            signer: 'Tim General Affairs',
-            signerRole: 'GA Manager',
-            pages: 3,
-            hasMaterai: false
-        },
-        {
-            id: 'DOC-2026-014',
-            title: 'Surat Perintah Kerja Pengadaan Hardware Perangkat Keras',
-            category: 'Surat Perintah',
-            date: '04 Jun 2026',
-            status: 'archived',
-            statusLabel: 'Telah Diarsip',
-            signer: 'Drs. H. Aris Budiman, M.B.A.',
-            signerRole: 'Direktur Utama',
-            pages: 4,
-            hasMaterai: true
-        }
-    ]
-}">
+@php
+    $documentData = $documents->map(function ($doc) {
+        return [
+            'id' => 'DOC-' . str_pad($doc->id, 5, '0', STR_PAD_LEFT),
+            'databaseId' => $doc->id,
+            'title' => $doc->title,
+            'category' => ucfirst($doc->type),
+            'date' => $doc->created_at->format('d M Y'),
+            'status' => $doc->status,
+            'statusLabel' => ucfirst($doc->status),
+            'signer' => $doc->footer_data['namaPenandatangan'] ?? 'Belum Ditentukan',
+            'signerRole' => $doc->footer_data['jabatanPenandatangan'] ?? 'Belum Ditentukan',
+            'pages' => count($doc->body_content) + 1, // +1 for header page
+            'hasMaterai' => false
+        ];
+    });
+@endphp
+<div
+    x-data="{
+        filterStatus: 'all',
+        searchQuery: '',
 
+        documents: @js($documentData),
+
+        deleteDocument(docId) {
+
+            if (!confirm('Apakah Anda yakin ingin menghapus dokumen ini?')) {
+                return;
+            }
+
+            fetch('/documents/' + docId, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+
+                if (!response.ok) {
+                    throw new Error('Gagal Menghapus dokumen.');
+                }
+
+                window.location.reload();
+
+            })
+            .catch(error => {
+
+                alert(error.message);
+                console.error(error);
+
+            });
+
+        }
+
+    }"
+>
     <!-- Page Header Bar -->
     <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -165,9 +153,12 @@
 
                 <!-- Footer Card Action Buttons -->
                 <div class="pt-3 border-t border-parchment-200 dark:border-slate-warm-800 flex items-center justify-between gap-2">
-                    <a href="/" class="btn-secondary text-[11px] px-2.5 py-1.5 h-7">
-                        Edit
-                    </a>
+                    <button @click="window.location.href = `/documents/${doc.databaseId}/edit`" class="btn-secondary text-[11px] px-2.5 py-1.5 h-7">
+                        Lanjut
+                    </button>
+                    <button @click="deleteDocument(doc.databaseId)" class="btn-secondary text-[11px] px-2.5 py-1.5 h-7">
+                        Hapus
+                    </button>
                     <button onclick="window.print()" class="btn-primary text-[11px] px-2.5 py-1.5 h-7">
                         Cetak PDF
                     </button>
