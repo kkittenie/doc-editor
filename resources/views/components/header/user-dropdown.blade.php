@@ -77,6 +77,12 @@
                     Pengaturan Workspace
                 </a>
             </li>
+            <li>
+                <a href="/profile" class="flex items-center gap-2.5 px-2.5 py-2 font-medium text-xs text-ink-800 rounded-lg hover:bg-parchment-100 dark:text-parchment-200 dark:hover:bg-slate-warm-800 transition-colors">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Edit Profil
+                </a>
+            </li>
         </ul>
 
         <!-- Sign Out Action -->
