@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Document;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -25,6 +27,7 @@ class DocumentController extends Controller
         return view('pages.editor', [
             'title'    => 'Studio Composer Dokumen',
             'document' => null,
+            'signatures' => $this->userSignatures(),
         ]);
     }
 
@@ -35,7 +38,20 @@ class DocumentController extends Controller
         return view('pages.editor', [
             'title'    => 'Edit: '.$document->title,
             'document' => $document,
+            'signatures' => $this->userSignatures(),
         ]);
+    }
+
+    private function userSignatures()
+    {
+        return \App\Models\Signature::where('user_id', Auth::id())
+            ->latest()
+            ->get()
+            ->map(fn($s) => [
+                'id' => $s->id,
+                'name' => $s->name,
+                'url' => \Illuminate\Support\Facades\Storage::url($s->image_path),
+            ]);
     }
 
     public function store(Request $request)
@@ -90,5 +106,29 @@ class DocumentController extends Controller
         abort_unless($document->user_id === Auth::id(), 403);
         $document->delete();
         return response()->json(['message' => 'Dokumen dipindah ke trash.']);
+    }
+
+    public function exportPdf(Document $document)
+    {
+    abort_unless($document->user_id === Auth::id(), 403);
+
+    $signatureUrl = $document->signature_data['signatureUrl'] ?? null;
+    $signaturePath = null;
+
+    if ($signatureUrl) {
+        // ubah URL publik ("/storage/signatures/xxx.png") jadi path file asli di server
+        $relative = ltrim(parse_url($signatureUrl, PHP_URL_PATH), '/');
+        $fullPath = public_path($relative);
+        if (file_exists($fullPath)) {
+            $signaturePath = $fullPath;
+        }
+    }
+
+    $pdf = Pdf::loadView('pdf.document', [
+        'document'      => $document,
+        'signaturePath' => $signaturePath,
+    ])->setPaper('a4', 'portrait');
+
+    return $pdf->download('dokumen-'.$document->id.'-'.now()->format('Ymd').'.pdf');
     }
 }

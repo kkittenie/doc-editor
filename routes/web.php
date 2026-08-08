@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\SignatureController;
 
 // Protected Routes
 Route::middleware('auth')->group(function () {
@@ -12,8 +13,11 @@ Route::middleware('auth')->group(function () {
     Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
     Route::get('/documents', [DocumentController::class, 'index'])->name('documents');
+    Route::get('/documents/{document}/export', [DocumentController::class, 'exportPdf']);
     Route::get('/templates', fn() => view('pages.templates', ['title' => 'Galeri Template Dokumen']))->name('templates');
-    Route::get('/signatures', fn() => view('pages.signatures', ['title' => 'Studio Tanda Tangan & e-Sign']))->name('signatures');
+    Route::get('/signatures', [SignatureController::class, 'index'])->name('signatures');
+    Route::post('/signatures', [SignatureController::class, 'store'])->name('signatures.store');
+    Route::delete('/signatures/{signature}', [SignatureController::class, 'destroy'])->name('signatures.destroy');
     Route::get('/settings', fn() => view('pages.settings', ['title' => 'Pengaturan Workspace']))->name('settings');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

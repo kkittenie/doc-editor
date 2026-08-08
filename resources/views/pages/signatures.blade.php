@@ -2,17 +2,18 @@
 
 @section('content')
 <div x-data="{
-    activeTab: 'draw', // 'draw', 'upload', 'saved', 'certificate'
+    activeTab: 'draw',
     signerName: 'Drs. H. Aris Budiman, M.B.A.',
     signerRole: 'Direktur Utama',
     signerNip: '19780412 200312 1 002',
     certificateId: 'BSRE-TTE-2026-981412A',
     certStatus: 'Aktif Hingga 2028',
-    
-    // Canvas drawing state
+
     isDrawing: false,
     hasDrawn: false,
-    
+    isSaving: false,
+    signatures: @js($signatures),
+
     initCanvas() {
         const canvas = document.getElementById('signatureCanvas');
         if (!canvas) return;
@@ -20,9 +21,9 @@
         ctx.strokeStyle = '#1B2A4A';
         ctx.lineWidth = 2.5;
         ctx.lineCap = 'round';
-        
+
         let drawing = false;
-        
+
         const getPos = (e) => {
             const rect = canvas.getBoundingClientRect();
             return {
@@ -30,7 +31,7 @@
                 y: (e.clientY || e.touches[0].clientY) - rect.top
             };
         };
-        
+
         const start = (e) => {
             drawing = true;
             this.hasDrawn = true;
@@ -38,16 +39,16 @@
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
         };
-        
+
         const move = (e) => {
             if (!drawing) return;
             const pos = getPos(e);
             ctx.lineTo(pos.x, pos.y);
             ctx.stroke();
         };
-        
+
         const stop = () => { drawing = false; };
-        
+
         canvas.addEventListener('mousedown', start);
         canvas.addEventListener('mousemove', move);
         canvas.addEventListener('mouseup', stop);
@@ -55,13 +56,55 @@
         canvas.addEventListener('touchmove', move);
         canvas.addEventListener('touchend', stop);
     },
-    
+
     clearCanvas() {
         const canvas = document.getElementById('signatureCanvas');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         this.hasDrawn = false;
+    },
+
+    async saveSignature(type, dataUrl) {
+        this.isSaving = true;
+        try {
+            const res = await window.axios.post('/signatures', {
+                name: 'Tanda Tangan ' + new Date().toLocaleDateString('id-ID'),
+                type: type,
+                image: dataUrl,
+            });
+            this.signatures.unshift(res.data.signature);
+            this.activeTab = 'saved';
+            if (type === 'draw') this.clearCanvas();
+        } catch (e) {
+            alert('Gagal menyimpan tanda tangan.');
+            console.error(e);
+        } finally {
+            this.isSaving = false;
+        }
+    },
+
+    saveDrawnSignature() {
+        if (!this.hasDrawn) {
+            alert('Silakan gores tanda tangan terlebih dahulu.');
+            return;
+        }
+        const canvas = document.getElementById('signatureCanvas');
+        this.saveSignature('draw', canvas.toDataURL('image/png'));
+    },
+
+    handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => this.saveSignature('upload', e.target.result);
+        reader.readAsDataURL(file);
+    },
+
+    async deleteSignature(id) {
+        if (!confirm('Hapus tanda tangan ini?')) return;
+        await window.axios.delete('/signatures/' + id);
+        this.signatures = this.signatures.filter(s => s.id !== id);
     }
 }" x-init="$nextTick(() => initCanvas())">
 
@@ -82,11 +125,10 @@
 
     <!-- Main Grid: Left Profile Card & Right Signature Studio Pad -->
     <div class="grid grid-cols-12 gap-6">
-        
+
         <!-- Profile & Certificate Info (4 / 12) -->
         <div class="col-span-12 lg:col-span-4 space-y-5">
             <div class="rounded-xl border border-parchment-300 bg-white p-5 shadow-theme-sm dark:border-slate-warm-800 dark:bg-slate-warm-900 text-center">
-                <!-- Avatar / Crest -->
                 <div class="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-ink-900 text-parchment-100 font-serif font-bold text-2xl shadow-md border-4 border-parchment-100 dark:border-slate-warm-800">
                     AB
                 </div>
@@ -94,7 +136,6 @@
                 <p class="text-xs text-bronze-700 dark:text-bronze-400 font-medium" x-text="signerRole"></p>
                 <p class="text-[11px] font-mono text-slate-warm-400 mt-1" x-text="signerNip"></p>
 
-                <!-- Certificate Metadata Pill -->
                 <div class="mt-4 pt-4 border-t border-parchment-200 dark:border-slate-warm-800 text-left space-y-2 text-xs">
                     <div class="flex items-center justify-between">
                         <span class="text-slate-warm-500">ID Sertifikat:</span>
@@ -111,10 +152,9 @@
                 </div>
             </div>
 
-            <!-- Stempel & Materai Status Summary -->
             <div class="rounded-xl border border-parchment-300 bg-parchment-100 p-4 dark:border-slate-warm-800 dark:bg-slate-warm-800 space-y-3">
                 <h4 class="font-mono text-xs font-bold uppercase text-ink-900 dark:text-parchment-100 tracking-wider">Aset Stempel Tersedia</h4>
-                
+
                 <div class="flex items-center justify-between p-2.5 rounded-lg bg-white border border-parchment-200 dark:bg-slate-warm-900 dark:border-slate-warm-700 text-xs">
                     <div class="flex items-center gap-2">
                         <div class="w-7 h-7 rounded-full border border-seal-700 flex items-center justify-center text-[8px] font-bold text-seal-700">PT</div>
@@ -141,8 +181,7 @@
 
         <!-- Signature Studio Drawing Pad (8 / 12) -->
         <div class="col-span-12 lg:col-span-8 space-y-4">
-            
-            <!-- Studio Tab Switcher -->
+
             <div class="flex flex-wrap sm:flex-nowrap rounded-xl border border-parchment-300 bg-white p-1 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900 gap-1">
                 <button @click="activeTab = 'draw'; $nextTick(() => initCanvas())" :class="activeTab === 'draw' ? 'bg-ink-900 text-white font-semibold' : 'text-slate-warm-600 hover:text-ink-900 dark:text-parchment-400'" class="flex-1 py-2 text-[11px] sm:text-xs rounded-lg transition-all min-w-[120px]">
                     ✍️ Gores Tanda Tangan
@@ -167,8 +206,7 @@
                     </button>
                 </div>
 
-                <!-- Canvas Component -->
-                <div class="signature-pad-container h-[220px] w-full flex items-center justify-center overflow-hidden">
+                <div class="signature-pad-container h-[220px] w-full flex items-center justify-center overflow-hidden relative">
                     <canvas id="signatureCanvas" width="550" height="200" class="max-w-full"></canvas>
                     <div x-show="!hasDrawn" class="absolute pointer-events-none text-center text-slate-warm-400 text-xs px-2">
                         <span class="block font-serif italic mb-1">Goreskan tanda tangan di sini...</span>
@@ -181,8 +219,8 @@
                         <span class="w-3 h-3 rounded-full bg-ink-900 border border-parchment-300"></span>
                         <span class="text-xs text-slate-warm-600">Tinta Biru Tua (Deep Ink Navy)</span>
                     </div>
-                    <button @click="alert('Tanda tangan berhasil disimpan ke vault!')" class="btn-primary text-xs shadow-sm w-full sm:w-auto">
-                        Simpan ke Vault TTD →
+                    <button @click="saveDrawnSignature()" :disabled="isSaving" class="btn-primary text-xs shadow-sm w-full sm:w-auto">
+                        <span x-text="isSaving ? 'Menyimpan...' : 'Simpan ke Vault TTD →'"></span>
                     </button>
                 </div>
             </div>
@@ -190,40 +228,35 @@
             <!-- TAB 2: UPLOAD FILE -->
             <div x-show="activeTab === 'upload'" x-transition class="rounded-xl border border-parchment-300 bg-white p-5 shadow-theme-sm dark:border-slate-warm-800 dark:bg-slate-warm-900 space-y-4">
                 <h3 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-100">Upload File Hasil Scan / Vector</h3>
-                
-                <div class="border-2 border-dashed border-parchment-300 rounded-xl p-8 text-center bg-parchment-25 dark:bg-slate-warm-800 dark:border-slate-warm-700">
+
+                <div @click="$refs.fileInput.click()" class="cursor-pointer border-2 border-dashed border-parchment-300 rounded-xl p-8 text-center bg-parchment-25 dark:bg-slate-warm-800 dark:border-slate-warm-700 hover:border-bronze-400 transition-colors">
                     <svg class="mx-auto text-slate-warm-400 mb-3" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
                     </svg>
-                    <p class="text-xs font-semibold text-ink-900 dark:text-parchment-100 mb-1">Tarik & Lepas Gambar TTD atau Klik untuk Cari</p>
+                    <p class="text-xs font-semibold text-ink-900 dark:text-parchment-100 mb-1" x-text="isSaving ? 'Mengunggah...' : 'Tarik & Lepas Gambar TTD atau Klik untuk Cari'"></p>
                     <p class="text-[11px] text-slate-warm-500">Mendukung format PNG Transparan, SVG, atau JPG (Max 5MB)</p>
                 </div>
+                <input type="file" x-ref="fileInput" accept="image/png,image/jpeg,image/svg+xml" class="hidden" @change="handleFileUpload($event)">
             </div>
 
             <!-- TAB 3: SAVED SIGNATURES -->
             <div x-show="activeTab === 'saved'" x-transition class="rounded-xl border border-parchment-300 bg-white p-5 shadow-theme-sm dark:border-slate-warm-800 dark:bg-slate-warm-900 space-y-4">
                 <h3 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-100">Koleksi Tanda Tangan Tersimpan</h3>
-                
+
+                <div x-show="signatures.length === 0" class="text-xs text-slate-warm-500 text-center py-8">
+                    Belum ada tanda tangan tersimpan. Coba gores atau upload dulu di tab sebelah.
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <!-- Saved TTD 1 -->
-                    <div class="border border-bronze-400 rounded-xl p-4 bg-bronze-25 dark:bg-slate-warm-800 relative">
-                        <span class="absolute top-2 right-2 px-2 py-0.5 rounded text-[9px] font-bold bg-bronze-600 text-white">Utama</span>
-                        <div class="h-20 flex items-center justify-center my-2">
-                            <svg width="150" height="50" viewBox="0 0 200 80" fill="none">
-                                <path d="M 20 45 C 40 10, 60 70, 75 35 C 90 10, 80 60, 110 40 C 130 25, 140 55, 170 30" stroke="#1B2A4A" stroke-width="2.5" stroke-linecap="round"/>
-                            </svg>
+                    <template x-for="sig in signatures" :key="sig.id">
+                        <div class="border border-parchment-300 rounded-xl p-4 bg-white dark:bg-slate-warm-800 relative">
+                            <button @click="deleteSignature(sig.id)" class="absolute top-2 right-2 text-[10px] text-error-600 hover:underline">Hapus</button>
+                            <div class="h-20 flex items-center justify-center my-2">
+                                <img :src="sig.url" class="max-h-20 max-w-full object-contain" alt="Tanda tangan">
+                            </div>
+                            <p class="text-xs font-bold text-center text-ink-900 dark:text-parchment-100" x-text="sig.name"></p>
                         </div>
-                        <p class="text-xs font-bold text-center text-ink-900 dark:text-parchment-100">TTD Resmi Direksi</p>
-                    </div>
-                    <!-- Saved TTD 2 -->
-                    <div class="border border-parchment-300 rounded-xl p-4 bg-white dark:bg-slate-warm-800">
-                        <div class="h-20 flex items-center justify-center my-2">
-                            <svg width="150" height="50" viewBox="0 0 200 80" fill="none">
-                                <path d="M 30 50 Q 80 20, 150 40" stroke="#1B2A4A" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                        <p class="text-xs font-bold text-center text-ink-900 dark:text-parchment-100">Paraf Ringkas</p>
-                    </div>
+                    </template>
                 </div>
             </div>
 

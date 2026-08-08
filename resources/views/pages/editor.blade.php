@@ -8,6 +8,9 @@
     // Document Save State
     documentId: @js($document->id ?? null),
     saveStatus: 'idle',
+    showSignaturePicker: false,
+    availableSignatures: @js($signatures ?? []),
+    selectedSignatureUrl: @js($document->signature_data['signatureUrl'] ?? null),
 
     async saveDocument() {
         this.saveStatus = 'saving';
@@ -41,6 +44,7 @@
                 selectedMaterai: this.selectedMaterai,
                 signatureX: this.signatureX,
                 signatureY: this.signatureY,
+                signatureUrl: this.selectedSignatureUrl,
             },
             status: 'draft',
         };
@@ -85,7 +89,7 @@
     
     // Signature & Materai Options
     selectedMaterai: @js($document->signature_data['selectedMaterai'] ?? 'materai10k'),
-    hasSignature: true,
+    hasSignature: @js(!empty($document->signature_data['signatureUrl'] ?? null)),
     signatureX: @js($document->signature_data['signatureX'] ?? 65),
     signatureY: @js($document->signature_data['signatureY'] ?? 78),
     zoomLevel: 100,
