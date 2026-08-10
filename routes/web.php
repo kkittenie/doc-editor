@@ -19,6 +19,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
     Route::get('/documents', [DocumentController::class, 'index'])->name('documents');
     Route::get('/documents/{document}/export', [DocumentController::class, 'exportPdf']);
+    Route::post('documents/logo', [DocumentController::class, 'uploadLogo'])->name('documents.logo');
     Route::get('/signatures', [SignatureController::class, 'index'])->name('signatures');
     Route::post('/signatures', [SignatureController::class, 'store'])->name('signatures.store');
     Route::delete('/signatures/{signature}', [SignatureController::class, 'destroy'])->name('signatures.destroy');

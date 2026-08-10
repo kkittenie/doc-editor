@@ -5,6 +5,17 @@
     <style>
         body { font-family: 'DejaVu Sans', sans-serif; font-size: 11px; color: #1B2A4A; }
         .header-table { width: 100%; border-bottom: 3px double #1B2A4A; padding-bottom: 8px; margin-bottom: 16px; }
+        
+        /* Style Logo Bulat & Border */
+        .logo-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 8px;
+            display: block;
+            object-fit: cover;
+        }
+
         .instansi { font-size: 16px; font-weight: bold; text-transform: uppercase; text-align: center; }
         .alamat, .kontak { text-align: center; font-size: 9px; }
         .judul { text-align: center; font-size: 14px; font-weight: bold; text-decoration: underline; margin: 16px 0 4px; }
@@ -26,7 +37,11 @@
 </head>
 <body>
 
-    <div class="header-table">
+    <div class="header-table" style="text-align:center;">
+        @if(!empty($logoPath))
+            <!-- Logo dengan ukuran fixed 60x60px, membulat, dan ber-border -->
+            <img src="{{ $logoPath }}" class="logo-img" alt="Logo Perusahaan">
+        @endif
         <div class="instansi">{{ $document->header_data['kopInstansi'] ?? '' }}</div>
         <div class="alamat">{{ $document->header_data['kopAlamat'] ?? '' }}</div>
         <div class="kontak">{{ $document->header_data['kopKontrak'] ?? '' }}</div>
@@ -71,7 +86,7 @@
                 <strong>{{ strtoupper($document->footer_data['jabatanPenandatangan'] ?? '') }}</strong>
 
                 <div class="signature-space">
-                    @if($signaturePath)
+                    @if(!empty($signaturePath))
                         <img src="{{ $signaturePath }}" alt="Tanda Tangan">
                     @endif
                 </div>

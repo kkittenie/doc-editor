@@ -7,6 +7,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use App\Data\DocumentTemplates;
 
 class DocumentController extends Controller
@@ -113,21 +114,13 @@ class DocumentController extends Controller
     {
     abort_unless($document->user_id === Auth::id(), 403);
 
-    $signatureUrl = $document->signature_data['signatureUrl'] ?? null;
-    $signaturePath = null;
-
-    if ($signatureUrl) {
-        // ubah URL publik ("/storage/signatures/xxx.png") jadi path file asli di server
-        $relative = ltrim(parse_url($signatureUrl, PHP_URL_PATH), '/');
-        $fullPath = public_path($relative);
-        if (file_exists($fullPath)) {
-            $signaturePath = $fullPath;
-        }
-    }
+    $signaturePath = $this->resolvePublicPath($document->signature_data['signatureUrl'] ?? null);
+    $logoPath = $this->resolvePublicPath($document->header_data['logoUrl'] ?? null);
 
     $pdf = Pdf::loadView('pdf.document', [
         'document'      => $document,
         'signaturePath' => $signaturePath,
+        'logoPath'      => $logoPath,
     ])->setPaper('a4', 'portrait');
 
     return $pdf->download('dokumen-'.$document->id.'-'.now()->format('Ymd').'.pdf');
@@ -300,5 +293,28 @@ class DocumentController extends Controller
             'templateData' => $templates[$template],
             'signatures' => $this->userSignatures(),
         ]);
+    }
+
+    public function uploadLogo(Request $request)
+    {
+        $data = $request->validate([
+            'image' => ['required', 'string'],
+        ]);
+
+        [$meta, $base64] = explode(',', $data['image'], 2);
+        $imageData = base64_decode($base64);
+
+        $filename = 'logos/'.Auth::id(). '_' .Str::random(10). '.png';
+        Storage::disk('public')->put($filename, $imageData);
+
+        return response()->json(['url' => Storage::url($filename)]);
+    }
+
+    private function resolvePublicPath(?string $url): ?string 
+    {
+        if (!$url) return null;
+        $relative = ltrim(parse_url($url, PHP_URL_PATH), '/');
+        $fullPath = public_path($relative);
+        return file_exists($fullPath) ? $fullPath : null;
     }
 }

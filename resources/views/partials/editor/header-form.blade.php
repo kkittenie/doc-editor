@@ -16,6 +16,25 @@
     </div>
 
     <div>
+    <label class="block text-xs font-semibold text-ink-800 dark:text-parchment-200 mb-1">Logo Perusahaan</label>
+    <div class="flex items-center gap-3">
+        <div class="h-14 w-14 rounded-full border border-parchment-300 dark:border-slate-warm-700 flex items-center justify-center overflow-hidden bg-parchment-25 dark:bg-slate-warm-800 shrink-0">
+            <img x-show="companyLogoUrl" :src="companyLogoUrl" class="h-full w-full object-cover" alt="Logo">
+            <span x-show="!companyLogoUrl" class="text-[10px] text-slate-warm-400">No Logo</span>
+        </div>
+        <div class="flex flex-col gap-1.5">
+            <button type="button" @click="$refs.logoInput.click()" :disabled="isUploadingLogo" class="btn-secondary text-[11px] px-3 py-1.5 h-7">
+                <span x-text="isUploadingLogo ? 'Mengunggah...' : (companyLogoUrl ? 'Ganti Logo' : 'Unggah Logo')"></span>
+            </button>
+            <button type="button" x-show="companyLogoUrl" @click="companyLogoUrl = null" class="text-[11px] text-error-600 hover:underline text-left">
+                Hapus Logo
+            </button>
+        </div>
+        <input type="file" x-ref="logoInput" accept="image/png,image/jpeg,image/svg+xml" class="hidden" @change="uploadLogo($event)">
+    </div>
+</div>
+
+    <div>
         <label class="block text-xs font-semibold text-ink-800 dark:text-parchment-200 mb-1">Nama Instansi / Perusahaan</label>
         <input type="text" x-model="kopInstansi" class="w-full text-xs rounded-lg border border-parchment-300 p-2.5 bg-parchment-25 focus:border-ink-900 dark:bg-slate-warm-800 dark:border-slate-warm-700 dark:text-parchment-100 font-serif font-bold" />
     </div>

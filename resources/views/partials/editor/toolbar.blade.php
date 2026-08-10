@@ -15,7 +15,7 @@
                 <h1 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-50">
                     Editor Komponen Dokumen
                 </h1>
-                <span class="doc-status doc-status-pending text-[10px]">Menunggu TTD</span>
+                <span class="doc-status text-[10px]" :class="hasSignature ? 'doc-status-verified' : 'doc-status-pending'" x-text="hasSignature ? 'TTD Terpasang' : 'Menunggu TTD'"></span>
             </div>
         </div>
     </div>

@@ -19,14 +19,28 @@
 
             <!-- KOP SURAT / HEADER STAGE -->
             <div class="text-center border-b-2 border-ink-900 pb-4 mb-6 relative">
-                <!-- Official Crest / Logo Simulation -->
-                <div
-                    class="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-ink-900 text-parchment-100 font-serif font-bold text-lg shadow-sm">
-                    NC
+
+                <!-- Official Crest / Logo Dynamic Display -->
+                <div class="mx-auto mb-2 flex justify-center items-center">
+                    <!-- TAMPILKAN LOGO JIKA SUDAH DI-UPLOAD / ADA URL LOGO -->
+                    <template x-if="companyLogoUrl">
+                        <img :src="companyLogoUrl" alt="Logo Perusahaan"
+                            class="w-16 h-16 rounded-full object-cover shadow-sx bg-white">
+                    </template>
+
+                    <!-- TAMPILKAN PLACEHOLDER "NC" ATAU ICON JIKA BELUM ADA LOGO -->
+                    <template x-if="!companyLogoUrl">
+                        <div
+                            class="flex h-16 w-16 items-center justify-center rounded-full bg-ink-900 text-parchment-100 font-serif font-bold text-xl shadow-sm border-2 border-slate-300">
+                            NC
+                        </div>
+                    </template>
                 </div>
+
                 <h2 class="font-serif font-bold text-xl uppercase tracking-wide text-ink-900" x-text="kopInstansi"></h2>
                 <p class="text-xs font-sans text-slate-warm-600 mt-1 leading-snug" x-text="kopAlamat"></p>
                 <p class="text-[10px] font-mono text-slate-warm-500 mt-0.5" x-text="kopKontrak"></p>
+
                 <!-- Double rule beneath kop -->
                 <div class="border-b border-ink-900 mt-2"></div>
             </div>

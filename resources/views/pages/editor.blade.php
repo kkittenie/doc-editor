@@ -12,6 +12,30 @@
     availableSignatures: @js($signatures ?? []),
     selectedSignatureUrl: @js($document->signature_data['signatureUrl'] ?? null),
 
+    // Logo Upload State (TAMBAHAN BARU 1)
+    companyLogoUrl: @js($templateData['header_data']['logoUrl'] ?? $document->header_data['logoUrl'] ?? null),
+    isUploadingLogo: false,
+
+    // Upload Logo Method (TAMBAHAN BARU 2)
+    uploadLogo(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        this.isUploadingLogo = true;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const res = await window.axios.post('/documents/logo', { image: e.target.result });
+                this.companyLogoUrl = res.data.url;
+            } catch (err) {
+                alert('Gagal mengunggah logo.');
+                console.error(err);
+            } finally {
+                this.isUploadingLogo = false;
+            }
+        };
+        reader.readAsDataURL(file);
+    },
+
     async saveDocument() {
         this.saveStatus = 'saving';
         const payload = {
@@ -25,6 +49,7 @@
                 perihalSurat: this.perihalSurat,
                 tanggalSurat: this.tanggalSurat,
                 sifatSurat: this.sifatSurat,
+                logoUrl: this.companyLogoUrl,
             },
             body_content: {
                 tujuanSurat: this.tujuanSurat,
@@ -102,7 +127,7 @@
     <!-- Editor Toolbar -->
     @include('partials.editor.toolbar')
 
-    <!-- Main Workspace Split: Left (Component Form Editor) vs Right (Live Realistic Paper Stage) -->
+    <!-- Main Workspace Split -->
     <div class="grid grid-cols-12 gap-5 items-start">
         
         <!-- LEFT COLUMN: Component Input Editor (5 / 12) -->
