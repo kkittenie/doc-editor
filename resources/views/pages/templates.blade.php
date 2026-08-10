@@ -1,66 +1,78 @@
 @extends('layouts.app')
 
 @section('content')
-<div x-data="{
-    selectedCategory: 'all',
-    
-    templates: [
-        {
-            title: 'Surat Keputusan (SK Direksi)',
-            code: 'TPL-SK-01',
-            category: 'sk',
-            categoryLabel: 'Surat Keputusan',
-            description: 'Format terstruktur untuk pembentukan panitia, penetapan SOP, atau kebijakan resmi perusahan.',
-            badge: 'Paling Populer',
-            sections: ['Kop Resmi', 'Konsideran (Menimbang & Mengingat)', 'Diktum (Memutuskan)', 'Blok TTD & e-Materai']
-        },
-        {
-            title: 'Internal Memorandum (Memo)',
-            code: 'TPL-MEMO-02',
-            category: 'memo',
-            categoryLabel: 'Memorandum',
-            description: 'Format komunikasi internal antar direksi, divisi, dan cabang kerja perusahaan.',
-            badge: 'Standar Cepat',
-            sections: ['Header Compact', 'Poin Perihal & Lampiran', 'Isi Instruksi Kerja', 'Catatan & TTD']
-        },
-        {
-            title: 'Perjanjian Kerja Sama (PKS)',
-            code: 'TPL-PKS-03',
-            category: 'pks',
-            categoryLabel: 'Kontrak / PKS',
-            description: 'Format Perjanjian Kerja Sama antara dua pihak lengkap dengan klausul & pasal hukum.',
-            badge: 'Resmi Legal',
-            sections: ['Judul Kontrak', 'Identitas Para Pihak', 'Pasal-Pasal Perjanjian', 'Dual TTD & Materai']
-        },
-        {
-            title: 'Berita Acara Serah Terima (BAST)',
-            code: 'TPL-BAST-04',
-            category: 'bast',
-            categoryLabel: 'Berita Acara',
-            description: 'Dokumen bukti penyerahan hasil kerja, inventaris kantor, atau penyelesaian proyek.',
-            badge: 'Standar GA/IT',
-            sections: ['Header BAST', 'Daftar Barang / Rincian', 'Pernyataan Penyerahan', 'Tanda Tangan 2 Pihak']
-        },
-        {
-            title: 'Surat Perintah Kerja (SPK)',
-            code: 'TPL-SPK-05',
-            category: 'spk',
-            categoryLabel: 'Surat Perintah',
-            description: 'Surat penugasan resmi untuk vendor, kontraktor, atau tim pelaksana lapangan.',
-            badge: 'Operational',
-            sections: ['Kop Instansi', 'Rincian Penugasan & Bobot', 'Batas Waktu', 'Pengesahan Pejabat']
-        },
-        {
-            title: 'Surat Keterangan Resmi',
-            code: 'TPL-KET-06',
-            category: 'ket',
-            categoryLabel: 'Surat Keterangan',
-            description: 'Surat keterangan kerja, keaktifan pegawai, atau pengesahan dokumen resmi.',
-            badge: 'HR / Personalia',
-            sections: ['Kop Resmi', 'Pernyataan Keterangan', 'Maksud & Tujuan', 'Stempel Basah / QR']
-        }
-    ]
-}">
+
+<div
+    x-data="{
+        selectedCategory: 'all',
+
+        templates: [
+            {
+                id: 'perjanjian-kerja-sama',
+                title: 'Perjanjian Kerja Sama (PKS)',
+                code: 'TPL-PKS-01',
+                category: 'pks',
+                categoryLabel: 'Kontrak / PKS',
+                description: 'Format Perjanjian Kerja Sama antara dua pihak dengan struktur pasal dan ketentuan yang dapat disesuaikan.',
+                badge: 'Resmi Legal',
+                sections: [
+                    'Judul Kontrak',
+                    'Identitas Para Pihak',
+                    'Pasal-Pasal Perjanjian',
+                    'TTD & Materai'
+                ]
+            },
+
+            {
+                id: 'kontrak-kerja',
+                title: 'Kontrak Kerja',
+                code: 'TPL-KERJA-02',
+                category: 'kontrak',
+                categoryLabel: 'Kontrak Kerja',
+                description: 'Template perjanjian kerja antara perusahaan dan pekerja dengan struktur hak, kewajiban, dan ketentuan kerja.',
+                badge: 'HR / Legal',
+                sections: [
+                    'Identitas Para Pihak',
+                    'Jabatan & Pekerjaan',
+                    'Hak & Kewajiban',
+                    'TTD & Materai'
+                ]
+            },
+
+            {
+                id: 'surat-kuasa',
+                title: 'Surat Kuasa',
+                code: 'TPL-KUASA-03',
+                category: 'surat',
+                categoryLabel: 'Surat Resmi',
+                description: 'Template surat kuasa resmi untuk memberikan kewenangan kepada pihak lain dalam suatu urusan tertentu.',
+                badge: 'Surat Resmi',
+                sections: [
+                    'Identitas Pemberi Kuasa',
+                    'Identitas Penerima Kuasa',
+                    'Ruang Lingkup Kuasa',
+                    'TTD & Materai'
+                ]
+            },
+
+            {
+                id: 'surat-pernyataan',
+                title: 'Surat Pernyataan',
+                code: 'TPL-PERNYATAAN-04',
+                category: 'surat',
+                categoryLabel: 'Surat Resmi',
+                description: 'Template surat pernyataan resmi untuk kebutuhan administrasi, perusahaan, maupun keperluan legal lainnya.',
+                badge: 'Administratif',
+                sections: [
+                    'Kop Resmi',
+                    'Identitas Pernyataan',
+                    'Isi Pernyataan',
+                    'TTD & Materai'
+                ]
+            }
+        ]
+    }"
+>
 
     <!-- Page Header Bar -->
     <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -76,21 +88,47 @@
 
     <!-- Category Filter Tabs -->
     <div class="mb-6 flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
-        <button @click="selectedCategory = 'all'" :class="selectedCategory === 'all' ? 'bg-ink-900 text-white font-semibold' : 'bg-white text-slate-warm-600 border border-parchment-300 dark:bg-slate-warm-900 dark:border-slate-warm-800 dark:text-parchment-300'" class="px-4 py-2 rounded-lg text-xs transition-all shrink-0">
+
+        <button
+            @click="selectedCategory = 'all'"
+            :class="selectedCategory === 'all'
+                ? 'bg-ink-900 text-white font-semibold'
+                : 'bg-white text-slate-warm-600 border border-parchment-300 dark:bg-slate-warm-900 dark:border-slate-warm-800 dark:text-parchment-300'"
+            class="px-4 py-2 rounded-lg text-xs transition-all shrink-0"
+        >
             Semua Template
         </button>
-        <button @click="selectedCategory = 'sk'" :class="selectedCategory === 'sk' ? 'bg-ink-900 text-white font-semibold' : 'bg-white text-slate-warm-600 border border-parchment-300 dark:bg-slate-warm-900 dark:border-slate-warm-800 dark:text-parchment-300'" class="px-4 py-2 rounded-lg text-xs transition-all shrink-0">
-            Surat Keputusan
-        </button>
-        <button @click="selectedCategory = 'memo'" :class="selectedCategory === 'memo' ? 'bg-ink-900 text-white font-semibold' : 'bg-white text-slate-warm-600 border border-parchment-300 dark:bg-slate-warm-900 dark:border-slate-warm-800 dark:text-parchment-300'" class="px-4 py-2 rounded-lg text-xs transition-all shrink-0">
-            Memorandum
-        </button>
-        <button @click="selectedCategory = 'pks'" :class="selectedCategory === 'pks' ? 'bg-ink-900 text-white font-semibold' : 'bg-white text-slate-warm-600 border border-parchment-300 dark:bg-slate-warm-900 dark:border-slate-warm-800 dark:text-parchment-300'" class="px-4 py-2 rounded-lg text-xs transition-all shrink-0">
+
+        <button
+            @click="selectedCategory = 'pks'"
+            :class="selectedCategory === 'pks'
+                ? 'bg-ink-900 text-white font-semibold'
+                : 'bg-white text-slate-warm-600 border border-parchment-300 dark:bg-slate-warm-900 dark:border-slate-warm-800 dark:text-parchment-300'"
+            class="px-4 py-2 rounded-lg text-xs transition-all shrink-0"
+        >
             Kontrak / PKS
         </button>
-        <button @click="selectedCategory = 'bast'" :class="selectedCategory === 'bast' ? 'bg-ink-900 text-white font-semibold' : 'bg-white text-slate-warm-600 border border-parchment-300 dark:bg-slate-warm-900 dark:border-slate-warm-800 dark:text-parchment-300'" class="px-4 py-2 rounded-lg text-xs transition-all shrink-0">
-            Berita Acara
+
+        <button
+            @click="selectedCategory = 'kontrak'"
+            :class="selectedCategory === 'kontrak'
+                ? 'bg-ink-900 text-white font-semibold'
+                : 'bg-white text-slate-warm-600 border border-parchment-300 dark:bg-slate-warm-900 dark:border-slate-warm-800 dark:text-parchment-300'"
+            class="px-4 py-2 rounded-lg text-xs transition-all shrink-0"
+        >
+            Kontrak Kerja
         </button>
+
+        <button
+            @click="selectedCategory = 'surat'"
+            :class="selectedCategory === 'surat'
+                ? 'bg-ink-900 text-white font-semibold'
+                : 'bg-white text-slate-warm-600 border border-parchment-300 dark:bg-slate-warm-900 dark:border-slate-warm-800 dark:text-parchment-300'"
+            class="px-4 py-2 rounded-lg text-xs transition-all shrink-0"
+        >
+            Surat Resmi
+        </button>
+
     </div>
 
     <!-- Template Grid -->
@@ -136,7 +174,9 @@
                 </div>
 
                 <!-- Action Button -->
-                <a href="/" class="btn-primary w-full text-xs text-center py-2.5">
+                <a 
+                    :href="`/templates/${tpl.id}`"
+                    class="btn-primary w-full text-xs text-center py-2.5">
                     Gunakan Template Ini →
                 </a>
             </div>

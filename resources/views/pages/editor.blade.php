@@ -16,7 +16,7 @@
         this.saveStatus = 'saving';
         const payload = {
             title: this.perihalSurat || 'Dokumen Tanpa Judul',
-            type: 'umum',
+            type: @js($templateData['type'] ?? $document->type ?? 'surat'),
             header_data: {
                 kopInstansi: this.kopInstansi,
                 kopAlamat: this.kopAlamat,
@@ -65,33 +65,33 @@
     },
     
     // Header Component Data
-    kopInstansi: @js($document->header_data['kopInstansi'] ?? 'PT NUSANTARA CITRA MEDIA TBBK'),
-    kopAlamat: @js($document->header_data['kopAlamat'] ?? 'Gedung Menara Palma Lt. 18, Jl. H.R. Rasuna Said Blok X-2, Jakarta Selatan 12950'),
-    kopKontrak: @js($document->header_data['kopKontrak'] ?? 'Telp: (021) 5290-8888 | Email: sekretariat@ncm-media.co.id | Web: www.ncm-media.co.id'),
-    nomorSurat: @js($document->header_data['nomorSurat'] ?? '042/SK-DIR/VIII/2026'),
-    perihalSurat: @js($document->header_data['perihalSurat'] ?? 'Penetapan Standar Operasional Prosedur Penyusunan Dokumen Resmi Perusahaan'),
-    tanggalSurat: @js($document->header_data['tanggalSurat'] ?? '05 Agustus 2026'),
-    sifatSurat: @js($document->header_data['sifatSurat'] ?? 'Penting / Rahasia'),
-    
+    kopInstansi: @js($templateData['header_data']['kopInstansi'] ?? $document->header_data['kopInstansi'] ?? 'PT NUSANTARA CITRA MEDIA TBBK'),
+    kopAlamat: @js($templateData['header_data']['kopAlamat'] ?? $document->header_data['kopAlamat'] ?? 'Gedung Menara Palma Lt. 18, Jl. H.R. Rasuna Said Blok X-2, Jakarta Selatan 12950'),
+    kopKontrak: @js($templateData['header_data']['kopKontrak'] ?? $document->header_data['kopKontrak'] ?? 'Telp: (021) 5290-8888 | Email: sekretariat@ncm-media.co.id | Web: www.ncm-media.co.id'),
+    nomorSurat: @js($templateData['header_data']['nomorSurat'] ?? $document->header_data['nomorSurat'] ?? '042/SK-DIR/VIII/2026'),
+    perihalSurat: @js($templateData['header_data']['perihalSurat'] ?? $document->header_data['perihalSurat'] ?? 'Penetapan Standar Operasional Prosedur Penyusunan Dokumen Resmi Perusahaan'),
+    tanggalSurat: @js($templateData['header_data']['tanggalSurat'] ?? $document->header_data['tanggalSurat'] ?? '05 Agustus 2026'),
+    sifatSurat: @js($templateData['header_data']['sifatSurat'] ?? $document->header_data['sifatSurat'] ?? 'Penting / Rahasia'),   
+
     // Body Component Data
-    tujuanSurat: @js($document->body_content['tujuanSurat'] ?? 'Yth. Para Direktur, Kepala Divisi, dan Manager\\nDi Tempat'),
-    menimbang: @js($document->body_content['menimbang'] ?? 'a. Bahwa untuk menjaga keabsahan dan kerapian dokumen hukum serta tata naskah dinas perusahaan;\\nb. Bahwa dengan berlakunya sistem Tanda Tangan Elektronik (TTE) terverifikasi, diperlukan format terstandar.'),
-    mengingat: @js($document->body_content['mengingat'] ?? '1. Peraturan Direksi No. 01/PER-DIR/2024 tentang Tata Naskah Dinas;\\n2. UU No. 11 Tahun 2008 tentang Informasi dan Transaksi Elektronik (ITE).'),
-    isiPasal1: @js($document->body_content['isiPasal1'] ?? 'Standar Operasional Prosedur Penyusunan Dokumen Resmi sebagaimana tercantum dalam Lampiran Keputusan ini sah dan mengikat seluruh unit kerja di lingkungan PT Nusantara Citra Media Tbk.'),
-    isiPasal2: @js($document->body_content['isiPasal2'] ?? 'Setiap dokumen resmi wajib menggunakan format terstruktur (Header, Body, Footer) serta dilengkapi pembubuhan e-Sign atau stempel digital sah.'),
-    
+    tujuanSurat: @js($templateData['body_content']['tujuanSurat'] ?? $document->body_content['tujuanSurat'] ?? ''),
+    menimbang: @js($templateData['body_content']['menimbang'] ?? $document->body_content['menimbang'] ?? ''),
+    mengingat: @js($templateData['body_content']['mengingat'] ?? $document->body_content['mengingat'] ?? ''),
+    isiPasal1: @js($templateData['body_content']['isiPasal1'] ?? $document->body_content['isiPasal1'] ?? ''),
+    isiPasal2: @js($templateData['body_content']['isiPasal2'] ?? $document->body_content['isiPasal2'] ?? ''),    
+
     // Footer & Signature Component Data
-    kotaTtd: @js($document->footer_data['kotaTtd'] ?? 'Jakarta'),
-    jabatanPenandatangan: @js($document->footer_data['jabatanPenandatangan'] ?? 'Direktur Utama'),
-    namaPenandatangan: @js($document->footer_data['namaPenandatangan'] ?? 'Drs. H. Aris Budiman, M.B.A.'),
-    nipPenandatangan: @js($document->footer_data['nipPenandatangan'] ?? 'NIP: 19780412 200312 1 002'),
-    tembusan: @js($document->footer_data['tembusan'] ?? '1. Dewan Komisaris\\n2. Arsip Hukum (Legal Department)'),
+    kotaTtd: @js($templateData['footer_data']['kotaTtd'] ?? $document->footer_data['kotaTtd'] ?? 'Jakarta'),
+    jabatanPenandatangan: @js($templateData['footer_data']['jabatanPenandatangan'] ?? $document->footer_data['jabatanPenandatangan'] ?? 'Direktur Utama'),
+    namaPenandatangan: @js($templateData['footer_data']['namaPenandatangan'] ?? $document->footer_data['namaPenandatangan'] ?? 'Drs. H. Aris Budiman, M.B.A.'),
+    nipPenandatangan: @js($templateData['footer_data']['nipPenandatangan'] ?? $document->footer_data['nipPenandatangan'] ?? 'NIP: 19780412 200312 1 002'),
+    tembusan: @js($templateData['footer_data']['tembusan'] ?? $document->footer_data['tembusan'] ?? '1. Dewan Komisaris\\n2. Arsip Hukum (Legal Department)'),
     
     // Signature & Materai Options
-    selectedMaterai: @js($document->signature_data['selectedMaterai'] ?? 'materai10k'),
-    hasSignature: @js(!empty($document->signature_data['signatureUrl'] ?? null)),
-    signatureX: @js($document->signature_data['signatureX'] ?? 65),
-    signatureY: @js($document->signature_data['signatureY'] ?? 78),
+    selectedMaterai: @js($templateData['signature_data']['selectedMaterai'] ?? $document->signature_data['selectedMaterai'] ?? 'materai10k'),
+    hasSignature: @js(!empty($templateData['signature_data']['signatureUrl'] ?? $document->signature_data['signatureUrl'] ?? null)),
+    signatureX: @js($templateData['signature_data']['signatureX'] ?? $document->signature_data['signatureX'] ?? 65),
+    signatureY: @js($templateData['signature_data']['signatureY'] ?? $document->signature_data['signatureY'] ?? 78),
     zoomLevel: 100,
     
     // Page count indicator

@@ -10,6 +10,8 @@ use App\Http\Controllers\ProfileController;
 // Protected Routes
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/templates', fn() => view('pages.templates', ['title' => 'Galeri Template Dokumen']))->name('templates');
+    Route::get('/templates/{template}', [DocumentController::class, 'createFromTemplate'])->name('templates.use');
     Route::get('/', [DocumentController::class, 'create'])->name('editor');
     Route::get('/documents/{document}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
@@ -17,7 +19,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
     Route::get('/documents', [DocumentController::class, 'index'])->name('documents');
     Route::get('/documents/{document}/export', [DocumentController::class, 'exportPdf']);
-    Route::get('/templates', fn() => view('pages.templates', ['title' => 'Galeri Template Dokumen']))->name('templates');
     Route::get('/signatures', [SignatureController::class, 'index'])->name('signatures');
     Route::post('/signatures', [SignatureController::class, 'store'])->name('signatures.store');
     Route::delete('/signatures/{signature}', [SignatureController::class, 'destroy'])->name('signatures.destroy');
