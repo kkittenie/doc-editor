@@ -2,372 +2,232 @@
 
 @section('content')
 
-<div
-    x-data="wordDocumentEditor()"
-    class="min-h-screen"
->
+<div x-data="wordDocumentEditor()" class="min-h-screen">
 
- 
-{{-- ========================================= --}}
-{{-- TOP BAR --}}
-{{-- ========================================= --}}
+    {{-- ========================================= --}}
+    {{-- TOP BAR --}}
+    {{-- ========================================= --}}
+    <div class="sticky top-0 z-40 border-b border-parchment-300 bg-white/95 backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95">
 
-<div class="sticky top-0 z-40 border-b border-parchment-300 bg-white/95 backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95">
+        <div class="flex items-center justify-between px-5 py-3">
 
-    <div class="flex items-center justify-between px-5 py-3">
+            {{-- LEFT --}}
+            <div class="flex items-center gap-4">
+                <a href="{{ route('documents') }}"
+                    class="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-parchment-100 dark:hover:bg-slate-warm-800">
+                    ←
+                </a>
 
-        {{-- LEFT --}}
-        <div class="flex items-center gap-4">
+                <div>
+                    <h1 class="text-sm font-semibold text-ink-900 dark:text-parchment-50">
+                        {{ $document->title }}
+                    </h1>
+                    <p class="text-xs text-slate-warm-500">
+                        Dokumen #{{ $document->id }}
+                    </p>
+                </div>
+            </div>
 
-            <a
-                href="{{ route('documents') }}"
-                class="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-parchment-100 dark:hover:bg-slate-warm-800"
-            >
-                ←
-            </a>
+            {{-- RIGHT --}}
+            <div class="flex items-center gap-3">
+                <span x-show="saveStatus === 'saving'" class="text-xs text-slate-warm-500">
+                    Menyimpan...
+                </span>
 
-            <div>
-                <h1 class="text-sm font-semibold text-ink-900 dark:text-parchment-50">
-                    {{ $document->title }}
-                </h1>
+                <span x-show="saveStatus === 'saved'" class="text-xs text-green-600">
+                    ✓ Tersimpan
+                </span>
 
-                <p class="text-xs text-slate-warm-500">
-                    Dokumen #{{ $document->id }}
-                </p>
+                <span x-show="saveStatus === 'error'" class="text-xs text-red-600">
+                    Gagal menyimpan
+                </span>
+
+                <button type="button" @click="saveDocument()"
+                    class="rounded-xl bg-ink-900 px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 dark:bg-bronze-500 dark:text-ink-900">
+                    Simpan
+                </button>
             </div>
 
         </div>
 
+        {{-- ========================================= --}}
+        {{-- WORD TOOLBAR (SUDAH DIPERBARUI) --}}
+        {{-- ========================================= --}}
+        <div class="border-t border-parchment-200 px-5 py-2 dark:border-slate-warm-700">
 
-        {{-- RIGHT --}}
-        <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-1">
 
-            <span
-                x-show="saveStatus === 'saving'"
-                class="text-xs text-slate-warm-500"
-            >
-                Menyimpan...
-            </span>
+                {{-- Undo & Redo --}}
+                <button type="button" @click="format('undo')" class="toolbar-button" title="Undo">↶</button>
+                <button type="button" @click="format('redo')" class="toolbar-button" title="Redo">↷</button>
 
-            <span
-                x-show="saveStatus === 'saved'"
-                class="text-xs text-green-600"
-            >
-                ✓ Tersimpan
-            </span>
+                <div class="toolbar-divider"></div>
 
-            <span
-                x-show="saveStatus === 'error'"
-                class="text-xs text-red-600"
-            >
-                Gagal menyimpan
-            </span>
+                {{-- Heading / Paragraph Style --}}
+                <select @change="format('formatBlock', $event.target.value)" class="toolbar-select w-32">
+                    <option value="P">Paragraf Biasa</option>
+                    <option value="H1">Heading 1</option>
+                    <option value="H2">Heading 2</option>
+                    <option value="H3">Heading 3</option>
+                    <option value="BLOCKQUOTE">Kutipan</option>
+                </select>
 
-            <button
-                type="button"
-                @click="saveDocument()"
-                class="rounded-xl bg-ink-900 px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 dark:bg-bronze-500 dark:text-ink-900"
-            >
-                Simpan
-            </button>
+                {{-- Font Family --}}
+                <select @change="format('fontName', $event.target.value)" class="toolbar-select">
+                    <option value="Arial">Arial</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Calibri">Calibri</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="Cambria">Cambria</option>
+                    <option value="Garamond">Garamond</option>
+                    <option value="Courier New">Courier New</option>
+                    <option value="Tahoma">Tahoma</option>
+                    <option value="Trebuchet MS">Trebuchet MS</option>
+                    <option value="Palatino Linotype">Palatino Linotype</option>
+                </select>
+
+                {{-- Font Size --}}
+                <select @change="format('fontSize', $event.target.value)" class="toolbar-select w-20">
+                    <option value="2">10</option>
+                    <option value="3" selected>12</option>
+                    <option value="4">14</option>
+                    <option value="5">18</option>
+                    <option value="6">24</option>
+                    <option value="7">32</option>
+                </select>
+
+                <div class="toolbar-divider"></div>
+
+                {{-- Text Formatting --}}
+                <button type="button" @click="format('bold')" class="toolbar-button font-bold" title="Bold">B</button>
+                <button type="button" @click="format('italic')" class="toolbar-button italic" title="Italic">I</button>
+                <button type="button" @click="format('underline')" class="toolbar-button underline" title="Underline">U</button>
+
+                {{-- Colors --}}
+                <div class="flex items-center gap-1 pl-1">
+                    <input type="color" @change="format('foreColor', $event.target.value)" title="Warna Teks" class="toolbar-color" value="#000000">
+                    <input type="color" @change="format('hiliteColor', $event.target.value)" title="Warna Sorot" class="toolbar-color" value="#ffff00">
+                </div>
+
+                <div class="toolbar-divider"></div>
+
+                {{-- Text Alignment --}}
+                <button type="button" @click="format('justifyLeft')" class="toolbar-button" title="Rata kiri">⬅</button>
+                <button type="button" @click="format('justifyCenter')" class="toolbar-button" title="Rata tengah">↔</button>
+                <button type="button" @click="format('justifyRight')" class="toolbar-button" title="Rata kanan">➡</button>
+                <button type="button" @click="format('justifyFull')" class="toolbar-button" title="Justify">☰</button>
+
+                {{-- Indent / Outdent --}}
+                <button type="button" @click="format('outdent')" class="toolbar-button" title="Kurangi Indentasi">⇤</button>
+                <button type="button" @click="format('indent')" class="toolbar-button" title="Tambah Indentasi">⇥</button>
+
+                <div class="toolbar-divider"></div>
+
+                {{-- Lists --}}
+                <button type="button" @click="format('insertUnorderedList')" class="toolbar-button" title="Bullet">•</button>
+                <button type="button" @click="format('insertOrderedList')" class="toolbar-button" title="Numbering">1.</button>
+
+                <div class="toolbar-divider"></div>
+
+                {{-- Inserts --}}
+                <button type="button" @click="insertTable()" class="toolbar-button" title="Sisipkan Tabel">⊞</button>
+                <button type="button" @click="insertLink()" class="toolbar-button" title="Sisipkan Tautan">🔗</button>
+                <button type="button" @click="format('insertHorizontalRule')" class="toolbar-button" title="Garis Pembatas">―</button>
+
+                <div class="toolbar-divider"></div>
+
+                {{-- Clear Formatting --}}
+                <button type="button" @click="format('removeFormat')" class="toolbar-button text-xs font-semibold text-red-600" title="Hapus Format">Tx</button>
+
+            </div>
 
         </div>
 
     </div>
 
 
-{{-- ========================================= --}}
-{{-- WORD TOOLBAR --}}
-{{-- ========================================= --}}
+    {{-- ========================================= --}}
+    {{-- DOCUMENT AREA --}}
+    {{-- ========================================= --}}
+    <main class="bg-slate-100 px-4 py-10 dark:bg-slate-warm-950">
+        <div class="mx-auto w-full max-w-[794px]">
 
-<div class="border-t border-parchment-200 px-5 py-2 dark:border-slate-warm-700">
+            {{-- A4 PAPER --}}
+            <div class="document-page relative w-full bg-white shadow-xl">
 
- 
-<div class="flex flex-wrap items-center gap-1">
+                {{-- HEADER / KOP SURAT --}}
+                <div class="px-[80px] pt-[65px]">
 
-    {{-- Undo --}}
-    <button
-        type="button"
-        @click="format('undo')"
-        class="toolbar-button"
-        title="Undo"
-    >
-        ↶
-    </button>
-
-    {{-- Redo --}}
-    <button
-        type="button"
-        @click="format('redo')"
-        class="toolbar-button"
-        title="Redo"
-    >
-        ↷
-    </button>
-
-    <div class="toolbar-divider"></div>
-
-
-    {{-- Font --}}
-    <select
-        @change="format('fontName', $event.target.value)"
-        class="toolbar-select"
-    >
-        <option value="Arial">Arial</option>
-        <option value="Times New Roman">Times New Roman</option>
-        <option value="Calibri">Calibri</option>
-        <option value="Georgia">Georgia</option>
-        <option value="Verdana">Verdana</option>
-    </select>
-
-
-    {{-- Font Size --}}
-    <select
-        @change="format('fontSize', $event.target.value)"
-        class="toolbar-select w-20"
-    >
-        <option value="2">10</option>
-        <option value="3" selected>12</option>
-        <option value="4">14</option>
-        <option value="5">18</option>
-        <option value="6">24</option>
-        <option value="7">32</option>
-    </select>
-
-    <div class="toolbar-divider"></div>
-
-
-    {{-- Bold --}}
-    <button
-        type="button"
-        @click="format('bold')"
-        class="toolbar-button font-bold"
-        title="Bold"
-    >
-        B
-    </button>
-
-    {{-- Italic --}}
-    <button
-        type="button"
-        @click="format('italic')"
-        class="toolbar-button italic"
-        title="Italic"
-    >
-        I
-    </button>
-
-    {{-- Underline --}}
-    <button
-        type="button"
-        @click="format('underline')"
-        class="toolbar-button underline"
-        title="Underline"
-    >
-        U
-    </button>
-
-    <div class="toolbar-divider"></div>
-
-
-    {{-- Align Left --}}
-    <button
-        type="button"
-        @click="format('justifyLeft')"
-        class="toolbar-button"
-        title="Rata kiri"
-    >
-        ⬅
-    </button>
-
-    {{-- Align Center --}}
-    <button
-        type="button"
-        @click="format('justifyCenter')"
-        class="toolbar-button"
-        title="Rata tengah"
-    >
-        ↔
-    </button>
-
-    {{-- Align Right --}}
-    <button
-        type="button"
-        @click="format('justifyRight')"
-        class="toolbar-button"
-        title="Rata kanan"
-    >
-        ➡
-    </button>
-
-    {{-- Justify --}}
-    <button
-        type="button"
-        @click="format('justifyFull')"
-        class="toolbar-button"
-        title="Justify"
-    >
-        ☰
-    </button>
-
-    <div class="toolbar-divider"></div>
-
-
-    {{-- Bullet --}}
-    <button
-        type="button"
-        @click="format('insertUnorderedList')"
-        class="toolbar-button"
-        title="Bullet"
-    >
-        •
-    </button>
-
-    {{-- Number --}}
-    <button
-        type="button"
-        @click="format('insertOrderedList')"
-        class="toolbar-button"
-        title="Numbering"
-    >
-        1.
-    </button>
-
-</div>
- 
-
-</div>
-
-
-{{-- ========================================= --}}
-{{-- DOCUMENT AREA --}}
-{{-- ========================================= --}}
-
-<main class="bg-slate-100 px-4 py-10 dark:bg-slate-warm-950">
-
-    <div class="mx-auto w-full max-w-[794px]">
-
-        {{-- A4 PAPER --}}
-        <div
-            class="document-page relative w-full bg-white shadow-xl"
-        >
-
-            {{-- ================================= --}}
-            {{-- HEADER / KOP SURAT --}}
-            {{-- ================================= --}}
-
-            <div class="px-[80px] pt-[65px]">
-
-                {{-- Company --}}
-                <div class="text-center">
-
-                    <div class="text-xl font-bold uppercase tracking-wide text-black">
-                        {{ $document->header_data['kopInstansi'] ?? '' }}
-                    </div>
-
-                    <div class="mt-1 text-xs leading-relaxed text-black">
-                        {{ $document->header_data['kopAlamat'] ?? '' }}
-                    </div>
-
-                    @if(!empty($document->header_data['kopKontrak']))
+                    <div class="text-center">
+                        <div class="text-xl font-bold uppercase tracking-wide text-black">
+                            {{ $document->header_data['kopInstansi'] ?? '' }}
+                        </div>
+                        <div class="mt-1 text-xs leading-relaxed text-black">
+                            {{ $document->header_data['kopAlamat'] ?? '' }}
+                        </div>
+                        @if(!empty($document->header_data['kopKontrak']))
                         <div class="text-xs leading-relaxed text-black">
                             {{ $document->header_data['kopKontrak'] }}
                         </div>
-                    @endif
-
-                </div>
-
-
-                {{-- Garis Kop --}}
-                <div class="mt-4 border-b-2 border-black"></div>
-
-
-                {{-- ================================= --}}
-                {{-- DOCUMENT INFO --}}
-                {{-- ================================= --}}
-
-                <div class="mt-7 text-sm text-black">
-
-                    <div class="grid grid-cols-[90px_15px_1fr]">
-                        <span>Nomor</span>
-                        <span>:</span>
-                        <span>
-                            {{ $document->header_data['nomorSurat'] ?? '' }}
-                        </span>
+                        @endif
                     </div>
 
-                    <div class="mt-1 grid grid-cols-[90px_15px_1fr]">
-                        <span>Tanggal</span>
-                        <span>:</span>
-                        <span>
-                            {{ $document->header_data['tanggalSurat'] ?? '' }}
-                        </span>
-                    </div>
+                    {{-- Garis Kop --}}
+                    <div class="mt-4 border-b-2 border-black"></div>
 
-                    <div class="mt-1 grid grid-cols-[90px_15px_1fr]">
-                        <span>Perihal</span>
-                        <span>:</span>
-                        <span>
-                            {{ $document->header_data['perihalSurat'] ?? '' }}
-                        </span>
-                    </div>
-
-                    @if(!empty($document->header_data['sifatSurat']))
+                    {{-- DOCUMENT INFO --}}
+                    <div class="mt-7 text-sm text-black">
+                        <div class="grid grid-cols-[90px_15px_1fr]">
+                            <span>Nomor</span>
+                            <span>:</span>
+                            <span>{{ $document->header_data['nomorSurat'] ?? '' }}</span>
+                        </div>
+                        <div class="mt-1 grid grid-cols-[90px_15px_1fr]">
+                            <span>Tanggal</span>
+                            <span>:</span>
+                            <span>{{ $document->header_data['tanggalSurat'] ?? '' }}</span>
+                        </div>
+                        <div class="mt-1 grid grid-cols-[90px_15px_1fr]">
+                            <span>Perihal</span>
+                            <span>:</span>
+                            <span>{{ $document->header_data['perihalSurat'] ?? '' }}</span>
+                        </div>
+                        @if(!empty($document->header_data['sifatSurat']))
                         <div class="mt-1 grid grid-cols-[90px_15px_1fr]">
                             <span>Sifat</span>
                             <span>:</span>
-                            <span>
-                                {{ $document->header_data['sifatSurat'] }}
-                            </span>
+                            <span>{{ $document->header_data['sifatSurat'] }}</span>
                         </div>
-                    @endif
+                        @endif
+                    </div>
 
-                </div>
+                    {{-- BODY EDITOR --}}
+                    <div id="document-editor" contenteditable="true" spellcheck="true" @input="markAsChanged()"
+                        @keydown="handleKeydown($event)"
+                        class="document-body mt-10 pb-20 text-[14px] leading-7 text-black outline-none">{!!
+                        $document->body_content['content'] ?? '' !!}</div>
 
-
-                {{-- ================================= --}}
-                {{-- BODY EDITOR --}}
-                {{-- ================================= --}}
-
-                <div
-                    id="document-editor"
-                    contenteditable="true"
-                    spellcheck="true"
-                    @input="markAsChanged()"
-                    @keydown="handleKeydown($event)"
-                    class="document-body mt-10 pb-20 text-[14px] leading-7 text-black outline-none"
-                    >{!! $document->body_content['content'] ?? '' !!}</div>
-
-
-                {{-- ================================= --}}
-                {{-- FOOTER / SIGNATURE --}}
-                {{-- ================================= --}}
-
-                <div class="mt-12 pb-20 text-sm text-black">
-
-                    <div class="ml-auto w-[260px] text-center">
-
-                        <div>
-                            {{ $document->footer_data['kotaTtd'] ?? '' }},
-                            {{ $document->header_data['tanggalSurat'] ?? '' }}
-                        </div>
-
-                        <div class="mt-2 font-semibold">
-                            {{ $document->footer_data['jabatanPenandatangan'] ?? '' }}
-                        </div>
-
-                        <div class="h-24"></div>
-
-                        <div class="font-semibold underline">
-                            {{ $document->footer_data['namaPenandatangan'] ?? '' }}
-                        </div>
-
-                        @if(!empty($document->footer_data['nipPenandatangan']))
+                    {{-- FOOTER / SIGNATURE --}}
+                    <div class="mt-12 pb-20 text-sm text-black">
+                        <div class="ml-auto w-[260px] text-center">
+                            <div>
+                                {{ $document->footer_data['kotaTtd'] ?? '' }},
+                                {{ $document->header_data['tanggalSurat'] ?? '' }}
+                            </div>
+                            <div class="mt-2 font-semibold">
+                                {{ $document->footer_data['jabatanPenandatangan'] ?? '' }}
+                            </div>
+                            <div class="h-24"></div>
+                            <div class="font-semibold underline">
+                                {{ $document->footer_data['namaPenandatangan'] ?? '' }}
+                            </div>
+                            @if(!empty($document->footer_data['nipPenandatangan']))
                             <div class="text-xs">
                                 {{ $document->footer_data['nipPenandatangan'] }}
                             </div>
-                        @endif
-
+                            @endif
+                        </div>
                     </div>
 
                 </div>
@@ -375,18 +235,12 @@
             </div>
 
         </div>
-
-    </div>
-
-</main>
- 
+    </main>
 
 </div>
 
 @push('styles')
-
 <style>
-
     .toolbar-button {
         min-width: 34px;
         height: 34px;
@@ -395,38 +249,45 @@
         justify-content: center;
         border-radius: 7px;
         font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.2s;
     }
 
     .toolbar-button:hover {
         background: rgb(245 242 235);
     }
 
+    .toolbar-color {
+        width: 30px;
+        height: 30px;
+        padding: 2px;
+        border: 1px solid rgb(214 211 204);
+        border-radius: 7px;
+        cursor: pointer;
+        background: white;
+    }
+
+    .toolbar-color::-webkit-color-swatch-wrapper {
+        padding: 0;
+    }
+
+    .toolbar-color::-webkit-color-swatch {
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+    }
+
     [contenteditable="true"]:focus {
         outline: none;
-    }
-
-    [contenteditable="true"] p {
-        margin-bottom: 0.75rem;
-    }
-
-    [contenteditable="true"] ul {
-        list-style-type: disc;
-        padding-left: 2rem;
-    }
-
-    [contenteditable="true"] ol {
-        list-style-type: decimal;
-        padding-left: 2rem;
     }
 
     .toolbar-divider {
         width: 1px;
         height: 24px;
-        margin: 0 6px;
+        margin: 0 4px;
         background: rgb(214 211 204);
-        }
+    }
 
-        .toolbar-select {
+    .toolbar-select {
         height: 34px;
         min-width: 130px;
         padding: 0 8px;
@@ -435,20 +296,16 @@
         background: white;
         font-size: 13px;
         outline: none;
-        }
+    }
 
-        .toolbar-select:focus {
+    .toolbar-select:focus {
         border-color: rgb(180 140 80);
-        }
+    }
 
-        @media (max-width: 768px) {
-
-        ```
+    @media (max-width: 768px) {
         .toolbar-select {
             min-width: 100px;
         }
-        ```
-
     }
 
     .document-page {
@@ -456,49 +313,60 @@
         min-height: 297mm;
         margin: 0 auto;
         box-sizing: border-box;
-        }
+    }
 
-        .document-body {
+    .document-body {
         min-height: 650px;
         font-family: Arial, sans-serif;
         font-size: 14px;
         line-height: 1.8;
-        }
+    }
 
-        .document-body:focus {
+    .document-body:focus {
         outline: none;
-        }
+    }
 
-        .document-body p {
+    .document-body p {
         margin: 0 0 10px 0;
-        }
+    }
 
-        .document-body h1,
-        .document-body h2,
-        .document-body h3 {
+    .document-body table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 10px 0;
+    }
+
+    .document-body table, .document-body th, .document-body td {
+        border: 1px solid #cbd5e1;
+        padding: 8px;
+    }
+
+    .document-body h1,
+    .document-body h2,
+    .document-body h3 {
+        font-weight: bold;
         margin-top: 15px;
         margin-bottom: 10px;
-        }
+    }
 
-        .document-body ul {
+    .document-body ul {
         list-style-type: disc;
         padding-left: 30px;
-        }
+    }
 
-        .document-body ol {
+    .document-body ol {
         list-style-type: decimal;
         padding-left: 30px;
-        }
+    }
 
-        .document-body blockquote {
-        margin: 15px 30px;
+    .document-body blockquote {
+        margin: 15px 0;
         padding-left: 15px;
         border-left: 3px solid #ccc;
-        }
+        font-style: italic;
+    }
 
-        @media print {
-
-        ```
+    @media print {
         body {
             background: white !important;
         }
@@ -509,123 +377,105 @@
             margin: 0;
             box-shadow: none;
         }
-        ```
-
     }
-
-
-
 </style>
-
 @endpush
 
 @push('scripts')
-
 <script>
+    function wordDocumentEditor() {
+        return {
+            documentId: @js($document->id),
+            saveStatus: 'saved',
+            changed: false,
 
-function wordDocumentEditor() {
+            markAsChanged() {
+                this.changed = true;
+                this.saveStatus = 'idle';
+            },
 
-    return {
+            format(command, value = null) {
+                const editor = document.getElementById('document-editor');
+                if (!editor) return;
+                editor.focus();
+                document.execCommand(command, false, value);
+                this.markAsChanged();
+            },
 
-        documentId: @js($document->id),
+            insertTable() {
+                const html = '<table style="width:100%;border-collapse:collapse;margin:10px 0;" border="1"><tr><td style="padding:6px;">&nbsp;</td><td style="padding:6px;">&nbsp;</td><td style="padding:6px;">&nbsp;</td></tr><tr><td style="padding:6px;">&nbsp;</td><td style="padding:6px;">&nbsp;</td><td style="padding:6px;">&nbsp;</td></tr></table><p></p>';
+                this.format('insertHTML', html);
+            },
 
-        saveStatus: 'saved',
+            insertLink() {
+                const url = prompt('Masukkan URL tautan:');
+                if (url) this.format('createLink', url);
+            },
 
-        changed: false,
+            insertTable() {
+                const rows = prompt("Masukkan jumlah baris:", "2");
+                const cols = prompt("Masukkan jumlah kolom:", "2");
+                if (rows && cols) {
+                    let tableHTML = '<table style="width: 100%; border-collapse: collapse; margin: 10px 0;"><tbody>';
+                    for (let i = 0; i < parseInt(rows); i++) {
+                        tableHTML += '<tr>';
+                        for (let j = 0; j < parseInt(cols); j++) {
+                            tableHTML += '<td style="border: 1px solid #000; padding: 6px;">Teks</td>';
+                        }
+                        tableHTML += '</tr>';
+                    }
+                    tableHTML += '</tbody></table><p></p>';
+                    this.format('insertHTML', tableHTML);
+                }
+            },
 
+            insertLink() {
+                const url = prompt("Masukkan URL tautan:", "https://");
+                if (url) {
+                    this.format('createLink', url);
+                }
+            },
 
-        markAsChanged() {
+            handleKeydown(event) {
+                if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+                    event.preventDefault();
+                    this.saveDocument();
+                }
+            },
 
-            this.changed = true;
+            async saveDocument() {
+                const editor = document.getElementById('document-editor');
+                if (!editor) return;
 
-            this.saveStatus = 'idle';
+                this.saveStatus = 'saving';
 
-        },
+                const payload = {
+                    title: @js($document->title),
+                    type: @js($document->type ?? 'surat'),
+                    header_data: @js($document->header_data ?? []),
+                    body_content: {
+                        content: editor.innerHTML
+                    },
+                    footer_data: @js($document->footer_data ?? []),
+                    signature_data: @js($document->signature_data ?? null),
+                    status: 'draft'
+                };
 
-
-        format(command, value = null) {
-
-            const editor = document.getElementById('document-editor');
-            if (!editor) return;
-            editor.focus();
-            document.execCommand(command, false, value);
-            this.markAsChanged();
-        }
-
-        handleKeydown(event) {
-
-            // Ctrl + S
-            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
-
-                event.preventDefault();
-
-                this.saveDocument();
-
+                try {
+                    await window.axios.put(
+                        `/documents/${this.documentId}`,
+                        payload
+                    );
+                    this.saveStatus = 'saved';
+                    this.changed = false;
+                } catch (error) {
+                    console.error(error);
+                    this.saveStatus = 'error';
+                }
             }
-
-        },
-
-
-        async saveDocument() {
-
-            const editor = document.getElementById('document-editor');
-
-            if (!editor) return;
-
-
-            this.saveStatus = 'saving';
-
-
-            const payload = {
-
-                title: @js($document->title),
-
-                type: @js($document->type ?? 'surat'),
-
-                header_data: @js($document->header_data ?? []),
-
-                body_content: {
-
-                    content: editor.innerHTML
-
-                },
-
-                footer_data: @js($document->footer_data ?? []),
-
-                signature_data: @js($document->signature_data ?? null),
-
-                status: 'draft'
-
-            };
-
-
-            try {
-
-                await window.axios.put(
-                    `/documents/${this.documentId}`,
-                    payload
-                );
-
-                this.saveStatus = 'saved';
-
-                this.changed = false;
-
-            } catch (error) {
-
-                console.error(error);
-
-                this.saveStatus = 'error';
-
-            }
-
-        }
-
-    };
-
-}
-
+        };
+    }
 </script>
-
 @endpush
 
 @endsection
