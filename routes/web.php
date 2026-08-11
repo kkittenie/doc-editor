@@ -12,7 +12,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/templates', fn() => view('pages.templates', ['title' => 'Galeri Template Dokumen']))->name('templates');
     Route::get('/templates/{template}', [DocumentController::class, 'createFromTemplate'])->name('templates.use');
-    Route::get('/', [DocumentController::class, 'create'])->name('editor');
+    Route::get('/', [DocumentController::class, 'create'])->name('documents.create');
     Route::get('/documents/{document}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');

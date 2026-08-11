@@ -26,10 +26,8 @@ class DocumentController extends Controller
 
     public function create()
     {
-        return view('pages.editor', [
-            'title'    => 'Studio Composer Dokumen',
-            'document' => null,
-            'signatures' => $this->userSignatures(),
+        return view('pages.document-create', [
+            'title'    => 'Buat Dokumen Baru',
         ]);
     }
 
@@ -59,30 +57,64 @@ class DocumentController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title'          => ['required', 'string', 'max:255'],
-            'type'           => ['nullable', 'string'],
-            'header_data'    => ['required', 'array'],
-            'body_content'   => ['nullable', 'array'],
-            'footer_data'    => ['required', 'array'],
-            'signature_data' => ['nullable', 'array'],
-            'status'         => ['nullable', 'in:draft,final,archived'],
-        ]);
+            'header_data' => ['required', 'array'],
+            'header_data.kopInstansi' => ['required', 'string', 'max:255'],
+            'header_data.kopAlamat' => ['required', 'string', 'max:1000'],
+            'header_data.kopKontrak' => ['nullable', 'string', 'max:1000'],
+            'header_data.nomorSurat' => ['required', 'string', 'max:255'],
+            'header_data.tanggalSurat' => ['required', 'string', 'max:100'],
+            'header_data.perihalSurat' => ['required', 'string', 'max:500'],
+            'header_data.sifatSurat' => ['nullable', 'string', 'max:100'],
 
-        $document = Document::create([
-            'user_id'        => Auth::id(),
-            'title'          => $data['title'],
-            'type'           => $data['type'] ?? 'umum',
-            'header_data'    => $data['header_data'],
-            'body_content'   => $data['body_content'] ?? [],
-            'footer_data'    => $data['footer_data'],
-            'signature_data' => $data['signature_data'] ?? null,
-            'status'         => $data['status'] ?? 'draft',
-        ]);
+                'type' => ['nullable', 'string'],
+            ]);
 
-        return response()->json([
-            'message' => 'Dokumen berhasil disimpan.',
-            'id'      => $document->id,
-        ]);
+            $document = Document::create([
+                'user_id' => Auth::id(),
+
+                // Perihal dijadikan judul dokumen
+                'title' => $data['header_data']['perihalSurat'],
+
+                'type' => $data['type'] ?? 'surat',
+
+                // Data kop dari form
+                'header_data' => [
+                    'kopInstansi' => $data['header_data']['kopInstansi'],
+                    'kopAlamat' => $data['header_data']['kopAlamat'],
+                    'kopKontrak' => $data['header_data']['kopKontrak'] ?? '',
+                    'nomorSurat' => $data['header_data']['nomorSurat'],
+                    'perihalSurat' => $data['header_data']['perihalSurat'],
+                    'tanggalSurat' => $data['header_data']['tanggalSurat'],
+                    'sifatSurat' => $data['header_data']['sifatSurat'] ?? 'Biasa',
+                    'logoUrl' => null,
+                ],
+
+                // Isi masih kosong
+                'body_content' => [],
+
+                // Footer sementara
+                'footer_data' => [
+                    'kotaTtd' => '',
+                    'jabatanPenandatangan' => '',
+                    'namaPenandatangan' => '',
+                    'nipPenandatangan' => '',
+                    'tembusan' => '',
+                ],
+
+                // Signature masih kosong
+                'signature_data' => [
+                    'selectedMaterai' => 'none',
+                    'signatureX' => 65,
+                    'signatureY' => 78,
+                    'signatureUrl' => null,
+                ],
+
+                'status' => 'draft',
+            ]);
+
+        return redirect()
+            ->route('documents.edit', $document)
+            ->with('success', 'Dokumen berhasil dibuat.');
     }
 
     public function update(Request $request, Document $document)

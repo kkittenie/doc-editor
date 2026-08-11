@@ -1,184 +1,631 @@
 @extends('layouts.app')
 
 @section('content')
-<div x-data="{
-    // Active Tab in Component Editor
-    activeZone: 'header',
 
-    // Document Save State
-    documentId: @js($document->id ?? null),
-    saveStatus: 'idle',
-    showSignaturePicker: false,
-    availableSignatures: @js($signatures ?? []),
-    selectedSignatureUrl: @js($document->signature_data['signatureUrl'] ?? null),
+<div
+    x-data="wordDocumentEditor()"
+    class="min-h-screen"
+>
 
-    // Logo Upload State (TAMBAHAN BARU 1)
-    companyLogoUrl: @js($templateData['header_data']['logoUrl'] ?? $document->header_data['logoUrl'] ?? null),
-    isUploadingLogo: false,
+ 
+{{-- ========================================= --}}
+{{-- TOP BAR --}}
+{{-- ========================================= --}}
 
-    // Upload Logo Method (TAMBAHAN BARU 2)
-    uploadLogo(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        this.isUploadingLogo = true;
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            try {
-                const res = await window.axios.post('/documents/logo', { image: e.target.result });
-                this.companyLogoUrl = res.data.url;
-            } catch (err) {
-                alert('Gagal mengunggah logo.');
-                console.error(err);
-            } finally {
-                this.isUploadingLogo = false;
-            }
-        };
-        reader.readAsDataURL(file);
-    },
+<div class="sticky top-0 z-40 border-b border-parchment-300 bg-white/95 backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95">
 
-    async saveDocument() {
-        this.saveStatus = 'saving';
-        const payload = {
-            title: this.perihalSurat || 'Dokumen Tanpa Judul',
-            type: @js($templateData['type'] ?? $document->type ?? 'surat'),
-            header_data: {
-                kopInstansi: this.kopInstansi,
-                kopAlamat: this.kopAlamat,
-                kopKontrak: this.kopKontrak,
-                nomorSurat: this.nomorSurat,
-                perihalSurat: this.perihalSurat,
-                tanggalSurat: this.tanggalSurat,
-                sifatSurat: this.sifatSurat,
-                logoUrl: this.companyLogoUrl,
-            },
-            body_content: {
-                tujuanSurat: this.tujuanSurat,
-                menimbang: this.menimbang,
-                mengingat: this.mengingat,
-                isiPasal1: document.querySelector('#editor-pasal1')?.value ?? this.isiPasal1,
-                isiPasal2: document.querySelector('#editor-pasal2')?.value ?? this.isiPasal2,
-            },
-            footer_data: {
-                kotaTtd: this.kotaTtd,
-                jabatanPenandatangan: this.jabatanPenandatangan,
-                namaPenandatangan: this.namaPenandatangan,
-                nipPenandatangan: this.nipPenandatangan,
-                tembusan: this.tembusan,
-            },
-            signature_data: {
-                selectedMaterai: this.selectedMaterai,
-                signatureX: this.signatureX,
-                signatureY: this.signatureY,
-                signatureUrl: this.selectedSignatureUrl,
-            },
-            status: 'draft',
-        };
+    <div class="flex items-center justify-between px-5 py-3">
 
-        try {
-            if (this.documentId) {
-                await window.axios.put(`/documents/${this.documentId}`, payload);
-            } else {
-                const res = await window.axios.post('/documents', payload);
-                this.documentId = res.data.id;
-                window.history.replaceState({}, '', `/documents/${this.documentId}/edit`);
-            }
-            this.saveStatus = 'saved';
-        } catch (e) {
-            this.saveStatus = 'error';
-            console.error(e);
-        }
-    },
-    
-    // Header Component Data
-    kopInstansi: @js($templateData['header_data']['kopInstansi'] ?? $document->header_data['kopInstansi'] ?? 'PT NUSANTARA CITRA MEDIA TBBK'),
-    kopAlamat: @js($templateData['header_data']['kopAlamat'] ?? $document->header_data['kopAlamat'] ?? 'Gedung Menara Palma Lt. 18, Jl. H.R. Rasuna Said Blok X-2, Jakarta Selatan 12950'),
-    kopKontrak: @js($templateData['header_data']['kopKontrak'] ?? $document->header_data['kopKontrak'] ?? 'Telp: (021) 5290-8888 | Email: sekretariat@ncm-media.co.id | Web: www.ncm-media.co.id'),
-    nomorSurat: @js($templateData['header_data']['nomorSurat'] ?? $document->header_data['nomorSurat'] ?? '042/SK-DIR/VIII/2026'),
-    perihalSurat: @js($templateData['header_data']['perihalSurat'] ?? $document->header_data['perihalSurat'] ?? 'Penetapan Standar Operasional Prosedur Penyusunan Dokumen Resmi Perusahaan'),
-    tanggalSurat: @js($templateData['header_data']['tanggalSurat'] ?? $document->header_data['tanggalSurat'] ?? '05 Agustus 2026'),
-    sifatSurat: @js($templateData['header_data']['sifatSurat'] ?? $document->header_data['sifatSurat'] ?? 'Penting / Rahasia'),   
+        {{-- LEFT --}}
+        <div class="flex items-center gap-4">
 
-    // Body Component Data
-    tujuanSurat: @js($templateData['body_content']['tujuanSurat'] ?? $document->body_content['tujuanSurat'] ?? ''),
-    menimbang: @js($templateData['body_content']['menimbang'] ?? $document->body_content['menimbang'] ?? ''),
-    mengingat: @js($templateData['body_content']['mengingat'] ?? $document->body_content['mengingat'] ?? ''),
-    isiPasal1: @js($templateData['body_content']['isiPasal1'] ?? $document->body_content['isiPasal1'] ?? ''),
-    isiPasal2: @js($templateData['body_content']['isiPasal2'] ?? $document->body_content['isiPasal2'] ?? ''),    
+            <a
+                href="{{ route('documents') }}"
+                class="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-parchment-100 dark:hover:bg-slate-warm-800"
+            >
+                ←
+            </a>
 
-    // Footer & Signature Component Data
-    kotaTtd: @js($templateData['footer_data']['kotaTtd'] ?? $document->footer_data['kotaTtd'] ?? 'Jakarta'),
-    jabatanPenandatangan: @js($templateData['footer_data']['jabatanPenandatangan'] ?? $document->footer_data['jabatanPenandatangan'] ?? 'Direktur Utama'),
-    namaPenandatangan: @js($templateData['footer_data']['namaPenandatangan'] ?? $document->footer_data['namaPenandatangan'] ?? 'Drs. H. Aris Budiman, M.B.A.'),
-    nipPenandatangan: @js($templateData['footer_data']['nipPenandatangan'] ?? $document->footer_data['nipPenandatangan'] ?? 'NIP: 19780412 200312 1 002'),
-    tembusan: @js($templateData['footer_data']['tembusan'] ?? $document->footer_data['tembusan'] ?? '1. Dewan Komisaris\\n2. Arsip Hukum (Legal Department)'),
-    
-    // Signature & Materai Options
-    selectedMaterai: @js($templateData['signature_data']['selectedMaterai'] ?? $document->signature_data['selectedMaterai'] ?? 'materai10k'),
-    hasSignature: @js(!empty($templateData['signature_data']['signatureUrl'] ?? $document->signature_data['signatureUrl'] ?? null)),
-    signatureX: @js($templateData['signature_data']['signatureX'] ?? $document->signature_data['signatureX'] ?? 65),
-    signatureY: @js($templateData['signature_data']['signatureY'] ?? $document->signature_data['signatureY'] ?? 78),
-    zoomLevel: 100,
-    
-    // Page count indicator
-    currentPage: 1,
-    totalPages: 2
-}">
+            <div>
+                <h1 class="text-sm font-semibold text-ink-900 dark:text-parchment-50">
+                    {{ $document->title }}
+                </h1>
 
-    <!-- Editor Toolbar -->
-    @include('partials.editor.toolbar')
-
-    <!-- Main Workspace Split -->
-    <div class="grid grid-cols-12 gap-5 items-start">
-        
-        <!-- LEFT COLUMN: Component Input Editor (5 / 12) -->
-        <div class="col-span-12 lg:col-span-5 space-y-4">
-            
-            <!-- Component Zone Selector Tabs -->
-            <div class="flex rounded-xl border border-parchment-300 bg-parchment-100 p-1 dark:border-slate-warm-700 dark:bg-slate-warm-800">
-                <button @click="activeZone = 'header'"
-                    :class="activeZone === 'header' ? 'bg-white text-ink-900 shadow-xs font-semibold dark:bg-slate-warm-900 dark:text-parchment-50' : 'text-slate-warm-600 hover:text-ink-900 dark:text-parchment-400'"
-                    class="flex-1 py-2 text-xs rounded-lg transition-all flex items-center justify-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-ink-900 dark:bg-bronze-400"></span>
-                    1. Kop Surat
-                </button>
-                <button @click="activeZone = 'body'"
-                    :class="activeZone === 'body' ? 'bg-white text-ink-900 shadow-xs font-semibold dark:bg-slate-warm-900 dark:text-parchment-50' : 'text-slate-warm-600 hover:text-ink-900 dark:text-parchment-400'"
-                    class="flex-1 py-2 text-xs rounded-lg transition-all flex items-center justify-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-bronze-600"></span>
-                    2. Isi Dokumen
-                </button>
-                <button @click="activeZone = 'footer'"
-                    :class="activeZone === 'footer' ? 'bg-white text-ink-900 shadow-xs font-semibold dark:bg-slate-warm-900 dark:text-parchment-50' : 'text-slate-warm-600 hover:text-ink-900 dark:text-parchment-400'"
-                    class="flex-1 py-2 text-xs rounded-lg transition-all flex items-center justify-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-seal-700"></span>
-                    3. Legalese & TTD
-                </button>
+                <p class="text-xs text-slate-warm-500">
+                    Dokumen #{{ $document->id }}
+                </p>
             </div>
 
-            <!-- TAB 1: KOP SURAT / HEADER COMPONENT EDITOR -->
-            @include('partials.editor.header-form')
-
-            <!-- TAB 2: ISI DOKUMEN / BODY COMPONENT EDITOR -->
-            @include('partials.editor.body-form')
-
-            <!-- TAB 3: FOOTER & SIGNATURE COMPONENT EDITOR -->
-            @include('partials.editor.footer-form')
         </div>
 
-        <!-- RIGHT COLUMN: Real-Time Multi-Page Realistic A4 Paper Preview Stage (7 / 12) -->
-        @include('partials.editor.paper-preview')
+
+        {{-- RIGHT --}}
+        <div class="flex items-center gap-3">
+
+            <span
+                x-show="saveStatus === 'saving'"
+                class="text-xs text-slate-warm-500"
+            >
+                Menyimpan...
+            </span>
+
+            <span
+                x-show="saveStatus === 'saved'"
+                class="text-xs text-green-600"
+            >
+                ✓ Tersimpan
+            </span>
+
+            <span
+                x-show="saveStatus === 'error'"
+                class="text-xs text-red-600"
+            >
+                Gagal menyimpan
+            </span>
+
+            <button
+                type="button"
+                @click="saveDocument()"
+                class="rounded-xl bg-ink-900 px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 dark:bg-bronze-500 dark:text-ink-900"
+            >
+                Simpan
+            </button>
+
+        </div>
 
     </div>
+
+
+{{-- ========================================= --}}
+{{-- WORD TOOLBAR --}}
+{{-- ========================================= --}}
+
+<div class="border-t border-parchment-200 px-5 py-2 dark:border-slate-warm-700">
+
+ 
+<div class="flex flex-wrap items-center gap-1">
+
+    {{-- Undo --}}
+    <button
+        type="button"
+        @click="format('undo')"
+        class="toolbar-button"
+        title="Undo"
+    >
+        ↶
+    </button>
+
+    {{-- Redo --}}
+    <button
+        type="button"
+        @click="format('redo')"
+        class="toolbar-button"
+        title="Redo"
+    >
+        ↷
+    </button>
+
+    <div class="toolbar-divider"></div>
+
+
+    {{-- Font --}}
+    <select
+        @change="format('fontName', $event.target.value)"
+        class="toolbar-select"
+    >
+        <option value="Arial">Arial</option>
+        <option value="Times New Roman">Times New Roman</option>
+        <option value="Calibri">Calibri</option>
+        <option value="Georgia">Georgia</option>
+        <option value="Verdana">Verdana</option>
+    </select>
+
+
+    {{-- Font Size --}}
+    <select
+        @change="format('fontSize', $event.target.value)"
+        class="toolbar-select w-20"
+    >
+        <option value="2">10</option>
+        <option value="3" selected>12</option>
+        <option value="4">14</option>
+        <option value="5">18</option>
+        <option value="6">24</option>
+        <option value="7">32</option>
+    </select>
+
+    <div class="toolbar-divider"></div>
+
+
+    {{-- Bold --}}
+    <button
+        type="button"
+        @click="format('bold')"
+        class="toolbar-button font-bold"
+        title="Bold"
+    >
+        B
+    </button>
+
+    {{-- Italic --}}
+    <button
+        type="button"
+        @click="format('italic')"
+        class="toolbar-button italic"
+        title="Italic"
+    >
+        I
+    </button>
+
+    {{-- Underline --}}
+    <button
+        type="button"
+        @click="format('underline')"
+        class="toolbar-button underline"
+        title="Underline"
+    >
+        U
+    </button>
+
+    <div class="toolbar-divider"></div>
+
+
+    {{-- Align Left --}}
+    <button
+        type="button"
+        @click="format('justifyLeft')"
+        class="toolbar-button"
+        title="Rata kiri"
+    >
+        ⬅
+    </button>
+
+    {{-- Align Center --}}
+    <button
+        type="button"
+        @click="format('justifyCenter')"
+        class="toolbar-button"
+        title="Rata tengah"
+    >
+        ↔
+    </button>
+
+    {{-- Align Right --}}
+    <button
+        type="button"
+        @click="format('justifyRight')"
+        class="toolbar-button"
+        title="Rata kanan"
+    >
+        ➡
+    </button>
+
+    {{-- Justify --}}
+    <button
+        type="button"
+        @click="format('justifyFull')"
+        class="toolbar-button"
+        title="Justify"
+    >
+        ☰
+    </button>
+
+    <div class="toolbar-divider"></div>
+
+
+    {{-- Bullet --}}
+    <button
+        type="button"
+        @click="format('insertUnorderedList')"
+        class="toolbar-button"
+        title="Bullet"
+    >
+        •
+    </button>
+
+    {{-- Number --}}
+    <button
+        type="button"
+        @click="format('insertOrderedList')"
+        class="toolbar-button"
+        title="Numbering"
+    >
+        1.
+    </button>
+
+</div>
+ 
+
 </div>
 
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        if (typeof initDocumentEditor === 'function') {
-            initDocumentEditor('#editor-pasal1');
-            initDocumentEditor('#editor-pasal2');
+
+{{-- ========================================= --}}
+{{-- DOCUMENT AREA --}}
+{{-- ========================================= --}}
+
+<main class="bg-slate-100 px-4 py-10 dark:bg-slate-warm-950">
+
+    <div class="mx-auto w-full max-w-[794px]">
+
+        {{-- A4 PAPER --}}
+        <div
+            class="document-page relative w-full bg-white shadow-xl"
+        >
+
+            {{-- ================================= --}}
+            {{-- HEADER / KOP SURAT --}}
+            {{-- ================================= --}}
+
+            <div class="px-[80px] pt-[65px]">
+
+                {{-- Company --}}
+                <div class="text-center">
+
+                    <div class="text-xl font-bold uppercase tracking-wide text-black">
+                        {{ $document->header_data['kopInstansi'] ?? '' }}
+                    </div>
+
+                    <div class="mt-1 text-xs leading-relaxed text-black">
+                        {{ $document->header_data['kopAlamat'] ?? '' }}
+                    </div>
+
+                    @if(!empty($document->header_data['kopKontrak']))
+                        <div class="text-xs leading-relaxed text-black">
+                            {{ $document->header_data['kopKontrak'] }}
+                        </div>
+                    @endif
+
+                </div>
+
+
+                {{-- Garis Kop --}}
+                <div class="mt-4 border-b-2 border-black"></div>
+
+
+                {{-- ================================= --}}
+                {{-- DOCUMENT INFO --}}
+                {{-- ================================= --}}
+
+                <div class="mt-7 text-sm text-black">
+
+                    <div class="grid grid-cols-[90px_15px_1fr]">
+                        <span>Nomor</span>
+                        <span>:</span>
+                        <span>
+                            {{ $document->header_data['nomorSurat'] ?? '' }}
+                        </span>
+                    </div>
+
+                    <div class="mt-1 grid grid-cols-[90px_15px_1fr]">
+                        <span>Tanggal</span>
+                        <span>:</span>
+                        <span>
+                            {{ $document->header_data['tanggalSurat'] ?? '' }}
+                        </span>
+                    </div>
+
+                    <div class="mt-1 grid grid-cols-[90px_15px_1fr]">
+                        <span>Perihal</span>
+                        <span>:</span>
+                        <span>
+                            {{ $document->header_data['perihalSurat'] ?? '' }}
+                        </span>
+                    </div>
+
+                    @if(!empty($document->header_data['sifatSurat']))
+                        <div class="mt-1 grid grid-cols-[90px_15px_1fr]">
+                            <span>Sifat</span>
+                            <span>:</span>
+                            <span>
+                                {{ $document->header_data['sifatSurat'] }}
+                            </span>
+                        </div>
+                    @endif
+
+                </div>
+
+
+                {{-- ================================= --}}
+                {{-- BODY EDITOR --}}
+                {{-- ================================= --}}
+
+                <div
+                    id="document-editor"
+                    contenteditable="true"
+                    spellcheck="true"
+                    @input="markAsChanged()"
+                    @keydown="handleKeydown($event)"
+                    class="document-body mt-10 pb-20 text-[14px] leading-7 text-black outline-none"
+                    >{!! $document->body_content['content'] ?? '' !!}</div>
+
+
+                {{-- ================================= --}}
+                {{-- FOOTER / SIGNATURE --}}
+                {{-- ================================= --}}
+
+                <div class="mt-12 pb-20 text-sm text-black">
+
+                    <div class="ml-auto w-[260px] text-center">
+
+                        <div>
+                            {{ $document->footer_data['kotaTtd'] ?? '' }},
+                            {{ $document->header_data['tanggalSurat'] ?? '' }}
+                        </div>
+
+                        <div class="mt-2 font-semibold">
+                            {{ $document->footer_data['jabatanPenandatangan'] ?? '' }}
+                        </div>
+
+                        <div class="h-24"></div>
+
+                        <div class="font-semibold underline">
+                            {{ $document->footer_data['namaPenandatangan'] ?? '' }}
+                        </div>
+
+                        @if(!empty($document->footer_data['nipPenandatangan']))
+                            <div class="text-xs">
+                                {{ $document->footer_data['nipPenandatangan'] }}
+                            </div>
+                        @endif
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+ 
+
+</div>
+
+@push('styles')
+
+<style>
+
+    .toolbar-button {
+        min-width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 7px;
+        font-size: 14px;
+    }
+
+    .toolbar-button:hover {
+        background: rgb(245 242 235);
+    }
+
+    [contenteditable="true"]:focus {
+        outline: none;
+    }
+
+    [contenteditable="true"] p {
+        margin-bottom: 0.75rem;
+    }
+
+    [contenteditable="true"] ul {
+        list-style-type: disc;
+        padding-left: 2rem;
+    }
+
+    [contenteditable="true"] ol {
+        list-style-type: decimal;
+        padding-left: 2rem;
+    }
+
+    .toolbar-divider {
+        width: 1px;
+        height: 24px;
+        margin: 0 6px;
+        background: rgb(214 211 204);
         }
-    });
-</script>
+
+        .toolbar-select {
+        height: 34px;
+        min-width: 130px;
+        padding: 0 8px;
+        border: 1px solid rgb(214 211 204);
+        border-radius: 7px;
+        background: white;
+        font-size: 13px;
+        outline: none;
+        }
+
+        .toolbar-select:focus {
+        border-color: rgb(180 140 80);
+        }
+
+        @media (max-width: 768px) {
+
+        ```
+        .toolbar-select {
+            min-width: 100px;
+        }
+        ```
+
+    }
+
+    .document-page {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto;
+        box-sizing: border-box;
+        }
+
+        .document-body {
+        min-height: 650px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.8;
+        }
+
+        .document-body:focus {
+        outline: none;
+        }
+
+        .document-body p {
+        margin: 0 0 10px 0;
+        }
+
+        .document-body h1,
+        .document-body h2,
+        .document-body h3 {
+        margin-top: 15px;
+        margin-bottom: 10px;
+        }
+
+        .document-body ul {
+        list-style-type: disc;
+        padding-left: 30px;
+        }
+
+        .document-body ol {
+        list-style-type: decimal;
+        padding-left: 30px;
+        }
+
+        .document-body blockquote {
+        margin: 15px 30px;
+        padding-left: 15px;
+        border-left: 3px solid #ccc;
+        }
+
+        @media print {
+
+        ```
+        body {
+            background: white !important;
+        }
+
+        .document-page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0;
+            box-shadow: none;
+        }
+        ```
+
+    }
+
+
+
+</style>
+
 @endpush
+
+@push('scripts')
+
+<script>
+
+function wordDocumentEditor() {
+
+    return {
+
+        documentId: @js($document->id),
+
+        saveStatus: 'saved',
+
+        changed: false,
+
+
+        markAsChanged() {
+
+            this.changed = true;
+
+            this.saveStatus = 'idle';
+
+        },
+
+
+        format(command, value = null) {
+
+            const editor = document.getElementById('document-editor');
+            if (!editor) return;
+            editor.focus();
+            document.execCommand(command, false, value);
+            this.markAsChanged();
+        }
+
+        handleKeydown(event) {
+
+            // Ctrl + S
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+
+                event.preventDefault();
+
+                this.saveDocument();
+
+            }
+
+        },
+
+
+        async saveDocument() {
+
+            const editor = document.getElementById('document-editor');
+
+            if (!editor) return;
+
+
+            this.saveStatus = 'saving';
+
+
+            const payload = {
+
+                title: @js($document->title),
+
+                type: @js($document->type ?? 'surat'),
+
+                header_data: @js($document->header_data ?? []),
+
+                body_content: {
+
+                    content: editor.innerHTML
+
+                },
+
+                footer_data: @js($document->footer_data ?? []),
+
+                signature_data: @js($document->signature_data ?? null),
+
+                status: 'draft'
+
+            };
+
+
+            try {
+
+                await window.axios.put(
+                    `/documents/${this.documentId}`,
+                    payload
+                );
+
+                this.saveStatus = 'saved';
+
+                this.changed = false;
+
+            } catch (error) {
+
+                console.error(error);
+
+                this.saveStatus = 'error';
+
+            }
+
+        }
+
+    };
+
+}
+
+</script>
+
+@endpush
+
 @endsection
