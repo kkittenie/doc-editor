@@ -71,7 +71,7 @@
         <div class="flex items-center justify-between w-full gap-3 px-4 py-2.5 xl:flex xl:justify-end xl:px-0">
             <div class="flex items-center gap-2">
                 <!-- Export / Print Quick Action Button -->
-                <button onclick="window.print()" class="btn-secondary text-xs px-3 py-1.5 h-9 shadow-xs">
+                <button @click="documentPrintArea()" class="btn-secondary text-xs px-3 py-1.5 h-9 shadow-xs">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="6 9 6 2 18 2 18 9"/>
                         <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
@@ -112,3 +112,58 @@
         </div>
     </div>
 </header>
+<script>
+    function documentPrintArea() {
+        const area = document.querySelector('.documentPrintArea');
+        if (!area) {
+            window.print();
+            return;
+        }
+
+        const win = window.open('', '_blank');
+        if (!win) {
+            alert('Unable to open print window. Please allow popups for this site.');
+            return;
+        }
+
+        // Clone current styles (link and style tags)
+        const headStyles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+            .map(node => node.outerHTML)
+            .join('\n');
+
+        const docHtml = `
+            <!doctype html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width,initial-scale=1">
+                ${headStyles}
+                <style>
+                    /* Ensure printed page uses A4 sizing and preserves colors */
+                    @page { size: A4; margin: 20mm; }
+                    html, body { background: white; color: black; }
+                </style>
+            </head>
+            <body>
+                ${area.innerHTML}
+            </body>
+            </html>
+        `;
+
+        win.document.open();
+        win.document.write(docHtml);
+        win.document.close();
+
+        // Give the new window a moment to load styles, then print
+        win.focus();
+        setTimeout(() => {
+            try {
+                win.print();
+                // close after printing
+                win.close();
+            } catch (e) {
+                console.error('Print failed', e);
+            }
+        }, 500);
+    }
+</script>

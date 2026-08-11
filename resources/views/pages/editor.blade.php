@@ -7,7 +7,7 @@
     {{-- ========================================= --}}
     {{-- TOP BAR --}}
     {{-- ========================================= --}}
-    <div class="sticky top-0 z-40 border-b border-parchment-300 bg-white/95 backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95">
+    <div class="editor-topbar sticky top-0 z-40 border-b border-parchment-300 bg-white/95 backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95">
 
         <div class="flex items-center justify-between px-5 py-3">
 
@@ -53,7 +53,7 @@
         {{-- ========================================= --}}
         {{-- WORD TOOLBAR (SUDAH DIPERBARUI) --}}
         {{-- ========================================= --}}
-        <div class="border-t border-parchment-200 px-5 py-2 dark:border-slate-warm-700">
+        <div class="editor-toolbar border-t border-parchment-200 px-5 py-2 dark:border-slate-warm-700">
 
             <div class="flex flex-wrap items-center gap-1">
 
@@ -150,7 +150,7 @@
     {{-- ========================================= --}}
     {{-- DOCUMENT AREA --}}
     {{-- ========================================= --}}
-    <main class="bg-slate-100 px-4 py-10 dark:bg-slate-warm-950">
+    <main class="documentPrintArea bg-slate-100 px-4 py-10 dark:bg-slate-warm-950">
         <div class="mx-auto w-full max-w-[794px]">
 
             {{-- A4 PAPER --}}
@@ -367,15 +367,40 @@
     }
 
     @media print {
-        body {
+
+        /* Sembunyikan semua elemen UI */
+        body * {
+            visibility: hidden;
+        }
+
+        /* Tampilkan hanya area dokumen */
+        #document-editor,
+        #document-editor * {
+            visibility: visible;
+        }
+
+        #document-editor {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            box-shadow: none !important;
+            border: none !important;
             background: white !important;
         }
 
-        .document-page {
-            width: 210mm;
-            min-height: 297mm;
-            margin: 0;
-            box-shadow: none;
+        /* Hilangkan margin browser */
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+
+        /* Warna/background tetap dicetak */
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
     }
 </style>
