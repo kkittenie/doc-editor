@@ -39,7 +39,7 @@ class SignatureController extends Controller
         [$meta, $base64] = explode(',', $data['image'], 2);
         $imageData = base64_decode($base64);
 
-        $filename = '$signatures/'.Auth::id(). '_' .Str::random(10). '.png';
+        $filename = 'signatures/'.Auth::id(). '_' .Str::random(10). '.png';
         Storage::disk('public')->put($filename, $imageData);
 
         $signature = Signature::create([
