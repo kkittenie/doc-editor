@@ -32,7 +32,7 @@
                 + '<p>' + b.isiPasal1.replace(/\n/g, '<br>') + '</p>'
                 + '<p>' + b.isiPasal2.replace(/\n/g, '<br>') + '</p>';
         } catch (e) {
-            alert('Gagal memuat template.');
+            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal memuat template.', confirmButtonColor: '#1B2A4A' });
             console.error(e);
         } finally {
             this.loadingTemplate = null;
@@ -49,7 +49,8 @@
                 const res = await window.axios.post('/documents/logo', { image: e.target.result });
                 this.logoUrl = res.data.url;
             } catch (err) {
-                alert('Gagal mengunggah logo.');
+                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal mengunggah logo.', confirmButtonColor: '#1B2A4A' });
+            console.error(err);
                 console.error(err);
             } finally {
                 this.isUploadingLogo = false;

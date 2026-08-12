@@ -15,7 +15,9 @@
                 <h1 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-50">
                     Editor Komponen Dokumen
                 </h1>
-                <span class="doc-status text-[10px]" :class="hasSignature ? 'doc-status-verified' : 'doc-status-pending'" x-text="hasSignature ? 'TTD Terpasang' : 'Menunggu TTD'"></span>
+                <span class="doc-status text-[10px]"
+                    :class="hasSignature ? 'doc-status-verified' : 'doc-status-pending'"
+                    x-text="hasSignature ? 'TTD Terpasang' : 'Menunggu TTD'"></span>
             </div>
         </div>
     </div>
@@ -37,7 +39,7 @@
         </div>
 
         <a :href="documentId ? '/documents/' + documentId + '/export' : '#'"
-            @click="if (!documentId) { $event.preventDefault(); alert('Simpan dokumen dulu sebelum export PDF.'); }"
+            @click="if (!documentId) { $event.preventDefault(); Swal.fire({ icon: 'warning', title: 'Belum disimpan', text: 'Simpan dokumen dulu sebelum export PDF.', confirmButtonColor: '#1B2A4A' }); }"
             class="btn-secondary text-xs px-3 py-1.5 h-8 flex items-center gap-1.5 shrink-0" target="_blank">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />

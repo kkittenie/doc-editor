@@ -25,38 +25,45 @@
 
         documents: @js($documentData),
 
-        deleteDocument(docId) {
+        async deleteDocument(docId) {
 
-            if (!confirm('Apakah Anda yakin ingin menghapus dokumen ini?')) {
-                return;
-            }
+    const result = await Swal.fire({
+        icon: 'warning',
+        title: 'Hapus dokumen ini?',
+        text: 'Dokumen akan dipindahkan ke Trash.',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, hapus',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#dc2626',
+    });
 
-            fetch('/documents/' + docId, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
+    if (!result.isConfirmed) return;
 
-                if (!response.ok) {
-                    throw new Error('Gagal Menghapus dokumen.');
-                }
+    fetch('/documents/' + docId, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
 
-                window.location.reload();
-
-            })
-            .catch(error => {
-
-                alert(error.message);
-                console.error(error);
-
-            });
-
+        if (!response.ok) {
+            throw new Error('Gagal menghapus dokumen.');
         }
 
-    }"
+        Swal.fire({ icon: 'success', title: 'Terhapus', text: 'Dokumen berhasil dihapus.', confirmButtonColor: '#1B2A4A' })
+            .then(() => window.location.reload());
+
+    })
+    .catch(error => {
+
+        Swal.fire({ icon: 'error', title: 'Gagal', text: error.message, confirmButtonColor: '#1B2A4A' });
+        console.error(error);
+
+    });
+
+}
 >
     <!-- Page Header Bar -->
     <div class="mb-6 flex flex-wrap items-center justify-between gap-4">

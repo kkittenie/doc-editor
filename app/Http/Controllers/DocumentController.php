@@ -85,7 +85,7 @@ class DocumentController extends Controller
                 'logoUrl' => $data['header_data']['logoUrl'] ?? null,
             ],
             'body_content' => [
-                'content' => $data['body_html'] ?? '',
+                'content' => [$data['body_html'] ?? ''],
             ],
             'footer_data' => [
                 'kotaTtd' => '',
@@ -140,8 +140,11 @@ class DocumentController extends Controller
     $signaturePath = $this->resolvePublicPath($document->signature_data['signatureUrl'] ?? null);
     $logoPath = $this->resolvePublicPath($document->header_data['logoUrl'] ?? null);
 
+    $pages = $document->body_content['pages'] ?? [$document->body_content['content'] ?? ''];
+
     $pdf = Pdf::loadView('pdf.document', [
         'document'      => $document,
+        'pages'         => $pages,
         'signaturePath' => $signaturePath,
         'logoPath'      => $logoPath,
     ])->setPaper('a4', 'portrait');
