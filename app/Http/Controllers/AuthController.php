@@ -12,7 +12,7 @@ class AuthController extends Controller
     public function showSignin()
     {
         if (Auth::check()) {
-            return redirect()->route('editor');
+            return redirect()->route('document.index');
         }
         return view('pages.auth.signin', ['title' => 'Masuk ke Studio Papercraft']);
     }
