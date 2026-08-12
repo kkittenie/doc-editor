@@ -16,7 +16,7 @@ class DocumentController extends Controller
     {
        $documents = Document::where('user_id', auth()->id())
             ->latest()
-            ->paginate(12);
+            ->get();
 
         return view('pages.documents', [
             'title' => 'Dokumen Saya & Arsip',

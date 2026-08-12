@@ -16,55 +16,67 @@
             'pages' => count($doc->body_content) + 1, // +1 for header page
             'hasMaterai' => false
         ];
-    });
+    })->toArray();
 @endphp
-<div
-    x-data="{
-        filterStatus: 'all',
-        searchQuery: '',
+<script>
+    window.documentPageData = @json($documentData);
+    
+    function documentsPage() {
+        return {
+            filterStatus: 'all',
+            searchQuery: '',
+            documents: window.documentPageData,
 
-        documents: @js($documentData),
+            async deleteDocument(docId) {
+                const result = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Hapus dokumen ini?',
+                    text: 'Dokumen akan dipindahkan ke Trash.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, hapus',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#dc2626',
+                });
 
-        async deleteDocument(docId) {
+                if (!result.isConfirmed) return;
 
-    const result = await Swal.fire({
-        icon: 'warning',
-        title: 'Hapus dokumen ini?',
-        text: 'Dokumen akan dipindahkan ke Trash.',
-        showCancelButton: true,
-        confirmButtonText: 'Ya, hapus',
-        cancelButtonText: 'Batal',
-        confirmButtonColor: '#dc2626',
-    });
+                fetch('/documents/' + docId, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Gagal menghapus dokumen.');
+                    }
 
-    if (!result.isConfirmed) return;
+                    return response.json();
+                })
+                .then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Terhapus',
+                        text: 'Dokumen berhasil dihapus.',
+                        confirmButtonColor: '#1B2A4A'
+                    }).then(() => window.location.reload());
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: error.message,
+                        confirmButtonColor: '#1B2A4A'
+                    });
 
-    fetch('/documents/' + docId, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => {
-
-        if (!response.ok) {
-            throw new Error('Gagal menghapus dokumen.');
-        }
-
-        Swal.fire({ icon: 'success', title: 'Terhapus', text: 'Dokumen berhasil dihapus.', confirmButtonColor: '#1B2A4A' })
-            .then(() => window.location.reload());
-
-    })
-    .catch(error => {
-
-        Swal.fire({ icon: 'error', title: 'Gagal', text: error.message, confirmButtonColor: '#1B2A4A' });
-        console.error(error);
-
-    });
-
-}
->
+                    console.error(error);
+                });
+            }
+        };
+    }
+</script>
+<div x-data="documentsPage()">
     <!-- Page Header Bar -->
     <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>

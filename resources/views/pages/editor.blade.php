@@ -145,6 +145,13 @@
                 <button type="button" @click="insertLink()" class="toolbar-button" title="Sisipkan Tautan">🔗</button>
                 <button type="button" @click="format('insertHorizontalRule')" class="toolbar-button"
                     title="Garis Pembatas">―</button>
+                <button
+                    type="button"
+                    @click="showSignaturePicker = true"
+                    class="toolbar-button"
+                    title="Pilih Tanda Tangan">
+                    ✍
+                </button>
 
                 <div class="toolbar-divider"></div>
 
@@ -238,7 +245,17 @@
                             <div class="mt-2 font-semibold">
                                 {{ $document->footer_data['jabatanPenandatangan'] ?? '' }}
                             </div>
-                            <div class="h-24"></div>
+                            <div class="h-24 relative flex items-center justify-center">
+
+                                <template x-if="selectedSignature">
+                                    <img
+                                        :src="selectedSignature"
+                                        alt="Tanda Tangan"
+                                        class="max-h-20 max-w-[180px] object-contain"
+                                    >
+                                </template>
+
+                            </div>
                             <div class="font-semibold underline">
                                 {{ $document->footer_data['namaPenandatangan'] ?? '' }}
                             </div>
@@ -263,7 +280,107 @@
 
         </div>
     </main>
+    {{-- SIGNATURE PICKER --}}
+<div
+    x-show="showSignaturePicker"
+    x-cloak
+    class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4"
+    @click.self="showSignaturePicker = false"
+>
+    <div
+        class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-warm-900"
+        @click.stop
+    >
 
+        {{-- Header --}}
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <h2 class="text-base font-semibold text-ink-900 dark:text-parchment-50">
+                    Pilih Tanda Tangan
+                </h2>
+
+                <p class="mt-1 text-xs text-slate-warm-500">
+                    Pilih tanda tangan yang sudah tersimpan.
+                </p>
+            </div>
+
+            <button
+                type="button"
+                @click="showSignaturePicker = false"
+                class="text-xl text-slate-warm-400 hover:text-slate-warm-700"
+            >
+                ×
+            </button>
+        </div>
+
+        {{-- Tidak ada signature --}}
+        <template x-if="signatures.length === 0">
+            <div class="rounded-xl border border-dashed border-parchment-300 p-6 text-center">
+                <p class="text-sm text-slate-warm-500">
+                    Belum ada tanda tangan tersimpan.
+                </p>
+
+                <a
+                    href="{{ route('signatures') }}"
+                    class="mt-3 inline-block text-xs font-semibold text-ink-900 hover:underline"
+                >
+                    Kelola Tanda Tangan
+                </a>
+            </div>
+        </template>
+
+        {{-- Signature List --}}
+        <div
+            x-show="signatures.length > 0"
+            class="grid gap-3 max-h-[400px] overflow-y-auto"
+        >
+
+            <template x-for="signature in signatures" :key="signature.id">
+
+                <button
+                    type="button"
+                    @click="
+                        selectedSignature = signature.url;
+                        selectedSignatureId = signature.id;
+                        showSignaturePicker = false;
+                        markAsChanged();
+                    "
+                    class="group w-full rounded-xl border border-parchment-300 p-4 text-left transition hover:border-ink-900 hover:bg-parchment-50 dark:border-slate-warm-700 dark:hover:bg-slate-warm-800"
+                >
+
+                    <div class="flex items-center gap-4">
+
+                        {{-- Preview --}}
+                        <div class="flex h-20 w-32 items-center justify-center rounded-lg border bg-white p-2">
+                            <img
+                                :src="signature.url"
+                                :alt="signature.name"
+                                class="max-h-full max-w-full object-contain"
+                            >
+                        </div>
+
+                        {{-- Name --}}
+                        <div>
+                            <div
+                                class="text-sm font-semibold text-ink-900 dark:text-parchment-100"
+                                x-text="signature.name"
+                            ></div>
+
+                            <div class="mt-1 text-xs text-slate-warm-500">
+                                Klik untuk memilih
+                            </div>
+                        </div>
+
+                    </div>
+
+                </button>
+
+            </template>
+
+        </div>
+
+    </div>
+</div>
 </div>
 
 @push('styles')
@@ -439,9 +556,18 @@
 <script>
     function wordDocumentEditor() {
         return {
-            documentId: @js($document -> id),
+            documentId: @js($document->id),
+
+            signatures: @js($signatures ?? []),
+            selectedSignature: @js($document->signature_data['signatureUrl'] ?? null),
+            selectedSignatureId: @js($document->signature_data['signatureId'] ?? null),
+            showSignaturePicker: false,
+
             saveStatus: 'saved',
             changed: false,
+            activeEditorId: 'document-editor-0',
+
+            pages: @js($document->body_content['pages'] ?? [$document->body_content['content'] ?? '']),            changed: false,
             activeEditorId: 'document-editor-0',
             pages: @js($document -> body_content['pages'] ?? [$document -> body_content['content'] ?? '']),
 
@@ -558,7 +684,10 @@
                     header_data: @js($document -> header_data ?? []),
                     body_content: { pages: pagesHtml },
                     footer_data: @js($document -> footer_data ?? []),
-                    signature_data: @js($document -> signature_data ?? null),
+                    signature_data: {
+                        signatureId: this.selectedSignatureId,
+                        signatureUrl: this.selectedSignature,
+                    },
                     status: 'draft'
                 };
 
