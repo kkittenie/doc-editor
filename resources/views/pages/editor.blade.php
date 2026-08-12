@@ -246,15 +246,30 @@
                                 {{ $document->footer_data['jabatanPenandatangan'] ?? '' }}
                             </div>
                             <div class="h-24 relative flex items-center justify-center">
-
                                 <template x-if="selectedSignature">
-                                    <img
-                                        :src="selectedSignature"
-                                        alt="Tanda Tangan"
-                                        class="max-h-20 max-w-[180px] object-contain"
-                                    >
-                                </template>
+                                    <div class="relative flex flex-col items-center justify-center">
+                                        
+                                        <img
+                                            :src="selectedSignature"
+                                            alt="Tanda Tangan"
+                                            class="max-h-20 max-w-[180px] object-contain"
+                                        >
 
+                                        <button
+                                            type="button"
+                                            @click="
+                                                selectedSignature = null;
+                                                selectedSignatureId = null;
+                                                markAsChanged();
+                                            "
+                                            class="absolute -right-8 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow hover:bg-red-600"
+                                            title="Hapus Tanda Tangan"
+                                        >
+                                            ×
+                                        </button>
+
+                                    </div>
+                                </template>
                             </div>
                             <div class="font-semibold underline">
                                 {{ $document->footer_data['namaPenandatangan'] ?? '' }}
@@ -455,6 +470,7 @@
     .document-page {
         width: 210mm;
         min-height: 297mm;
+        max-height: 297mm;
         margin: 0 auto;
         box-sizing: border-box;
     }
