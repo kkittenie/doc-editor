@@ -178,9 +178,6 @@
                     <button @click="deleteDocument(doc.databaseId)" class="btn-secondary text-[11px] px-2.5 py-1.5 h-7">
                         Hapus
                     </button>
-                    <button onclick="window.print()" class="btn-primary text-[11px] px-2.5 py-1.5 h-7">
-                        Cetak PDF
-                    </button>
                 </div>
             </div>
         </template>
