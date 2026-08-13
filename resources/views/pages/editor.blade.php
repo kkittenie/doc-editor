@@ -108,9 +108,9 @@
 
                 {{-- Colors --}}
                 <div class="flex items-center gap-1 pl-1">
-                    <input type="color" @change="format('foreColor', $event.target.value)" title="Warna Teks"
+                    <input type="color" @input="format('foreColor', $event.target.value); $event.target.blur()" title="Warna Teks"
                         class="toolbar-color" value="#000000">
-                    <input type="color" @change="format('hiliteColor', $event.target.value)" title="Warna Sorot"
+                    <input type="color" @input="format('hiliteColor', $event.target.value); $event.target.blur()" title="Warna Sorot"
                         class="toolbar-color" value="#ffff00">
                 </div>
 
@@ -624,8 +624,26 @@
             format(command, value = null) {
                 const editor = document.getElementById(this.activeEditorId) || document.getElementById('document-editor-0');
                 if (!editor) return;
+                
                 editor.focus();
-                document.execCommand(command, false, value);
+                
+                // For removeFormat, select all first
+                if (command === 'removeFormat') {
+                    const selection = window.getSelection();
+                    if (selection.toString().length === 0) {
+                        const range = document.createRange();
+                        range.selectNodeContents(editor);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
+                }
+                
+                try {
+                    document.execCommand(command, false, value);
+                } catch (e) {
+                    console.error('Command error:', e);
+                }
+                
                 this.markAsChanged();
             },
 
