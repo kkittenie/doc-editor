@@ -150,7 +150,7 @@
                     @click="showSignaturePicker = true"
                     class="toolbar-button"
                     title="Pilih Tanda Tangan">
-                    <marquee><b>TTD</b></marquee>
+                    <b>TTD</b>
                 </button>
 
                 <div class="toolbar-divider"></div>
