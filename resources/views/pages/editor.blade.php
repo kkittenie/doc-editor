@@ -245,9 +245,9 @@
                             <div class="mt-2 font-semibold">
                                 {{ $document->footer_data['jabatanPenandatangan'] ?? '' }}
                             </div>
-                            <div class="h-24 relative flex items-center justify-center">
+                            <!-- <div class="h-24 absolute flex items-center justify-center">
                                 <template x-if="selectedSignature">
-                                    <div class="relative flex flex-col items-center justify-center">
+                                    <div class="absolute flex flex-col items-center justify-center">
                                         
                                         <img
                                             :src="selectedSignature"
@@ -270,7 +270,7 @@
 
                                     </div>
                                 </template>
-                            </div>
+                            </div> -->
                             <div class="font-semibold underline">
                                 {{ $document->footer_data['namaPenandatangan'] ?? '' }}
                             </div>
@@ -282,6 +282,57 @@
                         </div>
                     </div>
 
+                    {{-- ========================================= --}}
+                    {{-- DRAGGABLE SIGNATURE --}}
+                    {{-- ========================================= --}}
+                    <template x-if="index === pages.length - 1 && selectedSignature">
+
+                        <div
+                            class="absolute z-30 cursor-move select-none"
+                            :style="`
+                                left: ${signatureX}px;
+                                top: ${signatureY}px;
+                            `"
+                            @mousedown="startDragSignature($event)"
+                            @mousemove.window="dragSignature($event)"
+                            @mouseup.window="stopDragSignature()"
+                        >
+
+                            <div
+                                class="relative rounded-lg border-2 border-transparent p-1"
+                                :class="isDraggingSignature
+                                    ? 'border-blue-500 bg-blue-50/20'
+                                    : 'hover:border-blue-300'"
+                            >
+
+                                {{-- GAMBAR TTD --}}
+                                <img
+                                    :src="selectedSignature"
+                                    alt="Tanda Tangan"
+                                    draggable="false"
+                                    class="max-h-20 max-w-[180px] object-contain pointer-events-none"
+                                >
+
+                                {{-- TOMBOL HAPUS --}}
+                                <button
+                                    type="button"
+                                    @mousedown.stop
+                                    @click.stop="
+                                        selectedSignature = null;
+                                        selectedSignatureId = null;
+                                        markAsChanged();
+                                    "
+                                    class="absolute -right-3 -top-3 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow hover:bg-red-600"
+                                    title="Hapus Tanda Tangan"
+                                >
+                                    ×
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </template>
                 </div>
             </template>
 
@@ -575,17 +626,29 @@
             documentId: @js($document->id),
 
             signatures: @js($signatures ?? []),
+
             selectedSignature: @js($document->signature_data['signatureUrl'] ?? null),
+
             selectedSignatureId: @js($document->signature_data['signatureId'] ?? null),
+
+            signatureX: @js($document->signature_data['signatureX'] ?? 500),
+            signatureY: @js($document->signature_data['signatureY'] ?? 650),
+
             showSignaturePicker: false,
+
+            isDraggingSignature: false,
+            dragStartX: 0,
+            dragStartY: 0,
+            initialSignatureX: 0,
+            initialSignatureY: 0,
 
             saveStatus: 'saved',
             changed: false,
             activeEditorId: 'document-editor-0',
 
-            pages: @js($document->body_content['pages'] ?? [$document->body_content['content'] ?? '']),            changed: false,
-            activeEditorId: 'document-editor-0',
-            pages: @js($document -> body_content['pages'] ?? [$document -> body_content['content'] ?? '']),
+            pages: @js($document->body_content['pages'] ?? [$document->body_content['content'] ?? '']),
+            // activeEditorId: 'document-editor-0',
+            // pages: @js($document -> body_content['pages'] ?? [$document -> body_content['content'] ?? '']),
 
             markAsChanged() {
                 this.changed = true;
@@ -695,6 +758,37 @@
                     confirmButtonColor: '#1B2A4A',
                 });
                 if (url) this.format('createLink', url);
+            },
+
+            startDragSignature(event) {
+                event.preventDefault();
+
+                this.isDraggingSignature = true;
+
+                this.dragStartX = event.clientX;
+                this.dragStartY = event.clientY;
+
+                this.initialSignatureX = this.signatureX;
+                this.initialSignatureY = this.signatureY;
+
+                document.body.style.userSelect = 'none';
+            },
+
+            dragSignature(event) {
+                if (!this.isDraggingSignature) return;
+
+                const deltaX = event.clientX - this.dragStartX;
+                const deltaY = event.clientY - this.dragStartY;
+
+                this.signatureX = this.initialSignatureX + deltaX;
+                this.signatureY = this.initialSignatureY + deltaY;
+            },
+
+            stopDragSignature() {
+                if (!this.isDraggingSignature) return;
+                    this.isDraggingSignature = false;
+                    document.body.style.userSelect = '';
+                    this.markAsChanged();
             },
 
             handleKeydown(event) {
