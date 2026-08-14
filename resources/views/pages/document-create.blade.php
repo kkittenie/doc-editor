@@ -8,34 +8,39 @@
     footerHtml: '',
     bodyHtml: '',
 
+    init() {
+        this.enableImageDragAndDrop('header-editor');
+        this.enableImageDragAndDrop('footer-editor');
+    },
+
     async loadTemplate(key) {
-    this.loadingTemplate = key;
-    try {
-        const res = await window.axios.get('/documents/template/' + key);
-        const t = res.data;
+        this.loadingTemplate = key;
+        try {
+            const res = await window.axios.get('/documents/template/' + key);
+            const t = res.data;
 
-        this.headerHtml = '<p style=\'text-align:center;font-weight:bold;text-transform:uppercase;\'>' + t.header_data.kopInstansi + '</p>'
-            + '<p style=\'text-align:center;font-size:12px;\'>' + t.header_data.kopAlamat + '</p>'
-            + '<p style=\'text-align:center;font-size:11px;\'>' + t.header_data.kopKontrak + '</p>';
+            this.headerHtml = '<p style=\'text-align:center;font-weight:bold;text-transform:uppercase;\'>' + t.header_data.kopInstansi + '</p>'
+                + '<p style=\'text-align:center;font-size:12px;\'>' + t.header_data.kopAlamat + '</p>'
+                + '<p style=\'text-align:center;font-size:11px;\'>' + t.header_data.kopKontrak + '</p>';
 
-        document.getElementById('header-nomor').value = t.header_data.nomorSurat;
-        document.getElementById('header-judul').value = t.title;
+            document.getElementById('header-nomor').value = t.header_data.nomorSurat;
+            document.getElementById('header-judul').value = t.title;
 
-        this.footerHtml = '<p>Sifat: ' + t.header_data.sifatSurat + '</p>';
+            this.footerHtml = '<p>Sifat: ' + t.header_data.sifatSurat + '</p>';
 
-        const b = t.body_content;
-        this.bodyHtml = '<p>' + b.tujuanSurat + '</p>'
-            + '<p><strong>MENIMBANG:</strong><br>' + b.menimbang.replace(/\n/g, '<br>') + '</p>'
-            + '<p><strong>MENGINGAT:</strong><br>' + b.mengingat.replace(/\n/g, '<br>') + '</p>'
-            + '<p>' + b.isiPasal1.replace(/\n/g, '<br>') + '</p>'
-            + '<p>' + b.isiPasal2.replace(/\n/g, '<br>') + '</p>';
-    } catch (e) {
-        Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal memuat template.', confirmButtonColor: '#1B2A4A' });
-        console.error(e);
-    } finally {
-        this.loadingTemplate = null;
-    }
-},
+            const b = t.body_content;
+            this.bodyHtml = '<p>' + b.tujuanSurat + '</p>'
+                + '<p><strong>MENIMBANG:</strong><br>' + b.menimbang.replace(/\n/g, '<br>') + '</p>'
+                + '<p><strong>MENGINGAT:</strong><br>' + b.mengingat.replace(/\n/g, '<br>') + '</p>'
+                + '<p>' + b.isiPasal1.replace(/\n/g, '<br>') + '</p>'
+                + '<p>' + b.isiPasal2.replace(/\n/g, '<br>') + '</p>';
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal memuat template.', confirmButtonColor: '#1B2A4A' });
+            console.error(e);
+        } finally {
+            this.loadingTemplate = null;
+        }
+    },
 
     formatArea(targetId, command, value = null) {
         const el = document.getElementById(targetId);
@@ -54,7 +59,27 @@
             const res = await window.axios.post('/documents/logo', { image: e.target.result });
             const el = document.getElementById('header-editor');
             el.focus();
-            document.execCommand('insertHTML', false, '<img src=\'' + res.data.url + '\' style=\'max-height:70px;display:block;margin:0 auto 8px;\'>');
+            
+            // Buat elemen img secara murni via JavaScript DOM
+            const img = document.createElement('img');
+            img.src = res.data.url;
+            img.draggable = true;
+            img.className = 'drag-image';
+            img.style.maxHeight = '70px';
+            img.style.display = 'inline-block';
+            img.style.margin = '0 8px 8px 0';
+            img.style.cursor = 'grab';
+
+            // Sisipkan elemen langsung ke editor
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                range.deleteContents();
+                range.insertNode(img);
+            } else {
+                el.appendChild(img);
+            }
+
         } catch (err) {
             Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal mengunggah logo.', confirmButtonColor: '#1B2A4A' });
             console.error(err);
@@ -65,6 +90,52 @@
     };
     reader.readAsDataURL(file);
 },
+
+    enableImageDragAndDrop(editorId) {
+        this.$nextTick(() => {
+            const editor = document.getElementById(editorId);
+            if (!editor) return;
+
+            let draggedImage = null;
+
+            editor.addEventListener('dragstart', (e) => {
+                if (e.target.tagName === 'IMG') {
+                    draggedImage = e.target;
+                    e.dataTransfer.setData('text/plain', ''); // Memicu proses drag native
+                    e.target.style.opacity = '0.5';
+                }
+            });
+
+            editor.addEventListener('dragend', (e) => {
+                if (e.target.tagName === 'IMG') {
+                    e.target.style.opacity = '1';
+                    draggedImage = null;
+                }
+            });
+
+            editor.addEventListener('dragover', (e) => {
+                e.preventDefault(); // Mengizinkan drop area
+            });
+
+            editor.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (!draggedImage) return;
+
+                // Mendapatkan posisi kursor teks tempat gambar di-drop
+                let range;
+                if (document.caretRangeFromPoint) {
+                    range = document.caretRangeFromPoint(e.clientX, e.clientY);
+                } else if (e.rangeParent) {
+                    range = document.createRange();
+                    range.setStart(e.rangeParent, e.rangeOffset);
+                }
+
+                if (range) {
+                    range.insertNode(draggedImage);
+                }
+            });
+        });
+    },
 
     syncBeforeSubmit() {
         document.getElementById('header-content-input').value = document.getElementById('header-editor').innerHTML;
@@ -108,7 +179,7 @@
         <input type="hidden" id="footer-content-input" name="footer_data[content]">
         <input type="hidden" name="body_html" :value="bodyHtml">
 
-        {{-- Judul & Nomor (compact, bekas posisi logo) --}}
+        {{-- Judul & Nomor --}}
         <div class="rounded-2xl border border-parchment-300 bg-white p-5 shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900 mb-5">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
