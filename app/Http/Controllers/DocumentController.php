@@ -70,50 +70,37 @@ class DocumentController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
             'header_data' => ['required', 'array'],
-            'header_data.kopInstansi' => ['required', 'string', 'max:255'],
-            'header_data.kopAlamat' => ['required', 'string', 'max:1000'],
-            'header_data.kopKontrak' => ['nullable', 'string', 'max:1000'],
             'header_data.nomorSurat' => ['required', 'string', 'max:255'],
-            'header_data.tanggalSurat' => ['required', 'string', 'max:100'],
-            'header_data.perihalSurat' => ['required', 'string', 'max:500'],
-            'header_data.sifatSurat' => ['nullable', 'string', 'max:100'],
-            'header_data.logoUrl' => ['nullable', 'string'],
+            'header_data.content' => ['required', 'string'],
+            'footer_data' => ['nullable', 'array'],
+            'footer_data.content' => ['nullable', 'string'],
             'body_html' => ['nullable', 'string'],
             'type' => ['nullable', 'string'],
         ]);
 
         $document = Document::create([
-            'user_id' => Auth::id(),
-            'title' => $data['header_data']['perihalSurat'],
-            'type' => $data['type'] ?? 'surat',
-            'header_data' => [
-                'kopInstansi' => $data['header_data']['kopInstansi'],
-                'kopAlamat' => $data['header_data']['kopAlamat'],
-                'kopKontrak' => $data['header_data']['kopKontrak'] ?? '',
-                'nomorSurat' => $data['header_data']['nomorSurat'],
-                'perihalSurat' => $data['header_data']['perihalSurat'],
-                'tanggalSurat' => $data['header_data']['tanggalSurat'],
-                'sifatSurat' => $data['header_data']['sifatSurat'] ?? 'Biasa',
-                'logoUrl' => $data['header_data']['logoUrl'] ?? null,
-            ],
-            'body_content' => [
-                'content' => [$data['body_html'] ?? ''],
-            ],
-            'footer_data' => [
-                'kotaTtd' => '',
-                'jabatanPenandatangan' => '',
-                'namaPenandatangan' => '',
-                'nipPenandatangan' => '',
-                'tembusan' => '',
-            ],
-            'signature_data' => [
-                'selectedMaterai' => 'none',
-                'signatureX' => 65,
-                'signatureY' => 78,
-                'signatureUrl' => null,
-            ],
-            'status' => 'draft',
+        'user_id' => Auth::id(),
+        'title' => $data['title'],
+        'type' => $data['type'] ?? 'surat',
+        'header_data' => [
+            'nomorSurat' => $data['header_data']['nomorSurat'],
+            'content' => $data['header_data']['content'],
+        ],
+        'body_content' => [
+            'pages' => [$data['body_html'] ?? ''],
+        ],
+        'footer_data' => [
+            'content' => $data['footer_data']['content'] ?? '',
+        ],
+        'signature_data' => [
+            'selectedMaterai' => 'none',
+            'signatureX' => 65,
+            'signatureY' => 78,
+            'signatureUrl' => null,
+        ],
+        'status' => 'draft',
         ]);
 
         return redirect()
@@ -148,21 +135,23 @@ class DocumentController extends Controller
 
     public function exportPdf(Document $document)
     {
-    abort_unless($document->user_id === Auth::id(), 403);
+        abort_unless($document->user_id === Auth::id(), 403);
 
-    $signaturePath = $this->resolvePublicPath($document->signature_data['signatureUrl'] ?? null);
-    $logoPath = $this->resolvePublicPath($document->header_data['logoUrl'] ?? null);
+        $signaturePath = $this->resolvePublicPath($document->signature_data['signatureUrl'] ?? null);
+        $pages = $document->body_content['pages'] ?? [$document->body_content['content'] ?? ''];
 
-    $pages = $document->body_content['pages'] ?? [$document->body_content['content'] ?? ''];
+        $headerHtml = $this->resolveImagePathsForPdf($document->header_data['content'] ?? '');
+        $footerHtml = $this->resolveImagePathsForPdf($document->footer_data['content'] ?? '');
 
-    $pdf = Pdf::loadView('pdf.document', [
-        'document'      => $document,
-        'pages'         => $pages,
-        'signaturePath' => $signaturePath,
-        'logoPath'      => $logoPath,
-    ])->setPaper('a4', 'portrait');
+        $pdf = Pdf::loadView('pdf.document', [
+            'document'      => $document,
+            'pages'         => $pages,
+            'headerHtml'    => $headerHtml,
+            'footerHtml'    => $footerHtml,
+            'signaturePath' => $signaturePath,
+        ])->setPaper('a4', 'portrait');
 
-    return $pdf->download('dokumen-'.$document->id.'-'.now()->format('Ymd').'.pdf');
+        return $pdf->download('dokumen-'.$document->id.'-'.now()->format('Ymd').'.pdf');
     }
 
     public function createFromTemplate(string $template)
@@ -270,5 +259,13 @@ class DocumentController extends Controller
         $relative = ltrim(parse_url($url, PHP_URL_PATH), '/');
         $fullPath = public_path($relative);
         return file_exists($fullPath) ? $fullPath : null;
+    }
+
+    private function resolveImagePathsForPdf(string $html): string
+    {
+        return preg_replace_callback('/<img[^>]+src="([^"]+)"/i', function ($matches) {
+            $path = $this->resolvePublicPath($matches[1]);
+            return $path ? str_replace($matches[1], $path, $matches[0]) : $matches[0];
+        }, $html);
     }
 }
