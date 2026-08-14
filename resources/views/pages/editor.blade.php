@@ -183,42 +183,9 @@
                     </div>
 
                     {{-- HEADER / KOP SURAT (hanya halaman pertama) --}}
-                    <div x-show="index === 0" class="px-[80px] pt-[20px]">
-                        <div class="text-center">
-                            <div class="text-xl font-bold uppercase tracking-wide text-black">
-                                {{ $document->header_data['kopInstansi'] ?? '' }}
-                            </div>
-                            <div class="mt-1 text-xs leading-relaxed text-black">
-                                {{ $document->header_data['kopAlamat'] ?? '' }}
-                            </div>
-                            @if(!empty($document->header_data['kopKontrak']))
-                            <div class="text-xs leading-relaxed text-black">
-                                {{ $document->header_data['kopKontrak'] }}
-                            </div>
-                            @endif
-                        </div>
-
-                        <div class="mt-4 border-b-2 border-black"></div>
-
-                        <div class="mt-7 text-sm text-black">
-                            <div class="grid grid-cols-[90px_15px_1fr]">
-                                <span>Nomor</span><span>:</span><span>{{ $document->header_data['nomorSurat'] ?? ''
-                                    }}</span>
-                            </div>
-                            <div class="mt-1 grid grid-cols-[90px_15px_1fr]">
-                                <span>Tanggal</span><span>:</span><span>{{ $document->header_data['tanggalSurat'] ?? ''
-                                    }}</span>
-                            </div>
-                            <div class="mt-1 grid grid-cols-[90px_15px_1fr]">
-                                <span>Perihal</span><span>:</span><span>{{ $document->header_data['perihalSurat'] ?? ''
-                                    }}</span>
-                            </div>
-                            @if(!empty($document->header_data['sifatSurat']))
-                            <div class="mt-1 grid grid-cols-[90px_15px_1fr]">
-                                <span>Sifat</span><span>:</span><span>{{ $document->header_data['sifatSurat'] }}</span>
-                            </div>
-                            @endif
-                        </div>
+                    <div x-show="index === 0" class="px-[80px] pt-[20px] text-black">
+                        {!! $document->header_data['content'] ?? '' !!}
+                    <div class="mt-4 border-b-2 border-black"></div>
                     </div>
 
                     {{-- Penanda halaman lanjutan --}}
@@ -238,47 +205,9 @@
                     {{-- FOOTER / SIGNATURE (hanya halaman terakhir) --}}
                     <div x-show="index === pages.length - 1" class="px-[80px] pb-20 text-sm text-black">
                         <div class="ml-auto w-[260px] text-center">
-                            <div>
-                                {{ $document->footer_data['kotaTtd'] ?? '' }},
-                                {{ $document->header_data['tanggalSurat'] ?? '' }}
-                            </div>
-                            <div class="mt-2 font-semibold">
-                                {{ $document->footer_data['jabatanPenandatangan'] ?? '' }}
-                            </div>
-                            <div class="h-24 relative flex items-center justify-center">
-                                <template x-if="selectedSignature">
-                                    <div class="relative flex flex-col items-center justify-center">
-                                        
-                                        <img
-                                            :src="selectedSignature"
-                                            alt="Tanda Tangan"
-                                            class="max-h-20 max-w-[180px] object-contain"
-                                        >
-
-                                        <button
-                                            type="button"
-                                            @click="
-                                                selectedSignature = null;
-                                                selectedSignatureId = null;
-                                                markAsChanged();
-                                            "
-                                            class="absolute -right-8 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow hover:bg-red-600"
-                                            title="Hapus Tanda Tangan"
-                                        >
-                                            ×
-                                        </button>
-
-                                    </div>
-                                </template>
-                            </div>
-                            <div class="font-semibold underline">
-                                {{ $document->footer_data['namaPenandatangan'] ?? '' }}
-                            </div>
-                            @if(!empty($document->footer_data['nipPenandatangan']))
-                            <div class="text-xs">
-                                {{ $document->footer_data['nipPenandatangan'] }}
-                            </div>
-                            @endif
+                            <div class="text-left">
+                        {!! $document->footer_data['content'] ?? '' !!}
+                    </div>
                         </div>
                     </div>
 

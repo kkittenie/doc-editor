@@ -154,39 +154,9 @@
 
 <body>
 
-    <div class="header-table">
-        @if(!empty($logoPath))
-        <img src="{{ $logoPath }}" class="logo-img" alt="Logo Perusahaan">
-        @endif
-        <div class="instansi">{{ $document->header_data['kopInstansi'] ?? '' }}</div>
-        <div class="alamat">{{ $document->header_data['kopAlamat'] ?? '' }}</div>
-        <div class="kontak">{{ $document->header_data['kopKontrak'] ?? '' }}</div>
-    </div>
-
-    <table class="info-table" width="100%">
-        <tr>
-            <td class="label">Nomor</td>
-            <td class="colon">:</td>
-            <td>{{ $document->header_data['nomorSurat'] ?? '' }}</td>
-        </tr>
-        <tr>
-            <td class="label">Tanggal</td>
-            <td class="colon">:</td>
-            <td>{{ $document->header_data['tanggalSurat'] ?? '' }}</td>
-        </tr>
-        <tr>
-            <td class="label">Perihal</td>
-            <td class="colon">:</td>
-            <td>{{ $document->header_data['perihalSurat'] ?? '' }}</td>
-        </tr>
-        @if(!empty($document->header_data['sifatSurat']))
-        <tr>
-            <td class="label">Sifat</td>
-            <td class="colon">:</td>
-            <td>{{ $document->header_data['sifatSurat'] }}</td>
-        </tr>
-        @endif
-    </table>
+        <div class="header-table">
+            {!! $headerHtml ?? '' !!}
+        </div>
 
     @foreach($pages as $pageHtml)
     <div class="body-content" @if(!$loop->last) style="page-break-after: always;" @endif>
@@ -203,18 +173,14 @@
                 @endif
             </td>
             <td class="right-col">
-                {{ $document->footer_data['kotaTtd'] ?? '' }}, {{ $document->header_data['tanggalSurat'] ?? '' }}<br>
-                <strong>{{ strtoupper($document->footer_data['jabatanPenandatangan'] ?? '') }}</strong>
+                {!! $footerHtml ?? '' !!}
 
-                <div class="signature-space">
-                    @if(!empty($signaturePath))
-                    <img src="{{ $signaturePath }}" alt="Tanda Tangan">
-                    @endif
-                </div>
-
-                <div class="nama-ttd">{{ $document->footer_data['namaPenandatangan'] ?? '' }}</div>
-                <div class="nip-ttd">{{ $document->footer_data['nipPenandatangan'] ?? '' }}</div>
-            </td>
+            <div class="signature-space">
+                @if(!empty($signaturePath))
+                <img src="{{ $signaturePath }}" alt="Tanda Tangan">
+                @endif
+            </div>
+        </td>
         </tr>
     </table>
 
