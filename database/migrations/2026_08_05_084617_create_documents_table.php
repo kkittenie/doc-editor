@@ -20,7 +20,7 @@ return new class extends Migration
             $table->longText('body_content')->nullable();
             $table->json('footer_data')->nullable();
             $table->json('signature_data')->nullable();
-            $table->enum('status', ['draft', 'final', 'archived'])->default('draft');
+            $table->enum('status', ['draft', 'pending', 'signed', 'archived'])->default('draft');
             $table->timestamps();
             $table->softDeletes();
         });

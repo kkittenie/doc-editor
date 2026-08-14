@@ -12,7 +12,7 @@ class AuthController extends Controller
     public function showSignin()
     {
         if (Auth::check()) {
-            return redirect()->route('document.index');
+            return redirect()->route('documents.index');
         }
         return view('pages.auth.signin', ['title' => 'Masuk ke Studio Papercraft']);
     }
@@ -37,7 +37,7 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended(route('documents.create'));
+            return redirect()->intended(route('documents.index'));
         }
 
         return back()->withErrors([
@@ -48,7 +48,7 @@ class AuthController extends Controller
     public function showSignup()
     {
         if (Auth::check()) {
-            return redirect()->route('editor');
+            return redirect()->route('documents.index');
         }
         return view('pages.auth.signup', ['title' => 'Pendaftaran Penandatangan Resmi']);
     }
@@ -70,7 +70,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('editor')->with('success', 'Akun berhasil dibuat!');
+        return redirect()->route('documents.index')->with('success', 'Akun berhasil dibuat!');
     }
 
     public function logout(Request $request)

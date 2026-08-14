@@ -43,125 +43,106 @@
     </div>
 
 
-    {{-- =========================
-        STATISTIK
-    ========================== --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {{-- ===================================================== --}}
+    {{-- SUMMARY CARDS --}}
+    {{-- ===================================================== --}}
+    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
 
-        {{-- Total Dokumen --}}
-        <div class="bg-white dark:bg-gray-800
-                    border border-gray-200 dark:border-gray-700
-                    rounded-xl p-5">
-
-            <div class="flex items-center justify-between">
-
+        {{-- Total --}}
+        <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
+            <div class="flex items-start justify-between">
                 <div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
                         Total Dokumen
                     </p>
 
-                    <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
-                        {{ $totalDocuments }}
+                    <p class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50"
+                       x-text="documents.length">
                     </p>
                 </div>
 
-                <div class="w-11 h-11 rounded-lg
-                            bg-blue-100 dark:bg-blue-900/30
-                            flex items-center justify-center">
-
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="w-6 h-6 text-blue-600 dark:text-blue-400"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor">
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a2 2 0 011.414.586l4.414 4.414A2 2 0 0119 9.414V19a2 2 0 01-2 2z"/>
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-parchment-100 text-ink-900 dark:bg-slate-warm-800 dark:text-parchment-200">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
                     </svg>
-
                 </div>
-
             </div>
-
         </div>
 
 
         {{-- Draft --}}
-        <div class="bg-white dark:bg-gray-800
-                    border border-gray-200 dark:border-gray-700
-                    rounded-xl p-5">
-
-            <div class="flex items-center justify-between">
-
+        <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
+            <div class="flex items-start justify-between">
                 <div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                        Dokumen Draft
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                        Draft
                     </p>
 
-                    <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
-                        {{ $draftDocuments }}
-                    </p>
+                    <p
+                        class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50"
+                        x-text="documents.filter(d => d.status === 'draft').length"
+                    ></p>
                 </div>
 
-                <div class="w-11 h-11 rounded-lg
-                            bg-yellow-100 dark:bg-yellow-900/30
-                            flex items-center justify-center">
-
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="w-6 h-6 text-yellow-600 dark:text-yellow-400"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor">
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 011.414 1.414v.586a2 2 0 01-.586 1.414l-7.5 7.5L11 15l-.5-2.5 7.5-7.5z"/>
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="M12 7v5l3 2"/>
                     </svg>
-
                 </div>
-
             </div>
-
         </div>
 
 
-        {{-- Final --}}
-        <div class="bg-white dark:bg-gray-800
-                    border border-gray-200 dark:border-gray-700
-                    rounded-xl p-5">
-
-            <div class="flex items-center justify-between">
-
+        {{-- Pending --}}
+        <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
+            <div class="flex items-start justify-between">
                 <div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                        Dokumen Final
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                        Menunggu TTD
                     </p>
 
-                    <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
-                        {{ $finalDocuments }}
-                    </p>
+                    <p
+                        class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50"
+                        x-text="documents.filter(d => d.status === 'pending').length"
+                    ></p>
                 </div>
 
-                <div class="w-11 h-11 rounded-lg
-                            bg-green-100 dark:bg-green-900/30
-                            flex items-center justify-center">
-
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="w-6 h-6 text-green-600 dark:text-green-400"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor">
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v20"/>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/>
                     </svg>
+                </div>
+            </div>
+        </div>
 
+
+        {{-- Signed --}}
+        <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                        Terverifikasi
+                    </p>
+
+                    <p
+                        class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50"
+                        x-text="documents.filter(d => d.status === 'signed').length"
+                    ></p>
                 </div>
 
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M20 6L9 17l-5-5"/>
+                    </svg>
+                </div>
             </div>
-
         </div>
 
     </div>
@@ -353,7 +334,7 @@
                     Belum ada dokumen.
                 </p>
 
-                <a href="{{ route('editor') }}"
+                <a href="{{ route('documents.create') }}"
                    class="inline-flex items-center gap-2
                           mt-4 px-4 py-2
                           bg-blue-600 hover:bg-blue-700

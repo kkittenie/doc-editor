@@ -126,6 +126,27 @@ class DocumentController extends Controller
         return response()->json(['message' => 'Perubahan tersimpan.']);
     }
 
+    public function updateStatus(Request $request, Document $document)
+    {
+        abort_unless($document->user_id === Auth::id(), 403);
+
+        $data = $request->validate([
+            'status' => [
+                'required',
+                'in:draft,pending,signed,archived'
+            ],
+        ]);
+
+        $document->update([
+            'status' => $data['status'],
+        ]);
+
+        return response()->json([
+            'message' => 'Status dokumen berhasil diperbarui.',
+            'status' => $document->status,
+        ]);
+    }
+
     public function destroy(Document $document)
     {
         abort_unless($document->user_id === Auth::id(), 403);

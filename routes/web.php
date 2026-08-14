@@ -16,6 +16,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/documents/{document}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
+    Route::patch('/documents/{document}/status', [DocumentController::class, 'updateStatus'])->name('documents.Status');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
     Route::get('/documents', [DocumentController::class, 'index'])->name('documents');
     Route::get('/documents/{document}/export', [DocumentController::class, 'exportPdf']);

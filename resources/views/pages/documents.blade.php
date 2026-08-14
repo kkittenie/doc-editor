@@ -319,6 +319,15 @@
                 >
                     Terverifikasi
                 </button>
+                <button
+                    @click="filterStatus = 'archived'"
+                    :class="filterStatus === 'archived'
+                        ? 'bg-white text-ink-900 shadow-sm dark:bg-slate-warm-700 dark:text-white'
+                        : 'text-slate-warm-500 hover:text-ink-900 dark:hover:text-white'"
+                    class="whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition"
+                >
+                    Arsip
+                </button>
 
             </div>
 
@@ -507,7 +516,14 @@
                                     </span>
                                 </template>
 
-                                <template x-if="!['draft', 'pending', 'signed'].includes(doc.status)">
+                                <template x-if="doc.status === 'archived'">
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600 dark:bg-slate-warm-800 dark:text-slate-warm-300">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        Arsip
+                                    </span>
+                                </template>
+
+                                <template x-if="!['draft', 'pending', 'signed', 'archived'].includes(doc.status)">
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600">
                                         <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
                                         <span x-text="doc.statusLabel"></span>
