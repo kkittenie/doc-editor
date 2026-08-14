@@ -206,8 +206,8 @@
                     <div x-show="index === pages.length - 1" class="px-[80px] pb-20 text-sm text-black">
                         <div class="ml-auto w-[260px] text-center">
                             <div class="text-left">
-                        {!! $document->footer_data['content'] ?? '' !!}
-                    </div>
+                                {!! $document->footer_data['content'] ?? '' !!}
+                            </div>
                         </div>
                     </div>
 
@@ -218,10 +218,7 @@
 
                         <div
                             class="absolute z-30 cursor-move select-none"
-                            :style="`
-                                left: ${signatureX}px;
-                                top: ${signatureY}px;
-                            `"
+                            :style="`left: ${signatureX}px; top: ${signatureY}px;`"
                             @mousedown="startDragSignature($event)"
                             @mousemove.window="dragSignature($event)"
                             @mouseup.window="stopDragSignature()"
@@ -249,6 +246,8 @@
                                     @click.stop="
                                         selectedSignature = null;
                                         selectedSignatureId = null;
+                                        signatureX = 500;
+                                        signatureY = 650;
                                         markAsChanged();
                                     "
                                     class="absolute -right-3 -top-3 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow hover:bg-red-600"
@@ -337,6 +336,8 @@
                     @click="
                         selectedSignature = signature.url;
                         selectedSignatureId = signature.id;
+                        signatureX = 500;
+                        signatureY = 650;
                         showSignaturePicker = false;
                         markAsChanged();
                     "
@@ -448,6 +449,7 @@
     }
 
     .document-page {
+        position: relative;
         width: 210mm;
         min-height: 297mm;
         max-height: 297mm;
@@ -570,6 +572,9 @@
             dragStartY: 0,
             initialSignatureX: 0,
             initialSignatureY: 0,
+            dragOffsetX: 0,
+            dragOffsetY: 0,
+            signaturePageRect: null,
 
             saveStatus: 'saved',
             changed: false,
@@ -692,13 +697,20 @@
             startDragSignature(event) {
                 event.preventDefault();
 
-                this.isDraggingSignature = true;
+                const page = event.currentTarget.closest('.document-page');
+                if (!page) return;
 
+                const pageRect = page.getBoundingClientRect();
+                const rect = event.currentTarget.getBoundingClientRect();
+
+                this.isDraggingSignature = true;
                 this.dragStartX = event.clientX;
                 this.dragStartY = event.clientY;
-
                 this.initialSignatureX = this.signatureX;
                 this.initialSignatureY = this.signatureY;
+                this.dragOffsetX = event.clientX - rect.left;
+                this.dragOffsetY = event.clientY - rect.top;
+                this.signaturePageRect = pageRect;
 
                 document.body.style.userSelect = 'none';
             },
@@ -706,18 +718,29 @@
             dragSignature(event) {
                 if (!this.isDraggingSignature) return;
 
-                const deltaX = event.clientX - this.dragStartX;
-                const deltaY = event.clientY - this.dragStartY;
+                const pageRect = this.signaturePageRect || document.querySelector('.document-page')?.getBoundingClientRect();
+                if (!pageRect) return;
 
-                this.signatureX = this.initialSignatureX + deltaX;
-                this.signatureY = this.initialSignatureY + deltaY;
+                const nextX = event.clientX - pageRect.left - this.dragOffsetX;
+                const nextY = event.clientY - pageRect.top - this.dragOffsetY;
+
+                const minX = 20;
+                const maxX = Math.max(minX, pageRect.width - 200);
+                const minY = 140;
+                const maxY = Math.max(minY, pageRect.height - 140);
+
+                this.signatureX = Math.min(Math.max(nextX, minX), maxX);
+                this.signatureY = Math.min(Math.max(nextY, minY), maxY);
+                this.markAsChanged();
             },
 
             stopDragSignature() {
                 if (!this.isDraggingSignature) return;
-                    this.isDraggingSignature = false;
-                    document.body.style.userSelect = '';
-                    this.markAsChanged();
+
+                this.isDraggingSignature = false;
+                this.signaturePageRect = null;
+                document.body.style.userSelect = '';
+                this.markAsChanged();
             },
 
             handleKeydown(event) {
@@ -744,8 +767,10 @@
                     signature_data: {
                         signatureId: this.selectedSignatureId,
                         signatureUrl: this.selectedSignature,
+                        signatureX: this.signatureX,
+                        signatureY: this.signatureY,
                     },
-                    status: 'draft'
+                    status: this.selectedSignature ? 'draft' : 'pending',
                 };
 
                 try {

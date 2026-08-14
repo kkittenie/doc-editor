@@ -118,7 +118,7 @@ class DocumentController extends Controller
             'body_content'   => ['nullable', 'array'],
             'footer_data'    => ['required', 'array'],
             'signature_data' => ['nullable', 'array'],
-            'status'         => ['nullable', 'in:draft,final,archived'],
+            'status'         => ['nullable', 'in:draft,pending,signed,archieved'],
         ]);
 
         $document->update($data);
