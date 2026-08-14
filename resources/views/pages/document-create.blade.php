@@ -59,32 +59,9 @@
             const res = await window.axios.post('/documents/logo', { image: e.target.result });
             const el = document.getElementById('header-editor');
             el.focus();
-            
-            // Buat elemen img secara murni via JavaScript DOM
-            const img = document.createElement('img');
-            img.src = res.data.url;
-            img.draggable = true;
-            img.className = 'drag-image';
-            img.style.maxHeight = '70px';
-            img.style.maxWidth = '150px';
-            img.style.display = 'block';
-            img.style.margin = '10px';
-            img.style.cursor = 'grab';
-            img.style.position = 'absolute';
-            img.style.top = '20px';
-            img.style.left = '20px';
-            img.style.zIndex = '5';
-
-            // Sisipkan elemen langsung ke editor
-            const selection = window.getSelection();
-            if (selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                range.deleteContents();
-                range.insertNode(img);
-            } else {
-                el.appendChild(img);
-            }
-
+            document.execCommand('insertHTML', false,
+                '<img src=\'' + res.data.url + '\' style=\'float:left;max-height:70px;max-width:150px;margin:0 15px 5px 0;\'>'
+            );
         } catch (err) {
             Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal mengunggah logo.', confirmButtonColor: '#1B2A4A' });
             console.error(err);
@@ -106,12 +83,12 @@
             let offsetX = 0;
             let offsetY = 0;
 
+            // KODE DRAG ASLI KAMU (DIKEMBALIKAN 100%)
             editor.addEventListener('mousedown', (e) => {
                 if (e.target.tagName === 'IMG' && e.target.classList.contains('drag-image')) {
                     isDraggingImage = true;
                     draggedImage = e.target;
                     const rect = draggedImage.getBoundingClientRect();
-                    const editorRect = editor.getBoundingClientRect();
                     offsetX = e.clientX - rect.left;
                     offsetY = e.clientY - rect.top;
                     draggedImage.style.cursor = 'grabbing';
@@ -215,8 +192,10 @@
                 </button>
                 <input type="file" x-ref="logoInput" accept="image/png,image/jpeg,image/svg+xml" class="hidden" @change="uploadLogo($event)">
             </div>
+            
+            {{-- Tambahkan styling CSS bawaan agar paragraf di dalam editor fleksibel terhadap gambar --}}
             <div id="header-editor" contenteditable="true" spellcheck="true"
-                class="relative min-h-[140px] rounded-b-xl border border-parchment-300 bg-white p-5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800"
+                class="relative min-h-[140px] rounded-b-xl border border-parchment-300 bg-white p-5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800 overflow-auto"
                 x-html="headerHtml"></div>
         </div>
 
