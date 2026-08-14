@@ -66,9 +66,14 @@
             img.draggable = true;
             img.className = 'drag-image';
             img.style.maxHeight = '70px';
-            img.style.display = 'inline-block';
-            img.style.margin = '0 8px 8px 0';
+            img.style.maxWidth = '150px';
+            img.style.display = 'block';
+            img.style.margin = '10px';
             img.style.cursor = 'grab';
+            img.style.position = 'absolute';
+            img.style.top = '20px';
+            img.style.left = '20px';
+            img.style.zIndex = '5';
 
             // Sisipkan elemen langsung ke editor
             const selection = window.getSelection();
@@ -97,41 +102,39 @@
             if (!editor) return;
 
             let draggedImage = null;
+            let isDraggingImage = false;
+            let offsetX = 0;
+            let offsetY = 0;
 
-            editor.addEventListener('dragstart', (e) => {
-                if (e.target.tagName === 'IMG') {
+            editor.addEventListener('mousedown', (e) => {
+                if (e.target.tagName === 'IMG' && e.target.classList.contains('drag-image')) {
+                    isDraggingImage = true;
                     draggedImage = e.target;
-                    e.dataTransfer.setData('text/plain', ''); // Memicu proses drag native
-                    e.target.style.opacity = '0.5';
+                    const rect = draggedImage.getBoundingClientRect();
+                    const editorRect = editor.getBoundingClientRect();
+                    offsetX = e.clientX - rect.left;
+                    offsetY = e.clientY - rect.top;
+                    draggedImage.style.cursor = 'grabbing';
+                    draggedImage.style.position = 'absolute';
+                    draggedImage.style.zIndex = '10';
                 }
             });
 
-            editor.addEventListener('dragend', (e) => {
-                if (e.target.tagName === 'IMG') {
-                    e.target.style.opacity = '1';
-                    draggedImage = null;
-                }
+            document.addEventListener('mousemove', (e) => {
+                if (!isDraggingImage || !draggedImage) return;
+                
+                const editorRect = editor.getBoundingClientRect();
+                const newX = e.clientX - editorRect.left - offsetX;
+                const newY = e.clientY - editorRect.top - offsetY;
+                
+                draggedImage.style.left = Math.max(0, newX) + 'px';
+                draggedImage.style.top = Math.max(0, newY) + 'px';
             });
 
-            editor.addEventListener('dragover', (e) => {
-                e.preventDefault(); // Mengizinkan drop area
-            });
-
-            editor.addEventListener('drop', (e) => {
-                e.preventDefault();
-                if (!draggedImage) return;
-
-                // Mendapatkan posisi kursor teks tempat gambar di-drop
-                let range;
-                if (document.caretRangeFromPoint) {
-                    range = document.caretRangeFromPoint(e.clientX, e.clientY);
-                } else if (e.rangeParent) {
-                    range = document.createRange();
-                    range.setStart(e.rangeParent, e.rangeOffset);
-                }
-
-                if (range) {
-                    range.insertNode(draggedImage);
+            document.addEventListener('mouseup', (e) => {
+                if (isDraggingImage && draggedImage) {
+                    isDraggingImage = false;
+                    draggedImage.style.cursor = 'grab';
                 }
             });
         });
@@ -213,7 +216,7 @@
                 <input type="file" x-ref="logoInput" accept="image/png,image/jpeg,image/svg+xml" class="hidden" @change="uploadLogo($event)">
             </div>
             <div id="header-editor" contenteditable="true" spellcheck="true"
-                class="min-h-[140px] rounded-b-xl border border-parchment-300 bg-white p-5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800"
+                class="relative min-h-[140px] rounded-b-xl border border-parchment-300 bg-white p-5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800"
                 x-html="headerHtml"></div>
         </div>
 
@@ -230,7 +233,7 @@
                 <button type="button" @click="formatArea('footer-editor', 'justifyRight')" class="px-2.5 py-1.5 rounded-md text-xs hover:bg-white dark:hover:bg-slate-warm-700">Kanan</button>
             </div>
             <div id="footer-editor" contenteditable="true" spellcheck="true"
-                class="min-h-[100px] rounded-b-xl border border-parchment-300 bg-white p-5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800"
+                class="relative min-h-[100px] rounded-b-xl border border-parchment-300 bg-white p-5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800"
                 x-html="footerHtml"></div>
         </div>
 
