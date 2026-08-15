@@ -11,10 +11,42 @@
         }
 
         .header-table {
+            position: relative;
+            overflow: hidden;
             width: 100%;
             border-bottom: 3px double #1B2A4A;
             padding-bottom: 8px;
             margin-bottom: 16px;
+        }
+
+        .header-table .document-logo {
+            position: absolute;
+            z-index: 1;
+        }
+
+        .header-table p,
+        .header-table h1,
+        .header-table h2,
+        .header-table h3,
+        .header-table h4,
+        .header-table h5,
+        .header-table h6,
+        .header-table ul,
+        .header-table ol,
+        .header-table table,
+        .header-table div {
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-table .document-logo ~ p,
+        .header-table .document-logo ~ h1,
+        .header-table .document-logo ~ h2,
+        .header-table .document-logo ~ h3,
+        .header-table .document-logo ~ h4,
+        .header-table .document-logo ~ h5,
+        .header-table .document-logo ~ h6 {
+            margin-left: 190px;
         }
 
         .logo-img {

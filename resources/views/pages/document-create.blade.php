@@ -9,8 +9,28 @@
     bodyHtml: '',
 
     init() {
-        this.enableImageDragAndDrop('header-editor');
-        this.enableImageDragAndDrop('footer-editor');
+        this.$nextTick(() => this.initEditors());
+    },
+
+    initEditors() {
+        if (typeof window.initDocumentEditor === 'function') {
+            window.initDocumentEditor('#header-editor');
+            window.initDocumentEditor('#footer-editor', '', false);
+        }
+    },
+
+    setHeaderContent(content) {
+        this.headerHtml = content;
+        const editor = window.tinymce?.get('header-editor');
+
+        if (editor) editor.setContent(content);
+    },
+
+    setFooterContent(content) {
+        this.footerHtml = content;
+        const editor = window.tinymce?.get('footer-editor');
+
+        if (editor) editor.setContent(content);
     },
 
     async loadTemplate(key) {
@@ -19,14 +39,14 @@
             const res = await window.axios.get('/documents/template/' + key);
             const t = res.data;
 
-            this.headerHtml = '<p style=\'text-align:center;font-weight:bold;text-transform:uppercase;\'>' + t.header_data.kopInstansi + '</p>'
+            this.setHeaderContent('<p style=\'text-align:center;font-weight:bold;text-transform:uppercase;\'>' + t.header_data.kopInstansi + '</p>'
                 + '<p style=\'text-align:center;font-size:12px;\'>' + t.header_data.kopAlamat + '</p>'
-                + '<p style=\'text-align:center;font-size:11px;\'>' + t.header_data.kopKontrak + '</p>';
+                + '<p style=\'text-align:center;font-size:11px;\'>' + t.header_data.kopKontrak + '</p>');
 
             document.getElementById('header-nomor').value = t.header_data.nomorSurat;
             document.getElementById('header-judul').value = t.title;
 
-            this.footerHtml = '<p>Sifat: ' + t.header_data.sifatSurat + '</p>';
+            this.setFooterContent('<p>Sifat: ' + t.header_data.sifatSurat + '</p>');
 
             const b = t.body_content;
             this.bodyHtml = '<p>' + b.tujuanSurat + '</p>'
@@ -131,8 +151,14 @@
     },
 
     syncBeforeSubmit() {
-        document.getElementById('header-content-input').value = document.getElementById('header-editor').innerHTML;
-        document.getElementById('footer-content-input').value = document.getElementById('footer-editor').innerHTML;
+        const headerEditor = window.tinymce?.get('header-editor');
+        const footerEditor = window.tinymce?.get('footer-editor');
+        document.getElementById('header-content-input').value = headerEditor
+            ? headerEditor.getContent()
+            : document.getElementById('header-editor').value;
+        document.getElementById('footer-content-input').value = footerEditor
+            ? footerEditor.getContent()
+            : document.getElementById('footer-editor').value;
     }
 }" class="max-w-4xl mx-auto py-8">
 
@@ -188,44 +214,18 @@
             </div>
         </div>
 
-        {{-- HEADER: contenteditable + toolbar --}}
+        {{-- HEADER: TinyMCE --}}
         <div class="mb-5">
             <label class="block text-xs font-medium mb-1.5">Header / Kop Surat</label>
-            <div class="flex flex-wrap items-center gap-1 rounded-t-xl border border-b-0 border-parchment-300 bg-parchment-50 p-2 dark:border-slate-warm-700 dark:bg-slate-warm-800">
-                <button type="button" @click="formatArea('header-editor', 'bold')" class="px-2.5 py-1.5 rounded-md text-xs font-bold hover:bg-white dark:hover:bg-slate-warm-700">B</button>
-                <button type="button" @click="formatArea('header-editor', 'italic')" class="px-2.5 py-1.5 rounded-md text-xs italic hover:bg-white dark:hover:bg-slate-warm-700">I</button>
-                <button type="button" @click="formatArea('header-editor', 'underline')" class="px-2.5 py-1.5 rounded-md text-xs underline hover:bg-white dark:hover:bg-slate-warm-700">U</button>
-                <div class="w-px h-5 bg-parchment-300 dark:bg-slate-warm-600 mx-1"></div>
-                <button type="button" @click="formatArea('header-editor', 'justifyLeft')" class="px-2.5 py-1.5 rounded-md text-xs hover:bg-white dark:hover:bg-slate-warm-700">Kiri</button>
-                <button type="button" @click="formatArea('header-editor', 'justifyCenter')" class="px-2.5 py-1.5 rounded-md text-xs hover:bg-white dark:hover:bg-slate-warm-700">Tengah</button>
-                <button type="button" @click="formatArea('header-editor', 'justifyRight')" class="px-2.5 py-1.5 rounded-md text-xs hover:bg-white dark:hover:bg-slate-warm-700">Kanan</button>
-                <div class="w-px h-5 bg-parchment-300 dark:bg-slate-warm-600 mx-1"></div>
-                <button type="button" @click="$refs.logoInput.click()" :disabled="isUploadingLogo" class="px-2.5 py-1.5 rounded-md text-xs hover:bg-white dark:hover:bg-slate-warm-700">
-                    <span x-text="isUploadingLogo ? 'Mengunggah...' : '🖼 Sisipkan Logo'"></span>
-                </button>
-                <input type="file" x-ref="logoInput" accept="image/png,image/jpeg,image/svg+xml" class="hidden" @change="uploadLogo($event)">
-            </div>
-            
-            {{-- Tambahkan styling CSS bawaan agar paragraf di dalam editor fleksibel terhadap gambar --}}
-            <div id="header-editor" contenteditable="true" spellcheck="true"
-                class="relative min-h-[140px] rounded-b-xl border border-parchment-300 bg-white p-5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800 overflow-hidden"                x-html="headerHtml"></div>
+            <textarea id="header-editor" spellcheck="true"
+                class="w-full min-h-[140px] rounded-b-xl border border-parchment-300 bg-white p-5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800"></textarea>
             </div>
 
         {{-- FOOTER: contenteditable + toolbar --}}
         <div class="mb-5">
             <label class="block text-xs font-medium mb-1.5">Footer Dokumen</label>
-            <div class="flex flex-wrap items-center gap-1 rounded-t-xl border border-b-0 border-parchment-300 bg-parchment-50 p-2 dark:border-slate-warm-700 dark:bg-slate-warm-800">
-                <button type="button" @click="formatArea('footer-editor', 'bold')" class="px-2.5 py-1.5 rounded-md text-xs font-bold hover:bg-white dark:hover:bg-slate-warm-700">B</button>
-                <button type="button" @click="formatArea('footer-editor', 'italic')" class="px-2.5 py-1.5 rounded-md text-xs italic hover:bg-white dark:hover:bg-slate-warm-700">I</button>
-                <button type="button" @click="formatArea('footer-editor', 'underline')" class="px-2.5 py-1.5 rounded-md text-xs underline hover:bg-white dark:hover:bg-slate-warm-700">U</button>
-                <div class="w-px h-5 bg-parchment-300 dark:bg-slate-warm-600 mx-1"></div>
-                <button type="button" @click="formatArea('footer-editor', 'justifyLeft')" class="px-2.5 py-1.5 rounded-md text-xs hover:bg-white dark:hover:bg-slate-warm-700">Kiri</button>
-                <button type="button" @click="formatArea('footer-editor', 'justifyCenter')" class="px-2.5 py-1.5 rounded-md text-xs hover:bg-white dark:hover:bg-slate-warm-700">Tengah</button>
-                <button type="button" @click="formatArea('footer-editor', 'justifyRight')" class="px-2.5 py-1.5 rounded-md text-xs hover:bg-white dark:hover:bg-slate-warm-700">Kanan</button>
-            </div>
-            <div id="footer-editor" contenteditable="true" spellcheck="true"
-                class="relative min-h-[100px] rounded-b-xl border border-parchment-300 bg-white p-5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800"
-                x-html="footerHtml"></div>
+            <textarea id="footer-editor" spellcheck="true"
+                class="w-full min-h-[140px] rounded-b-xl border border-parchment-300 bg-white p-5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800"></textarea>
         </div>
 
         <div class="flex justify-end">

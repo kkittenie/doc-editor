@@ -183,7 +183,7 @@
                     </div>
 
                     {{-- HEADER / KOP SURAT (hanya halaman pertama) --}}
-                    <div x-show="index === 0" class="px-[80px] pt-[20px] text-black">
+                    <div x-show="index === 0" class="document-header relative px-[80px] pt-[20px] text-black">
                         {!! $document->header_data['content'] ?? '' !!}
                     <div class="mt-4 border-b-2 border-black"></div>
                     </div>
@@ -470,6 +470,32 @@
 
     .document-body p {
         margin: 0 0 10px 0;
+    }
+
+    .document-header {
+        min-height: 110px;
+        overflow: hidden;
+    }
+
+    .document-header .document-logo {
+        position: absolute !important;
+        z-index: 1;
+        width: auto !important;
+        max-width: 150px !important;
+        height: auto !important;
+        max-height: 70px !important;
+    }
+
+    .document-header .document-logo ~ p,
+    .document-header .document-logo ~ h1,
+    .document-header .document-logo ~ h2,
+    .document-header .document-logo ~ h3,
+    .document-header .document-logo ~ h4,
+    .document-header .document-logo ~ h5,
+    .document-header .document-logo ~ h6 {
+        position: relative;
+        z-index: 2;
+        margin-left: 190px;
     }
 
     .document-body table {
