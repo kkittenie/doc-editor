@@ -197,11 +197,12 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
         plugins: 'lists link table image',
         toolbar: 'undo redo | blocks | fontfamily fontsize | bold italic underline | forecolor backcolor | alignleft aligncenter alignright alignjustify | outdent indent | bullist numlist | table link image hr | removeformat',
         toolbar_mode: 'wrap',
+        fixed_toolbar_container: '#body-toolbar-container',
+        toolbar_persist: true,
         content_style: 'body { font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8; } table { width: 100%; border-collapse: collapse; margin: 10px 0; } table td, table th { border: 1px solid #cbd5e1; padding: 8px; }',
         skin: false,
         content_css: false,
-        images_upload_handler: imagesUploadHandler,
-        setup: function (editor) {
+        images_upload_handler: imagesUploadHandler,        setup: function (editor) {
             editor.on('init', function () {
                 if (initialContent) editor.setContent(initialContent);
             });

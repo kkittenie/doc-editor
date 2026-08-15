@@ -55,10 +55,13 @@
 
         </div>
 
+    {{-- Toolbar TinyMCE aktif akan di-render ke sini, di luar area kertas --}}
+    <div id="body-toolbar-container"
+        class="sticky top-[57px] z-30 border-b border-parchment-300 bg-white px-2 min-h-[42px] dark:border-slate-warm-700 dark:bg-slate-warm-900">
+    </div>
 
-    {{-- ========================================= --}}
-    {{-- DOCUMENT AREA --}}
-    {{-- ========================================= --}}
+    
+    {{-- document area --}}
     <main class="documentPrintArea bg-slate-100 px-4 py-10 dark:bg-slate-warm-950">
         <div class="mx-auto w-full max-w-[794px] space-y-8">
 
