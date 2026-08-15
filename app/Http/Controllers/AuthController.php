@@ -48,7 +48,7 @@ class AuthController extends Controller
     public function showSignup()
     {
         if (Auth::check()) {
-            return redirect()->route('documents.index');
+            return redirect()->route('');
         }
         return view('pages.auth.signup', ['title' => 'Pendaftaran Penandatangan Resmi']);
     }

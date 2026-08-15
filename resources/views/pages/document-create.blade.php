@@ -59,8 +59,10 @@
             const res = await window.axios.post('/documents/logo', { image: e.target.result });
             const el = document.getElementById('header-editor');
             el.focus();
-            document.execCommand('insertHTML', false,
-                '<img src=\'' + res.data.url + '\' style=\'float:left;max-height:70px;max-width:150px;margin:0 15px 5px 0;\'>'
+            document.execCommand(
+                'insertHTML',
+                false,
+                '<img src=\'' + res.data.url + '\' class=\'drag-image\' draggable=\'false\' style=\'position:absolute;left:10px;top:10px;max-height:70px;max-width:150px;cursor:grab;\'>'
             );
         } catch (err) {
             Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal mengunggah logo.', confirmButtonColor: '#1B2A4A' });
@@ -99,13 +101,24 @@
 
             document.addEventListener('mousemove', (e) => {
                 if (!isDraggingImage || !draggedImage) return;
-                
+
                 const editorRect = editor.getBoundingClientRect();
-                const newX = e.clientX - editorRect.left - offsetX;
-                const newY = e.clientY - editorRect.top - offsetY;
-                
-                draggedImage.style.left = Math.max(0, newX) + 'px';
-                draggedImage.style.top = Math.max(0, newY) + 'px';
+                const imageRect = draggedImage.getBoundingClientRect();
+
+                const imageWidth = imageRect.width;
+                const imageHeight = imageRect.height;
+
+                const maxX = editorRect.width - imageWidth;
+                const maxY = editorRect.height - imageHeight;
+
+                let newX = e.clientX - editorRect.left - offsetX;
+                let newY = e.clientY - editorRect.top - offsetY;
+
+                newX = Math.max(0, Math.min(newX, maxX));
+                newY = Math.max(0, Math.min(newY, maxY));
+
+                draggedImage.style.left = newX + 'px';
+                draggedImage.style.top = newY + 'px';
             });
 
             document.addEventListener('mouseup', (e) => {
@@ -195,9 +208,8 @@
             
             {{-- Tambahkan styling CSS bawaan agar paragraf di dalam editor fleksibel terhadap gambar --}}
             <div id="header-editor" contenteditable="true" spellcheck="true"
-                class="relative min-h-[140px] rounded-b-xl border border-parchment-300 bg-white p-5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800 overflow-auto"
-                x-html="headerHtml"></div>
-        </div>
+                class="relative min-h-[140px] rounded-b-xl border border-parchment-300 bg-white p-5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800 overflow-hidden"                x-html="headerHtml"></div>
+            </div>
 
         {{-- FOOTER: contenteditable + toolbar --}}
         <div class="mb-5">
