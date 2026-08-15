@@ -274,6 +274,17 @@ class DocumentController extends Controller
         return response()->json(['url' => Storage::url($filename)]);
     }
 
+    public function uploadImage(Request $request)
+    {
+        $data = $request->validate([
+            'file' => ['required', 'image', 'max:5120'],
+        ]);
+
+        $path = $data['file']->store('images', 'public');
+
+        return response()->json(['url' => Storage::url($path)]);
+    }
+
     private function resolvePublicPath(?string $url): ?string 
     {
         if (!$url) return null;

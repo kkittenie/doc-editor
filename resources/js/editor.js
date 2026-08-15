@@ -29,6 +29,28 @@ const uploadLogo = async (file) => {
     return response.data.url;
 };
 
+// Handler resmi TinyMCE buat plugin "image": dipanggil tiap ada foto yang
+// di-insert lewat dialog Insert/Edit Image, drag-drop, atau paste. Sebelum
+// ini gak ada handler-nya sama sekali, jadi dialog "image" cuma nyediain
+// field URL biasa -- makanya kalau orang nyoba masukin foto, yang kesimpen
+// cuma teks/link URL-nya, bukan gambarnya. Dengan handler ini, file beneran
+// di-upload ke server dan hasilnya otomatis di-insert sebagai <img>.
+const imagesUploadHandler = (blobInfo) =>
+    new Promise((resolve, reject) => {
+        const formData = new FormData();
+        formData.append('file', blobInfo.blob(), blobInfo.filename());
+
+        window.axios
+            .post('/documents/image', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            })
+            .then((response) => resolve(response.data.url))
+            .catch((error) => {
+                console.error(error);
+                reject('Gagal mengunggah gambar.');
+            });
+    });
+
 const enableLogoDragging = (editor) => {
     const body = editor.getBody();
     body.style.position = 'relative';
@@ -78,6 +100,7 @@ const enableLogoDragging = (editor) => {
     });
 };
 
+// Dipakai buat editor Header & Footer di halaman "Buat Dokumen Baru".
 window.initDocumentEditor = function (selector, initialContent = '', allowLogoUpload = true) {
     tinymce.init({
         selector: selector,
@@ -87,10 +110,14 @@ window.initDocumentEditor = function (selector, initialContent = '', allowLogoUp
         branding: false,
         statusbar: false,
         plugins: 'lists link table image',
-        toolbar: `undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | table link${allowLogoUpload ? ' uploadlogo' : ''} | removeformat`,
+        // Tombol "image" sekarang selalu ada (header & footer), biar bisa
+        // nyisipin foto konten biasa -- terpisah dari "uploadlogo" yang
+        // khusus buat logo dengan posisi bebas (drag).
+        toolbar: `undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | table link image${allowLogoUpload ? ' uploadlogo' : ''} | removeformat`,
         content_style: 'body { position: relative; font-family: Georgia, serif; font-size: 13px; } body > p, body > h1, body > h2, body > h3, body > h4, body > h5, body > h6, body > ul, body > ol, body > table, body > blockquote, body > div { position: relative; z-index: 2; } body.has-document-logo > p, body.has-document-logo > h1, body.has-document-logo > h2, body.has-document-logo > h3, body.has-document-logo > h4, body.has-document-logo > h5, body.has-document-logo > h6 { margin-left: 190px; } .document-logo { position: absolute; z-index: 1; width: auto; max-width: 150px; height: auto; max-height: 70px; cursor: grab; }',
         skin: false,
         content_css: false,
+        images_upload_handler: imagesUploadHandler,
         setup: function (editor) {
             if (allowLogoUpload) {
                 editor.ui.registry.addButton('uploadlogo', {
@@ -153,5 +180,35 @@ window.initDocumentEditor = function (selector, initialContent = '', allowLogoUp
                 editor.save(); // sync ke textarea asli, biar kebaca Alpine
             });
         }
+    });
+};
+
+// Dipakai buat editor isi/body dokumen di halaman Editor (pages/editor.blade.php).
+// Toolbar-nya sengaja lebih lengkap (heading, font, warna, dst) karena ini
+// gantiin toolbar custom lama yang berbasis document.execCommand.
+window.initBodyEditor = function (selector, initialContent = '', onSync = null) {
+    tinymce.init({
+        selector: selector,
+        license_key: 'gpl',
+        height: 500,
+        menubar: false,
+        branding: false,
+        statusbar: false,
+        plugins: 'lists link table image',
+        toolbar: 'undo redo | blocks | fontfamily fontsize | bold italic underline | forecolor backcolor | alignleft aligncenter alignright alignjustify | outdent indent | bullist numlist | table link image hr | removeformat',
+        toolbar_mode: 'wrap',
+        content_style: 'body { font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8; } table { width: 100%; border-collapse: collapse; margin: 10px 0; } table td, table th { border: 1px solid #cbd5e1; padding: 8px; }',
+        skin: false,
+        content_css: false,
+        images_upload_handler: imagesUploadHandler,
+        setup: function (editor) {
+            editor.on('init', function () {
+                if (initialContent) editor.setContent(initialContent);
+            });
+            editor.on('change keyup undo redo', function () {
+                editor.save();
+                if (typeof onSync === 'function') onSync(editor.getContent());
+            });
+        },
     });
 };

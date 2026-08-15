@@ -2,7 +2,7 @@
 
 @section('content')
 
-<div x-data="wordDocumentEditor()" class="min-h-screen">
+<div x-data="wordDocumentEditor()" x-init="init()" class="min-h-screen">
 
     {{-- ========================================= --}}
     {{-- TOP BAR --}}
@@ -31,6 +31,10 @@
 
             {{-- RIGHT --}}
             <div class="flex items-center gap-3">
+                <button type="button" @click="showSignaturePicker = true" class="toolbar-button" title="Pilih Tanda Tangan">
+                    <b>TTD</b>
+                </button>
+
                 <span x-show="saveStatus === 'saving'" class="text-xs text-slate-warm-500">
                     Menyimpan...
                 </span>
@@ -51,120 +55,6 @@
 
         </div>
 
-        {{-- ========================================= --}}
-        {{-- WORD TOOLBAR (SUDAH DIPERBARUI) --}}
-        {{-- ========================================= --}}
-        <div class="editor-toolbar border-t border-parchment-200 px-5 py-2 dark:border-slate-warm-700">
-
-            <div class="flex flex-wrap items-center gap-1">
-
-                {{-- Undo & Redo --}}
-                <button type="button" @click="format('undo')" class="toolbar-button" title="Undo">↶</button>
-                <button type="button" @click="format('redo')" class="toolbar-button" title="Redo">↷</button>
-
-                <div class="toolbar-divider"></div>
-
-                {{-- Heading / Paragraph Style --}}
-                <select @change="format('formatBlock', $event.target.value)" class="toolbar-select w-32">
-                    <option value="P">Paragraf Biasa</option>
-                    <option value="H1">Heading 1</option>
-                    <option value="H2">Heading 2</option>
-                    <option value="H3">Heading 3</option>
-                    <option value="BLOCKQUOTE">Kutipan</option>
-                </select>
-
-                {{-- Font Family --}}
-                <select @change="format('fontName', $event.target.value)" class="toolbar-select">
-                    <option value="Arial">Arial</option>
-                    <option value="Times New Roman">Times New Roman</option>
-                    <option value="Calibri">Calibri</option>
-                    <option value="Georgia">Georgia</option>
-                    <option value="Verdana">Verdana</option>
-                    <option value="Cambria">Cambria</option>
-                    <option value="Garamond">Garamond</option>
-                    <option value="Courier New">Courier New</option>
-                    <option value="Tahoma">Tahoma</option>
-                    <option value="Trebuchet MS">Trebuchet MS</option>
-                    <option value="Palatino Linotype">Palatino Linotype</option>
-                </select>
-
-                {{-- Font Size --}}
-                <select @change="format('fontSize', $event.target.value)" class="toolbar-select w-20">
-                    <option value="2">10</option>
-                    <option value="3" selected>12</option>
-                    <option value="4">14</option>
-                    <option value="5">18</option>
-                    <option value="6">24</option>
-                    <option value="7">32</option>
-                </select>
-
-                <div class="toolbar-divider"></div>
-
-                {{-- Text Formatting --}}
-                <button type="button" @click="format('bold')" class="toolbar-button font-bold" title="Bold">B</button>
-                <button type="button" @click="format('italic')" class="toolbar-button italic" title="Italic">I</button>
-                <button type="button" @click="format('underline')" class="toolbar-button underline"
-                    title="Underline">U</button>
-
-                {{-- Colors --}}
-                <div class="flex items-center gap-1 pl-1">
-                    <input type="color" @input="format('foreColor', $event.target.value); $event.target.blur()" title="Warna Teks"
-                        class="toolbar-color" value="#000000">
-                    <input type="color" @input="format('hiliteColor', $event.target.value); $event.target.blur()" title="Warna Sorot"
-                        class="toolbar-color" value="#ffff00">
-                </div>
-
-                <div class="toolbar-divider"></div>
-
-                {{-- Text Alignment --}}
-                <button type="button" @click="format('justifyLeft')" class="toolbar-button" title="Rata kiri">⬅</button>
-                <button type="button" @click="format('justifyCenter')" class="toolbar-button"
-                    title="Rata tengah">↔</button>
-                <button type="button" @click="format('justifyRight')" class="toolbar-button"
-                    title="Rata kanan">➡</button>
-                <button type="button" @click="format('justifyFull')" class="toolbar-button" title="Justify">☰</button>
-
-                {{-- Indent / Outdent --}}
-                <button type="button" @click="format('outdent')" class="toolbar-button"
-                    title="Kurangi Indentasi">⇤</button>
-                <button type="button" @click="format('indent')" class="toolbar-button"
-                    title="Tambah Indentasi">⇥</button>
-
-                <div class="toolbar-divider"></div>
-
-                {{-- Lists --}}
-                <button type="button" @click="format('insertUnorderedList')" class="toolbar-button"
-                    title="Bullet">•</button>
-                <button type="button" @click="format('insertOrderedList')" class="toolbar-button"
-                    title="Numbering">1.</button>
-
-                <div class="toolbar-divider"></div>
-
-                {{-- Inserts --}}
-                <button type="button" @click="insertTable()" class="toolbar-button" title="Sisipkan Tabel">⊞</button>
-                <button type="button" @click="insertLink()" class="toolbar-button" title="Sisipkan Tautan">🔗</button>
-                <button type="button" @click="format('insertHorizontalRule')" class="toolbar-button"
-                    title="Garis Pembatas">―</button>
-                <button
-                    type="button"
-                    @click="showSignaturePicker = true"
-                    class="toolbar-button"
-                    title="Pilih Tanda Tangan">
-                    <b>TTD</b>
-                </button>
-
-                <div class="toolbar-divider"></div>
-
-                {{-- Clear Formatting --}}
-                <button type="button" @click="format('removeFormat')"
-                    class="toolbar-button text-xs font-semibold text-red-600" title="Hapus Format">Tx</button>
-
-            </div>
-
-        </div>
-
-    </div>
-
 
     {{-- ========================================= --}}
     {{-- DOCUMENT AREA --}}
@@ -172,7 +62,7 @@
     <main class="documentPrintArea bg-slate-100 px-4 py-10 dark:bg-slate-warm-950">
         <div class="mx-auto w-full max-w-[794px] space-y-8">
 
-            <template x-for="(page, index) in pages" :key="index">
+            <template x-for="(page, index) in pages" :key="page.uid">
                 <div class="document-page relative w-full bg-white shadow-xl">
 
                     {{-- Page info bar --}}
@@ -193,13 +83,9 @@
                         ...lanjutan halaman <span x-text="index + 1"></span>
                     </div>
 
-                    {{-- BODY EDITOR (per halaman) --}}
-                    <div class="px-[80px]">
-                        <div :id="'document-editor-' + index" contenteditable="true" spellcheck="true"
-                            @input="markAsChanged()" @focus="activeEditorId = 'document-editor-' + index"
-                            @keydown="handleKeydown($event)"
-                            class="document-body py-8 text-[14px] leading-7 text-black outline-none" x-html="page">
-                        </div>
+                    {{-- BODY EDITOR (per halaman, sekarang TinyMCE) --}}
+                    <div class="px-[80px] py-8">
+                        <textarea :id="'document-editor-' + page.uid"></textarea>
                     </div>
 
                     {{-- FOOTER / SIGNATURE (hanya halaman terakhir) --}}
@@ -599,9 +485,33 @@
 
             saveStatus: 'saved',
             changed: false,
-            activeEditorId: 'document-editor-0',
 
-            pages: @js($document->body_content['pages'] ?? [$document->body_content['content'] ?? '']),
+            // Tiap halaman punya `uid` yang stabil (gak berubah pas halaman
+            // lain dihapus), dipakai buat id textarea TinyMCE.
+            pages: (@js($document->body_content['pages'] ?? [$document->body_content['content'] ?? ''])).map((html, i) => ({ uid: 'page-' + i, html })),
+            pageSeq: (@js($document->body_content['pages'] ?? [$document->body_content['content'] ?? ''])).length,
+
+            init() {
+                this.$nextTick(() => {
+                    this.pages.forEach((page) => this.initPageEditor(page.uid, page.html));
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                        e.preventDefault();
+                        this.saveDocument();
+                    }
+                });
+            },
+
+            initPageEditor(uid, content) {
+                if (typeof window.initBodyEditor !== 'function') return;
+                window.initBodyEditor('#document-editor-' + uid, content, (html) => {
+                    const page = this.pages.find((p) => p.uid === uid);
+                    if (page) page.html = html;
+                    this.markAsChanged();
+                });
+            },
 
             markAsChanged() {
                 this.changed = true;
@@ -609,12 +519,12 @@
             },
 
             addPage() {
-                this.pages.push('');
+                const uid = 'page-' + (this.pageSeq++);
+                this.pages.push({ uid, html: '' });
                 this.markAsChanged();
                 this.$nextTick(() => {
-                    const idx = this.pages.length - 1;
-                    document.getElementById('document-editor-' + idx)?.focus();
-                    document.getElementById('document-editor-' + idx)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    this.initPageEditor(uid, '');
+                    document.getElementById('document-editor-' + uid)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 });
             },
 
@@ -633,83 +543,10 @@
                     confirmButtonColor: '#dc2626',
                 });
                 if (!result.isConfirmed) return;
+
+                window.tinymce?.get('document-editor-' + this.pages[index].uid)?.remove();
                 this.pages.splice(index, 1);
                 this.markAsChanged();
-            },
-
-            format(command, value = null) {
-                const editor = document.getElementById(this.activeEditorId) || document.getElementById('document-editor-0');
-                if (!editor) return;
-                
-                editor.focus();
-                
-                if (command === 'removeFormat') {
-                    const selection = window.getSelection();
-                    if (selection.toString().length === 0) {
-                        const range = document.createRange();
-                        range.selectNodeContents(editor);
-                        selection.removeAllRanges();
-                        selection.addRange(range);
-                    }
-                }
-                
-                try {
-                    document.execCommand(command, false, value);
-                } catch (e) {
-                    console.error('Command error:', e);
-                }
-                
-                this.markAsChanged();
-            },
-
-            async insertTable() {
-                const { value: formValues } = await Swal.fire({
-                    title: 'Sisipkan Tabel',
-                    html:
-                        '<input id="swal-rows" type="number" min="1" value="2" class="swal2-input" placeholder="Jumlah baris">' +
-                        '<input id="swal-cols" type="number" min="1" value="2" class="swal2-input" placeholder="Jumlah kolom">',
-                    focusConfirm: false,
-                    showCancelButton: true,
-                    confirmButtonText: 'Sisipkan',
-                    cancelButtonText: 'Batal',
-                    confirmButtonColor: '#1B2A4A',
-                    preConfirm: () => {
-                        const rows = document.getElementById('swal-rows').value;
-                        const cols = document.getElementById('swal-cols').value;
-                        if (!rows || !cols || rows < 1 || cols < 1) {
-                            Swal.showValidationMessage('Isi jumlah baris & kolom dengan benar');
-                            return false;
-                        }
-                        return { rows: parseInt(rows), cols: parseInt(cols) };
-                    }
-                });
-
-                if (!formValues) return;
-
-                let tableHTML = '<table style="width: 100%; border-collapse: collapse; margin: 10px 0;"><tbody>';
-                for (let i = 0; i < formValues.rows; i++) {
-                    tableHTML += '<tr>';
-                    for (let j = 0; j < formValues.cols; j++) {
-                        tableHTML += '<td style="border: 1px solid #000; padding: 6px;">Teks</td>';
-                    }
-                    tableHTML += '</tr>';
-                }
-                tableHTML += '</tbody></table><p></p>';
-                this.format('insertHTML', tableHTML);
-            },
-
-            async insertLink() {
-                const { value: url } = await Swal.fire({
-                    title: 'Sisipkan Tautan',
-                    input: 'url',
-                    inputPlaceholder: 'https://',
-                    inputValue: 'https://',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sisipkan',
-                    cancelButtonText: 'Batal',
-                    confirmButtonColor: '#1B2A4A',
-                });
-                if (url) this.format('createLink', url);
             },
 
             startDragSignature(event) {
@@ -771,9 +608,9 @@
             async saveDocument() {
                 this.saveStatus = 'saving';
 
-                const pagesHtml = this.pages.map((_, index) => {
-                    const el = document.getElementById('document-editor-' + index);
-                    return el ? el.innerHTML : '';
+                const pagesHtml = this.pages.map((page) => {
+                    const editor = window.tinymce?.get('document-editor-' + page.uid);
+                    return editor ? editor.getContent() : (page.html || '');
                 });
 
                 const payload = {
@@ -802,9 +639,9 @@
             },
 
             async saveAsNewDocument(newTitle) {
-                const pagesHtml = this.pages.map((_, index) => {
-                    const el = document.getElementById('document-editor-' + index);
-                    return el ? el.innerHTML : '';
+                const pagesHtml = this.pages.map((page) => {
+                    const editor = window.tinymce?.get('document-editor-' + page.uid);
+                    return editor ? editor.getContent() : (page.html || '');
                 });
 
                 const payload = {
