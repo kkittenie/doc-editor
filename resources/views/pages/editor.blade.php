@@ -45,7 +45,7 @@
 
                 <button type="button" @click="saveDocument()"
                     class="rounded-xl bg-ink-900 px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 dark:bg-bronze-500 dark:text-ink-900">
-                    Simpan
+                    Save
                 </button>
             </div>
 
@@ -552,21 +552,16 @@
 
 @push('scripts')
 <script>
+    // 1. Definisi Komponen Alpine.js
     function wordDocumentEditor() {
         return {
             documentId: @js($document->id),
-
             signatures: @js($signatures ?? []),
-
             selectedSignature: @js($document->signature_data['signatureUrl'] ?? null),
-
             selectedSignatureId: @js($document->signature_data['signatureId'] ?? null),
-
             signatureX: @js($document->signature_data['signatureX'] ?? 500),
             signatureY: @js($document->signature_data['signatureY'] ?? 650),
-
             showSignaturePicker: false,
-
             isDraggingSignature: false,
             dragStartX: 0,
             dragStartY: 0,
@@ -581,8 +576,6 @@
             activeEditorId: 'document-editor-0',
 
             pages: @js($document->body_content['pages'] ?? [$document->body_content['content'] ?? '']),
-            // activeEditorId: 'document-editor-0',
-            // pages: @js($document -> body_content['pages'] ?? [$document -> body_content['content'] ?? '']),
 
             markAsChanged() {
                 this.changed = true;
@@ -624,7 +617,6 @@
                 
                 editor.focus();
                 
-                // For removeFormat, select all first
                 if (command === 'removeFormat') {
                     const selection = window.getSelection();
                     if (selection.toString().length === 0) {
@@ -759,11 +751,11 @@
                 });
 
                 const payload = {
-                    title: @js($document -> title),
-                    type: @js($document -> type ?? 'surat'),
-                    header_data: @js($document -> header_data ?? []),
+                    title: @js($document->title),
+                    type: @js($document->type ?? 'surat'),
+                    header_data: @js($document->header_data ?? []),
                     body_content: { pages: pagesHtml },
-                    footer_data: @js($document -> footer_data ?? []),
+                    footer_data: @js($document->footer_data ?? []),
                     signature_data: {
                         signatureId: this.selectedSignatureId,
                         signatureUrl: this.selectedSignature,
@@ -781,10 +773,118 @@
                     console.error(error);
                     this.saveStatus = 'error';
                 }
-            }
+            },
+
+            async saveAsNewDocument(newTitle) {
+                const pagesHtml = this.pages.map((_, index) => {
+                    const el = document.getElementById('document-editor-' + index);
+                    return el ? el.innerHTML : '';
+                });
+
+                const payload = {
+                    title: newTitle,
+                    type: @js($document->type ?? 'surat'),
+                    header_data: @js($document->header_data ?? []),
+                    body_content: { pages: pagesHtml },
+                    footer_data: @js($document->footer_data ?? []),
+                    signature_data: @js($document->signature_data ?? null),
+                };
+
+                const res = await window.axios.post('/documents/save-as', payload);
+                return res.data.id;
+            },
         };
     }
+
+    // 2. Logic Proteksi Unsaved Changes (Langsung disambung di sini)
+    window.hasUnsavedChanges = false;
+
+    window.addEventListener('beforeunload', function (e) {
+        if (window.hasUnsavedChanges) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const editorRoot = document.querySelector('[x-data="wordDocumentEditor()"]');
+        if (!editorRoot) return;
+
+        Alpine.effect(() => {
+            const data = Alpine.$data(editorRoot);
+            window.hasUnsavedChanges = data.changed;
+        });
+
+        document.addEventListener('click', function (e) {
+            const link = e.target.closest('a[href]');
+            if (!link) return;
+            if (!window.hasUnsavedChanges) return;
+
+            const href = link.getAttribute('href');
+            if (!href || href.startsWith('#') || link.target === '_blank') return;
+
+            e.preventDefault();
+            const destinationUrl = link.href;
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Perubahan belum disimpan',
+                text: 'Kamu punya perubahan yang belum disimpan. Simpan dulu sebelum keluar?',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Simpan & Keluar',
+                denyButtonText: 'Buang Perubahan',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#1B2A4A',
+                denyButtonColor: '#dc2626',
+                footer: '<a href="#" id="swal-save-as-link" class="text-xs">atau Simpan Sebagai Dokumen Baru</a>',
+                didOpen: () => {
+                    document.getElementById('swal-save-as-link').addEventListener('click', async (evt) => {
+                        evt.preventDefault();
+                        Swal.close();
+
+                        const { value: newTitle } = await Swal.fire({
+                            title: 'Simpan Sebagai',
+                            input: 'text',
+                            inputLabel: 'Judul dokumen baru',
+                            inputValue: @js(($document->title ?? 'Dokumen') . ' (Salinan)'),
+                            showCancelButton: true,
+                            confirmButtonText: 'Simpan Sebagai Baru',
+                            cancelButtonText: 'Batal',
+                            confirmButtonColor: '#1B2A4A',
+                        });
+
+                        if (!newTitle) return;
+
+                        try {
+                            const data = Alpine.$data(editorRoot);
+                            const newId = await data.saveAsNewDocument(newTitle);
+                            window.hasUnsavedChanges = false;
+                            window.location.href = '/documents/' + newId + '/edit';
+                        } catch (err) {
+                            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal menyimpan sebagai dokumen baru.', confirmButtonColor: '#1B2A4A' });
+                            console.error(err);
+                        }
+                    });
+                }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const data = Alpine.$data(editorRoot);
+                        await data.saveDocument();
+                        window.hasUnsavedChanges = false;
+                        window.location.href = destinationUrl;
+                    } catch (err) {
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal menyimpan dokumen.', confirmButtonColor: '#1B2A4A' });
+                        console.error(err);
+                    }
+                } else if (result.isDenied) {
+                    window.hasUnsavedChanges = false;
+                    window.location.href = destinationUrl;
+                }
+            });
+        });
+    });
 </script>
 @endpush
-
 @endsection

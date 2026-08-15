@@ -22,6 +22,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/documents/{document}/export', [DocumentController::class, 'exportPdf']);
     Route::post('documents/logo', [DocumentController::class, 'uploadLogo'])->name('documents.logo');
     Route::get('/documents/template/{template}', [DocumentController::class, 'createFromTemplate'])->name('documents.template');
+    Route::post('/documents/save-as', [DocumentController::class, 'saveAsNew'])->name('documents.saveAs');
     Route::get('/signatures', [SignatureController::class, 'index'])->name('signatures');
     Route::post('/signatures', [SignatureController::class, 'store'])->name('signatures.store');
     Route::delete('/signatures/{signature}', [SignatureController::class, 'destroy'])->name('signatures.destroy');

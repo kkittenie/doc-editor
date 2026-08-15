@@ -289,4 +289,29 @@ class DocumentController extends Controller
             return $path ? str_replace($matches[1], $path, $matches[0]) : $matches[0];
         }, $html);
     }
+
+    public function saveAsNew(Request $request)
+    {
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'type'  => ['nullable', 'string'],
+            'header_data' => ['required', 'array'],
+            'body_content' => ['nullable', 'array'],
+            'footer_data' => ['nullable', 'array'],
+            'signature' => ['nullable', 'array'],
+        ]);
+
+        $newDocument = Document::create([
+            'user_id'   => Auth::id(),
+            'title'     => $data['title'],
+            'type'      => $data['type'] ?? 'surat',
+            'header_data'   => $data['header_data'],
+            'body_content'  => $data['body_content'] ?? [],
+            'footer_data'   => $data['footer_data'] ?? [],
+            'signature_data' => $data['signature_data'] ?? null,
+            'status'    => 'draft',
+        ]);
+
+        return response()->json(['id' => $newDocument->id]);
+    }
 }
