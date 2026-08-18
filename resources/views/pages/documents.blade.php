@@ -118,9 +118,9 @@
 
 <div x-data="documentsPage()" class="space-y-6">
 
-    {{-- ===================================================== --}}
+    
     {{-- HEADER --}}
-    {{-- ===================================================== --}}
+    
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 
         <div>
@@ -165,9 +165,9 @@
     </div>
 
 
-    {{-- ===================================================== --}}
+    
     {{-- SUMMARY CARDS --}}
-    {{-- ===================================================== --}}
+    
     <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
 
         {{-- Total --}}
@@ -270,9 +270,9 @@
     </div>
 
 
-    {{-- ===================================================== --}}
+    
     {{-- FILTER & SEARCH --}}
-    {{-- ===================================================== --}}
+    
     <div class="rounded-2xl border border-parchment-300 bg-white p-3 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
 
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -362,9 +362,8 @@
     </div>
 
 
-    {{-- ===================================================== --}}
+    
     {{-- DOCUMENT TABLE --}}
-    {{-- ===================================================== --}}
     <div class="overflow-hidden rounded-2xl border border-parchment-300 bg-white shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
 
         {{-- Table Header --}}

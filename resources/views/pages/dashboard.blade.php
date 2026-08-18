@@ -4,9 +4,8 @@
 
 <div class="space-y-6">
 
-    {{-- =========================
-        HEADER DASHBOARD
-    ========================== --}}
+     
+    {{--HEADER DASHBOARD--}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
         <div>
@@ -43,9 +42,7 @@
     </div>
 
 
-    {{-- ===================================================== --}}
     {{-- SUMMARY CARDS --}}
-    {{-- ===================================================== --}}
     <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
 
         {{-- Total --}}
@@ -148,9 +145,7 @@
     </div>
 
 
-    {{-- =========================
-        DOKUMEN TERBARU
-    ========================== --}}
+    {{-- DOKUMEN TERBARU --}}
     <div class="bg-white dark:bg-gray-800
                 border border-gray-200 dark:border-gray-700
                 rounded-xl overflow-hidden

@@ -4,9 +4,7 @@
 
 <div x-data="wordDocumentEditor()" x-init="init()" class="min-h-screen">
 
-    {{-- ========================================= --}}
     {{-- TOP BAR --}}
-    {{-- ========================================= --}}
     <div
         class="editor-topbar sticky top-0 z-40 border-b border-parchment-300 bg-white/95 backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95"
     >
@@ -77,24 +75,22 @@
         </div>
     </div>
 
-    {{-- ========================================= --}}
+    
     {{-- TINYMCE TOOLBAR --}}
-    {{-- ========================================= --}}
     <div
         id="body-toolbar-container"
         class="sticky top-[57px] z-30 min-h-[42px] border-b border-parchment-300 bg-white px-2 dark:border-slate-warm-700 dark:bg-slate-warm-900"
     ></div>
 
-    {{-- ========================================= --}}
+    
     {{-- DOCUMENT AREA --}}
-    {{-- ========================================= --}}
     <main class="documentPrintArea bg-slate-100 px-4 py-10 dark:bg-slate-warm-950">
 
         <div class="mx-auto w-full max-w-[794px] space-y-8">
 
             <template x-for="(page, index) in pages" :key="page.uid">
 
-                <div class="document-page relative w-full bg-white shadow-xl">
+                <div class="document-page relative flex min-h-[1123px] w-full flex-col bg-white shadow-xl">
 
                     {{-- PAGE INFO BAR --}}
                     <div
@@ -138,7 +134,7 @@
                     </div>
 
                     {{-- BODY EDITOR --}}
-                    <div class="px-[80px] py-8">
+                    <div class="flex-1 px-[80px] py-8">
                         <div
                             :id="'document-editor-' + page.uid"
                             contenteditable="true"
@@ -147,22 +143,13 @@
                     </div>
 
                     {{-- FOOTER --}}
-                    <div
-                        x-show="index === pages.length - 1"
-                        class="px-[80px] pb-20 text-sm text-black"
-                    >
-                        <div class="ml-auto w-[260px] text-center">
-
-                            <div class="text-left">
-                                {!! $document->footer_data['content'] ?? '' !!}
-                            </div>
-
-                        </div>
+                    <div 
+                        x-show="index === pages.length -1"
+                        class="px-[80px] pb-20 text-sm text-black">
+                            {!! $document->footer_data['content'] ?? '' !!}
                     </div>
 
-                    {{-- ========================================= --}}
                     {{-- DRAGGABLE SIGNATURE --}}
-                    {{-- ========================================= --}}
                     <template x-if="index === pages.length - 1 && selectedSignature">
 
                         <div
@@ -233,9 +220,7 @@
         </div>
     </main>
 
-    {{-- ========================================= --}}
     {{-- SIGNATURE PICKER --}}
-    {{-- ========================================= --}}
     <div
         x-show="showSignaturePicker"
         x-cloak
@@ -271,9 +256,7 @@
 
             </div>
 
-            {{-- ========================================= --}}
             {{-- TIDAK ADA SIGNATURE --}}
-            {{-- ========================================= --}}
             <template x-if="signatures.length === 0">
 
                 <div class="rounded-xl border border-dashed border-parchment-300 p-6 text-center">
@@ -293,9 +276,7 @@
 
             </template>
 
-            {{-- ========================================= --}}
             {{-- SIGNATURE DATABASE LIST --}}
-            {{-- ========================================= --}}
             <div
                 x-show="signatures.length > 0"
                 class="grid max-h-[400px] gap-3 overflow-y-auto"

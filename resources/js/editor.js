@@ -11,7 +11,7 @@ import 'tinymce/plugins/link';
 import 'tinymce/plugins/table';
 import 'tinymce/plugins/image';
 
-// Skin & content css (self-hosted, gak pakai CDN)
+// Skin & content css (self-hosted)
 import 'tinymce/skins/ui/oxide/skin.css';
 import 'tinymce/skins/content/default/content.css';
 
@@ -29,12 +29,6 @@ const uploadLogo = async (file) => {
     return response.data.url;
 };
 
-// Handler resmi TinyMCE buat plugin "image": dipanggil tiap ada foto yang
-// di-insert lewat dialog Insert/Edit Image, drag-drop, atau paste. Sebelum
-// ini gak ada handler-nya sama sekali, jadi dialog "image" cuma nyediain
-// field URL biasa -- makanya kalau orang nyoba masukin foto, yang kesimpen
-// cuma teks/link URL-nya, bukan gambarnya. Dengan handler ini, file beneran
-// di-upload ke server dan hasilnya otomatis di-insert sebagai <img>.
 const imagesUploadHandler = (blobInfo) =>
     new Promise((resolve, reject) => {
         const formData = new FormData();
@@ -188,9 +182,6 @@ window.initDocumentEditor = function (selector, initialContent = '', allowLogoUp
     });
 };
 
-// Dipakai buat editor isi/body dokumen di halaman Editor (pages/editor.blade.php).
-// Toolbar-nya sengaja lebih lengkap (heading, font, warna, dst) karena ini
-// gantiin toolbar custom lama yang berbasis document.execCommand.
 window.initBodyEditor = function (selector, initialContent = '', onSync = null) {
 
     tinymce.init({
@@ -216,17 +207,14 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
 
         toolbar_mode: 'wrap',
 
-        /*
-         * PENTING
-         * Toolbar TinyMCE dipaksa masuk ke container
-         * yang memang berada DI LUAR kertas.
-         */
         fixed_toolbar_container: '#body-toolbar-container',
 
         toolbar_persist: true,
 
         // Inline mode prevents TinyMCE from rendering another toolbar inside the paper.
         inline: true,
+
+        object_resizing: 'img.table',
 
         content_style: `
             body {
@@ -241,7 +229,6 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
 
             img {
                 max-width: 100%;
-                height: auto;
             }
 
             table {
@@ -271,10 +258,6 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
                     editor.setContent(initialContent);
                 }
 
-                /*
-                 * Pastikan textarea TinyMCE tidak
-                 * menyebabkan lebar kertas melebar.
-                 */
                 const container = editor.getContainer();
 
                 if (container) {
@@ -282,6 +265,19 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
                     container.style.width = '100%';
                 }
             });
+
+            const ensureTrailingParagraph = () => {
+                const body = editor.getBody();
+                const last = body.lastElementChild;
+
+                if (last && last.nodeName === 'IMG') {
+                    const p = editor.dom.create('p');
+                    p.innerHTML = '<br data-mce-bogus="1">';
+                    body.appendChild(p);
+                }
+            };
+
+            editor.on('NodeChange SetContent', ensureTrailingParagraph);
 
             editor.on('change keyup undo redo', function () {
 
