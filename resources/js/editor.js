@@ -187,29 +187,105 @@ window.initDocumentEditor = function (selector, initialContent = '', allowLogoUp
 // Toolbar-nya sengaja lebih lengkap (heading, font, warna, dst) karena ini
 // gantiin toolbar custom lama yang berbasis document.execCommand.
 window.initBodyEditor = function (selector, initialContent = '', onSync = null) {
+
     tinymce.init({
         selector: selector,
+
         license_key: 'gpl',
+
         height: 500,
+
         menubar: false,
         branding: false,
         statusbar: false,
+
         plugins: 'lists link table image',
-        toolbar: 'undo redo | blocks | fontfamily fontsize | bold italic underline | forecolor backcolor | alignleft aligncenter alignright alignjustify | outdent indent | bullist numlist | table link image hr | removeformat',
+
+        toolbar:
+            'undo redo | blocks | fontfamily fontsize | ' +
+            'bold italic underline | ' +
+            'forecolor backcolor | ' +
+            'alignleft aligncenter alignright alignjustify | ' +
+            'outdent indent | bullist numlist | ' +
+            'table link image hr | removeformat',
+
         toolbar_mode: 'wrap',
+
+        /*
+         * PENTING
+         * Toolbar TinyMCE dipaksa masuk ke container
+         * yang memang berada DI LUAR kertas.
+         */
         fixed_toolbar_container: '#body-toolbar-container',
+
         toolbar_persist: true,
-        content_style: 'body { font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8; } table { width: 100%; border-collapse: collapse; margin: 10px 0; } table td, table th { border: 1px solid #cbd5e1; padding: 8px; }',
+
+        // Inline mode prevents TinyMCE from rendering another toolbar inside the paper.
+        inline: true,
+
+        content_style: `
+            body {
+                font-family: Arial, sans-serif;
+                font-size: 14px;
+                line-height: 1.8;
+                margin: 0;
+                padding: 0;
+                overflow-wrap: break-word;
+                word-break: break-word;
+            }
+
+            img {
+                max-width: 100%;
+                height: auto;
+            }
+
+            table {
+                width: 100%;
+                max-width: 100%;
+                border-collapse: collapse;
+                margin: 10px 0;
+            }
+
+            table td,
+            table th {
+                border: 1px solid #cbd5e1;
+                padding: 8px;
+            }
+        `,
+
         skin: false,
         content_css: false,
-        images_upload_handler: imagesUploadHandler,        setup: function (editor) {
+
+        images_upload_handler: imagesUploadHandler,
+
+        setup: function (editor) {
+
             editor.on('init', function () {
-                if (initialContent) editor.setContent(initialContent);
+
+                if (initialContent) {
+                    editor.setContent(initialContent);
+                }
+
+                /*
+                 * Pastikan textarea TinyMCE tidak
+                 * menyebabkan lebar kertas melebar.
+                 */
+                const container = editor.getContainer();
+
+                if (container) {
+                    container.style.maxWidth = '100%';
+                    container.style.width = '100%';
+                }
             });
+
             editor.on('change keyup undo redo', function () {
+
                 editor.save();
-                if (typeof onSync === 'function') onSync(editor.getContent());
+
+                if (typeof onSync === 'function') {
+                    onSync(editor.getContent());
+                }
             });
-        },
+        }
     });
 };
