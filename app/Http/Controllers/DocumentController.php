@@ -271,7 +271,7 @@ class DocumentController extends Controller
         $filename = 'logos/'.Auth::id(). '_' .Str::random(10). '.png';
         Storage::disk('public')->put($filename, $imageData);
 
-        return response()->json(['url' => Storage::url($filename)]);
+        return response()->json(['url' => asset('storage/' .$filename)]);
     }
 
     public function uploadImage(Request $request)

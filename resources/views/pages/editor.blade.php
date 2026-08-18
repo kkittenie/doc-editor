@@ -120,7 +120,11 @@
                         class="document-header relative px-[80px] pt-[20px] text-black"
                     >
                         {!! $document->header_data['content'] ?? '' !!}
-
+<!-- 
+                        <pre class="text-xs bg-gray-100 p-3 overflow-auto">
+                            {{ print_r($document->header_data, true) }}
+                        </pre>
+ -->
                         <div class="mt-4 border-b-2 border-black"></div>
                     </div>
 
