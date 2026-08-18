@@ -214,7 +214,9 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
         // Inline mode prevents TinyMCE from rendering another toolbar inside the paper.
         inline: true,
 
-        object_resizing: 'img.table',
+        // Matikan resize bawaan TinyMCE untuk semua elemen (termasuk gambar).
+        // Resize gambar ditangani manual lewat custom handle di wordDocumentEditor().
+        object_resizing: false,
 
         content_style: `
             body {
@@ -278,6 +280,19 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
             };
 
             editor.on('NodeChange SetContent', ensureTrailingParagraph);
+
+            // Matikan native HTML5 drag pada semua <img> di dalam body,
+            // supaya tidak bentrok dengan custom resize-drag di wordDocumentEditor().
+            editor.on('SetContent NodeChange', () => {
+                editor.getBody()
+                    .querySelectorAll('img:not([data-drag-disabled])')
+                    .forEach((img) => {
+                        img.setAttribute('draggable', 'false');
+                        img.style.webkitUserDrag = 'none';
+                        img.dataset.dragDisabled = '1';
+                        img.addEventListener('dragstart', (e) => e.preventDefault());
+                    });
+            });
 
             editor.on('change keyup undo redo', function () {
 
