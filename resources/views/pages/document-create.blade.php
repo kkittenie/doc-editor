@@ -21,7 +21,6 @@
 
     setHeaderContent(content) {
         this.headerHtml = content;
-        const editor = window.tinymce?.get('header-editor');
 
         if (editor) editor.setContent(content);
     },
