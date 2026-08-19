@@ -130,7 +130,8 @@
                     </div>
 
                     {{-- BODY EDITOR --}}
-                    <div class="flex-1 px-[80px] pt-6 pb-4">
+                    <div class="flex-1 px-[80px] pt-6 pb-4"
+                        @click.self="focusPageEditor(page.uid)">
                         <div
                             :id="'document-editor-' + page.uid"
                             class="document-body"
@@ -810,9 +811,6 @@
 
 @push('scripts')
 <script>
-    // =========================================
-    // 1. KOMPONEN ALPINE.JS
-    // =========================================
 
     function wordDocumentEditor() {
         return {
@@ -1006,6 +1004,15 @@
                 element.addEventListener('mousedown', () => {
                     this.activePageUid = uid;
                 });
+            },
+
+            focusPageEditor(uid) {
+                const editor = window.tinymce?.get('document-editor-' + uid);
+                if (!editor) return;
+
+                editor.focus();
+                editor.selection.select(editor.getBody(), true);
+                editor.selection.collapse(false); // taro kursor di paling akhir
             },
 
             // =========================================
@@ -2212,9 +2219,6 @@
                         $document->footer_data ?? []
                     ),
 
-                    // Hanya simpan ID TTD database
-                    // + URL untuk kebutuhan render
-                    // + posisi TTD
                     signature_data: {
 
                         signatureId:

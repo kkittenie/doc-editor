@@ -10,6 +10,7 @@
             'id' => 'DOC-' . str_pad($doc->id, 5, '0', STR_PAD_LEFT),
             'databaseId' => $doc->id,
             'title' => $doc->title,
+            'nomorSurat' => $doc->header_data['nomorSurat'] ?? '—',
 
             'category' => ucfirst($doc->type ?? 'surat'),
 
@@ -470,7 +471,7 @@
 
                                 <span
                                     class="font-mono text-[11px] font-medium text-slate-warm-600 dark:text-parchment-300"
-                                    x-text="doc.id"
+                                    x-text="doc.nomorSurat"
                                 ></span>
 
                             </td>

@@ -325,4 +325,67 @@ class DocumentController extends Controller
 
         return response()->json(['id' => $newDocument->id]);
     }
+
+    public function chooseStart()
+    {
+        return view('pages.editor-start', [
+            'title' => 'Mulai dokumen baru', 
+        ]);
+    }
+
+    public function importDocument(Request $request)
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
+        ]);
+
+        $file = $request->file('file');
+        $extension = strtolower($file->getClientOriginalExtension());
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+
+        if ($extension === 'pdf') {
+            $parser = new \Smalot\PdfParser\Parser();
+            $pdf = $parser->parseFile($file->getRealPath());
+            $text = $pdf->getText();
+            $text = str_replace(["\r\n", "\r"], "\n", $text);
+
+            $blocks = preg_split('/\n\s*\n/', trim($text));
+            if (count($blocks) <= 1) {
+                $blocks = preg_split('/\n/', trim($text));
+            }
+
+            $paragraphs = array_filter(array_map('trim', $blocks));
+            $bodyHtml = collect($paragraphs)
+                ->map(fn($p) => '<p>'.nl2br(e($p)).'</p>')
+                ->implode('');
+        } else {
+            $phpWord = \PhpOffice\PhpWord\IOFactory::load($file->getRealPath());
+            $htmlWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'HTML');
+
+            $tempPath = tempnam(sys_get_temp_dir(), 'docximport').'.html';
+            $htmlWriter->save($tempPath);
+            $fullHtml = file_get_contents($tempPath);
+            @unlink($tempPath);
+
+            $bodyHtml = preg_match('/<body[^>]*>(.*)<\/body>/is', $fullHtml, $m) ? $m[1] : $fullHtml;
+        }
+
+        $document = Document::create([
+            'user_id' => Auth::id(),
+            'title' => $originalName,
+            'type' => 'surat',
+            'header_data' => ['content' => ''],
+            'body_content' => ['pages' => [$bodyHtml]],
+            'footer_data' => ['content' => ''],
+            'signature_data' => [
+                'selectedMaterai' => 'none',
+                'signatureX' => 65,
+                'signatureY' => 78,
+                'signatureUrl' => null,
+            ],
+            'status' => 'draft',
+        ]);
+
+        return redirect()->route('documents.edit', $document)->with('success', 'Dokumen berhasil diimpor. Cek formatnya sebelum dipakai!');
+    }
 }
