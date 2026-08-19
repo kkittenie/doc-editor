@@ -130,10 +130,9 @@
                     </div>
 
                     {{-- BODY EDITOR --}}
-                    <div class="flex-1 px-[80px] py-8">
+                    <div class="flex-1 px-[80px] pt-6 pb-4">
                         <div
                             :id="'document-editor-' + page.uid"
-                            contenteditable="true"
                             class="document-body"
                         ></div>
                     </div>
@@ -416,24 +415,159 @@
         position: relative;
         width: 210mm;
         min-height: 297mm;
+        height: 297mm;
         max-height: 297mm;
+
         margin: 0 auto;
+
         box-sizing: border-box;
+
+        overflow: hidden;
+
+        background: white;
+
+        box-shadow:
+            0 10px 30px rgba(0, 0, 0, 0.08);
     }
 
     .document-body {
         min-height: 650px;
+
         font-family: Arial, sans-serif;
         font-size: 14px;
-        line-height: 1.8;
-    }
 
-    .document-body:focus {
+        line-height: 1.6;
+
+        color: #111827;
+
         outline: none;
     }
 
     .document-body p {
         margin: 0 0 10px 0;
+        padding: 0;
+    }
+
+    .document-body p + p {
+        margin-top: 4px;
+    }
+
+    /* PARAGRAPH TERAKHIR */
+    .document-body p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* HEADING */
+    .document-body h1 {
+        font-size: 28px;
+        line-height: 1.3;
+        font-weight: 700;
+        margin: 18px 0 12px;
+    }
+
+    .document-body h2 {
+        font-size: 22px;
+        line-height: 1.3;
+        font-weight: 700;
+        margin: 16px 0 10px;
+    }
+
+    .document-body h3 {
+        font-size: 18px;
+        line-height: 1.35;
+        font-weight: 700;
+        margin: 14px 0 8px;
+    }
+
+    /* HEADING PERTAMA JANGAN TERLALU TURUN */
+    .document-body > h1:first-child,
+    .document-body > h2:first-child,
+    .document-body > h3:first-child,
+    .document-body > h4:first-child,
+    .document-body > h5:first-child,
+    .document-body > h6:first-child {
+        margin-top: 0;
+    }
+
+    /* LIST */
+    .document-body ul,
+    .document-body ol {
+        margin-top: 8px;
+        margin-bottom: 12px;
+        padding-left: 30px;
+    }
+
+    .document-body li {
+        margin-bottom: 4px;
+    }
+
+    /* BLOCKQUOTE */
+    .document-body blockquote {
+        margin: 14px 0;
+        padding-left: 15px;
+        border-left: 3px solid #ccc;
+        font-style: italic;
+    }
+
+    /* TABLE */
+    .document-body table {
+        width: 100%;
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+        margin: 14px 0;
+        table-layout: fixed;
+    }
+
+    .document-body table,
+    .document-body tr,
+    .document-body td,
+    .document-body th {
+        box-sizing: border-box;
+    }
+
+    .document-body table th,
+    .document-body table td {
+        border: 1px solid #374151 !important;
+        padding: 8px 10px !important;
+        min-width: 60px;
+        height: 32px;
+        vertical-align: top;
+    }
+
+    .document-body th {
+        font-weight: 700;
+        background: #f3f4f6;
+    }
+
+    .document-body td p,
+    .document-body th p {
+        margin: 0 !important;
+    }
+
+    .document-body .tableWrapper {
+        overflow-x: auto;
+        margin: 14px 0;
+    }
+
+    .document-body .tableWrapper table {
+        border-collapse: collapse !important;
+    }
+
+    .document-body .tableWrapper td,
+    .document-body .tableWrapper th {
+        border: 1px solid #374151 !important;
+    }
+
+    /* GAMBAR */
+    .document-body img {
+        display: block;
+        margin-top: 8px;
+        margin-bottom: 12px;
+        cursor: pointer !important;
+    }
+
+    .document-body:focus {
+        outline: none;
     }
 
     .document-header {
@@ -477,22 +611,22 @@
         padding: 8px;
     }
 
-    .document-body h1,
-    .document-body h2,
-    .document-body h3 {
-        font-weight: bold;
-        margin-top: 15px;
-        margin-bottom: 10px;
+    .document-body ul,
+    .document-body ol {
+        margin: 8px 0 12px;
+        padding-left: 32px;
+    }
+
+    .document-body li {
+        margin: 3px 0;
     }
 
     .document-body ul {
         list-style-type: disc;
-        padding-left: 30px;
     }
 
     .document-body ol {
         list-style-type: decimal;
-        padding-left: 30px;
     }
 
     .document-body blockquote {
@@ -571,130 +705,106 @@
     |
     */
 
-    .image-resize-overlay {
-        position: absolute !important;
+    /* =========================================
+   TIPTAP TOOLBAR
+   ========================================= */
 
-        box-sizing: border-box !important;
+    .tiptap-toolbar-button {
+        display: inline-flex;
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        align-items: center;
+        justify-content: center;
 
-        border: 1px solid #2563eb !important;
+        border: 1px solid transparent;
+        border-radius: 7px;
 
-        margin: 0 !important;
-        padding: 0 !important;
+        background: transparent;
 
-        z-index: 999999 !important;
+        color: #1f2937;
+        font-size: 14px;
+        font-weight: 500;
 
-        pointer-events: none !important;
+        cursor: pointer;
+
+        transition:
+            background-color 0.15s ease,
+            border-color 0.15s ease;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | HANDLE
-    |--------------------------------------------------------------------------
-    */
-
-    .image-resize-handle {
-        position: absolute !important;
-
-        width: 10px !important;
-        height: 10px !important;
-
-        box-sizing: border-box !important;
-
-        background: #ffffff !important;
-
-        border: 2px solid #2563eb !important;
-
-        border-radius: 2px !important;
-
-        z-index: 1000000 !important;
-
-        pointer-events: auto !important;
-
-        user-select: none !important;
-        -webkit-user-drag: none !important;
+    .tiptap-toolbar-button:hover {
+        background: rgb(245 242 235);
+        border-color: rgb(229 225 216);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | HANDLE SUDUT
-    |--------------------------------------------------------------------------
-    */
-
-    .handle-nw {
-        left: -6px !important;
-        top: -6px !important;
-
-        cursor: nwse-resize !important;
+    .tiptap-toolbar-button:active {
+        background: rgb(235 231 222);
     }
 
-    .handle-ne {
-        right: -6px !important;
-        top: -6px !important;
-
-        cursor: nesw-resize !important;
+    .tiptap-toolbar-button b,
+    .tiptap-toolbar-button i,
+    .tiptap-toolbar-button u,
+    .tiptap-toolbar-button s {
+        pointer-events: none;
     }
 
-    .handle-se {
-        right: -6px !important;
-        bottom: -6px !important;
+    .tiptap-toolbar-select {
+        height: 36px;
+        min-width: 125px;
 
-        cursor: nwse-resize !important;
+        padding: 0 10px;
+
+        border: 1px solid rgb(214 211 204);
+        border-radius: 7px;
+
+        background: white;
+
+        color: #1f2937;
+        font-size: 13px;
+
+        outline: none;
+        cursor: pointer;
     }
 
-    .handle-sw {
-        left: -6px !important;
-        bottom: -6px !important;
-
-        cursor: nesw-resize !important;
+    .tiptap-toolbar-select:hover {
+        border-color: rgb(190 185 175);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | HANDLE ATAS / BAWAH
-    |--------------------------------------------------------------------------
-    */
-
-    .handle-n {
-        left: 50% !important;
-        top: -6px !important;
-
-        transform: translateX(-50%) !important;
-
-        cursor: ns-resize !important;
+    .tiptap-toolbar-select:focus {
+        border-color: rgb(180 140 80);
     }
 
-    .handle-s {
-        left: 50% !important;
-        bottom: -6px !important;
+    /* Divider */
 
-        transform: translateX(-50%) !important;
+    .tiptap-toolbar-divider {
+        width: 1px;
+        height: 26px;
+        flex-shrink: 0;
 
-        cursor: ns-resize !important;
+        margin: 0 5px;
+
+        background: rgb(214 211 204);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | HANDLE KIRI / KANAN
-    |--------------------------------------------------------------------------
-    */
+    #body-toolbar-container {
+        display: flex;
+        align-items: center;
 
-    .handle-w {
-        left: -6px !important;
-        top: 50% !important;
+        min-height: 42px;
 
-        transform: translateY(-50%) !important;
+        padding: 4px 10px;
 
-        cursor: ew-resize !important;
+        overflow-x: auto;
+        overflow-y: hidden;
+
+        white-space: nowrap;
     }
 
-    .handle-e {
-        right: -6px !important;
-        top: 50% !important;
-
-        transform: translateY(-50%) !important;
-
-        cursor: ew-resize !important;
+    #body-toolbar-container::-webkit-scrollbar {
+        height: 5px;
     }
+
 </style>
 @endpush
 
@@ -731,6 +841,8 @@
 
             showSignaturePicker: false,
 
+            activePageUid: null,
+
             isDraggingSignature: false,
 
             dragStartX: 0,
@@ -747,18 +859,18 @@
             saveStatus: 'saved',
             changed: false,
 
-            selectedImage: null,
-            selectedImageEditor: null,
+            // selectedImage: null,
+            // selectedImageEditor: null,
 
-            imageResizeData: {
-                startX: 0,
-                startY: 0,
-                startWidth: 0,
-                startHeight: 0,
-                startLeft: 0,
-                startTop: 0,
-                direction: null
-            },
+            // imageResizeData: {
+            //     startX: 0,
+            //     startY: 0,
+            //     startWidth: 0,
+            //     startHeight: 0,
+            //     startLeft: 0,
+            //     startTop: 0,
+            //     direction: null
+            // },
 
             // =========================================
             // PAGES
@@ -789,6 +901,32 @@
 
                 this.$nextTick(() => {
 
+                    // =========================================
+                    // INIT TOOLBAR
+                    // =========================================
+
+                    const toolbar =
+                        document.getElementById(
+                            'body-toolbar-container'
+                        );
+
+                    if (
+                        toolbar &&
+                        typeof window.createTiptapToolbar === 'function'
+                    ) {
+
+                        window.createTiptapToolbar(
+                            toolbar,
+                            () => this.getActiveEditorId()
+                        );
+
+                    }
+
+
+                    // =========================================
+                    // INIT SEMUA PAGE EDITOR
+                    // =========================================
+
                     this.pages.forEach((page) => {
 
                         this.initPageEditor(
@@ -801,7 +939,7 @@
                 });
 
                 // =========================================
-                // CLICK IMAGE
+                // CTRL + S
                 // =========================================
 
                 document.addEventListener(
@@ -820,6 +958,7 @@
 
                     }
                 );
+
             },
 
             // =========================================
@@ -828,21 +967,28 @@
 
             initPageEditor(uid, content) {
 
-                if (typeof window.initBodyEditor !== 'function') {
-                    console.error('initBodyEditor tidak ditemukan');
+                if (typeof window.createTiptapEditor !== 'function') {
+                    console.error('createTiptapEditor tidak ditemukan');
                     return;
                 }
 
-                const editorId =
-                    'document-editor-' + uid;
+                const editorId = 'document-editor-' + uid;
 
-                window.initBodyEditor(
-                    '#' + editorId,
-                    content,
+                const element = document.getElementById(editorId);
+
+                if (!element) {
+                    console.error('Element editor tidak ditemukan:', editorId);
+                    return;
+                }
+
+                window.createTiptapEditor(
+                    editorId,
+                    element,
+                    content || '',
                     (html) => {
 
                         const page = this.pages.find(
-                            (p) => p.uid === uid
+                            p => p.uid === uid
                         );
 
                         if (page) {
@@ -853,129 +999,42 @@
                     }
                 );
 
-                /*
-                |--------------------------------------------------------------------------
-                | TUNGGU TINYMCE SELESAI
-                |--------------------------------------------------------------------------
-                */
+                element.addEventListener('focusin', () => {
+                    this.activePageUid = uid;
+                });
 
-                const waitForEditor = setInterval(() => {
-
-                    const editor =
-                        window.tinymce?.get(editorId);
-
-                    if (!editor) {
-                        return;
-                    }
-
-                    clearInterval(waitForEditor);
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | KLIK GAMBAR DI DALAM IFRAME TINYMCE
-                    |--------------------------------------------------------------------------
-                    */
-
-                    editor.on('click', (event) => {
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Kalau klik handle / kerangka resize,
-                        | JANGAN hapus kerangka
-                        |--------------------------------------------------------------------------
-                        */
-
-                        if (
-                            event.target.closest(
-                                '.image-resize-overlay'
-                            )
-                        ) {
-                            return;
-                        }
-
-
-                        const image =
-                            event.target.closest('img');
-
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Klik bukan gambar
-                        |--------------------------------------------------------------------------
-                        */
-
-                        if (!image) {
-
-                            this.removeImageResizeHandles();
-
-                            return;
-                        }
-
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Klik gambar
-                        |--------------------------------------------------------------------------
-                        */
-
-                        event.preventDefault();
-
-                        event.stopPropagation();
-
-
-                        this.selectImage(
-                            image,
-                            editor
-                        );
-                    });
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | KLIK DI LUAR GAMBAR
-                    |--------------------------------------------------------------------------
-                    */
-
-                    editor.on('mousedown', (event) => {
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Kalau sedang klik handle resize,
-                        | JANGAN melakukan apa-apa.
-                        |--------------------------------------------------------------------------
-                        */
-
-                        if (
-                            event.target.closest(
-                                '.image-resize-overlay'
-                            )
-                        ) {
-                            return;
-                        }
-
-
-                        const image =
-                            event.target.closest('img');
-
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Kalau klik area kosong
-                        |--------------------------------------------------------------------------
-                        */
-
-                        if (!image) {
-
-                            this.removeImageResizeHandles();
-
-                        }
-                    });
-
-                }, 100);
+                element.addEventListener('mousedown', () => {
+                    this.activePageUid = uid;
+                });
             },
 
             // =========================================
             // CHANGE STATUS
             // =========================================
+
+            getActiveEditorId() {
+
+                if (!this.activePageUid) {
+                    return null;
+                }
+
+                return 'document-editor-' + this.activePageUid;
+            },
+
+            runBodyCommand(command, ...args) {
+
+                const editorId = this.getActiveEditorId();
+
+                if (!editorId) {
+                    return;
+                }
+
+                window.tiptapCommand?.(
+                    editorId,
+                    command,
+                    ...args
+                );
+            },
 
             markAsChanged() {
                 this.changed = true;
@@ -1045,12 +1104,9 @@
                     return;
                 }
 
-                window.tinymce
-                    ?.get(
-                        'document-editor-' +
-                        this.pages[index].uid
-                    )
-                    ?.remove();
+                window.destroyTiptapEditor?.(
+                    'document-editor-' + this.pages[index].uid
+                );
 
                 this.pages.splice(index, 1);
 
@@ -1190,932 +1246,932 @@
             // IMAGE RESIZE - MS WORD STYLE
             // =========================================
 
-            selectImage(image, editor) {
-
-                if (!image || !editor) {
-                    return;
-                }
-
-                /*
-                |--------------------------------------------------------------------------
-                | Hapus selection sebelumnya
-                |--------------------------------------------------------------------------
-                */
-
-                this.removeImageResizeHandles();
-
-                /*
-                |--------------------------------------------------------------------------
-                | Simpan gambar & editor
-                |--------------------------------------------------------------------------
-                */
-
-                this.selectedImage = image;
-
-                this.selectedImageEditor = editor;
-
-                /*
-                |--------------------------------------------------------------------------
-                | Tandai gambar
-                |--------------------------------------------------------------------------
-                */
-
-                image.classList.add('image-selected');
-                image.setAttribute('draggable', 'false');
-                image.style.webkitUserDrag = 'none';
-
-                /*
-                |--------------------------------------------------------------------------
-                | Buat kerangka
-                |--------------------------------------------------------------------------
-                */
-
-                this.createImageResizeHandles(
-                    image,
-                    editor
-                );
-            },
-
-
-            createImageResizeHandles(image, editor) {
-
-                if (!image || !editor) {
-                    return;
-                }
-
-                const doc =
-                    editor.getDoc();
-
-                const body =
-                    editor.getBody();
-
-                if (!doc || !body) {
-                    return;
-                }
-
-                /*
-                |--------------------------------------------------------------------------
-                | Hapus overlay lama
-                |--------------------------------------------------------------------------
-                */
-
-                doc
-                    .querySelectorAll(
-                        '.image-resize-overlay'
-                    )
-                    .forEach(el => el.remove());
-
-                /*
-                |--------------------------------------------------------------------------
-                | Pastikan body punya reference position
-                |--------------------------------------------------------------------------
-                */
-
-                body.style.position = 'relative';
-
-                /*
-                |--------------------------------------------------------------------------
-                | Buat overlay
-                |--------------------------------------------------------------------------
-                */
-
-                const overlay =
-                    doc.createElement('div');
-
-                overlay.className =
-                    'image-resize-overlay';
-
-                /*
-                |--------------------------------------------------------------------------
-                | STYLE OVERLAY
-                |--------------------------------------------------------------------------
-                */
-
-                Object.assign(
-                    overlay.style,
-                    {
-                        position: 'absolute',
-                        boxSizing: 'border-box',
-                        border: '1px solid #2563eb',
-                        pointerEvents: 'none',
-                        zIndex: '999999',
-                        margin: '0',
-                        padding: '0'
-                    }
-                );
-
-                /*
-                |--------------------------------------------------------------------------
-                | Tambahkan ke BODY TINYMCE
-                |--------------------------------------------------------------------------
-                */
-
-                body.appendChild(overlay);
-
-                /*
-                |--------------------------------------------------------------------------
-                | UPDATE POSISI KERANGKA
-                |--------------------------------------------------------------------------
-                */
-
-                const updatePosition = () => {
-
-                    if (
-                        !this.selectedImage ||
-                        this.selectedImage !== image ||
-                        !image.isConnected ||
-                        !overlay.isConnected
-                    ) {
-                        return;
-                    }
-
-                    const imageRect =
-                        image.getBoundingClientRect();
-
-                    const bodyRect =
-                        body.getBoundingClientRect();
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Posisi relatif terhadap body iframe
-                    |--------------------------------------------------------------------------
-                    */
-
-                    const left =
-                        imageRect.left -
-                        bodyRect.left;
-
-                    const top =
-                        imageRect.top -
-                        bodyRect.top;
+            // selectImage(image, editor) {
+
+            //     if (!image || !editor) {
+            //         return;
+            //     }
+
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Hapus selection sebelumnya
+            //     |--------------------------------------------------------------------------
+            //     */
+
+            //     this.removeImageResizeHandles();
+
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Simpan gambar & editor
+            //     |--------------------------------------------------------------------------
+            //     */
+
+            //     this.selectedImage = image;
+
+            //     this.selectedImageEditor = editor;
+
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Tandai gambar
+            //     |--------------------------------------------------------------------------
+            //     */
+
+            //     image.classList.add('image-selected');
+            //     image.setAttribute('draggable', 'false');
+            //     image.style.webkitUserDrag = 'none';
+
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Buat kerangka
+            //     |--------------------------------------------------------------------------
+            //     */
+
+            //     this.createImageResizeHandles(
+            //         image,
+            //         editor
+            //     );
+            // },
+
+
+            // createImageResizeHandles(image, editor) {
+
+            //     if (!image || !editor) {
+            //         return;
+            //     }
+
+            //     const doc =
+            //         editor.getDoc();
+
+            //     const body =
+            //         editor.getBody();
+
+            //     if (!doc || !body) {
+            //         return;
+            //     }
+
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Hapus overlay lama
+            //     |--------------------------------------------------------------------------
+            //     */
+
+            //     doc
+            //         .querySelectorAll(
+            //             '.image-resize-overlay'
+            //         )
+            //         .forEach(el => el.remove());
+
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Pastikan body punya reference position
+            //     |--------------------------------------------------------------------------
+            //     */
+
+            //     body.style.position = 'relative';
+
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Buat overlay
+            //     |--------------------------------------------------------------------------
+            //     */
+
+            //     const overlay =
+            //         doc.createElement('div');
+
+            //     overlay.className =
+            //         'image-resize-overlay';
+
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | STYLE OVERLAY
+            //     |--------------------------------------------------------------------------
+            //     */
+
+            //     Object.assign(
+            //         overlay.style,
+            //         {
+            //             position: 'absolute',
+            //             boxSizing: 'border-box',
+            //             border: '1px solid #2563eb',
+            //             pointerEvents: 'none',
+            //             zIndex: '999999',
+            //             margin: '0',
+            //             padding: '0'
+            //         }
+            //     );
+
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Tambahkan ke BODY TINYMCE
+            //     |--------------------------------------------------------------------------
+            //     */
+
+            //     body.appendChild(overlay);
+
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | UPDATE POSISI KERANGKA
+            //     |--------------------------------------------------------------------------
+            //     */
+
+            //     const updatePosition = () => {
+
+            //         if (
+            //             !this.selectedImage ||
+            //             this.selectedImage !== image ||
+            //             !image.isConnected ||
+            //             !overlay.isConnected
+            //         ) {
+            //             return;
+            //         }
+
+            //         const imageRect =
+            //             image.getBoundingClientRect();
+
+            //         const bodyRect =
+            //             body.getBoundingClientRect();
+
+            //         /*
+            //         |--------------------------------------------------------------------------
+            //         | Posisi relatif terhadap body iframe
+            //         |--------------------------------------------------------------------------
+            //         */
+
+            //         const left =
+            //             imageRect.left -
+            //             bodyRect.left;
+
+            //         const top =
+            //             imageRect.top -
+            //             bodyRect.top;
 
-                    overlay.style.left =
-                        `${left}px`;
+            //         overlay.style.left =
+            //             `${left}px`;
 
-                    overlay.style.top =
-                        `${top}px`;
+            //         overlay.style.top =
+            //             `${top}px`;
 
-                    overlay.style.width =
-                        `${imageRect.width}px`;
+            //         overlay.style.width =
+            //             `${imageRect.width}px`;
 
-                    overlay.style.height =
-                        `${imageRect.height}px`;
-                };
+            //         overlay.style.height =
+            //             `${imageRect.height}px`;
+            //     };
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | 8 HANDLE
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | 8 HANDLE
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                const directions = [
-                    'nw',
-                    'n',
-                    'ne',
-                    'e',
-                    'se',
-                    's',
-                    'sw',
-                    'w'
-                ];
+            //     const directions = [
+            //         'nw',
+            //         'n',
+            //         'ne',
+            //         'e',
+            //         'se',
+            //         's',
+            //         'sw',
+            //         'w'
+            //     ];
 
 
-                directions.forEach(direction => {
+            //     directions.forEach(direction => {
 
-                    const handle =
-                        doc.createElement('div');
+            //         const handle =
+            //             doc.createElement('div');
 
-                    handle.className =
-                        `image-resize-handle handle-${direction}`;
+            //         handle.className =
+            //             `image-resize-handle handle-${direction}`;
 
-                    handle.dataset.direction =
-                        direction;
+            //         handle.dataset.direction =
+            //             direction;
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | STYLE HANDLE
-                    |--------------------------------------------------------------------------
-                    */
+            //         /*
+            //         |--------------------------------------------------------------------------
+            //         | STYLE HANDLE
+            //         |--------------------------------------------------------------------------
+            //         */
 
-                    Object.assign(
-                        handle.style,
-                        {
-                            position: 'absolute',
-                            width: '10px',
-                            height: '10px',
-                            background: '#ffffff',
-                            border: '2px solid #2563eb',
-                            borderRadius: '2px',
-                            boxSizing: 'border-box',
-                            pointerEvents: 'auto',
-                            zIndex: '1000000'
-                        }
-                    );
+            //         Object.assign(
+            //             handle.style,
+            //             {
+            //                 position: 'absolute',
+            //                 width: '10px',
+            //                 height: '10px',
+            //                 background: '#ffffff',
+            //                 border: '2px solid #2563eb',
+            //                 borderRadius: '2px',
+            //                 boxSizing: 'border-box',
+            //                 pointerEvents: 'auto',
+            //                 zIndex: '1000000'
+            //             }
+            //         );
 
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | POSISI HANDLE
-                    |--------------------------------------------------------------------------
-                    */
+            //         /*
+            //         |--------------------------------------------------------------------------
+            //         | POSISI HANDLE
+            //         |--------------------------------------------------------------------------
+            //         */
 
-                    switch (direction) {
+            //         switch (direction) {
 
-                        case 'nw':
+            //             case 'nw':
 
-                            handle.style.left = '-6px';
-                            handle.style.top = '-6px';
+            //                 handle.style.left = '-6px';
+            //                 handle.style.top = '-6px';
 
-                            handle.style.cursor =
-                                'nwse-resize';
+            //                 handle.style.cursor =
+            //                     'nwse-resize';
 
-                            break;
+            //                 break;
 
 
-                        case 'n':
+            //             case 'n':
 
-                            handle.style.left = '50%';
-                            handle.style.top = '-6px';
+            //                 handle.style.left = '50%';
+            //                 handle.style.top = '-6px';
 
-                            handle.style.transform =
-                                'translateX(-50%)';
+            //                 handle.style.transform =
+            //                     'translateX(-50%)';
 
-                            handle.style.cursor =
-                                'ns-resize';
+            //                 handle.style.cursor =
+            //                     'ns-resize';
 
-                            break;
+            //                 break;
 
 
-                        case 'ne':
+            //             case 'ne':
 
-                            handle.style.right = '-6px';
-                            handle.style.top = '-6px';
+            //                 handle.style.right = '-6px';
+            //                 handle.style.top = '-6px';
 
-                            handle.style.cursor =
-                                'nesw-resize';
+            //                 handle.style.cursor =
+            //                     'nesw-resize';
 
-                            break;
+            //                 break;
 
 
-                        case 'e':
+            //             case 'e':
 
-                            handle.style.right = '-6px';
-                            handle.style.top = '50%';
+            //                 handle.style.right = '-6px';
+            //                 handle.style.top = '50%';
 
-                            handle.style.transform =
-                                'translateY(-50%)';
+            //                 handle.style.transform =
+            //                     'translateY(-50%)';
 
-                            handle.style.cursor =
-                                'ew-resize';
+            //                 handle.style.cursor =
+            //                     'ew-resize';
 
-                            break;
+            //                 break;
 
 
-                        case 'se':
+            //             case 'se':
 
-                            handle.style.right = '-6px';
-                            handle.style.bottom = '-6px';
+            //                 handle.style.right = '-6px';
+            //                 handle.style.bottom = '-6px';
 
-                            handle.style.cursor =
-                                'nwse-resize';
+            //                 handle.style.cursor =
+            //                     'nwse-resize';
 
-                            break;
+            //                 break;
 
 
-                        case 's':
+            //             case 's':
 
-                            handle.style.left = '50%';
-                            handle.style.bottom = '-6px';
+            //                 handle.style.left = '50%';
+            //                 handle.style.bottom = '-6px';
 
-                            handle.style.transform =
-                                'translateX(-50%)';
+            //                 handle.style.transform =
+            //                     'translateX(-50%)';
 
-                            handle.style.cursor =
-                                'ns-resize';
+            //                 handle.style.cursor =
+            //                     'ns-resize';
 
-                            break;
+            //                 break;
 
 
-                        case 'sw':
+            //             case 'sw':
 
-                            handle.style.left = '-6px';
-                            handle.style.bottom = '-6px';
+            //                 handle.style.left = '-6px';
+            //                 handle.style.bottom = '-6px';
 
-                            handle.style.cursor =
-                                'nesw-resize';
+            //                 handle.style.cursor =
+            //                     'nesw-resize';
 
-                            break;
+            //                 break;
 
 
-                        case 'w':
+            //             case 'w':
 
-                            handle.style.left = '-6px';
-                            handle.style.top = '50%';
+            //                 handle.style.left = '-6px';
+            //                 handle.style.top = '50%';
 
-                            handle.style.transform =
-                                'translateY(-50%)';
+            //                 handle.style.transform =
+            //                     'translateY(-50%)';
 
-                            handle.style.cursor =
-                                'ew-resize';
+            //                 handle.style.cursor =
+            //                     'ew-resize';
 
-                            break;
-                    }
+            //                 break;
+            //         }
 
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | MOUSE DOWN HANDLE
-                    |--------------------------------------------------------------------------
-                    */
+            //         /*
+            //         |--------------------------------------------------------------------------
+            //         | MOUSE DOWN HANDLE
+            //         |--------------------------------------------------------------------------
+            //         */
 
-                    handle.addEventListener(
-                        'mousedown',
-                        (event) => {
+            //         handle.addEventListener(
+            //             'mousedown',
+            //             (event) => {
 
-                            event.preventDefault();
+            //                 event.preventDefault();
 
-                            event.stopPropagation();
+            //                 event.stopPropagation();
 
-                            /*
-                            |--------------------------------------------------------------------------
-                            | Jangan sampai TinyMCE menghapus overlay
-                            |--------------------------------------------------------------------------
-                            */
+            //                 /*
+            //                 |--------------------------------------------------------------------------
+            //                 | Jangan sampai TinyMCE menghapus overlay
+            //                 |--------------------------------------------------------------------------
+            //                 */
 
-                            this.startImageResize(
-                                event,
-                                image,
-                                direction,
-                                editor
-                            );
-                        }
-                    );
+            //                 this.startImageResize(
+            //                     event,
+            //                     image,
+            //                     direction,
+            //                     editor
+            //                 );
+            //             }
+            //         );
 
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Tambahkan handle
-                    |--------------------------------------------------------------------------
-                    */
+            //         /*
+            //         |--------------------------------------------------------------------------
+            //         | Tambahkan handle
+            //         |--------------------------------------------------------------------------
+            //         */
 
-                    overlay.appendChild(handle);
-                });
+            //         overlay.appendChild(handle);
+            //     });
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | SIMPAN REFERENCE
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | SIMPAN REFERENCE
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                overlay._updatePosition =
-                    updatePosition;
+            //     overlay._updatePosition =
+            //         updatePosition;
 
-                overlay._editor =
-                    editor;
+            //     overlay._editor =
+            //         editor;
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | UPDATE AWAL
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | UPDATE AWAL
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                updatePosition();
+            //     updatePosition();
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | UPDATE SAAT WINDOW RESIZE
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | UPDATE SAAT WINDOW RESIZE
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                const resizeListener =
-                    () => updatePosition();
+            //     const resizeListener =
+            //         () => updatePosition();
 
-                window.addEventListener(
-                    'resize',
-                    resizeListener
-                );
+            //     window.addEventListener(
+            //         'resize',
+            //         resizeListener
+            //     );
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | UPDATE SAAT EDITOR SCROLL
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | UPDATE SAAT EDITOR SCROLL
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                const scrollListener =
-                    () => updatePosition();
+            //     const scrollListener =
+            //         () => updatePosition();
 
-                doc.addEventListener(
-                    'scroll',
-                    scrollListener
-                );
+            //     doc.addEventListener(
+            //         'scroll',
+            //         scrollListener
+            //     );
 
 
-                overlay._resizeListener =
-                    resizeListener;
+            //     overlay._resizeListener =
+            //         resizeListener;
 
-                overlay._scrollListener =
-                    scrollListener;
-            },
+            //     overlay._scrollListener =
+            //         scrollListener;
+            // },
 
 
-            removeImageResizeHandles() {
+            // removeImageResizeHandles() {
 
-                /*
-                |--------------------------------------------------------------------------
-                | Semua TinyMCE editor (dilacak lewat this.pages, bukan window.tinymce.editors
-                | yang bisa undefined tergantung build/bundling)
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Semua TinyMCE editor (dilacak lewat this.pages, bukan window.tinymce.editors
+            //     | yang bisa undefined tergantung build/bundling)
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                if (window.tinymce) {
+            //     if (window.tinymce) {
 
-                    this.pages.forEach((page) => {
+            //         this.pages.forEach((page) => {
 
-                        const editor = window.tinymce.get(
-                            'document-editor-' + page.uid
-                        );
+            //             const editor = window.tinymce.get(
+            //                 'document-editor-' + page.uid
+            //             );
 
-                        if (!editor) {
-                            return;
-                        }
+            //             if (!editor) {
+            //                 return;
+            //             }
 
-                        try {
+            //             try {
 
-                            const doc = editor.getDoc();
+            //                 const doc = editor.getDoc();
 
-                            if (!doc) {
-                                return;
-                            }
+            //                 if (!doc) {
+            //                     return;
+            //                 }
 
-                            doc
-                                .querySelectorAll(
-                                    '.image-resize-overlay'
-                                )
-                                .forEach((overlay) => {
+            //                 doc
+            //                     .querySelectorAll(
+            //                         '.image-resize-overlay'
+            //                     )
+            //                     .forEach((overlay) => {
 
-                                    /*
-                                    | Remove resize listener
-                                    */
+            //                         /*
+            //                         | Remove resize listener
+            //                         */
 
-                                    if (
-                                        overlay._resizeListener
-                                    ) {
+            //                         if (
+            //                             overlay._resizeListener
+            //                         ) {
 
-                                        window.removeEventListener(
-                                            'resize',
-                                            overlay._resizeListener
-                                        );
-                                    }
+            //                             window.removeEventListener(
+            //                                 'resize',
+            //                                 overlay._resizeListener
+            //                             );
+            //                         }
 
 
-                                    /*
-                                    | Remove scroll listener
-                                    */
+            //                         /*
+            //                         | Remove scroll listener
+            //                         */
 
-                                    if (
-                                        overlay._scrollListener
-                                    ) {
+            //                         if (
+            //                             overlay._scrollListener
+            //                         ) {
 
-                                        doc.removeEventListener(
-                                            'scroll',
-                                            overlay._scrollListener
-                                        );
-                                    }
+            //                             doc.removeEventListener(
+            //                                 'scroll',
+            //                                 overlay._scrollListener
+            //                             );
+            //                         }
 
 
-                                    overlay.remove();
-                                });
+            //                         overlay.remove();
+            //                     });
 
 
-                            /*
-                            |--------------------------------------------------------------------------
-                            | Remove selected class
-                            |--------------------------------------------------------------------------
-                            */
+            //                 /*
+            //                 |--------------------------------------------------------------------------
+            //                 | Remove selected class
+            //                 |--------------------------------------------------------------------------
+            //                 */
 
-                            doc
-                                .querySelectorAll(
-                                    '.image-selected'
-                                )
-                                .forEach((image) => {
+            //                 doc
+            //                     .querySelectorAll(
+            //                         '.image-selected'
+            //                     )
+            //                     .forEach((image) => {
 
-                                    image.classList.remove(
-                                        'image-selected'
-                                    );
-                                });
+            //                         image.classList.remove(
+            //                             'image-selected'
+            //                         );
+            //                     });
 
-                        } catch (error) {
+            //             } catch (error) {
 
-                            console.warn(
-                                'Gagal membersihkan TinyMCE:',
-                                error
-                            );
-                        }
-                    });
-                }
+            //                 console.warn(
+            //                     'Gagal membersihkan TinyMCE:',
+            //                     error
+            //                 );
+            //             }
+            //         });
+            //     }
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Reset state
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Reset state
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                this.selectedImage = null;
+            //     this.selectedImage = null;
 
-                this.selectedImageEditor = null;
-            },
+            //     this.selectedImageEditor = null;
+            // },
 
 
-            startImageResize(
-                event,
-                image,
-                direction,
-                editor
-            ) {
+            // startImageResize(
+            //     event,
+            //     image,
+            //     direction,
+            //     editor
+            // ) {
 
-                if (!image || !editor) {
-                    return;
-                }
+            //     if (!image || !editor) {
+            //         return;
+            //     }
 
-                /*
-                |--------------------------------------------------------------------------
-                | Jangan biarkan browser melakukan drag image
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Jangan biarkan browser melakukan drag image
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                event.preventDefault();
+            //     event.preventDefault();
 
-                event.stopPropagation();
+            //     event.stopPropagation();
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Pastikan image tetap selected
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Pastikan image tetap selected
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                this.selectedImage =
-                    image;
+            //     this.selectedImage =
+            //         image;
 
-                this.selectedImageEditor =
-                    editor;
+            //     this.selectedImageEditor =
+            //         editor;
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Ambil ukuran awal
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Ambil ukuran awal
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                const rect =
-                    image.getBoundingClientRect();
+            //     const rect =
+            //         image.getBoundingClientRect();
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Simpan data resize
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Simpan data resize
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                this.imageResizeData = {
+            //     this.imageResizeData = {
 
-                    startX:
-                        event.clientX,
+            //         startX:
+            //             event.clientX,
 
-                    startY:
-                        event.clientY,
+            //         startY:
+            //             event.clientY,
 
-                    startWidth:
-                        rect.width,
+            //         startWidth:
+            //             rect.width,
 
-                    startHeight:
-                        rect.height,
+            //         startHeight:
+            //             rect.height,
 
-                    direction
-                };
+            //         direction
+            //     };
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Lock selection browser
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Lock selection browser
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                document.body.style.userSelect =
-                    'none';
+            //     document.body.style.userSelect =
+            //         'none';
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Mouse move
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Mouse move
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                this._boundImageResize =
-                    (moveEvent) => {
+            //     this._boundImageResize =
+            //         (moveEvent) => {
 
-                        this.handleImageResize(
-                            moveEvent
-                        );
-                    };
+            //             this.handleImageResize(
+            //                 moveEvent
+            //             );
+            //         };
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Mouse up
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Mouse up
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                this._boundStopImageResize =
-                    () => {
+            //     this._boundStopImageResize =
+            //         () => {
 
-                        this.stopImageResize();
-                    };
+            //             this.stopImageResize();
+            //         };
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Listener GLOBAL
-                |--------------------------------------------------------------------------
-                |
-                | Editor body TinyMCE berjalan dalam mode inline (bukan iframe),
-                | jadi document editor sama dengan document utama halaman.
-                | Cukup listen di document utama saja.
-                |
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Listener GLOBAL
+            //     |--------------------------------------------------------------------------
+            //     |
+            //     | Editor body TinyMCE berjalan dalam mode inline (bukan iframe),
+            //     | jadi document editor sama dengan document utama halaman.
+            //     | Cukup listen di document utama saja.
+            //     |
+            //     */
 
-                document.addEventListener(
-                    'mousemove',
-                    this._boundImageResize
-                );
+            //     document.addEventListener(
+            //         'mousemove',
+            //         this._boundImageResize
+            //     );
 
-                document.addEventListener(
-                    'mouseup',
-                    this._boundStopImageResize
-                );
-            },
+            //     document.addEventListener(
+            //         'mouseup',
+            //         this._boundStopImageResize
+            //     );
+            // },
 
 
-            handleImageResize(event) {
+            // handleImageResize(event) {
 
-                if (!this.selectedImage) {
-                    return;
-                }
+            //     if (!this.selectedImage) {
+            //         return;
+            //     }
 
-                const image =
-                    this.selectedImage;
+            //     const image =
+            //         this.selectedImage;
 
-                const resize =
-                    this.imageResizeData;
+            //     const resize =
+            //         this.imageResizeData;
 
-                if (!resize) {
-                    return;
-                }
+            //     if (!resize) {
+            //         return;
+            //     }
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Delta mouse
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Delta mouse
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                const dx =
-                    event.clientX -
-                    resize.startX;
+            //     const dx =
+            //         event.clientX -
+            //         resize.startX;
 
-                const dy =
-                    event.clientY -
-                    resize.startY;
+            //     const dy =
+            //         event.clientY -
+            //         resize.startY;
 
 
-                let width =
-                    resize.startWidth;
+            //     let width =
+            //         resize.startWidth;
 
-                let height =
-                    resize.startHeight;
+            //     let height =
+            //         resize.startHeight;
 
 
-                const direction =
-                    resize.direction;
+            //     const direction =
+            //         resize.direction;
 
 
-                const MIN_SIZE = 30;
+            //     const MIN_SIZE = 30;
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | RESIZE BEBAS (TANPA KUNCI ASPECT RATIO)
-                |--------------------------------------------------------------------------
-                |
-                | Setiap sumbu dihitung independen dari komponen arah handle-nya.
-                | Handle sudut (nw/ne/sw/se) mengandung 2 huruf arah sekaligus,
-                | jadi lebar & tinggi berubah bersamaan mengikuti kursor secara bebas
-                | (bisa membuat gambar gepeng/distorsi, persis mode "free resize" Word).
-                | Handle tepi (n/s/e/w) hanya mengandung 1 huruf arah,
-                | jadi cuma satu sisi yang berubah.
-                |
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | RESIZE BEBAS (TANPA KUNCI ASPECT RATIO)
+            //     |--------------------------------------------------------------------------
+            //     |
+            //     | Setiap sumbu dihitung independen dari komponen arah handle-nya.
+            //     | Handle sudut (nw/ne/sw/se) mengandung 2 huruf arah sekaligus,
+            //     | jadi lebar & tinggi berubah bersamaan mengikuti kursor secara bebas
+            //     | (bisa membuat gambar gepeng/distorsi, persis mode "free resize" Word).
+            //     | Handle tepi (n/s/e/w) hanya mengandung 1 huruf arah,
+            //     | jadi cuma satu sisi yang berubah.
+            //     |
+            //     */
 
-                // Komponen horizontal
-                if (direction.includes('e')) {
+            //     // Komponen horizontal
+            //     if (direction.includes('e')) {
 
-                    width =
-                        Math.max(
-                            MIN_SIZE,
-                            resize.startWidth + dx
-                        );
+            //         width =
+            //             Math.max(
+            //                 MIN_SIZE,
+            //                 resize.startWidth + dx
+            //             );
 
-                } else if (direction.includes('w')) {
+            //     } else if (direction.includes('w')) {
 
-                    width =
-                        Math.max(
-                            MIN_SIZE,
-                            resize.startWidth - dx
-                        );
-                }
+            //         width =
+            //             Math.max(
+            //                 MIN_SIZE,
+            //                 resize.startWidth - dx
+            //             );
+            //     }
 
-                // Komponen vertikal
-                if (direction.includes('s')) {
+            //     // Komponen vertikal
+            //     if (direction.includes('s')) {
 
-                    height =
-                        Math.max(
-                            MIN_SIZE,
-                            resize.startHeight + dy
-                        );
+            //         height =
+            //             Math.max(
+            //                 MIN_SIZE,
+            //                 resize.startHeight + dy
+            //             );
 
-                } else if (direction.includes('n')) {
+            //     } else if (direction.includes('n')) {
 
-                    height =
-                        Math.max(
-                            MIN_SIZE,
-                            resize.startHeight - dy
-                        );
-                }
+            //         height =
+            //             Math.max(
+            //                 MIN_SIZE,
+            //                 resize.startHeight - dy
+            //             );
+            //     }
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | APPLY WIDTH
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | APPLY WIDTH
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                image.style.width =
-                    `${Math.round(width)}px`;
+            //     image.style.width =
+            //         `${Math.round(width)}px`;
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | APPLY HEIGHT
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | APPLY HEIGHT
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                image.style.height =
-                    `${Math.round(height)}px`;
+            //     image.style.height =
+            //         `${Math.round(height)}px`;
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | HILANGKAN LIMIT TINYMCE
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | HILANGKAN LIMIT TINYMCE
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                image.style.maxWidth =
-                    'none';
+            //     image.style.maxWidth =
+            //         'none';
 
-                image.style.maxHeight =
-                    'none';
+            //     image.style.maxHeight =
+            //         'none';
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | OBJECT FIT
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | OBJECT FIT
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                image.style.objectFit =
-                    'contain';
+            //     image.style.objectFit =
+            //         'contain';
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | SIMPAN ATTRIBUTE HTML
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | SIMPAN ATTRIBUTE HTML
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                image.setAttribute(
-                    'width',
-                    Math.round(width)
-                );
+            //     image.setAttribute(
+            //         'width',
+            //         Math.round(width)
+            //     );
 
-                image.setAttribute(
-                    'height',
-                    Math.round(height)
-                );
+            //     image.setAttribute(
+            //         'height',
+            //         Math.round(height)
+            //     );
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | UPDATE KERANGKA
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | UPDATE KERANGKA
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                const editor =
-                    this.selectedImageEditor;
+            //     const editor =
+            //         this.selectedImageEditor;
 
-                const overlay =
-                    editor
-                        ?.getDoc()
-                        ?.querySelector(
-                            '.image-resize-overlay'
-                        );
+            //     const overlay =
+            //         editor
+            //             ?.getDoc()
+            //             ?.querySelector(
+            //                 '.image-resize-overlay'
+            //             );
 
 
-                if (
-                    overlay &&
-                    overlay._updatePosition
-                ) {
+            //     if (
+            //         overlay &&
+            //         overlay._updatePosition
+            //     ) {
 
-                    overlay._updatePosition();
-                }
+            //         overlay._updatePosition();
+            //     }
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Tandai dokumen berubah
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Tandai dokumen berubah
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                this.markAsChanged();
-            },
+            //     this.markAsChanged();
+            // },
 
 
-            stopImageResize() {
+            // stopImageResize() {
 
-                /*
-                |--------------------------------------------------------------------------
-                | Unlock selection
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Unlock selection
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                document.body.style.userSelect =
-                    '';
+            //     document.body.style.userSelect =
+            //         '';
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Remove global listener
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Remove global listener
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                if (
-                    this._boundImageResize
-                ) {
+            //     if (
+            //         this._boundImageResize
+            //     ) {
 
-                    document.removeEventListener(
-                        'mousemove',
-                        this._boundImageResize
-                    );
-                }
+            //         document.removeEventListener(
+            //             'mousemove',
+            //             this._boundImageResize
+            //         );
+            //     }
 
 
-                if (
-                    this._boundStopImageResize
-                ) {
+            //     if (
+            //         this._boundStopImageResize
+            //     ) {
 
-                    document.removeEventListener(
-                        'mouseup',
-                        this._boundStopImageResize
-                    );
-                }
+            //         document.removeEventListener(
+            //             'mouseup',
+            //             this._boundStopImageResize
+            //         );
+            //     }
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Bersihkan reference
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Bersihkan reference
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                this._boundImageResize =
-                    null;
+            //     this._boundImageResize =
+            //         null;
 
-                this._boundStopImageResize =
-                    null;
+            //     this._boundStopImageResize =
+            //         null;
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Simpan perubahan
-                |--------------------------------------------------------------------------
-                */
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Simpan perubahan
+            //     |--------------------------------------------------------------------------
+            //     */
 
-                this.markAsChanged();
-            },
+            //     this.markAsChanged();
+            // },
 
             // =========================================
             // SAVE DOCUMENT
@@ -2128,15 +2184,12 @@
                 const pagesHtml =
                     this.pages.map((page) => {
 
-                        const editor =
-                            window.tinymce?.get(
-                                'document-editor-' +
-                                page.uid
+                        const html =
+                            window.getTiptapHTML?.(
+                                'document-editor-' + page.uid
                             );
 
-                        return editor
-                            ? editor.getContent()
-                            : (page.html || '');
+                        return html ?? page.html ?? '';
                     });
 
                 const payload = {
@@ -2209,15 +2262,12 @@
                 const pagesHtml =
                     this.pages.map((page) => {
 
-                        const editor =
-                            window.tinymce?.get(
-                                'document-editor-' +
-                                page.uid
+                        const html =
+                            window.getTiptapHTML?.(
+                                'document-editor-' + page.uid
                             );
 
-                        return editor
-                            ? editor.getContent()
-                            : (page.html || '');
+                        return html ?? page.html ?? '';
                     });
 
                 const payload = {

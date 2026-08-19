@@ -4,32 +4,69 @@
 <div x-data="{
     loadingTemplate: null,
     isUploadingLogo: false,
-    headerHtml: '',
-    footerHtml: '',
-    bodyHtml: '',
+    headerHtml: null,
+    footerHtml: null,
+    bodyHtml: null,
 
     init() {
-        this.$nextTick(() => this.initEditors());
+
+        this.$nextTick(() => {
+
+            window.createTiptapEditor(
+                'header',
+                this.$refs.headerEditor,
+                '<p></p>',
+                html => {
+                    this.headerHtml = html;
+                }
+            );
+
+
+            window.createTiptapEditor(
+                'footer',
+                this.$refs.footerEditor,
+                '<p></p>',
+                html => {
+                    this.footerHtml = html;
+                }
+            );
+
+        });
+
     },
 
     initEditors() {
-        if (typeof window.initDocumentEditor === 'function') {
-            window.initDocumentEditor('#header-editor');
-            window.initDocumentEditor('#footer-editor', '', false);
-        }
+        this.headerEditor = window.createTiptapEditor(
+            this.$refs.headerEditor,
+            '',
+            (html) => {
+                this.headerHtml = html;
+            }
+        );
+
+        this.footerEditor = window.createTiptapEditor(
+            this.$refs.footerEditor,
+            '',
+            (html) => {
+                this.footerHtml = html;
+            }
+        );
     },
 
     setHeaderContent(content) {
         this.headerHtml = content;
 
-        if (editor) editor.setContent(content);
+        if (this.headerEditor) {
+            this.headerEditor.commands.setContent(content || '');
+        }
     },
 
     setFooterContent(content) {
         this.footerHtml = content;
-        const editor = window.tinymce?.get('footer-editor');
 
-        if (editor) editor.setContent(content);
+        if (this.footerEditor) {
+            this.footerEditor.commands.setContent(content || '');
+        }
     },
 
     async loadTemplate(key) {
@@ -59,13 +96,6 @@
         } finally {
             this.loadingTemplate = null;
         }
-    },
-
-    formatArea(targetId, command, value = null) {
-        const el = document.getElementById(targetId);
-        if (!el) return;
-        el.focus();
-        document.execCommand(command, false, value);
     },
 
     uploadLogo(event) {
@@ -150,14 +180,20 @@
     },
 
     syncBeforeSubmit() {
-        const headerEditor = window.tinymce?.get('header-editor');
-        const footerEditor = window.tinymce?.get('footer-editor');
-        document.getElementById('header-content-input').value = headerEditor
-            ? headerEditor.getContent()
-            : document.getElementById('header-editor').value;
-        document.getElementById('footer-content-input').value = footerEditor
-            ? footerEditor.getContent()
-            : document.getElementById('footer-editor').value;
+
+        if (this.headerEditor) {
+            this.headerHtml = this.headerEditor.getHTML();
+        }
+
+        if (this.footerEditor) {
+            this.footerHtml = this.footerEditor.getHTML();
+        }
+
+        document.getElementById('header-content-input').value =
+            this.headerHtml;
+
+        document.getElementById('footer-content-input').value =
+            this.footerHtml;
     }
 }" class="max-w-4xl mx-auto py-8">
 
@@ -213,18 +249,370 @@
             </div>
         </div>
 
-        {{-- HEADER: TinyMCE --}}
+        {{-- HEADER: TIPTAP --}}
         <div class="mb-5">
-            <label class="block text-xs font-medium mb-1.5">Header / Kop Surat</label>
-            <textarea id="header-editor" spellcheck="true"
-                class="w-full min-h-[140px] rounded-b-xl border border-parchment-300 bg-white p-5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800"></textarea>
+
+            <label class="block text-xs font-medium mb-1.5">
+                Header / Kop Surat
+            </label>
+
+            <div
+                class="overflow-hidden rounded-xl border
+                    border-parchment-300
+                    bg-white
+                    dark:border-slate-warm-700
+                    dark:bg-slate-warm-900"
+            >
+
+                {{-- TOOLBAR --}}
+                <div
+                    class="flex flex-wrap items-center gap-1
+                        border-b border-parchment-300
+                        bg-parchment-50
+                        p-2
+                        dark:border-slate-warm-700
+                        dark:bg-slate-warm-800"
+                >
+
+                    {{-- UNDO --}}
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'undo')"
+                        class="toolbar-btn"
+                        title="Undo"
+                    >
+                        ↶
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'redo')"
+                        class="toolbar-btn"
+                        title="Redo"
+                    >
+                        ↷
+                    </button>
+
+                    <span class="toolbar-divider"></span>
+
+
+                    {{-- HEADING --}}
+                    <select
+                        @change="
+                            $event.target.value === 'paragraph'
+                                ? tiptapCommand(headerEditor, 'paragraph')
+                                : tiptapCommand(headerEditor, 'heading', $event.target.value)
+                        "
+                        class="toolbar-select"
+                    >
+                        <option value="paragraph">Normal</option>
+                        <option value="1">Heading 1</option>
+                        <option value="2">Heading 2</option>
+                        <option value="3">Heading 3</option>
+                    </select>
+
+
+                    {{-- TEXT --}}
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'bold')"
+                        class="toolbar-btn font-bold"
+                        title="Bold"
+                    >
+                        B
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'italic')"
+                        class="toolbar-btn italic"
+                        title="Italic"
+                    >
+                        I
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'underline')"
+                        class="toolbar-btn underline"
+                        title="Underline"
+                    >
+                        U
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'strike')"
+                        class="toolbar-btn line-through"
+                        title="Strike"
+                    >
+                        S
+                    </button>
+
+
+                    <span class="toolbar-divider"></span>
+
+
+                    {{-- ALIGN --}}
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'alignLeft')"
+                        class="toolbar-btn"
+                        title="Rata kiri"
+                    >
+                        ≡
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'alignCenter')"
+                        class="toolbar-btn"
+                        title="Rata tengah"
+                    >
+                        ≡
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'alignRight')"
+                        class="toolbar-btn"
+                        title="Rata kanan"
+                    >
+                        ≡
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'alignJustify')"
+                        class="toolbar-btn"
+                        title="Justify"
+                    >
+                        ≡
+                    </button>
+
+
+                    <span class="toolbar-divider"></span>
+
+
+                    {{-- LIST --}}
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'bulletList')"
+                        class="toolbar-btn"
+                        title="Bullet List"
+                    >
+                        •
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'orderedList')"
+                        class="toolbar-btn"
+                        title="Numbered List"
+                    >
+                        1.
+                    </button>
+
+
+                    {{-- BLOCK --}}
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'blockquote')"
+                        class="toolbar-btn"
+                        title="Quote"
+                    >
+                        ❝
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'horizontalRule')"
+                        class="toolbar-btn"
+                        title="Horizontal line"
+                    >
+                        ―
+                    </button>
+
+
+                    {{-- SCRIPT --}}
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'superscript')"
+                        class="toolbar-btn"
+                        title="Superscript"
+                    >
+                        X²
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'subscript')"
+                        class="toolbar-btn"
+                        title="Subscript"
+                    >
+                        X₂
+                    </button>
+
+
+                    {{-- CLEAR --}}
+                    <button
+                        type="button"
+                        @click="tiptapCommand('header', 'clear')"
+                        class="toolbar-btn"
+                        title="Clear formatting"
+                    >
+                        Tx
+                    </button>
+
+                </div>
+
+
+                {{-- EDITOR --}}
+                <div
+                    x-ref="headerEditor"
+                    class="tiptap-editor min-h-[160px] p-5"
+                ></div>
+
             </div>
 
-        {{-- FOOTER: contenteditable + toolbar --}}
+        </div>
+
+        {{-- FOOTER: TIPTAP --}}
         <div class="mb-5">
-            <label class="block text-xs font-medium mb-1.5">Footer Dokumen</label>
-            <textarea id="footer-editor" spellcheck="true"
-                class="w-full min-h-[140px] rounded-b-xl border border-parchment-300 bg-white p-5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800"></textarea>
+
+            <label class="block text-xs font-medium mb-1.5">
+                Footer Dokumen
+            </label>
+
+            <div
+                class="overflow-hidden rounded-xl border
+                    border-parchment-300
+                    bg-white
+                    dark:border-slate-warm-700
+                    dark:bg-slate-warm-900"
+            >
+
+                <div
+                    class="flex flex-wrap items-center gap-1
+                        border-b border-parchment-300
+                        bg-parchment-50
+                        p-2
+                        dark:border-slate-warm-700
+                        dark:bg-slate-warm-800"
+                >
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('footer', 'undo')"
+                        class="toolbar-btn"
+                    >
+                        ↶
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('footer', 'redo')"
+                        class="toolbar-btn"
+                    >
+                        ↷
+                    </button>
+
+                    <span class="toolbar-divider"></span>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('footer', 'bold')"
+                        class="toolbar-btn font-bold"
+                    >
+                        B
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('footer', 'italic')"
+                        class="toolbar-btn italic"
+                    >
+                        I
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('footer', 'underline')"
+                        class="toolbar-btn underline"
+                    >
+                        U
+                    </button>
+
+                    <span class="toolbar-divider"></span>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('footer', 'alignLeft')"
+                        class="toolbar-btn"
+                    >
+                        ≡
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('footer', 'alignCenter')"
+                        class="toolbar-btn"
+                    >
+                        ≡
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('footer', 'alignRight')"
+                        class="toolbar-btn"
+                    >
+                        ≡
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('footer', 'alignJustify')"
+                        class="toolbar-btn"
+                    >
+                        ≡
+                    </button>
+
+                    <span class="toolbar-divider"></span>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('footer', 'bulletList')"
+                        class="toolbar-btn"
+                    >
+                        •
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('footer', 'orderedList')"
+                        class="toolbar-btn"
+                    >
+                        1.
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="tiptapCommand('footer', 'clear')"
+                        class="toolbar-btn"
+                    >
+                        Tx
+                    </button>
+
+                </div>
+
+
+                <div
+                    x-ref="footerEditor"
+                    class="tiptap-editor min-h-[160px] p-5"
+                ></div>
+
+            </div>
+
         </div>
 
         <div class="flex justify-end">
@@ -236,4 +624,174 @@
     </form>
 
 </div>
+<style>
+    .tiptap-editor {
+        outline: none;
+        min-height: 140px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    .tiptap-editor:focus {
+        outline: none;
+    }
+
+    .tiptap-editor p {
+        margin: 0 0 8px;
+    }
+
+    .tiptap-editor h1 {
+        font-size: 2em;
+        font-weight: 700;
+        margin: 16px 0 10px;
+    }
+
+    .tiptap-editor h2 {
+        font-size: 1.5em;
+        font-weight: 700;
+        margin: 14px 0 8px;
+    }
+
+    .tiptap-editor h3 {
+        font-size: 1.25em;
+        font-weight: 700;
+        margin: 12px 0 8px;
+    }
+
+    .tiptap-editor ul {
+        list-style: disc;
+        padding-left: 24px;
+    }
+
+    .tiptap-editor ol {
+        list-style: decimal;
+        padding-left: 24px;
+    }
+
+    .tiptap-editor blockquote {
+        border-left: 3px solid #94a3b8;
+        padding-left: 14px;
+        margin: 12px 0;
+    }
+
+    .tiptap-editor hr {
+        border: 0;
+        border-top: 1px solid #94a3b8;
+        margin: 16px 0;
+    }
+
+    .tiptap-editor img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .toolbar-btn {
+        min-width: 34px;
+        height: 34px;
+        padding: 0 8px;
+        border-radius: 7px;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 13px;
+
+        transition: background-color 0.15s ease;
+    }
+
+    .toolbar-btn:hover {
+        background: #e7e5e4;
+    }
+
+    .dark .toolbar-btn:hover {
+        background: #334155;
+    }
+
+    .toolbar-select {
+        height: 34px;
+        border-radius: 7px;
+        border: 1px solid #d6d3d1;
+
+        background: white;
+
+        padding: 0 8px;
+
+        font-size: 12px;
+        outline: none;
+    }
+
+    .toolbar-divider {
+        width: 1px;
+        height: 24px;
+
+        background: #d6d3d1;
+
+        margin: 0 3px;
+    }
+
+    .tiptap-editor {
+        outline: none;
+
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    .tiptap-editor p {
+        margin: 0 0 8px;
+    }
+
+    .tiptap-editor h1 {
+        font-size: 2em;
+        font-weight: 700;
+    }
+
+    .tiptap-editor h2 {
+        font-size: 1.5em;
+        font-weight: 700;
+    }
+
+    .tiptap-editor h3 {
+        font-size: 1.25em;
+        font-weight: 700;
+    }
+
+    .tiptap-editor ul,
+    .tiptap-editor ol {
+        padding-left: 28px;
+    }
+
+    .tiptap-editor blockquote {
+        border-left: 3px solid #94a3b8;
+        padding-left: 14px;
+    }
+
+    .tiptap-editor hr {
+        border: 0;
+        border-top: 1px solid #94a3b8;
+        margin: 18px 0;
+    }
+
+    .tiptap-editor a {
+        color: #2563eb;
+        text-decoration: underline;
+    }
+
+    .tiptap-editor img {
+        max-width: 100%;
+    }
+
+    .tiptap-editor table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .tiptap-editor th,
+    .tiptap-editor td {
+        border: 1px solid #94a3b8;
+        padding: 8px;
+    }
+</style>
 @endsection
