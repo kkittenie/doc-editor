@@ -1,178 +1,97 @@
-import { Editor } from '@tiptap/core';
-import StarterKit from '@tiptap/starter-kit';
+import { Editor } from '@tiptap/core'
+import StarterKit from '@tiptap/starter-kit'
 
-import { TextAlign } from '@tiptap/extension-text-align';
-import { Underline } from '@tiptap/extension-underline';
-import { TextStyle } from '@tiptap/extension-text-style';
-import { Color } from '@tiptap/extension-color';
-import { Highlight } from '@tiptap/extension-highlight';
-import { Link } from '@tiptap/extension-link';
-import { Image } from '@tiptap/extension-image';
+import TextAlign from '@tiptap/extension-text-align'
+import Underline from '@tiptap/extension-underline'
+// import TextStyle from '@tiptap/extension-text-style'
+// import Color from '@tiptap/extension-color'
+// import Highlight from '@tiptap/extension-highlight'
+import Link from '@tiptap/extension-link'
+import Image from '@tiptap/extension-image'
 
-import { Table } from '@tiptap/extension-table';
-import { TableRow } from '@tiptap/extension-table-row';
-import { TableCell } from '@tiptap/extension-table-cell';
-import { TableHeader } from '@tiptap/extension-table-header';
+import { Table } from '@tiptap/extension-table'
+import { TableRow } from '@tiptap/extension-table-row'
+import { TableCell } from '@tiptap/extension-table-cell'
+import { TableHeader } from '@tiptap/extension-table-header'
 
-import { Superscript } from '@tiptap/extension-superscript';
-import { Subscript } from '@tiptap/extension-subscript';
+import Superscript from '@tiptap/extension-superscript'
+import Subscript from '@tiptap/extension-subscript'
 
 
-/*
-|--------------------------------------------------------------------------
-| Tiptap Editor Registry
-|--------------------------------------------------------------------------
-|
-| Editor Tiptap disimpan di sini, BUKAN di Alpine reactive state.
-|
-*/
-
-window.tiptapEditors = {};
+window.tiptapEditors = {}
 
 
 /*
 |--------------------------------------------------------------------------
-| Create Editor
+| CREATE EDITOR
 |--------------------------------------------------------------------------
 */
 
 window.createTiptapEditor = function (
     id,
     element,
-    initialContent = '',
+    content = '<p></p>',
     onUpdate = null
 ) {
-
     if (!element) {
-        console.error('Element Tiptap tidak ditemukan:', id);
-        return null;
+        console.error('[Tiptap] Element tidak ditemukan:', id)
+        return null
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Kalau editor dengan ID yang sama sudah ada
-    |--------------------------------------------------------------------------
-    */
 
     if (window.tiptapEditors[id]) {
-
-        try {
-            window.tiptapEditors[id].destroy();
-        } catch (error) {
-            console.warn(
-                'Gagal destroy editor lama:',
-                error
-            );
-        }
-
-        delete window.tiptapEditors[id];
+        window.tiptapEditors[id].destroy()
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Buat editor baru
-    |--------------------------------------------------------------------------
-    */
-
     const editor = new Editor({
+        element: element,
 
-        element,
+        content: content || '<p></p>',
 
         extensions: [
+            StarterKit,
 
-            StarterKit.configure({
-                link: false,
-                underline: false,
-            }),
+            // Underline,
 
             TextAlign.configure({
                 types: [
                     'heading',
-                    'paragraph',
-                ],
-            }),
-
-            Underline,
-
-            TextStyle,
-
-            Color,
-
-            Highlight.configure({
-                multicolor: true,
-            }),
-
-            Link.configure({
-                openOnClick: false,
-                autolink: true,
-                linkOnPaste: true,
-            }),
-
-            Image.configure({
-                inline: false,
-                allowBase64: true,
-            }),
-
-            Table.configure({
-                resizable: true,
-            }),
-
-            TableRow,
-            TableHeader,
-            TableCell,
-
-            Superscript,
-            Subscript,
+                    'paragraph'
+                ]
+            })
         ],
 
-        content: initialContent || '<p></p>',
-
-        onUpdate: ({ editor }) => {
-
-            const html = editor.getHTML();
-
+        onUpdate({ editor }) {
             if (typeof onUpdate === 'function') {
-                onUpdate(html);
+                onUpdate(editor.getHTML())
             }
 
+            // pastikan tombol toolbar (bold/italic/dll)
+            // tetap sinkron setelah setiap perubahan
+            window.tiptapToolbarRefresh?.()
         },
 
-    });
+        onSelectionUpdate() {
+            // update highlight tombol toolbar setiap kali
+            // kursor / seleksi berpindah posisi
+            window.tiptapToolbarRefresh?.()
+        },
 
+        onFocus() {
+            // saat editor ini fokus, toolbar harus
+            // langsung merefleksikan state-nya
+            window.tiptapToolbarRefresh?.()
+        }
+    })
 
-    /*
-    |--------------------------------------------------------------------------
-    | Simpan editor asli
-    |--------------------------------------------------------------------------
-    */
+    window.tiptapEditors[id] = editor
 
-    window.tiptapEditors[id] = editor;
+    console.log(
+        '[Tiptap] Editor berhasil dibuat:',
+        id
+    )
 
-
-    return editor;
-};
-
-
-/*
-|--------------------------------------------------------------------------
-| Get Editor
-|--------------------------------------------------------------------------
-*/
-
-window.getTiptapEditor = function (id) {
-
-    return window.tiptapEditors[id] || null;
-
-};
-
-
-/*
-|--------------------------------------------------------------------------
-| Command
-|--------------------------------------------------------------------------
-*/
+    return editor
+}
 
 window.tiptapCommand = function (
     id,
@@ -181,684 +100,369 @@ window.tiptapCommand = function (
 ) {
 
     const editor =
-        typeof id === 'string'
-            ? window.getTiptapEditor(id)
-            : id;
+        window.tiptapEditors[id]
+
 
     if (!editor) {
 
-        console.warn(
-            'Tiptap editor tidak ditemukan:',
+        console.error(
+            '[Tiptap] Editor tidak ditemukan:',
             id
-        );
+        )
 
-        return;
+        return
     }
 
 
     const chain =
         editor
             .chain()
-            .focus();
+            .focus()
 
 
     switch (command) {
 
-        // HISTORY
+        /*
+        |--------------------------------------------------------------------------
+        | HISTORY
+        |--------------------------------------------------------------------------
+        */
 
         case 'undo':
-            chain.undo().run();
-            break;
+
+            chain
+                .undo()
+                .run()
+
+            break
+
 
         case 'redo':
-            chain.redo().run();
-            break;
+
+            chain
+                .redo()
+                .run()
+
+            break
 
 
-        // TEXT
+        /*
+        |--------------------------------------------------------------------------
+        | TEXT FORMAT
+        |--------------------------------------------------------------------------
+        */
 
         case 'bold':
 
             chain
                 .toggleBold()
-                .run();
+                .run()
 
-            break;
+            break
 
 
         case 'italic':
 
             chain
                 .toggleItalic()
-                .run();
+                .run()
 
-            break;
+            break
 
 
         case 'underline':
 
             chain
                 .toggleUnderline()
-                .run();
+                .run()
 
-            break;
+            break
 
 
         case 'strike':
 
             chain
                 .toggleStrike()
-                .run();
+                .run()
 
-            break;
-
-
-        // HEADING
-
-        case 'paragraph':
-
-            chain
-                .setParagraph()
-                .run();
-
-            break;
+            break
 
 
-        case 'heading':
-
-            chain
-                .toggleHeading({
-                    level: Number(value),
-                })
-                .run();
-
-            break;
-
-
-        // ALIGNMENT
+        /*
+        |--------------------------------------------------------------------------
+        | TEXT ALIGN
+        |--------------------------------------------------------------------------
+        */
 
         case 'alignLeft':
 
             chain
                 .setTextAlign('left')
-                .run();
+                .run()
 
-            break;
+            break
+
 
         case 'alignCenter':
 
             chain
                 .setTextAlign('center')
-                .run();
+                .run()
 
-            break;
+            break
+
 
         case 'alignRight':
 
             chain
                 .setTextAlign('right')
-                .run();
+                .run()
 
-            break;
+            break
+
 
         case 'alignJustify':
 
             chain
                 .setTextAlign('justify')
-                .run();
+                .run()
 
-            break;
+            break
 
 
-        // LIST
+        /*
+        |--------------------------------------------------------------------------
+        | PARAGRAPH
+        |--------------------------------------------------------------------------
+        */
+
+        case 'paragraph':
+
+            chain
+                .setParagraph()
+                .run()
+
+            break
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | HEADING
+        |--------------------------------------------------------------------------
+        */
+
+        case 'heading':
+
+            chain
+                .toggleHeading({
+                    level: Number(value)
+                })
+                .run()
+
+            break
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | LIST
+        |--------------------------------------------------------------------------
+        */
 
         case 'bulletList':
 
             chain
                 .toggleBulletList()
-                .run();
+                .run()
 
-            break;
+            break
+
 
         case 'orderedList':
 
             chain
                 .toggleOrderedList()
-                .run();
+                .run()
 
-            break;
-
-        // TABLE
-
-        case 'insertTable':
-
-            chain
-                .insertTable({
-                    rows: 3,
-                    cols: 3,
-                    withHeaderRow: true,
-                })
-                .run();
-
-            break;
+            break
 
 
-        case 'addRowAfter':
-
-            chain
-                .addRowAfter()
-                .run();
-
-            break;
-
-
-        case 'addColumnAfter':
-
-            chain
-                .addColumnAfter()
-                .run();
-
-            break;
-
-
-        case 'deleteRow':
-
-            chain
-                .deleteRow()
-                .run();
-
-            break;
-
-
-        case 'deleteColumn':
-
-            chain
-                .deleteColumn()
-                .run();
-
-            break;
-
-
-        case 'deleteTable':
-
-            chain
-                .deleteTable()
-                .run();
-
-            break;
-
-
-        // BLOCK
+        /*
+        |--------------------------------------------------------------------------
+        | BLOCKQUOTE
+        |--------------------------------------------------------------------------
+        */
 
         case 'blockquote':
 
             chain
                 .toggleBlockquote()
-                .run();
+                .run()
 
-            break;
+            break
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | HORIZONTAL RULE
+        |--------------------------------------------------------------------------
+        */
 
         case 'horizontalRule':
 
             chain
                 .setHorizontalRule()
-                .run();
+                .run()
 
-            break;
-
-                // TABLE
-
-        case 'insertTable':
-
-            chain
-                .insertTable({
-                    rows: Number(value?.rows ?? 3),
-                    cols: Number(value?.cols ?? 3),
-                    withHeaderRow: true,
-                })
-                .run();
-
-            break;
-
-        case 'addRowBefore':
-
-            chain
-                .addRowBefore()
-                .run();
-
-            break;
-
-        case 'addRowAfter':
-
-            chain
-                .addRowAfter()
-                .run();
-
-            break;
-
-        case 'deleteRow':
-
-            chain
-                .deleteRow()
-                .run();
-
-            break;
-
-        case 'addColumnBefore':
-
-            chain
-                .addColumnBefore()
-                .run();
-
-            break;
-
-        case 'addColumnAfter':
-
-            chain
-                .addColumnAfter()
-                .run();
-
-            break;
-
-        case 'deleteColumn':
-
-            chain
-                .deleteColumn()
-                .run();
-
-            break;
-
-        case 'deleteTable':
-
-            chain
-                .deleteTable()
-                .run();
-
-            break;
-
-                // LINK
-
-        case 'setLink':
-
-            if (!value) {
-                break;
-            }
-
-            chain
-                .setLink({
-                    href: value,
-                    target: '_blank',
-                })
-                .run();
-
-            break;
-
-        case 'unsetLink':
-
-            chain
-                .unsetLink()
-                .run();
-
-            break;
+            break
 
 
-        // SCRIPT
+        /*
+        |--------------------------------------------------------------------------
+        | SUPERSCRIPT
+        |--------------------------------------------------------------------------
+        */
 
         case 'superscript':
 
             chain
                 .toggleSuperscript()
-                .run();
+                .run()
 
-            break;
+            break
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SUBSCRIPT
+        |--------------------------------------------------------------------------
+        */
 
         case 'subscript':
 
             chain
                 .toggleSubscript()
-                .run();
+                .run()
 
-            break;
+            break
 
 
-        // CLEAR
+        /*
+        |--------------------------------------------------------------------------
+        | CLEAR
+        |--------------------------------------------------------------------------
+        */
 
         case 'clear':
 
             chain
                 .clearNodes()
                 .unsetAllMarks()
-                .run();
+                .run()
 
-            break;
+            break
 
+
+        default:
+
+            console.warn(
+                '[Tiptap] Command tidak dikenal:',
+                command
+            )
     }
-
-};
+}
 
 
 /*
 |--------------------------------------------------------------------------
-| Color
+| GET HTML
 |--------------------------------------------------------------------------
 */
 
-window.tiptapSetColor = function (
+window.getTiptapHTML = function (id) {
+
+    const editor =
+        window.tiptapEditors[id]
+
+
+    if (!editor) {
+
+        console.error(
+            '[Tiptap] Editor tidak ditemukan:',
+            id
+        )
+
+        return '<p></p>'
+    }
+
+
+    return editor.getHTML()
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| SET HTML
+|--------------------------------------------------------------------------
+*/
+
+window.setTiptapHTML = function (
     id,
-    color
+    html
 ) {
 
     const editor =
-        window.getTiptapEditor(id);
-
-    if (!editor) return;
-
-    editor
-        .chain()
-        .focus()
-        .setColor(color)
-        .run();
-
-};
+        window.tiptapEditors[id]
 
 
-/*
-|--------------------------------------------------------------------------
-| Highlight
-|--------------------------------------------------------------------------
-*/
+    if (!editor) {
 
-window.tiptapSetHighlight = function (
-    id,
-    color
-) {
+        console.error(
+            '[Tiptap] Editor tidak ditemukan:',
+            id
+        )
 
-    const editor =
-        window.getTiptapEditor(id);
-
-    if (!editor) return;
-
-    editor
-        .chain()
-        .focus()
-        .setHighlight({
-            color,
-        })
-        .run();
-
-};
-
-/*
-|--------------------------------------------------------------------------
-| Image
-|--------------------------------------------------------------------------
-*/
-
-window.tiptapInsertImage = function (
-    id,
-    src,
-    alt = ''
-) {
-
-    const editor =
-        window.getTiptapEditor(id);
-
-    if (!editor || !src) {
-        return;
+        return
     }
 
-    editor
-        .chain()
-        .focus()
-        .setImage({
-            src,
-            alt,
-        })
-        .run();
 
-};
+    editor.commands.setContent(
+        html || '<p></p>',
+        {
+            emitUpdate: false
+        }
+    )
+}
+
 
 /*
 |--------------------------------------------------------------------------
-| Build Toolbar
+| DESTROY
 |--------------------------------------------------------------------------
 */
 
-window.createTiptapToolbar = function (
-    container,
-    getEditorId
-) {
+window.destroyTiptapEditor = function (id) {
 
-    if (!container) {
-        return;
+    const editor =
+        window.tiptapEditors[id]
+
+
+    if (!editor) {
+        return
     }
 
-    container.innerHTML = `
-            <div class="flex min-h-[50px] items-center gap-1.5 overflow-x-auto px-2 py-2">
 
-            <button type="button" data-command="undo" title="Undo" class="tiptap-toolbar-button">
-                ↶
-            </button>
+    try {
 
-            <button type="button" data-command="redo" title="Redo" class="tiptap-toolbar-button">
-                ↷
-            </button>
+        editor.destroy()
 
-            <span class="tiptap-toolbar-divider"></span>
+    } catch (error) {
 
-            <select data-command="heading" title="Gaya teks" class="tiptap-toolbar-select">
-                <option value="paragraph">Normal</option>
-                <option value="1">Heading 1</option>
-                <option value="2">Heading 2</option>
-                <option value="3">Heading 3</option>
-            </select>
+        console.warn(
+            '[Tiptap] Gagal destroy:',
+            error
+        )
+    }
 
-            <span class="tiptap-toolbar-divider"></span>
 
-            <button type="button" data-command="bold" title="Bold" class="tiptap-toolbar-button">
-                <b>B</b>
-            </button>
-
-            <button type="button" data-command="italic" title="Italic" class="tiptap-toolbar-button">
-                <i>I</i>
-            </button>
-
-            <button type="button" data-command="underline" title="Underline" class="tiptap-toolbar-button">
-                <u>U</u>
-            </button>
-
-            <button type="button" data-command="strike" title="Coret" class="tiptap-toolbar-button">
-                <s>S</s>
-            </button>
-
-            <span class="tiptap-toolbar-divider"></span>
-
-            <button type="button" data-command="alignLeft" title="Rata kiri" class="tiptap-toolbar-button">
-                ☰
-            </button>
-
-            <button type="button" data-command="alignCenter" title="Rata tengah" class="tiptap-toolbar-button">
-                ≡
-            </button>
-
-            <button type="button" data-command="alignRight" title="Rata kanan" class="tiptap-toolbar-button">
-                ☷
-            </button>
-
-            <button type="button" data-command="alignJustify" title="Rata kiri-kanan" class="tiptap-toolbar-button">
-                ☷
-            </button>
-
-            <span class="tiptap-toolbar-divider"></span>
-
-            <button type="button" data-command="bulletList" title="Bullet" class="tiptap-toolbar-button">
-                •☰
-            </button>
-
-            <button type="button" data-command="orderedList" title="Numbering" class="tiptap-toolbar-button">
-                1☰
-            </button>
-
-            <span class="tiptap-toolbar-divider"></span>
-
-            <button type="button" data-command="superscript" title="Superscript" class="tiptap-toolbar-button">
-                X²
-            </button>
-
-            <button type="button" data-command="subscript" title="Subscript" class="tiptap-toolbar-button">
-                X₂
-            </button>
-
-            <button type="button" data-command="blockquote" title="Quote" class="tiptap-toolbar-button">
-                ❝
-            </button>
-
-            <button type="button" data-command="horizontalRule" title="Garis" class="tiptap-toolbar-button">
-                ―
-            </button>
-
-            <button type="button" class="toolbar-button" title="Tambah Tabel" @mousedown.prevent @click="runBodyCommand('insertTable')">
-                ▦
-            </button>
-
-            <button
-                type="button"
-                class="toolbar-button"
-                title="Tambah Baris"
-                @mousedown.prevent
-                @click="runBodyCommand('addRowAfter')"
-            >
-                +↕
-            </button>
-
-            <button
-                type="button"
-                class="toolbar-button"
-                title="Tambah Kolom"
-                @mousedown.prevent
-                @click="runBodyCommand('addColumnAfter')"
-            >
-                +↔
-            </button>
-
-            <button
-                type="button"
-                class="toolbar-button"
-                title="Hapus Baris"
-                @mousedown.prevent
-                @click="runBodyCommand('deleteRow')"
-            >
-                −↕
-            </button>
-
-            <button
-                type="button"
-                class="toolbar-button"
-                title="Hapus Kolom"
-                @mousedown.prevent
-                @click="runBodyCommand('deleteColumn')"
-            >
-                −↔
-            </button>
-
-            <button
-                type="button"
-                class="toolbar-button"
-                title="Hapus Tabel"
-                @mousedown.prevent
-                @click="runBodyCommand('deleteTable')"
-            >
-                🗑
-            </button>
-
-            <span class="tiptap-toolbar-divider"></span>
-
-            <button type="button" data-command="clear" title="Hapus format" class="tiptap-toolbar-button">
-                Tx
-            </button>
-
-        </div>
-    `;
-
-    container
-        .querySelectorAll('[data-command]')
-        .forEach((button) => {
-
-            const command =
-                button.dataset.command;
-
-            if (button.tagName === 'SELECT') {
-
-                button.addEventListener(
-                    'change',
-                    () => {
-
-                        const editorId =
-                            getEditorId();
-
-                        if (!editorId) {
-                            return;
-                        }
-
-                        const value =
-                            button.value;
-
-                        if (value === 'paragraph') {
-
-                            window.tiptapCommand(
-                                editorId,
-                                'paragraph'
-                            );
-
-                        } else {
-
-                            window.tiptapCommand(
-                                editorId,
-                                'heading',
-                                value
-                            );
-                        }
-
-                    }
-                );
-
-                return;
-            }
-
-            button.addEventListener(
-                'mousedown',
-                (event) => {
-
-                    /*
-                    |--------------------------------------------------------------
-                    | Jangan sampai klik toolbar menghilangkan selection Tiptap
-                    |--------------------------------------------------------------
-                    */
-
-                    event.preventDefault();
-
-                }
-            );
-
-            button.addEventListener(
-                'click',
-                () => {
-
-                    const editorId =
-                        getEditorId();
-
-                    if (!editorId) {
-                        return;
-                    }
-
-                    window.tiptapCommand(
-                        editorId,
-                        command
-                    );
-
-                }
-            );
-
-        });
-
-};
+    delete window.tiptapEditors[id]
+}

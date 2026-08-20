@@ -3,6 +3,7 @@ import Alpine from 'alpinejs';
 import ApexCharts from 'apexcharts';
 import './editor';
 import './tiptap-editor';
+import './tiptap-toolbar';
 
 // flatpickr
 import flatpickr from 'flatpickr';

@@ -79,7 +79,8 @@
     {{-- TINYMCE TOOLBAR --}}
     <div
         id="body-toolbar-container"
-        class="sticky top-[57px] z-30 min-h-[42px] border-b border-parchment-300 bg-white px-2 dark:border-slate-warm-700 dark:bg-slate-warm-900"
+        class="sticky top-[57px] z-30"
+        style="display:flex; flex-direction:row; align-items:center;"
     ></div>
 
     
@@ -707,94 +708,31 @@
     */
 
     /* =========================================
-   TIPTAP TOOLBAR
-   ========================================= */
-
-    .tiptap-toolbar-button {
-        display: inline-flex;
-        width: 36px;
-        height: 36px;
-        min-width: 36px;
-        align-items: center;
-        justify-content: center;
-
-        border: 1px solid transparent;
-        border-radius: 7px;
-
-        background: transparent;
-
-        color: #1f2937;
-        font-size: 14px;
-        font-weight: 500;
-
-        cursor: pointer;
-
-        transition:
-            background-color 0.15s ease,
-            border-color 0.15s ease;
-    }
-
-    .tiptap-toolbar-button:hover {
-        background: rgb(245 242 235);
-        border-color: rgb(229 225 216);
-    }
-
-    .tiptap-toolbar-button:active {
-        background: rgb(235 231 222);
-    }
-
-    .tiptap-toolbar-button b,
-    .tiptap-toolbar-button i,
-    .tiptap-toolbar-button u,
-    .tiptap-toolbar-button s {
-        pointer-events: none;
-    }
-
-    .tiptap-toolbar-select {
-        height: 36px;
-        min-width: 125px;
-
-        padding: 0 10px;
-
-        border: 1px solid rgb(214 211 204);
-        border-radius: 7px;
-
-        background: white;
-
-        color: #1f2937;
-        font-size: 13px;
-
-        outline: none;
-        cursor: pointer;
-    }
-
-    .tiptap-toolbar-select:hover {
-        border-color: rgb(190 185 175);
-    }
-
-    .tiptap-toolbar-select:focus {
-        border-color: rgb(180 140 80);
-    }
-
-    /* Divider */
-
-    .tiptap-toolbar-divider {
-        width: 1px;
-        height: 26px;
-        flex-shrink: 0;
-
-        margin: 0 5px;
-
-        background: rgb(214 211 204);
-    }
+    TIPTAP TOOLBAR - WORD STYLE
+    ========================================= */
 
     #body-toolbar-container {
-        display: flex;
-        align-items: center;
+        position: sticky;
+        top: 57px;
+        z-index: 30;
 
-        min-height: 42px;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
 
-        padding: 4px 10px;
+        width: 100%;
+        min-height: 56px;
+
+        padding: 8px 16px;
+
+        box-sizing: border-box;
+
+        /* Memberikan jarak antar kelompok/grup tombol di toolbar */
+        gap: 12px !important;
+
+        background: rgba(255, 255, 255, 0.97);
+
+        border-bottom: 1px solid rgb(214 211 204);
 
         overflow-x: auto;
         overflow-y: hidden;
@@ -802,8 +740,205 @@
         white-space: nowrap;
     }
 
+
+    /* =========================================
+    GROUP
+    ========================================= */
+
+    #body-toolbar-container .tiptap-toolbar-group {
+        display: inline-flex !important;
+
+        flex-direction: row !important;
+        align-items: center !important;
+
+        flex: 0 0 auto !important;
+
+        /* Jarak antar tombol di dalam satu kelompok */
+        gap: 6px !important;
+
+        padding: 4px;
+
+        margin: 0;
+
+        background: rgb(250 249 246);
+
+        border: 1px solid rgb(232 229 221);
+
+        border-radius: 8px;
+
+        white-space: nowrap;
+    }
+
+
+    /* =========================================
+    BUTTON
+    ========================================= */
+
+    #body-toolbar-container .tiptap-toolbar-button {
+
+        display: inline-flex !important;
+
+        flex: 0 0 32px !important;
+
+        width: 32px !important;
+        min-width: 32px !important;
+        max-width: 32px !important;
+
+        height: 32px !important;
+        min-height: 32px !important;
+
+        align-items: center !important;
+        justify-content: center !important;
+
+        padding: 0 !important;
+        
+        /* Memberikan jarak tipis di kiri-kanan tombol individu */
+        margin: 0 2px !important;
+
+        border: 1px solid transparent;
+        border-radius: 6px;
+
+        background: transparent;
+
+        color: #1f2937;
+
+        font-size: 14px;
+        line-height: 1;
+
+        cursor: pointer;
+
+        white-space: nowrap;
+
+        box-sizing: border-box;
+
+        transition:
+            background-color 0.15s ease,
+            border-color 0.15s ease;
+    }
+
+
+    /* HOVER */
+
+    #body-toolbar-container .tiptap-toolbar-button:hover {
+        background: white;
+        border-color: rgb(214 211 204);
+    }
+
+
+    /* ACTIVE */
+
+    #body-toolbar-container .tiptap-toolbar-button.is-active {
+        background: rgb(226 220 205);
+        border-color: rgb(180 140 80);
+        color: #1B2A4A;
+    }
+
+
+    /* =========================================
+    SELECT
+    ========================================= */
+
+    #body-toolbar-container .tiptap-toolbar-select {
+
+        display: block !important;
+
+        flex: 0 0 120px !important;
+
+        width: 120px !important;
+        min-width: 120px !important;
+        max-width: 120px !important;
+
+        height: 32px !important;
+
+        /* Jarak untuk elemen select */
+        margin: 0 4px !important;
+
+        padding: 0 8px !important;
+
+        border: 1px solid rgb(214 211 204);
+
+        border-radius: 6px;
+
+        background: white;
+
+        color: #1f2937;
+
+        font-size: 13px;
+
+        outline: none;
+
+        cursor: pointer;
+
+        box-sizing: border-box;
+    }
+
+
+    /* =========================================
+    DIVIDER
+    ========================================= */
+
+    #body-toolbar-container .tiptap-toolbar-divider {
+
+        display: block !important;
+
+        flex: 0 0 1px !important;
+
+        width: 1px !important;
+        min-width: 1px !important;
+
+        height: 24px;
+
+        /* Jarak pembatas garis (divider) */
+        margin: 0 8px !important;
+
+        background: rgb(214 211 204);
+    }
+
+
+    /* =========================================
+    SCROLLBAR
+    ========================================= */
+
     #body-toolbar-container::-webkit-scrollbar {
         height: 5px;
+    }
+
+    #body-toolbar-container::-webkit-scrollbar-thumb {
+        background: rgb(203 199 190);
+        border-radius: 10px;
+    }
+
+    #body-toolbar-container::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+
+    /* =========================================
+    MOBILE
+    ========================================= */
+
+    @media (max-width: 768px) {
+
+        #body-toolbar-container {
+            padding: 6px 8px;
+            gap: 5px;
+        }
+
+        #body-toolbar-container .tiptap-toolbar-group {
+            gap: 1px;
+            padding: 2px;
+        }
+
+        #body-toolbar-container .tiptap-toolbar-button {
+            width: 30px !important;
+            min-width: 30px !important;
+            height: 30px !important;
+        }
+
+        #body-toolbar-container .tiptap-toolbar-select {
+            width: 105px !important;
+            min-width: 105px !important;
+        }
     }
 
 </style>
@@ -1007,12 +1142,11 @@
             },
 
             focusPageEditor(uid) {
-                const editor = window.tinymce?.get('document-editor-' + uid);
+                const editorId = 'document-editor-' + uid;
+                const editor = window.tiptapEditors?.[editorId];
                 if (!editor) return;
 
-                editor.focus();
-                editor.selection.select(editor.getBody(), true);
-                editor.selection.collapse(false); // taro kursor di paling akhir
+                editor.chain().focus('end').run();
             },
 
             
@@ -1246,937 +1380,6 @@
                     this.saveDocument();
                 }
             },
-
-            
-            // IMAGE RESIZE - MS WORD STYLE
-            
-
-            // selectImage(image, editor) {
-
-            //     if (!image || !editor) {
-            //         return;
-            //     }
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Hapus selection sebelumnya
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     this.removeImageResizeHandles();
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Simpan gambar & editor
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     this.selectedImage = image;
-
-            //     this.selectedImageEditor = editor;
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Tandai gambar
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     image.classList.add('image-selected');
-            //     image.setAttribute('draggable', 'false');
-            //     image.style.webkitUserDrag = 'none';
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Buat kerangka
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     this.createImageResizeHandles(
-            //         image,
-            //         editor
-            //     );
-            // },
-
-
-            // createImageResizeHandles(image, editor) {
-
-            //     if (!image || !editor) {
-            //         return;
-            //     }
-
-            //     const doc =
-            //         editor.getDoc();
-
-            //     const body =
-            //         editor.getBody();
-
-            //     if (!doc || !body) {
-            //         return;
-            //     }
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Hapus overlay lama
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     doc
-            //         .querySelectorAll(
-            //             '.image-resize-overlay'
-            //         )
-            //         .forEach(el => el.remove());
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Pastikan body punya reference position
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     body.style.position = 'relative';
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Buat overlay
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     const overlay =
-            //         doc.createElement('div');
-
-            //     overlay.className =
-            //         'image-resize-overlay';
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | STYLE OVERLAY
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     Object.assign(
-            //         overlay.style,
-            //         {
-            //             position: 'absolute',
-            //             boxSizing: 'border-box',
-            //             border: '1px solid #2563eb',
-            //             pointerEvents: 'none',
-            //             zIndex: '999999',
-            //             margin: '0',
-            //             padding: '0'
-            //         }
-            //     );
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Tambahkan ke BODY TINYMCE
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     body.appendChild(overlay);
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | UPDATE POSISI KERANGKA
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     const updatePosition = () => {
-
-            //         if (
-            //             !this.selectedImage ||
-            //             this.selectedImage !== image ||
-            //             !image.isConnected ||
-            //             !overlay.isConnected
-            //         ) {
-            //             return;
-            //         }
-
-            //         const imageRect =
-            //             image.getBoundingClientRect();
-
-            //         const bodyRect =
-            //             body.getBoundingClientRect();
-
-            //         /*
-            //         |--------------------------------------------------------------------------
-            //         | Posisi relatif terhadap body iframe
-            //         |--------------------------------------------------------------------------
-            //         */
-
-            //         const left =
-            //             imageRect.left -
-            //             bodyRect.left;
-
-            //         const top =
-            //             imageRect.top -
-            //             bodyRect.top;
-
-            //         overlay.style.left =
-            //             `${left}px`;
-
-            //         overlay.style.top =
-            //             `${top}px`;
-
-            //         overlay.style.width =
-            //             `${imageRect.width}px`;
-
-            //         overlay.style.height =
-            //             `${imageRect.height}px`;
-            //     };
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | 8 HANDLE
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     const directions = [
-            //         'nw',
-            //         'n',
-            //         'ne',
-            //         'e',
-            //         'se',
-            //         's',
-            //         'sw',
-            //         'w'
-            //     ];
-
-
-            //     directions.forEach(direction => {
-
-            //         const handle =
-            //             doc.createElement('div');
-
-            //         handle.className =
-            //             `image-resize-handle handle-${direction}`;
-
-            //         handle.dataset.direction =
-            //             direction;
-
-            //         /*
-            //         |--------------------------------------------------------------------------
-            //         | STYLE HANDLE
-            //         |--------------------------------------------------------------------------
-            //         */
-
-            //         Object.assign(
-            //             handle.style,
-            //             {
-            //                 position: 'absolute',
-            //                 width: '10px',
-            //                 height: '10px',
-            //                 background: '#ffffff',
-            //                 border: '2px solid #2563eb',
-            //                 borderRadius: '2px',
-            //                 boxSizing: 'border-box',
-            //                 pointerEvents: 'auto',
-            //                 zIndex: '1000000'
-            //             }
-            //         );
-
-
-            //         /*
-            //         |--------------------------------------------------------------------------
-            //         | POSISI HANDLE
-            //         |--------------------------------------------------------------------------
-            //         */
-
-            //         switch (direction) {
-
-            //             case 'nw':
-
-            //                 handle.style.left = '-6px';
-            //                 handle.style.top = '-6px';
-
-            //                 handle.style.cursor =
-            //                     'nwse-resize';
-
-            //                 break;
-
-
-            //             case 'n':
-
-            //                 handle.style.left = '50%';
-            //                 handle.style.top = '-6px';
-
-            //                 handle.style.transform =
-            //                     'translateX(-50%)';
-
-            //                 handle.style.cursor =
-            //                     'ns-resize';
-
-            //                 break;
-
-
-            //             case 'ne':
-
-            //                 handle.style.right = '-6px';
-            //                 handle.style.top = '-6px';
-
-            //                 handle.style.cursor =
-            //                     'nesw-resize';
-
-            //                 break;
-
-
-            //             case 'e':
-
-            //                 handle.style.right = '-6px';
-            //                 handle.style.top = '50%';
-
-            //                 handle.style.transform =
-            //                     'translateY(-50%)';
-
-            //                 handle.style.cursor =
-            //                     'ew-resize';
-
-            //                 break;
-
-
-            //             case 'se':
-
-            //                 handle.style.right = '-6px';
-            //                 handle.style.bottom = '-6px';
-
-            //                 handle.style.cursor =
-            //                     'nwse-resize';
-
-            //                 break;
-
-
-            //             case 's':
-
-            //                 handle.style.left = '50%';
-            //                 handle.style.bottom = '-6px';
-
-            //                 handle.style.transform =
-            //                     'translateX(-50%)';
-
-            //                 handle.style.cursor =
-            //                     'ns-resize';
-
-            //                 break;
-
-
-            //             case 'sw':
-
-            //                 handle.style.left = '-6px';
-            //                 handle.style.bottom = '-6px';
-
-            //                 handle.style.cursor =
-            //                     'nesw-resize';
-
-            //                 break;
-
-
-            //             case 'w':
-
-            //                 handle.style.left = '-6px';
-            //                 handle.style.top = '50%';
-
-            //                 handle.style.transform =
-            //                     'translateY(-50%)';
-
-            //                 handle.style.cursor =
-            //                     'ew-resize';
-
-            //                 break;
-            //         }
-
-
-            //         /*
-            //         |--------------------------------------------------------------------------
-            //         | MOUSE DOWN HANDLE
-            //         |--------------------------------------------------------------------------
-            //         */
-
-            //         handle.addEventListener(
-            //             'mousedown',
-            //             (event) => {
-
-            //                 event.preventDefault();
-
-            //                 event.stopPropagation();
-
-            //                 /*
-            //                 |--------------------------------------------------------------------------
-            //                 | Jangan sampai TinyMCE menghapus overlay
-            //                 |--------------------------------------------------------------------------
-            //                 */
-
-            //                 this.startImageResize(
-            //                     event,
-            //                     image,
-            //                     direction,
-            //                     editor
-            //                 );
-            //             }
-            //         );
-
-
-            //         /*
-            //         |--------------------------------------------------------------------------
-            //         | Tambahkan handle
-            //         |--------------------------------------------------------------------------
-            //         */
-
-            //         overlay.appendChild(handle);
-            //     });
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | SIMPAN REFERENCE
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     overlay._updatePosition =
-            //         updatePosition;
-
-            //     overlay._editor =
-            //         editor;
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | UPDATE AWAL
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     updatePosition();
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | UPDATE SAAT WINDOW RESIZE
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     const resizeListener =
-            //         () => updatePosition();
-
-            //     window.addEventListener(
-            //         'resize',
-            //         resizeListener
-            //     );
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | UPDATE SAAT EDITOR SCROLL
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     const scrollListener =
-            //         () => updatePosition();
-
-            //     doc.addEventListener(
-            //         'scroll',
-            //         scrollListener
-            //     );
-
-
-            //     overlay._resizeListener =
-            //         resizeListener;
-
-            //     overlay._scrollListener =
-            //         scrollListener;
-            // },
-
-
-            // removeImageResizeHandles() {
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Semua TinyMCE editor (dilacak lewat this.pages, bukan window.tinymce.editors
-            //     | yang bisa undefined tergantung build/bundling)
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     if (window.tinymce) {
-
-            //         this.pages.forEach((page) => {
-
-            //             const editor = window.tinymce.get(
-            //                 'document-editor-' + page.uid
-            //             );
-
-            //             if (!editor) {
-            //                 return;
-            //             }
-
-            //             try {
-
-            //                 const doc = editor.getDoc();
-
-            //                 if (!doc) {
-            //                     return;
-            //                 }
-
-            //                 doc
-            //                     .querySelectorAll(
-            //                         '.image-resize-overlay'
-            //                     )
-            //                     .forEach((overlay) => {
-
-            //                         /*
-            //                         | Remove resize listener
-            //                         */
-
-            //                         if (
-            //                             overlay._resizeListener
-            //                         ) {
-
-            //                             window.removeEventListener(
-            //                                 'resize',
-            //                                 overlay._resizeListener
-            //                             );
-            //                         }
-
-
-            //                         /*
-            //                         | Remove scroll listener
-            //                         */
-
-            //                         if (
-            //                             overlay._scrollListener
-            //                         ) {
-
-            //                             doc.removeEventListener(
-            //                                 'scroll',
-            //                                 overlay._scrollListener
-            //                             );
-            //                         }
-
-
-            //                         overlay.remove();
-            //                     });
-
-
-            //                 /*
-            //                 |--------------------------------------------------------------------------
-            //                 | Remove selected class
-            //                 |--------------------------------------------------------------------------
-            //                 */
-
-            //                 doc
-            //                     .querySelectorAll(
-            //                         '.image-selected'
-            //                     )
-            //                     .forEach((image) => {
-
-            //                         image.classList.remove(
-            //                             'image-selected'
-            //                         );
-            //                     });
-
-            //             } catch (error) {
-
-            //                 console.warn(
-            //                     'Gagal membersihkan TinyMCE:',
-            //                     error
-            //                 );
-            //             }
-            //         });
-            //     }
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Reset state
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     this.selectedImage = null;
-
-            //     this.selectedImageEditor = null;
-            // },
-
-
-            // startImageResize(
-            //     event,
-            //     image,
-            //     direction,
-            //     editor
-            // ) {
-
-            //     if (!image || !editor) {
-            //         return;
-            //     }
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Jangan biarkan browser melakukan drag image
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     event.preventDefault();
-
-            //     event.stopPropagation();
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Pastikan image tetap selected
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     this.selectedImage =
-            //         image;
-
-            //     this.selectedImageEditor =
-            //         editor;
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Ambil ukuran awal
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     const rect =
-            //         image.getBoundingClientRect();
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Simpan data resize
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     this.imageResizeData = {
-
-            //         startX:
-            //             event.clientX,
-
-            //         startY:
-            //             event.clientY,
-
-            //         startWidth:
-            //             rect.width,
-
-            //         startHeight:
-            //             rect.height,
-
-            //         direction
-            //     };
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Lock selection browser
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     document.body.style.userSelect =
-            //         'none';
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Mouse move
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     this._boundImageResize =
-            //         (moveEvent) => {
-
-            //             this.handleImageResize(
-            //                 moveEvent
-            //             );
-            //         };
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Mouse up
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     this._boundStopImageResize =
-            //         () => {
-
-            //             this.stopImageResize();
-            //         };
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Listener GLOBAL
-            //     |--------------------------------------------------------------------------
-            //     |
-            //     | Editor body TinyMCE berjalan dalam mode inline (bukan iframe),
-            //     | jadi document editor sama dengan document utama halaman.
-            //     | Cukup listen di document utama saja.
-            //     |
-            //     */
-
-            //     document.addEventListener(
-            //         'mousemove',
-            //         this._boundImageResize
-            //     );
-
-            //     document.addEventListener(
-            //         'mouseup',
-            //         this._boundStopImageResize
-            //     );
-            // },
-
-
-            // handleImageResize(event) {
-
-            //     if (!this.selectedImage) {
-            //         return;
-            //     }
-
-            //     const image =
-            //         this.selectedImage;
-
-            //     const resize =
-            //         this.imageResizeData;
-
-            //     if (!resize) {
-            //         return;
-            //     }
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Delta mouse
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     const dx =
-            //         event.clientX -
-            //         resize.startX;
-
-            //     const dy =
-            //         event.clientY -
-            //         resize.startY;
-
-
-            //     let width =
-            //         resize.startWidth;
-
-            //     let height =
-            //         resize.startHeight;
-
-
-            //     const direction =
-            //         resize.direction;
-
-
-            //     const MIN_SIZE = 30;
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | RESIZE BEBAS (TANPA KUNCI ASPECT RATIO)
-            //     |--------------------------------------------------------------------------
-            //     |
-            //     | Setiap sumbu dihitung independen dari komponen arah handle-nya.
-            //     | Handle sudut (nw/ne/sw/se) mengandung 2 huruf arah sekaligus,
-            //     | jadi lebar & tinggi berubah bersamaan mengikuti kursor secara bebas
-            //     | (bisa membuat gambar gepeng/distorsi, persis mode "free resize" Word).
-            //     | Handle tepi (n/s/e/w) hanya mengandung 1 huruf arah,
-            //     | jadi cuma satu sisi yang berubah.
-            //     |
-            //     */
-
-            //     // Komponen horizontal
-            //     if (direction.includes('e')) {
-
-            //         width =
-            //             Math.max(
-            //                 MIN_SIZE,
-            //                 resize.startWidth + dx
-            //             );
-
-            //     } else if (direction.includes('w')) {
-
-            //         width =
-            //             Math.max(
-            //                 MIN_SIZE,
-            //                 resize.startWidth - dx
-            //             );
-            //     }
-
-            //     // Komponen vertikal
-            //     if (direction.includes('s')) {
-
-            //         height =
-            //             Math.max(
-            //                 MIN_SIZE,
-            //                 resize.startHeight + dy
-            //             );
-
-            //     } else if (direction.includes('n')) {
-
-            //         height =
-            //             Math.max(
-            //                 MIN_SIZE,
-            //                 resize.startHeight - dy
-            //             );
-            //     }
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | APPLY WIDTH
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     image.style.width =
-            //         `${Math.round(width)}px`;
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | APPLY HEIGHT
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     image.style.height =
-            //         `${Math.round(height)}px`;
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | HILANGKAN LIMIT TINYMCE
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     image.style.maxWidth =
-            //         'none';
-
-            //     image.style.maxHeight =
-            //         'none';
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | OBJECT FIT
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     image.style.objectFit =
-            //         'contain';
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | SIMPAN ATTRIBUTE HTML
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     image.setAttribute(
-            //         'width',
-            //         Math.round(width)
-            //     );
-
-            //     image.setAttribute(
-            //         'height',
-            //         Math.round(height)
-            //     );
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | UPDATE KERANGKA
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     const editor =
-            //         this.selectedImageEditor;
-
-            //     const overlay =
-            //         editor
-            //             ?.getDoc()
-            //             ?.querySelector(
-            //                 '.image-resize-overlay'
-            //             );
-
-
-            //     if (
-            //         overlay &&
-            //         overlay._updatePosition
-            //     ) {
-
-            //         overlay._updatePosition();
-            //     }
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Tandai dokumen berubah
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     this.markAsChanged();
-            // },
-
-
-            // stopImageResize() {
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Unlock selection
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     document.body.style.userSelect =
-            //         '';
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Remove global listener
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     if (
-            //         this._boundImageResize
-            //     ) {
-
-            //         document.removeEventListener(
-            //             'mousemove',
-            //             this._boundImageResize
-            //         );
-            //     }
-
-
-            //     if (
-            //         this._boundStopImageResize
-            //     ) {
-
-            //         document.removeEventListener(
-            //             'mouseup',
-            //             this._boundStopImageResize
-            //         );
-            //     }
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Bersihkan reference
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     this._boundImageResize =
-            //         null;
-
-            //     this._boundStopImageResize =
-            //         null;
-
-
-            //     /*
-            //     |--------------------------------------------------------------------------
-            //     | Simpan perubahan
-            //     |--------------------------------------------------------------------------
-            //     */
-
-            //     this.markAsChanged();
-            // },
 
             // =========================================
             // SAVE DOCUMENT
