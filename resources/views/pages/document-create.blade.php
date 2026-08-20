@@ -70,33 +70,20 @@
     },
 
     async loadTemplate(key) {
-        this.loadingTemplate = key;
-        try {
-            const res = await window.axios.get('/documents/template/' + key);
-            const t = res.data;
+    this.loadingTemplate = key;
+    try {
+        const res = await window.axios.get('/documents/template/' + key);
+        const t = res.data;
 
-            this.setHeaderContent('<p style=\'text-align:center;font-weight:bold;text-transform:uppercase;\'>' + t.header_data.kopInstansi + '</p>'
-                + '<p style=\'text-align:center;font-size:12px;\'>' + t.header_data.kopAlamat + '</p>'
-                + '<p style=\'text-align:center;font-size:11px;\'>' + t.header_data.kopKontrak + '</p>');
-
-            document.getElementById('header-nomor').value = t.header_data.nomorSurat;
-            document.getElementById('header-judul').value = t.title;
-
-            this.setFooterContent('<p>Sifat: ' + t.header_data.sifatSurat + '</p>');
-
-            const b = t.body_content;
-            this.bodyHtml = '<p>' + b.tujuanSurat + '</p>'
-                + '<p><strong>MENIMBANG:</strong><br>' + b.menimbang.replace(/\n/g, '<br>') + '</p>'
-                + '<p><strong>MENGINGAT:</strong><br>' + b.mengingat.replace(/\n/g, '<br>') + '</p>'
-                + '<p>' + b.isiPasal1.replace(/\n/g, '<br>') + '</p>'
-                + '<p>' + b.isiPasal2.replace(/\n/g, '<br>') + '</p>';
-        } catch (e) {
-            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal memuat template.', confirmButtonColor: '#1B2A4A' });
-            console.error(e);
-        } finally {
-            this.loadingTemplate = null;
-        }
-    },
+        document.getElementById('header-judul').value = t.title;
+        document.getElementById('header-nomor').value = t.header_data.nomorSurat;
+    } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal memuat template.', confirmButtonColor: '#1B2A4A' });
+        console.error(e);
+    } finally {
+        this.loadingTemplate = null;
+    }
+},
 
     uploadLogo(event) {
     const file = event.target.files[0];
@@ -205,7 +192,8 @@
     </div>
 
     {{-- Quick Templates --}}
-    <div class="mb-6 rounded-2xl border border-parchment-300 bg-parchment-50 p-5 dark:border-slate-warm-700 dark:bg-slate-warm-800">
+    <div
+        class="mb-6 rounded-2xl border border-parchment-300 bg-parchment-50 p-5 dark:border-slate-warm-700 dark:bg-slate-warm-800">
         <h2 class="text-sm font-semibold text-ink-900 dark:text-parchment-50 mb-3">Mulai Cepat dari Template</h2>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <button type="button" @click="loadTemplate('perjanjian-kerja-sama')" :disabled="loadingTemplate"
@@ -234,16 +222,19 @@
         <input type="hidden" name="body_html" :value="bodyHtml">
 
         {{-- Judul & Nomor --}}
-        <div class="rounded-2xl border border-parchment-300 bg-white p-5 shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900 mb-5">
+        <div
+            class="rounded-2xl border border-parchment-300 bg-white p-5 shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900 mb-5">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-medium mb-1.5">Judul Dokumen</label>
-                    <input type="text" id="header-judul" name="title" required placeholder="Contoh: Surat Keputusan Direksi"
+                    <input type="text" id="header-judul" name="title" required
+                        placeholder="Contoh: Surat Keputusan Direksi"
                         class="w-full rounded-xl border border-parchment-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800">
                 </div>
                 <div>
                     <label class="block text-xs font-medium mb-1.5">Nomor Dokumen</label>
-                    <input type="text" id="header-nomor" name="header_data[nomorSurat]" required placeholder="001/SK-DIR/VIII/2026"
+                    <input type="text" id="header-nomor" name="header_data[nomorSurat]" required
+                        placeholder="001/SK-DIR/VIII/2026"
                         class="w-full rounded-xl border border-parchment-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800">
                 </div>
             </div>
@@ -256,40 +247,26 @@
                 Header / Kop Surat
             </label>
 
-            <div
-                class="overflow-hidden rounded-xl border
+            <div class="overflow-hidden rounded-xl border
                     border-parchment-300
                     bg-white
                     dark:border-slate-warm-700
-                    dark:bg-slate-warm-900"
-            >
+                    dark:bg-slate-warm-900">
 
                 {{-- TOOLBAR --}}
-                <div
-                    class="flex flex-wrap items-center gap-1
+                <div class="flex flex-wrap items-center gap-1
                         border-b border-parchment-300
                         bg-parchment-50
                         p-2
                         dark:border-slate-warm-700
-                        dark:bg-slate-warm-800"
-                >
+                        dark:bg-slate-warm-800">
 
                     {{-- UNDO --}}
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'undo')"
-                        class="toolbar-btn"
-                        title="Undo"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'undo')" class="toolbar-btn" title="Undo">
                         ↶
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'redo')"
-                        class="toolbar-btn"
-                        title="Redo"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'redo')" class="toolbar-btn" title="Redo">
                         ↷
                     </button>
 
@@ -297,14 +274,11 @@
 
 
                     {{-- HEADING --}}
-                    <select
-                        @change="
+                    <select @change="
                             $event.target.value === 'paragraph'
                                 ? tiptapCommand(headerEditor, 'paragraph')
                                 : tiptapCommand(headerEditor, 'heading', $event.target.value)
-                        "
-                        class="toolbar-select"
-                    >
+                        " class="toolbar-select">
                         <option value="paragraph">Normal</option>
                         <option value="1">Heading 1</option>
                         <option value="2">Heading 2</option>
@@ -313,39 +287,23 @@
 
 
                     {{-- TEXT --}}
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'bold')"
-                        class="toolbar-btn font-bold"
-                        title="Bold"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'bold')" class="toolbar-btn font-bold"
+                        title="Bold">
                         B
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'italic')"
-                        class="toolbar-btn italic"
-                        title="Italic"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'italic')" class="toolbar-btn italic"
+                        title="Italic">
                         I
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'underline')"
-                        class="toolbar-btn underline"
-                        title="Underline"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'underline')" class="toolbar-btn underline"
+                        title="Underline">
                         U
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'strike')"
-                        class="toolbar-btn line-through"
-                        title="Strike"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'strike')" class="toolbar-btn line-through"
+                        title="Strike">
                         S
                     </button>
 
@@ -354,39 +312,23 @@
 
 
                     {{-- ALIGN --}}
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'alignLeft')"
-                        class="toolbar-btn"
-                        title="Rata kiri"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'alignLeft')" class="toolbar-btn"
+                        title="Rata kiri">
                         ≡
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'alignCenter')"
-                        class="toolbar-btn"
-                        title="Rata tengah"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'alignCenter')" class="toolbar-btn"
+                        title="Rata tengah">
                         ≡
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'alignRight')"
-                        class="toolbar-btn"
-                        title="Rata kanan"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'alignRight')" class="toolbar-btn"
+                        title="Rata kanan">
                         ≡
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'alignJustify')"
-                        class="toolbar-btn"
-                        title="Justify"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'alignJustify')" class="toolbar-btn"
+                        title="Justify">
                         ≡
                     </button>
 
@@ -395,72 +337,44 @@
 
 
                     {{-- LIST --}}
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'bulletList')"
-                        class="toolbar-btn"
-                        title="Bullet List"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'bulletList')" class="toolbar-btn"
+                        title="Bullet List">
                         •
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'orderedList')"
-                        class="toolbar-btn"
-                        title="Numbered List"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'orderedList')" class="toolbar-btn"
+                        title="Numbered List">
                         1.
                     </button>
 
 
                     {{-- BLOCK --}}
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'blockquote')"
-                        class="toolbar-btn"
-                        title="Quote"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'blockquote')" class="toolbar-btn"
+                        title="Quote">
                         ❝
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'horizontalRule')"
-                        class="toolbar-btn"
-                        title="Horizontal line"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'horizontalRule')" class="toolbar-btn"
+                        title="Horizontal line">
                         ―
                     </button>
 
 
                     {{-- SCRIPT --}}
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'superscript')"
-                        class="toolbar-btn"
-                        title="Superscript"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'superscript')" class="toolbar-btn"
+                        title="Superscript">
                         X²
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'subscript')"
-                        class="toolbar-btn"
-                        title="Subscript"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'subscript')" class="toolbar-btn"
+                        title="Subscript">
                         X₂
                     </button>
 
 
                     {{-- CLEAR --}}
-                    <button
-                        type="button"
-                        @click="tiptapCommand('header', 'clear')"
-                        class="toolbar-btn"
-                        title="Clear formatting"
-                    >
+                    <button type="button" @click="tiptapCommand('header', 'clear')" class="toolbar-btn"
+                        title="Clear formatting">
                         Tx
                     </button>
 
@@ -468,10 +382,7 @@
 
 
                 {{-- EDITOR --}}
-                <div
-                    x-ref="headerEditor"
-                    class="tiptap-editor min-h-[160px] p-5"
-                ></div>
+                <div x-ref="headerEditor" class="tiptap-editor min-h-[160px] p-5"></div>
 
             </div>
 
@@ -484,132 +395,77 @@
                 Footer Dokumen
             </label>
 
-            <div
-                class="overflow-hidden rounded-xl border
+            <div class="overflow-hidden rounded-xl border
                     border-parchment-300
                     bg-white
                     dark:border-slate-warm-700
-                    dark:bg-slate-warm-900"
-            >
+                    dark:bg-slate-warm-900">
 
-                <div
-                    class="flex flex-wrap items-center gap-1
+                <div class="flex flex-wrap items-center gap-1
                         border-b border-parchment-300
                         bg-parchment-50
                         p-2
                         dark:border-slate-warm-700
-                        dark:bg-slate-warm-800"
-                >
+                        dark:bg-slate-warm-800">
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('footer', 'undo')"
-                        class="toolbar-btn"
-                    >
+                    <button type="button" @click="tiptapCommand('footer', 'undo')" class="toolbar-btn">
                         ↶
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('footer', 'redo')"
-                        class="toolbar-btn"
-                    >
+                    <button type="button" @click="tiptapCommand('footer', 'redo')" class="toolbar-btn">
                         ↷
                     </button>
 
                     <span class="toolbar-divider"></span>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('footer', 'bold')"
-                        class="toolbar-btn font-bold"
-                    >
+                    <button type="button" @click="tiptapCommand('footer', 'bold')" class="toolbar-btn font-bold">
                         B
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('footer', 'italic')"
-                        class="toolbar-btn italic"
-                    >
+                    <button type="button" @click="tiptapCommand('footer', 'italic')" class="toolbar-btn italic">
                         I
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('footer', 'underline')"
-                        class="toolbar-btn underline"
-                    >
+                    <button type="button" @click="tiptapCommand('footer', 'underline')" class="toolbar-btn underline">
                         U
                     </button>
 
                     <span class="toolbar-divider"></span>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('footer', 'alignLeft')"
-                        class="toolbar-btn"
-                    >
+                    <button type="button" @click="tiptapCommand('footer', 'alignLeft')" class="toolbar-btn">
                         ≡
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('footer', 'alignCenter')"
-                        class="toolbar-btn"
-                    >
+                    <button type="button" @click="tiptapCommand('footer', 'alignCenter')" class="toolbar-btn">
                         ≡
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('footer', 'alignRight')"
-                        class="toolbar-btn"
-                    >
+                    <button type="button" @click="tiptapCommand('footer', 'alignRight')" class="toolbar-btn">
                         ≡
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('footer', 'alignJustify')"
-                        class="toolbar-btn"
-                    >
+                    <button type="button" @click="tiptapCommand('footer', 'alignJustify')" class="toolbar-btn">
                         ≡
                     </button>
 
                     <span class="toolbar-divider"></span>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('footer', 'bulletList')"
-                        class="toolbar-btn"
-                    >
+                    <button type="button" @click="tiptapCommand('footer', 'bulletList')" class="toolbar-btn">
                         •
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('footer', 'orderedList')"
-                        class="toolbar-btn"
-                    >
+                    <button type="button" @click="tiptapCommand('footer', 'orderedList')" class="toolbar-btn">
                         1.
                     </button>
 
-                    <button
-                        type="button"
-                        @click="tiptapCommand('footer', 'clear')"
-                        class="toolbar-btn"
-                    >
+                    <button type="button" @click="tiptapCommand('footer', 'clear')" class="toolbar-btn">
                         Tx
                     </button>
 
                 </div>
 
 
-                <div
-                    x-ref="footerEditor"
-                    class="tiptap-editor min-h-[160px] p-5"
-                ></div>
+                <div x-ref="footerEditor" class="tiptap-editor min-h-[160px] p-5"></div>
 
             </div>
 

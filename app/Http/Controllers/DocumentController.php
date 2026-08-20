@@ -256,7 +256,14 @@ class DocumentController extends Controller
             abort(404, 'Template tidak ditemukan.');
         }
 
-        return response()->json($templates[$template]);
+        $data = $templates[$template];
+
+        if (preg_match('/^([A-Z]+)\//', $data['header_data']['nomorSurat'], $m)) {
+            $prefix = $m[1];
+            $data['header_data']['nomorSurat'] = $this->nextDocumentNumber($prefix);
+        }
+
+        return response()->json($data);
     }
 
     public function uploadLogo(Request $request)
@@ -348,7 +355,6 @@ class DocumentController extends Controller
             $pdf = $parser->parseFile($file->getRealPath());
             $text = $pdf->getText();
             $text = str_replace(["\r\n", "\r"], "\n", $text);
-
             $blocks = preg_split('/\n\s*\n/', trim($text));
             if (count($blocks) <= 1) {
                 $blocks = preg_split('/\n/', trim($text));
@@ -387,5 +393,28 @@ class DocumentController extends Controller
         ]);
 
         return redirect()->route('documents.edit', $document)->with('success', 'Dokumen berhasil diimpor. Cek formatnya sebelum dipakai!');
+    }
+
+    private function nextDocumentNumber(string $prefix): string
+    {
+        $romanMonths = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+        $month = $romanMonths[now()->month - 1];
+        $year = now()->year;
+
+        $maxNumber = Document::where('user_id', Auth::id())
+            ->get()
+            ->map(fn($doc) => $doc->header_data['nomorSurat'] ?? '')
+            ->filter(fn($nomor) => preg_match(
+                '/^'.preg_quote($prefix, '/'). '\/(\d+)\/'.$month.'\/'.$year.'$/',
+                $nomor
+            ))
+            ->map(function ($nomor) {
+                preg_match('/\/(\d+)\//', $nomor, $m);
+                return (int) $m[1];
+            })
+            ->max();
+
+            $next = ($maxNumber ?? 0) + 1;
+            return $prefix.'/'.str_pad($next, 3, '0', STR_PAD_LEFT).'/'.$month.'/'.$year;
     }
 }
