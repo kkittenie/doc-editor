@@ -6,16 +6,13 @@
 
     {{-- TOP BAR --}}
     <div
-        class="editor-topbar sticky top-0 z-40 border-b border-parchment-300 bg-white/95 backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95"
-    >
+        class="editor-topbar sticky top-0 z-40 border-b border-parchment-300 bg-white/95 backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95">
         <div class="flex items-center justify-between px-5 py-3">
 
             {{-- LEFT --}}
             <div class="flex items-center gap-4">
-                <a
-                    href="{{ route('documents') }}"
-                    class="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-parchment-100 dark:hover:bg-slate-warm-800"
-                >
+                <a href="{{ route('documents') }}"
+                    class="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-parchment-100 dark:hover:bg-slate-warm-800">
                     ←
                 </a>
 
@@ -33,41 +30,25 @@
             {{-- RIGHT --}}
             <div class="flex items-center gap-3">
 
-                <button
-                    type="button"
-                    @click="showSignaturePicker = true"
-                    class="toolbar-button"
-                    title="Pilih Tanda Tangan"
-                >
+                <button type="button" @click="showSignaturePicker = true" class="toolbar-button"
+                    title="Pilih Tanda Tangan">
                     <b>TTD</b>
                 </button>
 
-                <span
-                    x-show="saveStatus === 'saving'"
-                    class="text-xs text-slate-warm-500"
-                >
+                <span x-show="saveStatus === 'saving'" class="text-xs text-slate-warm-500">
                     Menyimpan...
                 </span>
 
-                <span
-                    x-show="saveStatus === 'saved'"
-                    class="text-xs text-green-600"
-                >
+                <span x-show="saveStatus === 'saved'" class="text-xs text-green-600">
                     ✓ Tersimpan
                 </span>
 
-                <span
-                    x-show="saveStatus === 'error'"
-                    class="text-xs text-red-600"
-                >
+                <span x-show="saveStatus === 'error'" class="text-xs text-red-600">
                     Gagal menyimpan
                 </span>
 
-                <button
-                    type="button"
-                    @click="saveDocument()"
-                    class="rounded-xl bg-ink-900 px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 dark:bg-bronze-500 dark:text-ink-900"
-                >
+                <button type="button" @click="saveDocument()"
+                    class="rounded-xl bg-ink-900 px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 dark:bg-bronze-500 dark:text-ink-900">
                     Save
                 </button>
 
@@ -75,15 +56,12 @@
         </div>
     </div>
 
-    
-    {{-- TINYMCE TOOLBAR --}}
-    <div
-        id="body-toolbar-container"
-        class="sticky top-[57px] z-30"
-        style="display:flex; flex-direction:row; align-items:center;"
-    ></div>
 
-    
+    {{-- TINYMCE TOOLBAR --}}
+    <div id="body-toolbar-container" class="sticky top-[57px] z-30"
+        style="display:flex; flex-direction:row; align-items:center;"></div>
+
+
     {{-- DOCUMENT AREA --}}
     <main class="documentPrintArea bg-slate-100 px-4 py-10 dark:bg-slate-warm-950">
 
@@ -94,91 +72,58 @@
                 <div class="document-page relative flex min-h-[1123px] w-full flex-col bg-white shadow-xl">
 
                     {{-- PAGE INFO BAR --}}
-                    <div
-                        class="flex items-center justify-between px-6 pt-3 text-xs text-slate-400 print:hidden"
-                    >
-                        <span
-                            x-text="'Halaman ' + (index + 1) + ' dari ' + pages.length"
-                        ></span>
+                    <div class="flex items-center justify-between px-6 pt-3 text-xs text-slate-400 print:hidden">
+                        <span x-text="'Halaman ' + (index + 1) + ' dari ' + pages.length"></span>
 
-                        <button
-                            type="button"
-                            x-show="pages.length > 1"
-                            @click="removePage(index)"
-                            class="text-red-500 hover:underline"
-                        >
+                        <button type="button" x-show="pages.length > 1" @click="removePage(index)"
+                            class="text-red-500 hover:underline">
                             Hapus Halaman Ini
                         </button>
                     </div>
 
                     {{-- HEADER / KOP SURAT --}}
-                    <div
-                        x-show="index === 0"
-                        class="document-header relative px-[80px] pt-[20px] text-black"
-                    >
+                    <div x-show="index === 0" class="document-header relative px-[80px] pt-[20px] text-black">
                         {!! $document->header_data['content'] ?? '' !!}
 
                         <div class="mt-4 border-b-2 border-black"></div>
                     </div>
 
                     {{-- PENANDA HALAMAN LANJUTAN --}}
-                    <div
-                        x-show="index > 0"
-                        class="px-[80px] pt-[40px] text-xs italic text-slate-400"
-                    >
+                    <div x-show="index > 0" class="px-[80px] pt-[40px] text-xs italic text-slate-400">
                         ...lanjutan halaman
                         <span x-text="index + 1"></span>
                     </div>
 
                     {{-- BODY EDITOR --}}
-                    <div class="flex-1 px-[80px] pt-6 pb-4"
-                        @click.self="focusPageEditor(page.uid)">
-                        <div
-                            :id="'document-editor-' + page.uid"
-                            class="document-body"
-                        ></div>
+                    <div class="flex-1 px-[80px] pt-6 pb-4" @click.self="focusPageEditor(page.uid)">
+                        <div :id="'document-editor-' + page.uid" class="document-body"></div>
                     </div>
 
                     {{-- FOOTER --}}
-                    <div 
-                        x-show="index === pages.length -1"
-                        class="px-[80px] pb-20 text-sm text-black">
-                            {!! $document->footer_data['content'] ?? '' !!}
+                    <div x-show="index === pages.length -1" class="px-[80px] pb-20 text-sm text-black">
+                        {!! $document->footer_data['content'] ?? '' !!}
                     </div>
 
                     {{-- DRAGGABLE SIGNATURE --}}
                     <template x-if="index === pages.length - 1 && selectedSignature">
 
-                        <div
-                            class="absolute z-30 cursor-move select-none"
+                        <div class="absolute z-30 cursor-move select-none"
                             :style="`left: ${signatureX}px; top: ${signatureY}px;`"
-                            @mousedown="startDragSignature($event)"
-                            @mousemove.window="dragSignature($event)"
-                            @mouseup.window="stopDragSignature()"
-                        >
+                            @mousedown="startDragSignature($event)" @mousemove.window="dragSignature($event)"
+                            @mouseup.window="stopDragSignature()">
 
-                            <div
-                                class="relative rounded-lg border-2 border-transparent p-1"
-                                :class="
+                            <div class="relative rounded-lg border-2 border-transparent p-1" :class="
                                     isDraggingSignature
                                         ? 'border-blue-500 bg-blue-50/20'
                                         : 'hover:border-blue-300'
-                                "
-                            >
+                                ">
 
                                 {{-- GAMBAR DARI DATABASE --}}
-                                <img
-                                    :src="selectedSignature"
-                                    alt="Tanda Tangan"
-                                    draggable="false"
-                                    class="pointer-events-none max-h-20 max-w-[180px] object-contain"
-                                >
+                                <img :src="selectedSignature" alt="Tanda Tangan" draggable="false"
+                                    class="pointer-events-none max-h-20 max-w-[180px] object-contain">
 
                                 {{-- HAPUS TTD DARI DOKUMEN --}}
-                                <button
-                                    type="button"
-                                    @mousedown.stop
-                                    @click.stop="
+                                <button type="button" @mousedown.stop @click.stop="
                                         selectedSignature = null;
                                         selectedSignatureId = null;
                                         signatureX = 500;
@@ -186,8 +131,7 @@
                                         markAsChanged();
                                     "
                                     class="absolute -right-3 -top-3 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow hover:bg-red-600"
-                                    title="Hapus Tanda Tangan"
-                                >
+                                    title="Hapus Tanda Tangan">
                                     ×
                                 </button>
 
@@ -204,11 +148,8 @@
             {{-- TAMBAH HALAMAN --}}
             <div class="flex justify-center print:hidden">
 
-                <button
-                    type="button"
-                    @click="addPage()"
-                    class="inline-flex items-center gap-2 rounded-xl border border-dashed border-parchment-400 bg-white px-5 py-2.5 text-sm font-medium text-ink-900 hover:bg-parchment-50 dark:border-slate-warm-600 dark:bg-slate-warm-900 dark:text-parchment-100"
-                >
+                <button type="button" @click="addPage()"
+                    class="inline-flex items-center gap-2 rounded-xl border border-dashed border-parchment-400 bg-white px-5 py-2.5 text-sm font-medium text-ink-900 hover:bg-parchment-50 dark:border-slate-warm-600 dark:bg-slate-warm-900 dark:text-parchment-100">
                     + Tambah Halaman
                 </button>
 
@@ -218,17 +159,11 @@
     </main>
 
     {{-- SIGNATURE PICKER --}}
-    <div
-        x-show="showSignaturePicker"
-        x-cloak
+    <div x-show="showSignaturePicker" x-cloak
         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4"
-        @click.self="showSignaturePicker = false"
-    >
+        @click.self="showSignaturePicker = false">
 
-        <div
-            class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-warm-900"
-            @click.stop
-        >
+        <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-warm-900" @click.stop>
 
             {{-- HEADER --}}
             <div class="mb-5 flex items-center justify-between">
@@ -243,11 +178,8 @@
                     </p>
                 </div>
 
-                <button
-                    type="button"
-                    @click="showSignaturePicker = false"
-                    class="text-xl text-slate-warm-400 hover:text-slate-warm-700"
-                >
+                <button type="button" @click="showSignaturePicker = false"
+                    class="text-xl text-slate-warm-400 hover:text-slate-warm-700">
                     ×
                 </button>
 
@@ -262,10 +194,8 @@
                         Belum ada tanda tangan tersimpan.
                     </p>
 
-                    <a
-                        href="{{ route('signatures') }}"
-                        class="mt-3 inline-block text-xs font-semibold text-ink-900 hover:underline"
-                    >
+                    <a href="{{ route('signatures') }}"
+                        class="mt-3 inline-block text-xs font-semibold text-ink-900 hover:underline">
                         Kelola Tanda Tangan
                     </a>
 
@@ -274,19 +204,11 @@
             </template>
 
             {{-- SIGNATURE DATABASE LIST --}}
-            <div
-                x-show="signatures.length > 0"
-                class="grid max-h-[400px] gap-3 overflow-y-auto"
-            >
+            <div x-show="signatures.length > 0" class="grid max-h-[400px] gap-3 overflow-y-auto">
 
-                <template
-                    x-for="signature in signatures"
-                    :key="signature.id"
-                >
+                <template x-for="signature in signatures" :key="signature.id">
 
-                    <button
-                        type="button"
-                        @click="
+                    <button type="button" @click="
                             selectedSignature = signature.url;
                             selectedSignatureId = signature.id;
                             signatureX = 500;
@@ -294,27 +216,21 @@
                             showSignaturePicker = false;
                             markAsChanged();
                         "
-                        class="group w-full rounded-xl border border-parchment-300 p-4 text-left transition hover:border-ink-900 hover:bg-parchment-50 dark:border-slate-warm-700 dark:hover:bg-slate-warm-800"
-                    >
+                        class="group w-full rounded-xl border border-parchment-300 p-4 text-left transition hover:border-ink-900 hover:bg-parchment-50 dark:border-slate-warm-700 dark:hover:bg-slate-warm-800">
 
                         <div class="flex items-center gap-4">
 
                             {{-- PREVIEW TTD DATABASE --}}
                             <div class="flex h-20 w-32 items-center justify-center rounded-lg border bg-white p-2">
-                                <img
-                                    :src="signature.url"
-                                    :alt="signature.name"
-                                    class="max-h-full max-w-full object-contain"
-                                >
+                                <img :src="signature.url" :alt="signature.name"
+                                    class="max-h-full max-w-full object-contain">
                             </div>
 
                             {{-- INFO TTD --}}
                             <div class="flex-1">
 
-                                <div
-                                    class="text-sm font-semibold text-ink-900 dark:text-parchment-100"
-                                    x-text="signature.name"
-                                ></div>
+                                <div class="text-sm font-semibold text-ink-900 dark:text-parchment-100"
+                                    x-text="signature.name"></div>
 
                                 <div class="mt-1 text-xs text-slate-warm-500">
                                     Klik untuk memilih tanda tangan ini
@@ -323,10 +239,8 @@
                             </div>
 
                             {{-- CHECK --}}
-                            <div
-                                x-show="selectedSignatureId === signature.id"
-                                class="flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-xs font-bold text-white"
-                            >
+                            <div x-show="selectedSignatureId === signature.id"
+                                class="flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-xs font-bold text-white">
                                 ✓
                             </div>
 
@@ -450,7 +364,7 @@
         padding: 0;
     }
 
-    .document-body p + p {
+    .document-body p+p {
         margin-top: 4px;
     }
 
@@ -482,12 +396,12 @@
     }
 
     /* HEADING PERTAMA JANGAN TERLALU TURUN */
-    .document-body > h1:first-child,
-    .document-body > h2:first-child,
-    .document-body > h3:first-child,
-    .document-body > h4:first-child,
-    .document-body > h5:first-child,
-    .document-body > h6:first-child {
+    .document-body>h1:first-child,
+    .document-body>h2:first-child,
+    .document-body>h3:first-child,
+    .document-body>h4:first-child,
+    .document-body>h5:first-child,
+    .document-body>h6:first-child {
         margin-top: 0;
     }
 
@@ -588,13 +502,13 @@
         max-height: 70px !important;
     }
 
-    .document-header img.drag-image ~ p,
-    .document-header img.drag-image ~ h1,
-    .document-header img.drag-image ~ h2,
-    .document-header img.drag-image ~ h3,
-    .document-header img.drag-image ~ h4,
-    .document-header img.drag-image ~ h5,
-    .document-header img.drag-image ~ h6 {
+    .document-header img.drag-image~p,
+    .document-header img.drag-image~h1,
+    .document-header img.drag-image~h2,
+    .document-header img.drag-image~h3,
+    .document-header img.drag-image~h4,
+    .document-header img.drag-image~h5,
+    .document-header img.drag-image~h6 {
         position: relative;
         z-index: 2;
         margin-left: 190px;
@@ -671,6 +585,7 @@
             print-color-adjust: exact !important;
         }
     }
+
     /* =========================================
     IMAGE RESIZE - MS WORD STYLE
     ========================================= */
@@ -741,6 +656,14 @@
     }
 
 
+    #body-toolbar-container > * {
+        display: none !important;
+    }
+
+    #body-toolbar-container > .active-page-toolbar {
+        display: flex !important;
+    }
+
     /* =========================================
     GROUP
     ========================================= */
@@ -791,7 +714,7 @@
         justify-content: center !important;
 
         padding: 0 !important;
-        
+
         /* Memberikan jarak tipis di kiri-kanan tombol individu */
         margin: 0 2px !important;
 
@@ -940,7 +863,6 @@
             min-width: 105px !important;
         }
     }
-
 </style>
 @endpush
 
@@ -950,26 +872,26 @@
     function wordDocumentEditor() {
         return {
 
-            documentId: @js($document->id),
+            documentId: @js($document -> id),
 
             // Semua TTD berasal dari database
             signatures: @js($signatures ?? []),
 
             // TTD yang sedang dipakai dokumen
             selectedSignature: @js(
-                $document->signature_data['signatureUrl'] ?? null
+                $document -> signature_data['signatureUrl'] ?? null
             ),
 
             selectedSignatureId: @js(
-                $document->signature_data['signatureId'] ?? null
+                $document -> signature_data['signatureId'] ?? null
             ),
 
             signatureX: @js(
-                $document->signature_data['signatureX'] ?? 500
+                $document -> signature_data['signatureX'] ?? 500
             ),
 
             signatureY: @js(
-                $document->signature_data['signatureY'] ?? 650
+                $document -> signature_data['signatureY'] ?? 650
             ),
 
             showSignaturePicker: false,
@@ -1005,14 +927,14 @@
             //     direction: null
             // },
 
-            
+
             // PAGES
-            
+
 
             pages: (
                 @js(
-                    $document->body_content['pages']
-                    ?? [$document->body_content['content'] ?? '']
+                    $document -> body_content['pages']
+                    ?? [$document -> body_content['content'] ?? '']
                 )
             ).map((html, i) => ({
                 uid: 'page-' + i,
@@ -1021,44 +943,21 @@
 
             pageSeq: (
                 @js(
-                    $document->body_content['pages']
-                    ?? [$document->body_content['content'] ?? '']
+                    $document -> body_content['pages']
+                    ?? [$document -> body_content['content'] ?? '']
                 )
             ).length,
 
-            
+
             // INIT
-            
+
 
             init() {
 
                 this.$nextTick(() => {
 
-                    
-                    // INIT TOOLBAR
-                    
-
-                    const toolbar =
-                        document.getElementById(
-                            'body-toolbar-container'
-                        );
-
-                    if (
-                        toolbar &&
-                        typeof window.createTiptapToolbar === 'function'
-                    ) {
-
-                        window.createTiptapToolbar(
-                            toolbar,
-                            () => this.getActiveEditorId()
-                        );
-
-                    }
-
-
-                    
                     // INIT SEMUA PAGE EDITOR
-                    
+
 
                     this.pages.forEach((page) => {
 
@@ -1071,9 +970,9 @@
 
                 });
 
-                
+
                 // CTRL + S
-                
+
 
                 document.addEventListener(
                     'keydown',
@@ -1094,16 +993,11 @@
 
             },
 
-            
+
             // INIT EDITOR
-            
+
 
             initPageEditor(uid, content) {
-
-                if (typeof window.createTiptapEditor !== 'function') {
-                    console.error('createTiptapEditor tidak ditemukan');
-                    return;
-                }
 
                 const editorId = 'document-editor-' + uid;
 
@@ -1114,23 +1008,13 @@
                     return;
                 }
 
-                window.createTiptapEditor(
-                    editorId,
-                    element,
-                    content || '',
-                    (html) => {
-
-                        const page = this.pages.find(
-                            p => p.uid === uid
-                        );
-
-                        if (page) {
-                            page.html = html;
-                        }
-
-                        this.markAsChanged();
+                window.initBodyEditor('#' + editorId, content || '', (html) => {
+                    const page = this.pages.find(p => p.uid === uid);
+                    if (page) {
+                        page.html = html;
                     }
-                );
+                    this.markAsChanged();
+                });
 
                 element.addEventListener('focusin', () => {
                     this.activePageUid = uid;
@@ -1143,13 +1027,15 @@
 
             focusPageEditor(uid) {
                 const editorId = 'document-editor-' + uid;
-                const editor = window.tiptapEditors?.[editorId];
-                if (!editor) return;
+const editor = tinymce.get(editorId);
+if (!editor) return;
 
-                editor.chain().focus('end').run();
+editor.focus();
+editor.selection.select(editor.getBody(), true);
+editor.selection.collapse(false);
             },
 
-            
+
             // CHANGE STATUS
             getActiveEditorId() {
 
@@ -1168,11 +1054,7 @@
                     return;
                 }
 
-                window.tiptapCommand?.(
-                    editorId,
-                    command,
-                    ...args
-                );
+                tinymce.get(editorId)?.execCommand(command, false, args[0]);
             },
 
             markAsChanged() {
@@ -1180,9 +1062,9 @@
                 this.saveStatus = 'idle';
             },
 
-            
+
             // ADD PAGE
-            
+
 
             addPage() {
 
@@ -1211,9 +1093,9 @@
                 });
             },
 
-            
+
             // REMOVE PAGE
-            
+
 
             async removePage(index) {
 
@@ -1243,18 +1125,16 @@
                     return;
                 }
 
-                window.destroyTiptapEditor?.(
-                    'document-editor-' + this.pages[index].uid
-                );
+                tinymce.get('document-editor-' + this.pages[index].uid);
 
                 this.pages.splice(index, 1);
 
                 this.markAsChanged();
             },
 
-            
+
             // DRAG SIGNATURE
-            
+
 
             startDragSignature(event) {
 
@@ -1366,9 +1246,9 @@
                 this.markAsChanged();
             },
 
-            
+
             // KEYDOWN
-            
+
 
             handleKeydown(event) {
 
@@ -1392,24 +1272,20 @@
                 const pagesHtml =
                     this.pages.map((page) => {
 
-                        const html =
-                            window.getTiptapHTML?.(
-                                'document-editor-' + page.uid
-                            );
-
+                        const html =  tinymce.get('document-editor-' + page.uid)?.getContent();
                         return html ?? page.html ?? '';
                     });
 
                 const payload = {
 
-                    title: @js($document->title),
+                    title: @js($document -> title),
 
                     type: @js(
-                        $document->type ?? 'surat'
+                        $document -> type ?? 'surat'
                     ),
 
                     header_data: @js(
-                        $document->header_data ?? []
+                        $document -> header_data ?? []
                     ),
 
                     body_content: {
@@ -1417,7 +1293,7 @@
                     },
 
                     footer_data: @js(
-                        $document->footer_data ?? []
+                        $document -> footer_data ?? []
                     ),
 
                     signature_data: {
@@ -1468,11 +1344,8 @@
                     this.pages.map((page) => {
 
                         const html =
-                            window.getTiptapHTML?.(
-                                'document-editor-' + page.uid
-                            );
-
-                        return html ?? page.html ?? '';
+                            tinymce.get('document-editor-' + page.uid)?.getContent();
+                            return html ?? page.html ?? '';
                     });
 
                 const payload = {
@@ -1480,11 +1353,11 @@
                     title: newTitle,
 
                     type: @js(
-                        $document->type ?? 'surat'
+                        $document -> type ?? 'surat'
                     ),
 
                     header_data: @js(
-                        $document->header_data ?? []
+                        $document -> header_data ?? []
                     ),
 
                     body_content: {
@@ -1492,7 +1365,7 @@
                     },
 
                     footer_data: @js(
-                        $document->footer_data ?? []
+                        $document -> footer_data ?? []
                     ),
 
                     signature_data: {
@@ -1662,7 +1535,7 @@
 
                                                 inputValue:
                                                     @js(
-                                                        ($document->title ?? 'Dokumen') .
+                                                        ($document -> title ?? 'Dokumen').
                                                         ' (Salinan)'
                                                     ),
 
@@ -1752,7 +1625,7 @@
                                 console.error(err);
                             }
 
-                        // BUANG PERUBAHAN
+                            // BUANG PERUBAHAN
                         } else if (result.isDenied) {
 
                             window.hasUnsavedChanges =

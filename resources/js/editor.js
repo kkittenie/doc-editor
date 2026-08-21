@@ -10,6 +10,11 @@ import 'tinymce/plugins/lists';
 import 'tinymce/plugins/link';
 import 'tinymce/plugins/table';
 import 'tinymce/plugins/image';
+import 'tinymce/plugins/code';
+import 'tinymce/plugins/fullscreen';
+import 'tinymce/plugins/charmap';
+import 'tinymce/plugins/searchreplace';
+import 'tinymce/plugins/visualblocks';
 
 // Skin & content css (self-hosted)
 import 'tinymce/skins/ui/oxide/skin.css';
@@ -195,15 +200,17 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
         branding: false,
         statusbar: false,
 
-        plugins: 'lists link table image',
+            plugins: 'lists link table image code fullscreen charmap searchreplace visualblocks',
 
-        toolbar:
-            'undo redo | blocks | fontfamily fontsize | ' +
-            'bold italic underline | ' +
-            'forecolor backcolor | ' +
-            'alignleft aligncenter alignright alignjustify | ' +
-            'outdent indent | bullist numlist | ' +
-            'table link image hr | removeformat',
+            toolbar:
+                    'undo redo | blocks | fontfamily fontsizeinput | ' +
+                    'bold italic underline strikethrough | ' +
+                    'forecolor backcolor | ' +
+                    'alignleft aligncenter alignright alignjustify | ' +
+                    'outdent indent | bullist numlist | ' +
+                    'superscript subscript | ' +
+                    'table link image charmap hr | ' +
+                    'searchreplace removeformat code fullscreen',
 
         toolbar_mode: 'wrap',
 
@@ -265,6 +272,20 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
                 if (container) {
                     container.style.maxWidth = '100%';
                     container.style.width = '100%';
+                }
+            });
+
+            editor.on('focus', function() {
+                const wrapper = document.getElementById('body-toolbar-container');
+                if (!wrapper) return;
+
+                Array.from(wrapper.children).forEach((child) => {
+                    child.classList.remove('active-page-toolbar');
+                });
+
+                const container = editor.getContainer();
+                if (container) {
+                    container.classList.add('active-page-toolbar');
                 }
             });
 
