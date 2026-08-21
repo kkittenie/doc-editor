@@ -1,4 +1,3 @@
- blade
 @extends('layouts.app')
 
 @section('content')
@@ -6,60 +5,35 @@
 <div
     x-data="{
         loadingTemplate: null,
-        isUploadingLogo: false,
 
         headerHtml: '<p></p>',
         footerHtml: '<p></p>',
         bodyHtml: '<p></p>',
 
-        headerEditor: null,
-        footerEditor: null,
-
         init() {
             this.$nextTick(() => {
-                this.initTiptapEditors();
+                this.initTinyMCEditors();
             });
         },
 
-        initTiptapEditors() {
+        initTinyMCEditors() {
 
-            // ==========================================
-            // HEADER
-            // ==========================================
+            if (typeof window.initDocumentEditor === 'function') {
 
-            if (
-                this.$refs.headerEditor &&
-                typeof window.createTiptapEditor === 'function'
-            ) {
-
-                this.headerEditor = window.createTiptapEditor(
-                    'header',
-                    this.$refs.headerEditor,
+                // HEADER (boleh upload & drag logo)
+                window.initDocumentEditor(
+                    '#header',
                     '<p></p>',
-                    (html) => {
-                        this.headerHtml = html;
-                    }
+                    true
                 );
-            }
 
-
-            // ==========================================
-            // FOOTER
-            // ==========================================
-
-            if (
-                this.$refs.footerEditor &&
-                typeof window.createTiptapEditor === 'function'
-            ) {
-
-                this.footerEditor = window.createTiptapEditor(
-                    'footer',
-                    this.$refs.footerEditor,
+                // FOOTER (tanpa logo)
+                window.initDocumentEditor(
+                    '#footer',
                     '<p></p>',
-                    (html) => {
-                        this.footerHtml = html;
-                    }
+                    false
                 );
+
             }
 
         },
@@ -75,8 +49,10 @@
 
             this.headerHtml = html;
 
-            if (typeof window.setTiptapHTML === 'function') {
-                window.setTiptapHTML('header', html);
+            const editor = window.tinymce?.get('header');
+
+            if (editor) {
+                editor.setContent(html);
             }
 
         },
@@ -92,8 +68,10 @@
 
             this.footerHtml = html;
 
-            if (typeof window.setTiptapHTML === 'function') {
-                window.setTiptapHTML('footer', html);
+            const editor = window.tinymce?.get('footer');
+
+            if (editor) {
+                editor.setContent(html);
             }
 
         },
@@ -192,116 +170,20 @@
 
 
         // ==========================================
-        // UPLOAD LOGO
-        // ==========================================
-
-        uploadLogo(event) {
-
-            const file =
-                event.target.files?.[0];
-
-            if (!file) {
-                return;
-            }
-
-            this.isUploadingLogo = true;
-
-            const reader =
-                new FileReader();
-
-            reader.onload = async (e) => {
-
-                try {
-
-                    const res =
-                        await window.axios.post(
-                            '/documents/logo',
-                            {
-                                image: e.target.result
-                            }
-                        );
-
-
-                    // Fokus ke header
-                    if (this.headerEditor) {
-
-                        this.headerEditor
-                            .chain()
-                            .focus()
-                            .setImage({
-                                src: res.data.url
-                            })
-                            .run();
-
-                    }
-
-                } catch (err) {
-
-                    console.error(err);
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: 'Gagal mengunggah logo.',
-                        confirmButtonColor: '#1B2A4A'
-                    });
-
-                } finally {
-
-                    this.isUploadingLogo = false;
-
-                    event.target.value = '';
-
-                }
-
-            };
-
-            reader.readAsDataURL(file);
-
-        },
-
-
-        // ==========================================
-        // COMMAND TIPTAP
-        // ==========================================
-
-        command(editorName, commandName, value = null) {
-
-            if (
-                typeof window.tiptapCommand !== 'function'
-            ) {
-                console.warn(
-                    'window.tiptapCommand belum tersedia.'
-                );
-
-                return;
-            }
-
-            window.tiptapCommand(
-                editorName,
-                commandName,
-                value
-            );
-
-        },
-
-
-        // ==========================================
         // SYNC BEFORE SUBMIT
         // ==========================================
 
         syncBeforeSubmit() {
 
-            if (typeof window.getTiptapHTML === 'function') {
+            const headerEditor = window.tinymce?.get('header');
+            const footerEditor = window.tinymce?.get('footer');
 
-                this.headerHtml =
-                    window.getTiptapHTML('header')
-                    || this.headerHtml;
+            if (headerEditor) {
+                this.headerHtml = headerEditor.getContent();
+            }
 
-                this.footerHtml =
-                    window.getTiptapHTML('footer')
-                    || this.footerHtml;
-
+            if (footerEditor) {
+                this.footerHtml = footerEditor.getContent();
             }
 
 
@@ -572,237 +454,12 @@
                 dark:bg-slate-warm-900"
             >
 
+                {{-- EDITOR HEADER (TinyMCE) --}}
 
-                {{-- TOOLBAR HEADER --}}
-
-                <div
-                    class="flex flex-wrap items-center gap-1
-                    border-b border-parchment-300
-                    bg-parchment-50 p-2
-                    dark:border-slate-warm-700
-                    dark:bg-slate-warm-800"
-                >
-
-                    <button
-                        type="button"
-                        @click="command('header', 'undo')"
-                        class="toolbar-btn"
-                        title="Undo"
-                    >
-                        ↶
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('header', 'redo')"
-                        class="toolbar-btn"
-                        title="Redo"
-                    >
-                        ↷
-                    </button>
-
-
-                    <span class="toolbar-divider"></span>
-
-
-                    <select
-                        @change="
-                            $event.target.value === 'paragraph'
-                            ? command('header', 'paragraph')
-                            : command(
-                                'header',
-                                'heading',
-                                $event.target.value
-                            )
-                        "
-                        class="toolbar-select"
-                    >
-
-                        <option value="paragraph">
-                            Normal
-                        </option>
-
-                        <option value="1">
-                            Heading 1
-                        </option>
-
-                        <option value="2">
-                            Heading 2
-                        </option>
-
-                        <option value="3">
-                            Heading 3
-                        </option>
-
-                    </select>
-
-
-                    <button
-                        type="button"
-                        @click="command('header', 'bold')"
-                        class="toolbar-btn font-bold"
-                        title="Bold"
-                    >
-                        B
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('header', 'italic')"
-                        class="toolbar-btn italic"
-                        title="Italic"
-                    >
-                        I
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('header', 'underline')"
-                        class="toolbar-btn underline"
-                        title="Underline"
-                    >
-                        U
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('header', 'strike')"
-                        class="toolbar-btn line-through"
-                        title="Strike"
-                    >
-                        S
-                    </button>
-
-
-                    <span class="toolbar-divider"></span>
-
-
-                    <button
-                        type="button"
-                        @click="command('header', 'alignLeft')"
-                        class="toolbar-btn"
-                        title="Rata kiri"
-                    >
-                        ≡
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('header', 'alignCenter')"
-                        class="toolbar-btn"
-                        title="Rata tengah"
-                    >
-                        ≡
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('header', 'alignRight')"
-                        class="toolbar-btn"
-                        title="Rata kanan"
-                    >
-                        ≡
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('header', 'alignJustify')"
-                        class="toolbar-btn"
-                        title="Justify"
-                    >
-                        ≡
-                    </button>
-
-
-                    <span class="toolbar-divider"></span>
-
-
-                    <button
-                        type="button"
-                        @click="command('header', 'bulletList')"
-                        class="toolbar-btn"
-                        title="Bullet List"
-                    >
-                        •
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('header', 'orderedList')"
-                        class="toolbar-btn"
-                        title="Numbered List"
-                    >
-                        1.
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('header', 'blockquote')"
-                        class="toolbar-btn"
-                        title="Quote"
-                    >
-                        ❝
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('header', 'horizontalRule')"
-                        class="toolbar-btn"
-                        title="Horizontal line"
-                    >
-                        ―
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('header', 'superscript')"
-                        class="toolbar-btn"
-                        title="Superscript"
-                    >
-                        X²
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('header', 'subscript')"
-                        class="toolbar-btn"
-                        title="Subscript"
-                    >
-                        X₂
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('header', 'clear')"
-                        class="toolbar-btn"
-                        title="Clear formatting"
-                    >
-                        Tx
-                    </button>
-
-                </div>
-
-
-                {{-- EDITOR HEADER --}}
-
-                <div
+                <textarea
                     id="header"
-                    x-ref="headerEditor"
-                    class="tiptap-editor"
-                ></div>
+                    class="w-full"
+                ></textarea>
 
             </div>
 
@@ -827,145 +484,12 @@
                 dark:bg-slate-warm-900"
             >
 
+                {{-- EDITOR FOOTER (TinyMCE) --}}
 
-                {{-- TOOLBAR FOOTER --}}
-
-                <div
-                    class="flex flex-wrap items-center gap-1
-                    border-b border-parchment-300
-                    bg-parchment-50 p-2
-                    dark:border-slate-warm-700
-                    dark:bg-slate-warm-800"
-                >
-
-                    <button
-                        type="button"
-                        @click="command('footer', 'undo')"
-                        class="toolbar-btn"
-                        title="Undo"
-                    >
-                        ↶
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('footer', 'redo')"
-                        class="toolbar-btn"
-                        title="Redo"
-                    >
-                        ↷
-                    </button>
-
-
-                    <span class="toolbar-divider"></span>
-
-
-                    <button
-                        type="button"
-                        @click="command('footer', 'bold')"
-                        class="toolbar-btn font-bold"
-                    >
-                        B
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('footer', 'italic')"
-                        class="toolbar-btn italic"
-                    >
-                        I
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('footer', 'underline')"
-                        class="toolbar-btn underline"
-                    >
-                        U
-                    </button>
-
-
-                    <span class="toolbar-divider"></span>
-
-
-                    <button
-                        type="button"
-                        @click="command('footer', 'alignLeft')"
-                        class="toolbar-btn"
-                    >
-                        ≡
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('footer', 'alignCenter')"
-                        class="toolbar-btn"
-                    >
-                        ≡
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('footer', 'alignRight')"
-                        class="toolbar-btn"
-                    >
-                        ≡
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('footer', 'alignJustify')"
-                        class="toolbar-btn"
-                    >
-                        ≡
-                    </button>
-
-
-                    <span class="toolbar-divider"></span>
-
-
-                    <button
-                        type="button"
-                        @click="command('footer', 'bulletList')"
-                        class="toolbar-btn"
-                    >
-                        •
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('footer', 'orderedList')"
-                        class="toolbar-btn"
-                    >
-                        1.
-                    </button>
-
-
-                    <button
-                        type="button"
-                        @click="command('footer', 'clear')"
-                        class="toolbar-btn"
-                    >
-                        Tx
-                    </button>
-
-                </div>
-
-
-                {{-- EDITOR FOOTER --}}
-
-                <div
+                <textarea
                     id="footer"
-                    x-ref="footerEditor"
-                    class="tiptap-editor"
-                ></div>
+                    class="w-full"
+                ></textarea>
 
             </div>
 
@@ -1000,273 +524,4 @@
 
 </div>
 
-
-<style>
-
-/* ==========================================
-   TIPTAP EDITOR
-========================================== */
-
-.tiptap-editor {
-
-    min-height: 160px;
-
-    padding: 20px;
-
-    outline: none;
-
-    font-family: Arial, sans-serif;
-
-    font-size: 14px;
-
-    line-height: 1.7;
-
-    cursor: text;
-
-}
-
-
-/* ProseMirror adalah editor sebenarnya */
-
-.tiptap-editor .ProseMirror {
-
-    min-height: 120px;
-
-    outline: none;
-
-    cursor: text;
-
-}
-
-
-/* Supaya area kosong tetap bisa diklik */
-
-.tiptap-editor .ProseMirror p {
-
-    min-height: 24px;
-
-    margin: 0 0 8px;
-
-}
-
-
-/* Paragraph */
-
-.tiptap-editor p {
-
-    margin: 0 0 8px;
-
-}
-
-
-/* Heading */
-
-.tiptap-editor h1 {
-
-    font-size: 2em;
-
-    font-weight: 700;
-
-    margin: 16px 0 10px;
-
-}
-
-
-.tiptap-editor h2 {
-
-    font-size: 1.5em;
-
-    font-weight: 700;
-
-    margin: 14px 0 8px;
-
-}
-
-
-.tiptap-editor h3 {
-
-    font-size: 1.25em;
-
-    font-weight: 700;
-
-    margin: 12px 0 8px;
-
-}
-
-
-/* Lists */
-
-.tiptap-editor ul {
-
-    list-style: disc;
-
-    padding-left: 28px;
-
-}
-
-
-.tiptap-editor ol {
-
-    list-style: decimal;
-
-    padding-left: 28px;
-
-}
-
-
-/* Blockquote */
-
-.tiptap-editor blockquote {
-
-    border-left: 3px solid #94a3b8;
-
-    padding-left: 14px;
-
-    margin: 12px 0;
-
-}
-
-
-/* HR */
-
-.tiptap-editor hr {
-
-    border: 0;
-
-    border-top: 1px solid #94a3b8;
-
-    margin: 18px 0;
-
-}
-
-
-/* Link */
-
-.tiptap-editor a {
-
-    color: #2563eb;
-
-    text-decoration: underline;
-
-}
-
-
-/* Image */
-
-.tiptap-editor img {
-
-    max-width: 100%;
-
-    height: auto;
-
-}
-
-
-/* Table */
-
-.tiptap-editor table {
-
-    border-collapse: collapse;
-
-    width: 100%;
-
-}
-
-
-.tiptap-editor th,
-.tiptap-editor td {
-
-    border: 1px solid #94a3b8;
-
-    padding: 8px;
-
-}
-
-
-/* ==========================================
-   TOOLBAR
-========================================== */
-
-.toolbar-btn {
-
-    min-width: 34px;
-
-    height: 34px;
-
-    padding: 0 8px;
-
-    border-radius: 7px;
-
-    display: inline-flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 13px;
-
-    transition:
-        background-color 0.15s ease,
-        transform 0.05s ease;
-
-    user-select: none;
-
-}
-
-
-.toolbar-btn:hover {
-
-    background: #e7e5e4;
-
-}
-
-
-.toolbar-btn:active {
-
-    transform: scale(0.96);
-
-}
-
-
-.dark .toolbar-btn:hover {
-
-    background: #334155;
-
-}
-
-
-.toolbar-select {
-
-    height: 34px;
-
-    border-radius: 7px;
-
-    border: 1px solid #d6d3d1;
-
-    background: white;
-
-    padding: 0 8px;
-
-    font-size: 12px;
-
-    outline: none;
-
-}
-
-
-.toolbar-divider {
-
-    width: 1px;
-
-    height: 24px;
-
-    background: #d6d3d1;
-
-    margin: 0 3px;
-
-}
-
-</style>
-
 @endsection
- 
