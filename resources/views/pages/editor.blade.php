@@ -566,7 +566,36 @@
                     this.markAsChanged();
                     this.renderSignature();
                 });
-            },
+
+                this.$nextTick(() => {
+                    const editor = tinymce.get('document-editor');
+                    if (!editor) return;
+
+                editor.on('keydown', function (e) {
+                    if (e.key !== 'Backspace' && e.key !== 'Delete') return;
+
+                const selection = editor.selection;
+                if (!selection.isCollapsed()) return;
+
+                const rng = selection.getRng();
+                const region = editor.dom.getParent(
+                    rng.startContainer,
+                    '.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer'
+                );
+
+                if (!region) return;
+
+                const isAtStart =
+                    rng.startOffset === 0 &&
+                    (rng.startContainer === region || rng.startContainer === region.firstChild);
+
+                if (e.key === 'Backspace' && isAtStart) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            });
+        });
+    },
 
             // Event delegation untuk tanda tangan di dalam editor TinyMCE
             setupSignatureEvents() {
