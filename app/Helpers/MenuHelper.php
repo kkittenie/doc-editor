@@ -23,11 +23,6 @@ class MenuHelper
                 'path' => '/documents',
             ],
             [
-                'icon' => 'templates',
-                'name' => 'Galeri Template',
-                'path' => '/templates',
-            ],
-            [
                 'icon' => 'signature',
                 'name' => 'Tanda Tangan',
                 'path' => '/signatures',

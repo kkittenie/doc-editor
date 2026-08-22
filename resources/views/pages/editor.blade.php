@@ -741,12 +741,12 @@
 
                     });
 
-                    window.initHeaderFooterEditor('#document-header-editor', (html) => {
+                    window.initBodyEditor('#document-header-editor', this.headerHtml, (html) => {
                         this.headerHtml = html;
                         this.markAsChanged();
                     }, true);
 
-                    window.initHeaderFooterEditor('#document-footer-editor', (html) => {
+                    window.initBodyEditor('#document-footer-editor', this.footerHtml, (html) => {
                         this.footerHtml = html;
                         this.markAsChanged();
                     }, false);

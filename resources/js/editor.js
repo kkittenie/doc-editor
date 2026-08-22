@@ -98,8 +98,7 @@ const enableLogoDragging = (editor) => {
     });
 };
 
-// Helper dipakai bareng-bareng sama initBodyEditor & initHeaderFooterEditor,
-// biar toolbar cuma nampilin punya editor yang lagi difokus.
+
 const registerSharedToolbarVisibility = (editor) => {
     editor.on('init', function () {
         const container = editor.getContainer();
@@ -212,7 +211,7 @@ window.initDocumentEditor = function (selector, initialContent = '', allowLogoUp
     });
 };
 
-window.initBodyEditor = function (selector, initialContent = '', onSync = null) {
+window.initBodyEditor = function (selector, initialContent = '', onSync = null, allowLogoUpload = false) {
 
     tinymce.init({
         selector: selector,
@@ -234,7 +233,7 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
             'alignleft aligncenter alignright alignjustify | ' +
             'outdent indent | bullist numlist | ' +
             'superscript subscript | ' +
-            'table link image charmap hr | ' +
+            `table link image charmap hr kopdivider${allowLogoUpload ? ' uploadlogo' : ''} | ` +
             'searchreplace removeformat code fullscreen',
 
         toolbar_mode: 'wrap',
@@ -245,7 +244,7 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
 
         inline: true,
 
-        object_resizing: false,
+        object_resizing: 'img,table',
 
         content_style: `
             body {
@@ -284,6 +283,53 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
         setup: function (editor) {
 
             registerSharedToolbarVisibility(editor);
+
+            editor.ui.registry.addButton('kopdivider', {
+                icon: 'horizontal-rule',
+                text: '===',
+                tooltip: 'Sisipkan garis pembatas kop surat',
+                onAction: () => {
+                    editor.insertContent(
+                        '<hr class="kop-divider" style="border:none;border-top:2px solid #1B2A4A;margin:8px 0;" />'
+                    );
+                },
+            });
+
+            if (allowLogoUpload) {
+                editor.ui.registry.addButton('uploadlogo', {
+                    icon: 'image',
+                    text: 'Logo',
+                    tooltip: 'Unggah logo dari perangkat',
+                    onAction: () => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/png,image/jpeg,image/svg+xml';
+
+                        input.addEventListener('change', async () => {
+                            const file = input.files?.[0];
+                            if (!file) return;
+
+                            editor.setProgressState(true);
+                            try {
+                                const url = await uploadLogo(file);
+                                editor.insertContent(`<img src="${url}" style="max-width:150px;max-height:70px;" />`);
+                            } catch (error) {
+                                window.Swal?.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: 'Gagal mengunggah gambar.',
+                                    confirmButtonColor: '#1B2A4A',
+                                });
+                                console.error(error);
+                            } finally {
+                                editor.setProgressState(false);
+                            }
+                        });
+
+                        input.click();
+                    },
+                });
+            }
 
             editor.on('init', function () {
 
@@ -328,84 +374,6 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
                         img.addEventListener('dragstart', (e) => e.preventDefault());
                     });
             });
-
-            editor.on('change keyup undo redo', function () {
-                editor.save();
-                if (typeof onSync === 'function') {
-                    onSync(editor.getContent());
-                }
-            });
-        }
-    });
-};
-
-// Dipakai buat editor Header & Footer LANGSUNG di Studio Editor.
-window.initHeaderFooterEditor = function (selector, onSync = null, allowLogoUpload = false) {
-
-    tinymce.init({
-        selector: selector,
-        license_key: 'gpl',
-        menubar: false,
-        branding: false,
-        statusbar: false,
-
-        plugins: 'lists link image',
-
-        toolbar: `undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | link image${allowLogoUpload ? ' uploadlogo' : ''} | removeformat`,
-
-        toolbar_mode: 'wrap',
-        fixed_toolbar_container: '#body-toolbar-container',
-        toolbar_persist: true,
-
-        inline: true,
-        object_resizing: false,
-
-        content_style: 'body { font-family: Arial, sans-serif; font-size: 14px; }',
-
-        skin: false,
-        content_css: false,
-
-        images_upload_handler: imagesUploadHandler,
-
-        setup: function (editor) {
-
-            registerSharedToolbarVisibility(editor);
-
-            if (allowLogoUpload) {
-                editor.ui.registry.addButton('uploadlogo', {
-                    icon: 'image',
-                    text: 'Logo',
-                    tooltip: 'Unggah logo dari perangkat',
-                    onAction: () => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/png,image/jpeg,image/svg+xml';
-
-                        input.addEventListener('change', async () => {
-                            const file = input.files?.[0];
-                            if (!file) return;
-
-                            editor.setProgressState(true);
-                            try {
-                                const url = await uploadLogo(file);
-                                editor.insertContent(`<img src="${url}" style="max-width:150px;max-height:70px;" />`);
-                            } catch (error) {
-                                window.Swal?.fire({
-                                    icon: 'error',
-                                    title: 'Gagal',
-                                    text: 'Gagal mengunggah gambar.',
-                                    confirmButtonColor: '#1B2A4A',
-                                });
-                                console.error(error);
-                            } finally {
-                                editor.setProgressState(false);
-                            }
-                        });
-
-                        input.click();
-                    },
-                });
-            }
 
             editor.on('change keyup undo redo', function () {
                 editor.save();

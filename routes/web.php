@@ -10,8 +10,6 @@ use App\Http\Controllers\ProfileController;
 // Protected Routes
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/templates', fn() => view('pages.templates', ['title' => 'Galeri Template Dokumen']))->name('templates');
-    Route::get('/templates/{template}', [DocumentController::class, 'createFromTemplate'])->name('templates.use');
     Route::get('/', [DocumentController::class, 'chooseStart'])->name('editor.start');
     Route::get('/documents/new', [DocumentController::class, 'create'])->name('documents.create');
     Route::post('/documents/import', [DocumentController::class, 'importDocument'])->name('documents.import');
