@@ -48,7 +48,6 @@
     class="max-w-4xl mx-auto py-8"
 >
 
-
     {{-- ========================================== --}}
     {{-- TITLE --}}
     {{-- ========================================== --}}
@@ -58,58 +57,19 @@
             Buat Dokumen Baru
         </h1>
         <p class="mt-2 text-sm text-slate-warm-600 dark:text-parchment-400">
-            Isi judul & nomor dokumen, atau pakai template cepat di bawah. Kop surat, isi,
-            dan footer ditulis bebas nanti di halaman editor.
+            Isi judul & nomor dokumen, lalu pilih template. Kop surat, isi, dan footer
+            ditulis bebas nanti di halaman editor.
         </p>
     </div>
-
-
-    {{-- ========================================== --}}
-    {{-- QUICK TEMPLATE (persis kayak sebelumnya, gak diubah) --}}
-    {{-- ========================================== --}}
-
-    <div class="mb-6 rounded-2xl border border-parchment-300 bg-parchment-50 p-5 dark:border-slate-warm-700 dark:bg-slate-warm-800">
-
-        <h2 class="text-sm font-semibold text-ink-900 dark:text-parchment-50 mb-3">
-            Mulai Cepat dari Template
-        </h2>
-
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-
-            <button type="button" @click="loadTemplate('perjanjian-kerja-sama')" :disabled="loadingTemplate"
-                class="rounded-xl border border-parchment-300 bg-white p-3 text-xs font-medium text-ink-900 hover:border-bronze-400 transition-colors dark:bg-slate-warm-900 dark:border-slate-warm-700 dark:text-parchment-100">
-                <span x-text="loadingTemplate === 'perjanjian-kerja-sama' ? 'Memuat...' : 'Perjanjian / PKS'"></span>
-            </button>
-
-            <button type="button" @click="loadTemplate('kontrak-kerja')" :disabled="loadingTemplate"
-                class="rounded-xl border border-parchment-300 bg-white p-3 text-xs font-medium text-ink-900 hover:border-bronze-400 transition-colors dark:bg-slate-warm-900 dark:border-slate-warm-700 dark:text-parchment-100">
-                <span x-text="loadingTemplate === 'kontrak-kerja' ? 'Memuat...' : 'Kontrak Kerja'"></span>
-            </button>
-
-            <button type="button" @click="loadTemplate('surat-kuasa')" :disabled="loadingTemplate"
-                class="rounded-xl border border-parchment-300 bg-white p-3 text-xs font-medium text-ink-900 hover:border-bronze-400 transition-colors dark:bg-slate-warm-900 dark:border-slate-warm-700 dark:text-parchment-100">
-                <span x-text="loadingTemplate === 'surat-kuasa' ? 'Memuat...' : 'Surat Kuasa'"></span>
-            </button>
-
-            <button type="button" @click="loadTemplate('surat-pernyataan')" :disabled="loadingTemplate"
-                class="rounded-xl border border-parchment-300 bg-white p-3 text-xs font-medium text-ink-900 hover:border-bronze-400 transition-colors dark:bg-slate-warm-900 dark:border-slate-warm-700 dark:text-parchment-100">
-                <span x-text="loadingTemplate === 'surat-pernyataan' ? 'Memuat...' : 'Surat Pernyataan'"></span>
-            </button>
-
-        </div>
-
-    </div>
-
 
     <form action="{{ route('documents.store') }}" method="POST">
 
         @csrf
 
-        {{-- Kop surat & footer sekarang ditulis manual di halaman editor,
+        {{-- Kop surat & footer ditulis manual di halaman editor,
              jadi selalu dikirim kosong dari sini. --}}
         <input type="hidden" name="header_data[content]" value="<p></p>">
         <input type="hidden" name="footer_data[content]" value="<p></p>">
-
 
         {{-- ========================================== --}}
         {{-- JUDUL & NOMOR --}}
@@ -137,60 +97,161 @@
 
         </div>
 
-
         {{-- ========================================== --}}
-        {{-- GALERI TEMPLATE (pengganti kotak Header/Footer lama) --}}
+        {{-- 4 TEMPLATE --}}
         {{-- ========================================== --}}
 
         <div class="mb-6">
 
             <h2 class="font-serif font-bold text-lg text-ink-900 dark:text-parchment-50 mb-1">
-                Pilih Format Dokumen
+                Pilih Template Dokumen
             </h2>
             <p class="text-xs text-slate-warm-500 dark:text-parchment-400 mb-4">
-                Kop surat & footer ditulis langsung di halaman editor, bukan di sini.
+                Klik template untuk mengisi judul & nomor otomatis, lalu tekan tombol simpan.
             </p>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-                {{-- Baru ada 1 template buat sekarang: Dokumen Kosong.
-                     Tinggal duplikasi <div class="template-card"> ini kalau
-                     mau nambah pilihan lain nanti. --}}
-                <div class="template-card flex flex-col justify-between p-5 border-2 border-bronze-400 ring-2 ring-bronze-100 dark:ring-bronze-900">
-
+                {{-- TEMPLATE 1: PERJANJIAN / PKS --}}
+                <div class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
                     <div>
                         <div class="flex items-center justify-between mb-3">
                             <span class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
-                                Paling Sering Dipakai
+                                Perjanjian / PKS
                             </span>
-                            <span class="text-[10px] font-mono text-slate-warm-400">TPL-BLANK-00</span>
+                            <span class="text-[10px] font-mono text-slate-warm-400">TPL-PKS-01</span>
                         </div>
 
-                        {{-- Mini Visual Paper Skeleton (kosong, gak ada isi) --}}
-                        <div class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px]">
+                        <div class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-parchment-300 mb-2">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                                 <path d="M14 2v6h6"/>
                             </svg>
-                            <span class="text-[10px] text-slate-warm-400">Halaman kosong</span>
+                            <span class="text-[10px] text-slate-warm-400">Perjanjian Kerja Sama</span>
                         </div>
 
                         <h3 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-100 mb-2">
-                            Dokumen Kosong
+                            Perjanjian Kerja Sama
                         </h3>
                         <p class="text-xs text-slate-warm-500 dark:text-parchment-400 mb-4 leading-relaxed">
-                            Mulai dari halaman kosong dan tulis sesuka hati — kop surat, isi, sampai footer, semuanya bebas diatur nanti di halaman editor.
+                            Template perjanjian kerja sama antar pihak, lengkap dengan pasal-pasal.
                         </p>
                     </div>
 
-                    <button type="submit" class="btn-primary w-full text-xs text-center py-2.5">
-                        Gunakan Template Ini →
+                    <button type="button" @click="loadTemplate('perjanjian-kerja-sama')" :disabled="loadingTemplate"
+                        class="btn-primary w-full text-xs text-center py-2.5">
+                        <span x-text="loadingTemplate === 'perjanjian-kerja-sama' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
                     </button>
+                </div>
 
+                {{-- TEMPLATE 2: KONTRAK KERJA --}}
+                <div class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
+                                Kontrak Kerja
+                            </span>
+                            <span class="text-[10px] font-mono text-slate-warm-400">TPL-KK-02</span>
+                        </div>
+
+                        <div class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-parchment-300 mb-2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <path d="M14 2v6h6"/>
+                            </svg>
+                            <span class="text-[10px] text-slate-warm-400">Kontrak Kerja</span>
+                        </div>
+
+                        <h3 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-100 mb-2">
+                            Kontrak Kerja
+                        </h3>
+                        <p class="text-xs text-slate-warm-500 dark:text-parchment-400 mb-4 leading-relaxed">
+                            Template perjanjian kerja antara perusahaan dan pekerja.
+                        </p>
+                    </div>
+
+                    <button type="button" @click="loadTemplate('kontrak-kerja')" :disabled="loadingTemplate"
+                        class="btn-primary w-full text-xs text-center py-2.5">
+                        <span x-text="loadingTemplate === 'kontrak-kerja' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
+                    </button>
+                </div>
+
+                {{-- TEMPLATE 3: SURAT KUASA --}}
+                <div class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
+                                Surat Kuasa
+                            </span>
+                            <span class="text-[10px] font-mono text-slate-warm-400">TPL-SK-03</span>
+                        </div>
+
+                        <div class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-parchment-300 mb-2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <path d="M14 2v6h6"/>
+                            </svg>
+                            <span class="text-[10px] text-slate-warm-400">Surat Kuasa</span>
+                        </div>
+
+                        <h3 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-100 mb-2">
+                            Surat Kuasa
+                        </h3>
+                        <p class="text-xs text-slate-warm-500 dark:text-parchment-400 mb-4 leading-relaxed">
+                            Template surat kuasa dengan ruang lingkup dan masa berlaku.
+                        </p>
+                    </div>
+
+                    <button type="button" @click="loadTemplate('surat-kuasa')" :disabled="loadingTemplate"
+                        class="btn-primary w-full text-xs text-center py-2.5">
+                        <span x-text="loadingTemplate === 'surat-kuasa' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
+                    </button>
+                </div>
+
+                {{-- TEMPLATE 4: SURAT PERNYATAAN --}}
+                <div class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
+                                Surat Pernyataan
+                            </span>
+                            <span class="text-[10px] font-mono text-slate-warm-400">TPL-SP-04</span>
+                        </div>
+
+                        <div class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-parchment-300 mb-2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <path d="M14 2v6h6"/>
+                            </svg>
+                            <span class="text-[10px] text-slate-warm-400">Surat Pernyataan</span>
+                        </div>
+
+                        <h3 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-100 mb-2">
+                            Surat Pernyataan
+                        </h3>
+                        <p class="text-xs text-slate-warm-500 dark:text-parchment-400 mb-4 leading-relaxed">
+                            Template surat pernyataan dengan isi dan ketentuan.
+                        </p>
+                    </div>
+
+                    <button type="button" @click="loadTemplate('surat-pernyataan')" :disabled="loadingTemplate"
+                        class="btn-primary w-full text-xs text-center py-2.5">
+                        <span x-text="loadingTemplate === 'surat-pernyataan' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
+                    </button>
                 </div>
 
             </div>
 
+        </div>
+
+        {{-- ========================================== --}}
+        {{-- TOMBOL SIMPAN --}}
+        {{-- ========================================== --}}
+
+        <div class="flex justify-end">
+            <button type="submit" class="btn-primary px-8 py-3 text-sm">
+                Simpan & Lanjut ke Editor →
+            </button>
         </div>
 
     </form>

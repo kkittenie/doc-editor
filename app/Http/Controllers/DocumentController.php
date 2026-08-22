@@ -78,34 +78,167 @@ class DocumentController extends Controller
             'footer_data.content' => ['nullable', 'string'],
             'body_html' => ['nullable', 'string'],
             'type' => ['nullable', 'string'],
+            'template' => ['nullable', 'string'],
         ]);
 
+        $templateKey = $request->input('template');
+        $template = $templateKey ? $this->templateData($templateKey) : null;
+
+        $title = $data['title'];
+        $nomorSurat = $data['header_data']['nomorSurat'];
+        $headerContent = $data['header_data']['content'];
+        $footerContent = $data['footer_data']['content'] ?? '';
+        $bodyHtml = $data['body_html'] ?? '';
+
+        if ($template) {
+            $title = $template['title'] ?? $title;
+            $nomorSurat = $template['header_data']['nomorSurat'] ?? $nomorSurat;
+            $headerContent = $template['header_data']['content'] ?? $headerContent;
+            $footerContent = $template['footer_data']['content'] ?? $footerContent;
+            $bodyHtml = $this->buildTemplateBodyHtml($template['body_content'] ?? []);
+        }
+
         $document = Document::create([
-        'user_id' => Auth::id(),
-        'title' => $data['title'],
-        'type' => $data['type'] ?? 'surat',
-        'header_data' => [
-            'nomorSurat' => $data['header_data']['nomorSurat'],
-            'content' => $data['header_data']['content'],
-        ],
-        'body_content' => [
-            'pages' => [$data['body_html'] ?? ''],
-        ],
-        'footer_data' => [
-            'content' => $data['footer_data']['content'] ?? '',
-        ],
-        'signature_data' => [
-            'selectedMaterai' => 'none',
-            'signatureX' => 65,
-            'signatureY' => 78,
-            'signatureUrl' => null,
-        ],
-        'status' => 'draft',
+            'user_id' => Auth::id(),
+            'title' => $title,
+            'type' => $data['type'] ?? 'surat',
+            'header_data' => [
+                'nomorSurat' => $nomorSurat,
+                'content' => $headerContent,
+            ],
+            'body_content' => [
+                'pages' => [$bodyHtml],
+            ],
+            'footer_data' => [
+                'content' => $footerContent,
+            ],
+            'signature_data' => [
+                'selectedMaterai' => 'none',
+                'signatureX' => 65,
+                'signatureY' => 78,
+                'signatureUrl' => null,
+            ],
+            'status' => 'draft',
         ]);
 
         return redirect()
             ->route('documents.edit', $document)
             ->with('success', 'Dokumen berhasil dibuat.');
+    }
+
+    /**
+     * Data template dokumen (dipakai oleh store & createFromTemplate).
+     */
+    private function templateData(string $key): ?array
+    {
+        $templates = [
+            'perjanjian-kerja-sama' => [
+                'title' => 'Perjanjian Kerja Sama (PKS)',
+                'header_data' => [
+                    'kopInstansi' => 'PT NUSANTARA CITRA MEDIA TBBK',
+                    'kopAlamat' => 'Gedung Menara Palma Lt. 18, Jl. H.R. Rasuna Said Blok X-2, Jakarta Selatan 12950',
+                    'kopKontrak' => 'Telp: (021) 5290-8888 | Email: sekretariat@ncm-media.co.id | Web: www.ncm-media.co.id',
+                    'nomorSurat' => 'PKS/001/VIII/2026',
+                    'perihalSurat' => 'Perjanjian Kerja Sama',
+                    'sifatSurat' => 'Penting',
+                ],
+                'body_content' => [
+                    'tujuanSurat' => 'Pada hari ini telah dibuat dan disepakati Perjanjian Kerja Sama antara Para Pihak.',
+                    'menimbang' => "Bahwa Para Pihak sepakat untuk melakukan kerja sama sesuai dengan ketentuan yang berlaku.",
+                    'mengingat' => "Bahwa kerja sama ini perlu dituangkan dalam suatu perjanjian tertulis.",
+                    'isiPasal1' => "Pasal 1\nRUANG LINGKUP KERJA SAMA\n\nPara Pihak sepakat untuk melaksanakan kerja sama sesuai ruang lingkup yang telah disepakati.",
+                    'isiPasal2' => "Pasal 2\nHAK DAN KEWAJIBAN\n\nMasing-masing Pihak mempunyai hak dan kewajiban sesuai dengan ketentuan dalam perjanjian ini.",
+                ],
+            ],
+            'kontrak-kerja' => [
+                'title' => 'Kontrak Kerja',
+                'header_data' => [
+                    'kopInstansi' => 'PT NUSANTARA CITRA MEDIA TBBK',
+                    'kopAlamat' => 'Gedung Menara Palma Lt. 18, Jakarta Selatan',
+                    'kopKontrak' => 'Telp: (021) 5290-8888 | Email: sekretariat@ncm-media.co.id',
+                    'nomorSurat' => 'PK/001/VIII/2026',
+                    'perihalSurat' => 'Perjanjian Kerja',
+                    'sifatSurat' => 'Penting',
+                ],
+                'body_content' => [
+                    'tujuanSurat' => 'Perjanjian kerja antara Perusahaan dan Pekerja.',
+                    'menimbang' => "Bahwa Perusahaan membutuhkan tenaga kerja dan Pekerja bersedia melaksanakan pekerjaan sesuai ketentuan.",
+                    'mengingat' => "Ketentuan peraturan perundang-undangan ketenagakerjaan yang berlaku.",
+                    'isiPasal1' => "Pasal 1\nJABATAN DAN PEKERJAAN\n\nPekerja ditempatkan pada jabatan sesuai dengan kebutuhan Perusahaan.",
+                    'isiPasal2' => "Pasal 2\nHAK DAN KEWAJIBAN\n\nPara Pihak wajib melaksanakan hak dan kewajibannya sebagaimana diatur dalam perjanjian ini.",
+                ],
+            ],
+            'surat-kuasa' => [
+                'title' => 'Surat Kuasa',
+                'header_data' => [
+                    'kopInstansi' => 'PT NUSANTARA CITRA MEDIA TBBK',
+                    'kopAlamat' => 'Gedung Menara Palma Lt. 18, Jakarta Selatan',
+                    'kopKontrak' => 'Telp: (021) 5290-8888 | Email: sekretariat@ncm-media.co.id',
+                    'nomorSurat' => 'SK/001/VIII/2026',
+                    'perihalSurat' => 'Surat Kuasa',
+                    'sifatSurat' => 'Penting',
+                ],
+                'body_content' => [
+                    'tujuanSurat' => 'SURAT KUASA',
+                    'menimbang' => "Yang bertanda tangan di bawah ini memberikan kuasa kepada pihak yang disebutkan dalam surat ini.",
+                    'mengingat' => "Untuk melaksanakan tindakan sebagaimana ruang lingkup kuasa yang diberikan.",
+                    'isiPasal1' => "RUANG LINGKUP KUASA\n\nPenerima Kuasa diberikan kewenangan untuk mewakili Pemberi Kuasa dalam urusan yang telah ditentukan.",
+                    'isiPasal2' => "MASA BERLAKU\n\nSurat kuasa ini berlaku sejak tanggal ditandatangani sampai dengan dinyatakan berakhir.",
+                ],
+            ],
+            'surat-pernyataan' => [
+                'title' => 'Surat Pernyataan',
+                'header_data' => [
+                    'kopInstansi' => 'PT NUSANTARA CITRA MEDIA TBBK',
+                    'kopAlamat' => 'Gedung Menara Palma Lt. 18, Jakarta Selatan',
+                    'kopKontrak' => 'Telp: (021) 5290-8888 | Email: sekretariat@ncm-media.co.id',
+                    'nomorSurat' => 'SP/001/VIII/2026',
+                    'perihalSurat' => 'Surat Pernyataan',
+                    'sifatSurat' => 'Penting',
+                ],
+                'body_content' => [
+                    'tujuanSurat' => 'SURAT PERNYATAAN',
+                    'menimbang' => "Dengan ini saya menyatakan dengan sebenar-benarnya bahwa seluruh informasi yang diberikan adalah benar.",
+                    'mengingat' => "Pernyataan ini dibuat dengan penuh tanggung jawab.",
+                    'isiPasal1' => "ISI PERNYATAAN\n\nDengan ini saya menyatakan bahwa seluruh data dan keterangan yang diberikan kepada Perusahaan adalah benar.",
+                    'isiPasal2' => "KETENTUAN\n\nApabila di kemudian hari terdapat ketidaksesuaian, saya bersedia bertanggung jawab sesuai ketentuan yang berlaku.",
+                ],
+            ],
+        ];
+
+        return $templates[$key] ?? null;
+    }
+
+    /**
+     * Bangun HTML body dari data template.
+     */
+    private function buildTemplateBodyHtml(array $body): string
+    {
+        $parts = [];
+
+        if (!empty($body['tujuanSurat'])) {
+            $parts[] = '<p>'.nl2br(e($body['tujuanSurat'])).'</p>';
+        }
+
+        if (!empty($body['menimbang'])) {
+            $parts[] = '<p><strong>Menimbang:</strong></p>';
+            $parts[] = '<p>'.nl2br(e($body['menimbang'])).'</p>';
+        }
+
+        if (!empty($body['mengingat'])) {
+            $parts[] = '<p><strong>Mengingat:</strong></p>';
+            $parts[] = '<p>'.nl2br(e($body['mengingat'])).'</p>';
+        }
+
+        if (!empty($body['isiPasal1'])) {
+            $parts[] = '<p>'.nl2br(e($body['isiPasal1'])).'</p>';
+        }
+
+        if (!empty($body['isiPasal2'])) {
+            $parts[] = '<p>'.nl2br(e($body['isiPasal2'])).'</p>';
+        }
+
+        return implode("\n", $parts);
     }
 
     public function update(Request $request, Document $document)
@@ -177,86 +310,11 @@ class DocumentController extends Controller
 
     public function createFromTemplate(string $template)
     {
-    $templates = [
-        'perjanjian-kerja-sama' => [
-            'title' => 'Perjanjian Kerja Sama (PKS)',
-            'header_data' => [
-                'kopInstansi' => 'PT NUSANTARA CITRA MEDIA TBBK',
-                'kopAlamat' => 'Gedung Menara Palma Lt. 18, Jl. H.R. Rasuna Said Blok X-2, Jakarta Selatan 12950',
-                'kopKontrak' => 'Telp: (021) 5290-8888 | Email: sekretariat@ncm-media.co.id | Web: www.ncm-media.co.id',
-                'nomorSurat' => 'PKS/001/VIII/2026',
-                'perihalSurat' => 'Perjanjian Kerja Sama',
-                'sifatSurat' => 'Penting',
-            ],
-            'body_content' => [
-                'tujuanSurat' => 'Pada hari ini telah dibuat dan disepakati Perjanjian Kerja Sama antara Para Pihak.',
-                'menimbang' => "Bahwa Para Pihak sepakat untuk melakukan kerja sama sesuai dengan ketentuan yang berlaku.",
-                'mengingat' => "Bahwa kerja sama ini perlu dituangkan dalam suatu perjanjian tertulis.",
-                'isiPasal1' => "Pasal 1\nRUANG LINGKUP KERJA SAMA\n\nPara Pihak sepakat untuk melaksanakan kerja sama sesuai ruang lingkup yang telah disepakati.",
-                'isiPasal2' => "Pasal 2\nHAK DAN KEWAJIBAN\n\nMasing-masing Pihak mempunyai hak dan kewajiban sesuai dengan ketentuan dalam perjanjian ini.",
-            ],
-        ],
-        'kontrak-kerja' => [
-            'title' => 'Kontrak Kerja',
-            'header_data' => [
-                'kopInstansi' => 'PT NUSANTARA CITRA MEDIA TBBK',
-                'kopAlamat' => 'Gedung Menara Palma Lt. 18, Jakarta Selatan',
-                'kopKontrak' => 'Telp: (021) 5290-8888 | Email: sekretariat@ncm-media.co.id',
-                'nomorSurat' => 'PK/001/VIII/2026',
-                'perihalSurat' => 'Perjanjian Kerja',
-                'sifatSurat' => 'Penting',
-            ],
-            'body_content' => [
-                'tujuanSurat' => 'Perjanjian kerja antara Perusahaan dan Pekerja.',
-                'menimbang' => "Bahwa Perusahaan membutuhkan tenaga kerja dan Pekerja bersedia melaksanakan pekerjaan sesuai ketentuan.",
-                'mengingat' => "Ketentuan peraturan perundang-undangan ketenagakerjaan yang berlaku.",
-                'isiPasal1' => "Pasal 1\nJABATAN DAN PEKERJAAN\n\nPekerja ditempatkan pada jabatan sesuai dengan kebutuhan Perusahaan.",
-                'isiPasal2' => "Pasal 2\nHAK DAN KEWAJIBAN\n\nPara Pihak wajib melaksanakan hak dan kewajibannya sebagaimana diatur dalam perjanjian ini.",
-            ],
-        ],
-        'surat-kuasa' => [
-            'title' => 'Surat Kuasa',
-            'header_data' => [
-                'kopInstansi' => 'PT NUSANTARA CITRA MEDIA TBBK',
-                'kopAlamat' => 'Gedung Menara Palma Lt. 18, Jakarta Selatan',
-                'kopKontrak' => 'Telp: (021) 5290-8888 | Email: sekretariat@ncm-media.co.id',
-                'nomorSurat' => 'SK/001/VIII/2026',
-                'perihalSurat' => 'Surat Kuasa',
-                'sifatSurat' => 'Penting',
-            ],
-            'body_content' => [
-                'tujuanSurat' => 'SURAT KUASA',
-                'menimbang' => "Yang bertanda tangan di bawah ini memberikan kuasa kepada pihak yang disebutkan dalam surat ini.",
-                'mengingat' => "Untuk melaksanakan tindakan sebagaimana ruang lingkup kuasa yang diberikan.",
-                'isiPasal1' => "RUANG LINGKUP KUASA\n\nPenerima Kuasa diberikan kewenangan untuk mewakili Pemberi Kuasa dalam urusan yang telah ditentukan.",
-                'isiPasal2' => "MASA BERLAKU\n\nSurat kuasa ini berlaku sejak tanggal ditandatangani sampai dengan dinyatakan berakhir.",
-            ],
-        ],
-        'surat-pernyataan' => [
-            'title' => 'Surat Pernyataan',
-            'header_data' => [
-                'kopInstansi' => 'PT NUSANTARA CITRA MEDIA TBBK',
-                'kopAlamat' => 'Gedung Menara Palma Lt. 18, Jakarta Selatan',
-                'kopKontrak' => 'Telp: (021) 5290-8888 | Email: sekretariat@ncm-media.co.id',
-                'nomorSurat' => 'SP/001/VIII/2026',
-                'perihalSurat' => 'Surat Pernyataan',
-                'sifatSurat' => 'Penting',
-            ],
-            'body_content' => [
-                'tujuanSurat' => 'SURAT PERNYATAAN',
-                'menimbang' => "Dengan ini saya menyatakan dengan sebenar-benarnya bahwa seluruh informasi yang diberikan adalah benar.",
-                'mengingat' => "Pernyataan ini dibuat dengan penuh tanggung jawab.",
-                'isiPasal1' => "ISI PERNYATAAN\n\nDengan ini saya menyatakan bahwa seluruh data dan keterangan yang diberikan kepada Perusahaan adalah benar.",
-                'isiPasal2' => "KETENTUAN\n\nApabila di kemudian hari terdapat ketidaksesuaian, saya bersedia bertanggung jawab sesuai ketentuan yang berlaku.",
-            ],
-        ],
-    ];
+        $data = $this->templateData($template);
 
-        if (!isset($templates[$template])) {
+        if (!$data) {
             abort(404, 'Template tidak ditemukan.');
         }
-
-        $data = $templates[$template];
 
         if (preg_match('/^([A-Z]+)\//', $data['header_data']['nomorSurat'], $m)) {
             $prefix = $m[1];

@@ -56,112 +56,20 @@
         </div>
     </div>
 
-
-    {{-- TINYMCE TOOLBAR --}}
+    {{-- TINYMCE TOOLBAR (SATU INSTANCE) --}}
     <div id="body-toolbar-container" class="sticky top-[57px] z-30"
         style="display:flex; flex-direction:row; align-items:center;"></div>
-
 
     {{-- DOCUMENT AREA --}}
     <main class="documentPrintArea bg-slate-100 px-4 py-10 dark:bg-slate-warm-950">
 
-        <div class="mx-auto w-full max-w-[794px] space-y-8">
+        <div class="mx-auto w-full max-w-[794px]">
 
-            {{-- HEADER / KOP SURAT (mandiri, di atas semua halaman) --}}
-            <div class="document-page relative w-full bg-white shadow-xl">
-                <div class="document-header relative px-[80px] pt-[24px] pb-2 text-black">
-                    <div id="document-header-editor">{!! $document->header_data['content'] ?? '' !!}</div>
-                    <div class="mt-4 border-b-2 border-black"></div>
-                </div>
-            </div>
-
-            <template x-for="(page, index) in pages" :key="page.uid">
-
-                <div class="document-page relative flex min-h-[1123px] w-full flex-col bg-white shadow-xl">
-
-                    {{-- PAGE INFO BAR --}}
-                    <div class="flex items-center justify-between px-6 pt-3 text-xs text-slate-400 print:hidden">
-                        <span x-text="'Halaman ' + (index + 1) + ' dari ' + pages.length"></span>
-
-                        <button type="button" x-show="pages.length > 1" @click="removePage(index)"
-                            class="text-red-500 hover:underline">
-                            Hapus Halaman Ini
-                        </button>
-                    </div>
-
-                    {{-- HEADER / KOP SURAT --}}
-                    <!-- <div x-show="index === 0" class="document-header relative px-[80px] pt-[20px] text-black">
-                        {!! $document->header_data['content'] ?? '' !!}
-
-                        <div class="mt-4 border-b-2 border-black"></div>
-                    </div> -->
-
-                    {{-- PENANDA HALAMAN LANJUTAN --}}
-                    <div x-show="index > 0" class="px-[80px] pt-[40px] text-xs italic text-slate-400">
-                        ...lanjutan halaman
-                        <span x-text="index + 1"></span>
-                    </div>
-
-                    {{-- BODY EDITOR --}}
-                    <div class="flex-1 px-[80px] pt-6 pb-4" @click.self="focusPageEditor(page.uid)">
-                        <div :id="'document-editor-' + page.uid" class="document-body"></div>
-                    </div>
-
-                    {{-- FOOTER --}}
-                    <!-- <div x-show="index === pages.length -1" class="px-[80px] pb-20 text-sm text-black">
-                        {!! $document->footer_data['content'] ?? '' !!}
-                    </div> -->
-
-                    {{-- DRAGGABLE SIGNATURE --}}
-                    <template x-if="index === pages.length - 1 && selectedSignature">
-
-                        <div class="absolute z-30 cursor-move select-none"
-                            :style="`left: ${signatureX}px; top: ${signatureY}px;`"
-                            @mousedown="startDragSignature($event)" @mousemove.window="dragSignature($event)"
-                            @mouseup.window="stopDragSignature()">
-
-                            <div class="relative rounded-lg border-2 border-transparent p-1" :class="
-                                    isDraggingSignature
-                                        ? 'border-blue-500 bg-blue-50/20'
-                                        : 'hover:border-blue-300'
-                                ">
-
-                                {{-- GAMBAR DARI DATABASE --}}
-                                <img :src="selectedSignature" alt="Tanda Tangan" draggable="false"
-                                    class="pointer-events-none max-h-20 max-w-[180px] object-contain">
-
-                                {{-- HAPUS TTD DARI DOKUMEN --}}
-                                <button type="button" @mousedown.stop @click.stop="
-                                        selectedSignature = null;
-                                        selectedSignatureId = null;
-                                        signatureX = 500;
-                                        signatureY = 650;
-                                        markAsChanged();
-                                    "
-                                    class="absolute -right-3 -top-3 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow hover:bg-red-600"
-                                    title="Hapus Tanda Tangan">
-                                    ×
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </template>
-
-                </div>
-
-            </template>
-
-            {{-- FOOTER (mandiri, di bawah semua halaman) --}}
-            <div class="document-page relative w-full bg-white shadow-xl">
-                <div class="px-[80px] py-10 text-sm text-black">
-                    <div id="document-footer-editor">{!! $document->footer_data['content'] ?? '' !!}</div>
-                </div>
-            </div>
+            {{-- SATU EDITOR UNTUK SEMUA KERTAS --}}
+            <div id="document-editor" class="document-editor-canvas"></div>
 
             {{-- TAMBAH HALAMAN --}}
-            <div class="flex justify-center print:hidden">
+            <div class="mt-6 flex justify-center print:hidden">
 
                 <button type="button" @click="addPage()"
                     class="inline-flex items-center gap-2 rounded-xl border border-dashed border-parchment-400 bg-white px-5 py-2.5 text-sm font-medium text-ink-900 hover:bg-parchment-50 dark:border-slate-warm-600 dark:bg-slate-warm-900 dark:text-parchment-100">
@@ -223,14 +131,7 @@
 
                 <template x-for="signature in signatures" :key="signature.id">
 
-                    <button type="button" @click="
-                            selectedSignature = signature.url;
-                            selectedSignatureId = signature.id;
-                            signatureX = 500;
-                            signatureY = 650;
-                            showSignaturePicker = false;
-                            markAsChanged();
-                        "
+                    <button type="button" @click="selectSignature(signature)"
                         class="group w-full rounded-xl border border-parchment-300 p-4 text-left transition hover:border-ink-900 hover:bg-parchment-50 dark:border-slate-warm-700 dark:hover:bg-slate-warm-800">
 
                         <div class="flex items-center gap-4">
@@ -336,121 +237,128 @@
         border-color: rgb(180 140 80);
     }
 
-    /* Hanya tampilkan toolbar editor yang sedang aktif */
-    #body-toolbar-container .tox-tinymce {
-        display: none !important;
-    }
-
-    #body-toolbar-container .tox-tinymce.active-page-toolbar {
-        display: block !important;
-    }
-
     @media (max-width: 768px) {
         .toolbar-select {
             min-width: 100px;
         }
     }
 
-    .document-page {
+    /* =========================================
+       KANVAS EDITOR (SATU INSTANCE)
+       ========================================= */
+    .document-editor-canvas {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    /* Setiap "kertas" di dalam editor */
+    .doc-sheet {
         position: relative;
         width: 210mm;
         min-height: 297mm;
         height: 297mm;
         max-height: 297mm;
-
         margin: 0 auto;
-
         box-sizing: border-box;
-
         overflow: hidden;
-
         background: white;
-
-        box-shadow:
-            0 10px 30px rgba(0, 0, 0, 0.08);
-    }
-
-    .document-body {
-        min-height: 650px;
-
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        padding: 20mm 20mm;
         font-family: Arial, sans-serif;
         font-size: 14px;
-
         line-height: 1.6;
-
         color: #111827;
-
         outline: none;
+        display: flex;
+        flex-direction: column;
     }
 
-    .document-body p {
+    /* Region di dalam satu kertas: header, body, footer */
+    .doc-sheet-header {
+        position: relative;
+        min-height: 40px;
+        padding-bottom: 8px;
+    }
+
+    .doc-sheet-body {
+        flex: 1;
+        min-height: 0;
+    }
+
+    .doc-sheet-footer {
+        position: relative;
+        min-height: 40px;
+        padding-top: 8px;
+    }
+
+    .doc-sheet-divider {
+        border-top: 2px solid #111827;
+        margin: 8px 0;
+    }
+
+    .doc-sheet p {
         margin: 0 0 10px 0;
         padding: 0;
     }
 
-    .document-body p+p {
+    .doc-sheet p+p {
         margin-top: 4px;
     }
 
-    /* PARAGRAPH TERAKHIR */
-    .document-body p:last-child {
+    .doc-sheet p:last-child {
         margin-bottom: 0;
     }
 
-    /* HEADING */
-    .document-body h1 {
+    .doc-sheet h1 {
         font-size: 28px;
         line-height: 1.3;
         font-weight: 700;
         margin: 18px 0 12px;
     }
 
-    .document-body h2 {
+    .doc-sheet h2 {
         font-size: 22px;
         line-height: 1.3;
         font-weight: 700;
         margin: 16px 0 10px;
     }
 
-    .document-body h3 {
+    .doc-sheet h3 {
         font-size: 18px;
         line-height: 1.35;
         font-weight: 700;
         margin: 14px 0 8px;
     }
 
-    /* HEADING PERTAMA JANGAN TERLALU TURUN */
-    .document-body>h1:first-child,
-    .document-body>h2:first-child,
-    .document-body>h3:first-child,
-    .document-body>h4:first-child,
-    .document-body>h5:first-child,
-    .document-body>h6:first-child {
+    .doc-sheet>h1:first-child,
+    .doc-sheet>h2:first-child,
+    .doc-sheet>h3:first-child,
+    .doc-sheet>h4:first-child,
+    .doc-sheet>h5:first-child,
+    .doc-sheet>h6:first-child {
         margin-top: 0;
     }
 
-    /* LIST */
-    .document-body ul,
-    .document-body ol {
+    .doc-sheet ul,
+    .doc-sheet ol {
         margin-top: 8px;
         margin-bottom: 12px;
         padding-left: 30px;
     }
 
-    .document-body li {
+    .doc-sheet li {
         margin-bottom: 4px;
     }
 
-    /* BLOCKQUOTE */
-    .document-body blockquote {
+    .doc-sheet blockquote {
         margin: 14px 0;
         padding-left: 15px;
         border-left: 3px solid #ccc;
         font-style: italic;
     }
 
-    /* TABLE */
-    .document-body table {
+    .doc-sheet table {
         width: 100%;
         border-collapse: collapse !important;
         border-spacing: 0 !important;
@@ -458,15 +366,15 @@
         table-layout: fixed;
     }
 
-    .document-body table,
-    .document-body tr,
-    .document-body td,
-    .document-body th {
+    .doc-sheet table,
+    .doc-sheet tr,
+    .doc-sheet td,
+    .doc-sheet th {
         box-sizing: border-box;
     }
 
-    .document-body table th,
-    .document-body table td {
+    .doc-sheet table th,
+    .doc-sheet table td {
         border: 1px solid #374151 !important;
         padding: 8px 10px !important;
         min-width: 60px;
@@ -474,110 +382,42 @@
         vertical-align: top;
     }
 
-    .document-body th {
+    .doc-sheet th {
         font-weight: 700;
         background: #f3f4f6;
     }
 
-    .document-body td p,
-    .document-body th p {
+    .doc-sheet td p,
+    .doc-sheet th p {
         margin: 0 !important;
     }
 
-    .document-body .tableWrapper {
-        overflow-x: auto;
-        margin: 14px 0;
-    }
-
-    .document-body .tableWrapper table {
-        border-collapse: collapse !important;
-    }
-
-    .document-body .tableWrapper td,
-    .document-body .tableWrapper th {
-        border: 1px solid #374151 !important;
-    }
-
-    /* GAMBAR */
-    .document-body img {
+    .doc-sheet img {
         display: block;
         margin-top: 8px;
         margin-bottom: 12px;
         cursor: pointer !important;
+        max-width: 100%;
     }
 
-    .document-body:focus {
-        outline: none;
+    .doc-sheet img.image-selected {
+        outline: 1px solid #2563eb !important;
+        outline-offset: 1px;
+        user-select: none !important;
+        -webkit-user-drag: none !important;
     }
 
-    .document-header {
-        position: relative;
-        min-height: 110px;
-        overflow: hidden;
+    /* Garis pemisah antar kertas (hanya di layar) */
+    .doc-sheet + .doc-sheet {
+        margin-top: 24px;
     }
 
-    .document-header img.drag-image {
-        position: absolute !important;
-        z-index: 10 !important;
+    /* Toolbar hanya satu, selalu tampil */
+    #body-toolbar-container .tox-tinymce {
         display: block !important;
-        width: auto !important;
-        max-width: 150px !important;
-        height: auto !important;
-        max-height: 70px !important;
-    }
-
-    .document-header img.drag-image~p,
-    .document-header img.drag-image~h1,
-    .document-header img.drag-image~h2,
-    .document-header img.drag-image~h3,
-    .document-header img.drag-image~h4,
-    .document-header img.drag-image~h5,
-    .document-header img.drag-image~h6 {
-        position: relative;
-        z-index: 2;
-        margin-left: 190px;
-    }
-
-    .document-body table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 10px 0;
-    }
-
-    .document-body table,
-    .document-body th,
-    .document-body td {
-        border: 1px solid #cbd5e1;
-        padding: 8px;
-    }
-
-    .document-body ul,
-    .document-body ol {
-        margin: 8px 0 12px;
-        padding-left: 32px;
-    }
-
-    .document-body li {
-        margin: 3px 0;
-    }
-
-    .document-body ul {
-        list-style-type: disc;
-    }
-
-    .document-body ol {
-        list-style-type: decimal;
-    }
-
-    .document-body blockquote {
-        margin: 15px 0;
-        padding-left: 15px;
-        border-left: 3px solid #ccc;
-        font-style: italic;
     }
 
     @media print {
-
         body * {
             visibility: hidden;
         }
@@ -599,6 +439,12 @@
             background: white !important;
         }
 
+        .doc-sheet {
+            box-shadow: none !important;
+            margin: 0 !important;
+            page-break-after: always;
+        }
+
         @page {
             size: A4;
             margin: 20mm;
@@ -609,42 +455,6 @@
             print-color-adjust: exact !important;
         }
     }
-
-    /* =========================================
-    IMAGE RESIZE - MS WORD STYLE
-    ========================================= */
-
-    /*
-    |--------------------------------------------------------------------------
-    | Gambar di editor
-    |--------------------------------------------------------------------------
-    */
-
-    .document-body img {
-        cursor: pointer !important;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Saat gambar dipilih
-    |--------------------------------------------------------------------------
-    */
-
-    .document-body img.image-selected {
-        outline: 1px solid #2563eb !important;
-        outline-offset: 1px;
-        user-select: none !important;
-        -webkit-user-drag: none !important;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | RESIZE OVERLAY
-    |--------------------------------------------------------------------------
-    |
-    | Overlay dibuat langsung di dalam iframe TinyMCE
-    |
-    */
 </style>
 @endpush
 
@@ -669,8 +479,6 @@
 
             showSignaturePicker: false,
 
-            activePageUid: null,
-
             isDraggingSignature: false,
 
             dragStartX: 0,
@@ -687,23 +495,7 @@
             saveStatus: 'saved',
             changed: false,
 
-            // selectedImage: null,
-            // selectedImageEditor: null,
-
-            // imageResizeData: {
-            //     startX: 0,
-            //     startY: 0,
-            //     startWidth: 0,
-            //     startHeight: 0,
-            //     startLeft: 0,
-            //     startTop: 0,
-            //     direction: null
-            // },
-
-
-            // PAGES
-
-
+            // PAGES (hanya data, dirender sebagai sheet di dalam satu editor)
             pages: (
                 @js(
                     $document -> body_content['pages']
@@ -721,136 +513,98 @@
                 )
             ).length,
 
-
             // INIT
-
-
             init() {
 
                 this.$nextTick(() => {
-
-                    // INIT SEMUA PAGE EDITOR
-
-
-                    this.pages.forEach((page) => {
-
-                        this.initPageEditor(
-                            page.uid,
-                            page.html
-                        );
-
-                    });
-
-                    window.initBodyEditor('#document-header-editor', this.headerHtml, (html) => {
-                        this.headerHtml = html;
-                        this.markAsChanged();
-                    }, true);
-
-                    window.initBodyEditor('#document-footer-editor', this.footerHtml, (html) => {
-                        this.footerHtml = html;
-                        this.markAsChanged();
-                    }, false);
-
+                    this.initSingleEditor();
                 });
-
-
-
 
                 // CTRL + S
-
-
-                document.addEventListener(
-                    'keydown',
-                    (e) => {
-
-                        if (
-                            (e.ctrlKey || e.metaKey) &&
-                            e.key.toLowerCase() === 's'
-                        ) {
-
-                            e.preventDefault();
-
-                            this.saveDocument();
-                        }
-
+                document.addEventListener('keydown', (e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                        e.preventDefault();
+                        this.saveDocument();
                     }
-                );
-
+                });
             },
 
+            // SATU INSTANCE TINYMCE UNTUK SEMUA KERTAS
+            initSingleEditor() {
 
-            // INIT EDITOR
+                const editorEl = document.getElementById('document-editor');
+                if (!editorEl) return;
 
+                // Bangun konten awal: setiap kertas berisi header + body + footer
+                let html = '';
 
-            initPageEditor(uid, content) {
+                this.pages.forEach((page, i) => {
+                    html += '<div class="doc-sheet" data-sheet-type="page" data-page-uid="' + page.uid + '">';
 
-                const editorId = 'document-editor-' + uid;
-
-                const element = document.getElementById(editorId);
-
-                if (!element) {
-                    console.error('Element editor tidak ditemukan:', editorId);
-                    return;
-                }
-
-                window.initBodyEditor('#' + editorId, content || '', (html) => {
-                    const page = this.pages.find(p => p.uid === uid);
-                    if (page) {
-                        page.html = html;
+                    // Header (hanya di halaman pertama)
+                    if (i === 0) {
+                        html += '<div class="doc-sheet-header" data-region="header">';
+                        html += this.headerHtml || '<p></p>';
+                        html += '<div class="doc-sheet-divider"></div>';
+                        html += '</div>';
                     }
+
+                    // Body
+                    html += '<div class="doc-sheet-body" data-region="body">';
+                    html += page.html || '<p></p>';
+                    html += '</div>';
+
+                    // Footer (hanya di halaman terakhir)
+                    if (i === this.pages.length - 1) {
+                        html += '<div class="doc-sheet-footer" data-region="footer">';
+                        html += this.footerHtml || '<p></p>';
+                        html += '</div>';
+                    }
+
+                    html += '</div>';
+                });
+
+                editorEl.innerHTML = html;
+
+                this.setupSignatureEvents();
+
+                window.initBodyEditor('#document-editor', '', () => {
                     this.markAsChanged();
-                });
-
-                element.addEventListener('focusin', () => {
-                    this.activePageUid = uid;
-                });
-
-                element.addEventListener('mousedown', () => {
-                    this.activePageUid = uid;
+                    this.renderSignature();
                 });
             },
 
-            focusPageEditor(uid) {
-                const editorId = 'document-editor-' + uid;
-                const editor = tinymce.get(editorId);
-                if (!editor) return;
+            // Event delegation untuk tanda tangan di dalam editor TinyMCE
+            setupSignatureEvents() {
+                const editorEl = document.getElementById('document-editor');
+                if (!editorEl) return;
 
-                editor.focus();
-                editor.selection.select(editor.getBody(), true);
-                editor.selection.collapse(false);
+                editorEl.addEventListener('mousedown', (e) => {
+                    const sigEl = e.target.closest('.doc-signature');
+                    if (!sigEl) return;
+                    if (e.target.closest('.doc-signature-remove')) return;
+                    this.startDragSignature(e, sigEl);
+                });
+
+                editorEl.addEventListener('click', (e) => {
+                    if (e.target.closest('.doc-signature-remove')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.removeSignature();
+                    }
+                });
+
+                // Drag global supaya tetap jalan walau kursor keluar dari elemen
+                document.addEventListener('mousemove', (e) => {
+                    this.dragSignature(e);
+                });
+
+                document.addEventListener('mouseup', () => {
+                    this.stopDragSignature();
+                });
             },
 
-
-            // CHANGE STATUS
-            getActiveEditorId() {
-
-                if (!this.activePageUid) {
-                    return null;
-                }
-
-                return 'document-editor-' + this.activePageUid;
-            },
-
-            runBodyCommand(command, ...args) {
-
-                const editorId = this.getActiveEditorId();
-
-                if (!editorId) {
-                    return;
-                }
-
-                tinymce.get(editorId)?.execCommand(command, false, args[0]);
-            },
-
-            markAsChanged() {
-                this.changed = true;
-                this.saveStatus = 'idle';
-            },
-
-
-            // ADD PAGE
-
-
+            // TAMBAH HALAMAN (tambah sheet baru di akhir, sebelum footer)
             addPage() {
 
                 const uid = 'page-' + (this.pageSeq++);
@@ -860,39 +614,64 @@
                     html: ''
                 });
 
+                const editor = tinymce.get('document-editor');
+                if (!editor) return;
+
+                const body = editor.getBody();
+
+                // Pindahkan footer dari halaman terakhir lama ke halaman baru
+                const oldFooter = body.querySelector('.doc-sheet-footer');
+                const oldFooterHtml = oldFooter ? oldFooter.innerHTML : '';
+
+                // Hapus footer lama
+                if (oldFooter) {
+                    editor.dom.remove(oldFooter);
+                }
+
+                // Buat sheet baru (dengan footer)
+                const sheet = editor.dom.create('div', {
+                    'class': 'doc-sheet',
+                    'data-sheet-type': 'page',
+                    'data-page-uid': uid
+                });
+
+                const bodyRegion = editor.dom.create('div', {
+                    'class': 'doc-sheet-body',
+                    'data-region': 'body'
+                }, '<p></p>');
+
+                const footerRegion = editor.dom.create('div', {
+                    'class': 'doc-sheet-footer',
+                    'data-region': 'footer'
+                });
+
+                footerRegion.innerHTML = oldFooterHtml || '<p></p>';
+
+                sheet.appendChild(bodyRegion);
+                sheet.appendChild(footerRegion);
+
+                body.appendChild(sheet);
+
+                // Pindahkan tanda tangan ke halaman baru
+                this.renderSignature();
+
                 this.markAsChanged();
 
                 this.$nextTick(() => {
-
-                    this.initPageEditor(uid, '');
-
-                    document
-                        .getElementById(
-                            'document-editor-' + uid
-                        )
-                        ?.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'center'
-                        });
-
+                    sheet.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 });
             },
 
-
-            // REMOVE PAGE
-
-
+            // HAPUS HALAMAN
             async removePage(index) {
 
                 if (this.pages.length <= 1) {
-
                     Swal.fire({
                         icon: 'warning',
                         title: 'Gak bisa dihapus',
                         text: 'Dokumen minimal harus punya 1 halaman.',
                         confirmButtonColor: '#1B2A4A'
                     });
-
                     return;
                 }
 
@@ -911,165 +690,79 @@
                 }
 
                 const removedUid = this.pages[index].uid;
-                const removedEditor = tinymce.get('document-editor-' + removedUid);
 
-                if (removedEditor) {
-                    // Hapus toolbar editor dari container supaya tidak nyangkut
-                    const container = removedEditor.getContainer();
-                    if (container && container.parentNode) {
-                        container.parentNode.removeChild(container);
+                const editor = tinymce.get('document-editor');
+                if (editor) {
+                    const sheet = editor.getBody().querySelector('[data-page-uid="' + removedUid + '"]');
+                    if (sheet) {
+                        editor.dom.remove(sheet);
                     }
-                    removedEditor.remove();
                 }
 
                 this.pages.splice(index, 1);
-
-                // Kalau editor yang dihapus tadi sedang aktif,
-                // aktifkan toolbar editor pertama yang tersisa.
-                if (this.activePageUid === removedUid) {
-                    this.activePageUid = null;
-                    const wrapper = document.getElementById('body-toolbar-container');
-                    if (wrapper) {
-                        Array.from(wrapper.children).forEach((child) => {
-                            child.classList.remove('active-page-toolbar');
-                        });
-                        const firstEditor = tinymce.get('document-editor-' + (this.pages[0]?.uid ?? ''));
-                        if (firstEditor) {
-                            firstEditor.getContainer()?.classList.add('active-page-toolbar');
-                        }
-                    }
-                }
-
                 this.markAsChanged();
             },
 
-
-            // DRAG SIGNATURE
-
-
-            startDragSignature(event) {
-
-                event.preventDefault();
-
-                const page =
-                    event.currentTarget.closest(
-                        '.document-page'
-                    );
-
-                if (!page) {
-                    return;
-                }
-
-                const pageRect =
-                    page.getBoundingClientRect();
-
-                const rect =
-                    event.currentTarget.getBoundingClientRect();
-
-                this.isDraggingSignature = true;
-
-                this.dragStartX = event.clientX;
-                this.dragStartY = event.clientY;
-
-                this.initialSignatureX =
-                    this.signatureX;
-
-                this.initialSignatureY =
-                    this.signatureY;
-
-                this.dragOffsetX =
-                    event.clientX - rect.left;
-
-                this.dragOffsetY =
-                    event.clientY - rect.top;
-
-                this.signaturePageRect =
-                    pageRect;
-
-                document.body.style.userSelect =
-                    'none';
+            markAsChanged() {
+                this.changed = true;
+                this.saveStatus = 'idle';
             },
 
-            dragSignature(event) {
+            // =========================================
+            // SIGNATURE
+            // =========================================
 
-                if (!this.isDraggingSignature) {
-                    return;
-                }
-
-                const pageRect =
-                    this.signaturePageRect ||
-                    document
-                        .querySelector('.document-page')
-                        ?.getBoundingClientRect();
-
-                if (!pageRect) {
-                    return;
-                }
-
-                const nextX =
-                    event.clientX -
-                    pageRect.left -
-                    this.dragOffsetX;
-
-                const nextY =
-                    event.clientY -
-                    pageRect.top -
-                    this.dragOffsetY;
-
-                const minX = 20;
-
-                const maxX = Math.max(
-                    minX,
-                    pageRect.width - 200
-                );
-
-                const minY = 140;
-
-                const maxY = Math.max(
-                    minY,
-                    pageRect.height - 140
-                );
-
-                this.signatureX = Math.min(
-                    Math.max(nextX, minX),
-                    maxX
-                );
-
-                this.signatureY = Math.min(
-                    Math.max(nextY, minY),
-                    maxY
-                );
-
+            selectSignature(signature) {
+                this.selectedSignature = signature.url;
+                this.selectedSignatureId = signature.id;
+                this.signatureX = 500;
+                this.signatureY = 650;
+                this.showSignaturePicker = false;
+                this.renderSignature();
                 this.markAsChanged();
             },
 
-            stopDragSignature() {
+            renderSignature() {
+                const editor = tinymce.get('document-editor');
+                if (!editor) return;
 
-                if (!this.isDraggingSignature) {
-                    return;
-                }
+                const body = editor.getBody();
 
-                this.isDraggingSignature = false;
-                this.signaturePageRect = null;
+                // Hapus signature lama
+                body.querySelectorAll('.doc-signature').forEach((el) => el.remove());
 
-                document.body.style.userSelect = '';
+                if (!this.selectedSignature) return;
 
-                this.markAsChanged();
+                // Tampilkan di halaman terakhir
+                const sheets = body.querySelectorAll('.doc-sheet[data-sheet-type="page"]');
+                const lastSheet = sheets[sheets.length - 1];
+                if (!lastSheet) return;
+
+                const sig = editor.dom.create('div', {
+                    'class': 'doc-signature',
+                    'data-signature': '1',
+                    style: 'position:absolute;left:' + this.signatureX + 'px;top:' + this.signatureY + 'px;z-index:30;cursor:move;'
+                });
+
+                sig.innerHTML =
+                    '<img src="' + this.selectedSignature + '" style="max-height:80px;max-width:180px;pointer-events:none;display:block;" />' +
+                    '<button type="button" class="doc-signature-remove" style="position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:#dc2626;color:#fff;font-size:12px;line-height:20px;text-align:center;border:none;cursor:pointer;">×</button>';
+
+                lastSheet.appendChild(sig);
             },
 
+            removeSignature() {
+                this.selectedSignature = null;
+                this.selectedSignatureId = null;
+                this.signatureX = 500;
+                this.signatureY = 650;
 
-            // KEYDOWN
-
-
-            handleKeydown(event) {
-
-                if (
-                    (event.ctrlKey || event.metaKey) &&
-                    event.key.toLowerCase() === 's'
-                ) {
-                    event.preventDefault();
-                    this.saveDocument();
+                const editor = tinymce.get('document-editor');
+                if (editor) {
+                    editor.getBody().querySelectorAll('.doc-signature').forEach((el) => el.remove());
                 }
+
+                this.markAsChanged();
             },
 
             // =========================================
@@ -1080,68 +773,62 @@
 
                 this.saveStatus = 'saving';
 
-                const pagesHtml =
-                    this.pages.map((page) => {
+                const editor = tinymce.get('document-editor');
+                const body = editor ? editor.getBody() : null;
 
-                        const html = tinymce.get('document-editor-' + page.uid)?.getContent();
-                        return html ?? page.html ?? '';
+                // Baca header (region di halaman pertama)
+                const headerRegion = body?.querySelector('.doc-sheet-header[data-region="header"]');
+                const headerContent = headerRegion ? headerRegion.innerHTML : (this.headerHtml || '');
+
+                // Baca footer (region di halaman terakhir)
+                const footerRegion = body?.querySelector('.doc-sheet-footer[data-region="footer"]');
+                const footerContent = footerRegion ? footerRegion.innerHTML : (this.footerHtml || '');
+
+                // Baca semua halaman body
+                const pagesHtml = [];
+                if (body) {
+                    body.querySelectorAll('.doc-sheet[data-sheet-type="page"]').forEach((sheet) => {
+                        const bodyRegion = sheet.querySelector('.doc-sheet-body[data-region="body"]');
+                        pagesHtml.push(bodyRegion ? bodyRegion.innerHTML : '');
                     });
+                }
+
+                // Sinkronkan ke data pages
+                if (pagesHtml.length > 0) {
+                    this.pages = pagesHtml.map((html, i) => ({
+                        uid: 'page-' + i,
+                        html
+                    }));
+                }
 
                 const payload = {
-
                     title: @js($document -> title),
-
-                    type: @js(
-                        $document -> type ?? 'surat'
-                    ),
-
+                    type: @js($document -> type ?? 'surat'),
                     header_data: {
                         nomorSurat: @js($document -> header_data['nomorSurat'] ?? ''),
-                        content: tinymce.get('document-header-editor')?.getContent() ?? this.headerHtml ?? '',
+                        content: headerContent,
                     },
-
                     body_content: {
                         pages: pagesHtml
                     },
-
                     footer_data: {
-                        content: tinymce.get('document-footer-editor')?.getContent() ?? this.footerHtml ?? '',
+                        content: footerContent,
                     },
-
                     signature_data: {
-
-                        signatureId:
-                            this.selectedSignatureId,
-
-                        signatureUrl:
-                            this.selectedSignature,
-
-                        signatureX:
-                            this.signatureX,
-
-                        signatureY:
-                            this.signatureY
+                        signatureId: this.selectedSignatureId,
+                        signatureUrl: this.selectedSignature,
+                        signatureX: this.signatureX,
+                        signatureY: this.signatureY
                     },
-
-                    status: this.selectedSignature
-                        ? 'draft'
-                        : 'pending'
+                    status: this.selectedSignature ? 'draft' : 'pending'
                 };
 
                 try {
-
-                    await window.axios.put(
-                        `/documents/${this.documentId}`,
-                        payload
-                    );
-
+                    await window.axios.put(`/documents/${this.documentId}`, payload);
                     this.saveStatus = 'saved';
                     this.changed = false;
-
                 } catch (error) {
-
                     console.error(error);
-
                     this.saveStatus = 'error';
                 }
             },
@@ -1152,62 +839,115 @@
 
             async saveAsNewDocument(newTitle) {
 
-                const pagesHtml =
-                    this.pages.map((page) => {
+                const editor = tinymce.get('document-editor');
+                const body = editor ? editor.getBody() : null;
 
-                        const html =
-                            tinymce.get('document-editor-' + page.uid)?.getContent();
-                        return html ?? page.html ?? '';
+                const headerRegion = body?.querySelector('.doc-sheet-header[data-region="header"]');
+                const footerRegion = body?.querySelector('.doc-sheet-footer[data-region="footer"]');
+
+                const pagesHtml = [];
+                if (body) {
+                    body.querySelectorAll('.doc-sheet[data-sheet-type="page"]').forEach((sheet) => {
+                        const bodyRegion = sheet.querySelector('.doc-sheet-body[data-region="body"]');
+                        pagesHtml.push(bodyRegion ? bodyRegion.innerHTML : '');
                     });
+                }
 
                 const payload = {
-
                     title: newTitle,
-
-                    type: @js(
-                        $document -> type ?? 'surat'
-                    ),
-
+                    type: @js($document -> type ?? 'surat'),
                     header_data: {
                         nomorSurat: @js($document -> header_data['nomorSurat'] ?? ''),
-                        content: tinymce.get('document-header-editor')?.getContent() ?? this.headerHtml ?? '',
+                        content: headerRegion ? headerRegion.innerHTML : (this.headerHtml || ''),
                     },
-
                     body_content: {
                         pages: pagesHtml
                     },
-
                     footer_data: {
-                        content: tinymce.get('document-footer-editor')?.getContent() ?? this.footerHtml ?? '',
+                        content: footerRegion ? footerRegion.innerHTML : (this.footerHtml || ''),
                     },
-
                     signature_data: {
-
-                        signatureId:
-                            this.selectedSignatureId,
-
-                        signatureUrl:
-                            this.selectedSignature,
-
-                        signatureX:
-                            this.signatureX,
-
-                        signatureY:
-                            this.signatureY
+                        signatureId: this.selectedSignatureId,
+                        signatureUrl: this.selectedSignature,
+                        signatureX: this.signatureX,
+                        signatureY: this.signatureY
                     }
                 };
 
-                const res =
-                    await window.axios.post(
-                        '/documents/save-as',
-                        payload
-                    );
-
+                const res = await window.axios.post('/documents/save-as', payload);
                 return res.data.id;
+            },
+
+            // =========================================
+            // DRAG SIGNATURE
+            // =========================================
+
+            startDragSignature(event, sigEl) {
+
+                event.preventDefault();
+
+                const page = sigEl.closest('.doc-sheet');
+                if (!page) return;
+
+                const pageRect = page.getBoundingClientRect();
+                const rect = sigEl.getBoundingClientRect();
+
+                this.isDraggingSignature = true;
+                this.dragStartX = event.clientX;
+                this.dragStartY = event.clientY;
+                this.initialSignatureX = this.signatureX;
+                this.initialSignatureY = this.signatureY;
+                this.dragOffsetX = event.clientX - rect.left;
+                this.dragOffsetY = event.clientY - rect.top;
+                this.signaturePageRect = pageRect;
+
+                document.body.style.userSelect = 'none';
+            },
+
+            dragSignature(event) {
+
+                if (!this.isDraggingSignature) return;
+
+                const pageRect = this.signaturePageRect ||
+                    document.querySelector('.doc-sheet')?.getBoundingClientRect();
+
+                if (!pageRect) return;
+
+                const nextX = event.clientX - pageRect.left - this.dragOffsetX;
+                const nextY = event.clientY - pageRect.top - this.dragOffsetY;
+
+                const minX = 20;
+                const maxX = Math.max(minX, pageRect.width - 200);
+                const minY = 140;
+                const maxY = Math.max(minY, pageRect.height - 140);
+
+                this.signatureX = Math.min(Math.max(nextX, minX), maxX);
+                this.signatureY = Math.min(Math.max(nextY, minY), maxY);
+
+                // Update posisi visual elemen tanda tangan
+                const editor = tinymce.get('document-editor');
+                if (editor) {
+                    const sigEl = editor.getBody().querySelector('.doc-signature');
+                    if (sigEl) {
+                        sigEl.style.left = this.signatureX + 'px';
+                        sigEl.style.top = this.signatureY + 'px';
+                    }
+                }
+
+                this.markAsChanged();
+            },
+
+            stopDragSignature() {
+
+                if (!this.isDraggingSignature) return;
+
+                this.isDraggingSignature = false;
+                this.signaturePageRect = null;
+                document.body.style.userSelect = '';
+                this.markAsChanged();
             }
         };
     }
-
 
     // =========================================
     // 2. PROTEKSI UNSAVED CHANGES
@@ -1215,243 +955,114 @@
 
     window.hasUnsavedChanges = false;
 
-    window.addEventListener(
-        'beforeunload',
-        function (e) {
-
-            if (window.hasUnsavedChanges) {
-                e.preventDefault();
-                e.returnValue = '';
-            }
-
+    window.addEventListener('beforeunload', function (e) {
+        if (window.hasUnsavedChanges) {
+            e.preventDefault();
+            e.returnValue = '';
         }
-    );
-
+    });
 
     // =========================================
     // 3. HANDLE LINK NAVIGATION
     // =========================================
 
-    document.addEventListener(
-        'DOMContentLoaded',
-        function () {
+    document.addEventListener('DOMContentLoaded', function () {
 
-            const editorRoot =
-                document.querySelector(
-                    '[x-data="wordDocumentEditor()"]'
-                );
+        const editorRoot = document.querySelector('[x-data="wordDocumentEditor()"]');
+        if (!editorRoot) return;
 
-            if (!editorRoot) {
-                return;
-            }
+        Alpine.effect(() => {
+            const data = Alpine.$data(editorRoot);
+            window.hasUnsavedChanges = data.changed;
+        });
 
-            Alpine.effect(() => {
+        document.addEventListener('click', function (e) {
 
-                const data =
-                    Alpine.$data(editorRoot);
+            const link = e.target.closest('a[href]');
+            if (!link) return;
+            if (!window.hasUnsavedChanges) return;
 
-                window.hasUnsavedChanges =
-                    data.changed;
-            });
+            const href = link.getAttribute('href');
+            if (!href || href.startsWith('#') || link.target === '_blank') return;
 
-            document.addEventListener(
-                'click',
-                function (e) {
+            e.preventDefault();
 
-                    const link =
-                        e.target.closest('a[href]');
+            const destinationUrl = link.href;
 
-                    if (!link) {
-                        return;
-                    }
+            Swal.fire({
+                icon: 'warning',
+                title: 'Perubahan belum disimpan',
+                text: 'Kamu punya perubahan yang belum disimpan. Simpan dulu sebelum keluar?',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Simpan & Keluar',
+                denyButtonText: 'Buang Perubahan',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#1B2A4A',
+                denyButtonColor: '#dc2626',
+                footer: '<a href="#" id="swal-save-as-link" class="text-xs">' +
+                    'atau Simpan Sebagai Dokumen Baru' +
+                    '</a>',
 
-                    if (!window.hasUnsavedChanges) {
-                        return;
-                    }
+                didOpen: () => {
+                    document.getElementById('swal-save-as-link').addEventListener('click', async (evt) => {
+                        evt.preventDefault();
+                        Swal.close();
 
-                    const href =
-                        link.getAttribute('href');
+                        const { value: newTitle } = await Swal.fire({
+                            title: 'Simpan Sebagai',
+                            input: 'text',
+                            inputLabel: 'Judul dokumen baru',
+                            inputValue: @js(($document -> title ?? 'Dokumen') . ' (Salinan)'),
+                            showCancelButton: true,
+                            confirmButtonText: 'Simpan Sebagai Baru',
+                            cancelButtonText: 'Batal',
+                            confirmButtonColor: '#1B2A4A'
+                        });
 
-                    if (
-                        !href ||
-                        href.startsWith('#') ||
-                        link.target === '_blank'
-                    ) {
-                        return;
-                    }
+                        if (!newTitle) return;
 
-                    e.preventDefault();
-
-                    const destinationUrl =
-                        link.href;
-
-                    Swal.fire({
-
-                        icon: 'warning',
-
-                        title:
-                            'Perubahan belum disimpan',
-
-                        text:
-                            'Kamu punya perubahan yang belum disimpan. Simpan dulu sebelum keluar?',
-
-                        showDenyButton: true,
-                        showCancelButton: true,
-
-                        confirmButtonText:
-                            'Simpan & Keluar',
-
-                        denyButtonText:
-                            'Buang Perubahan',
-
-                        cancelButtonText:
-                            'Batal',
-
-                        confirmButtonColor:
-                            '#1B2A4A',
-
-                        denyButtonColor:
-                            '#dc2626',
-
-                        footer:
-                            '<a href="#" id="swal-save-as-link" class="text-xs">' +
-                            'atau Simpan Sebagai Dokumen Baru' +
-                            '</a>',
-
-                        didOpen: () => {
-
-                            document
-                                .getElementById(
-                                    'swal-save-as-link'
-                                )
-                                .addEventListener(
-                                    'click',
-                                    async (evt) => {
-
-                                        evt.preventDefault();
-
-                                        Swal.close();
-
-                                        const {
-                                            value: newTitle
-                                        } =
-                                            await Swal.fire({
-
-                                                title:
-                                                    'Simpan Sebagai',
-
-                                                input:
-                                                    'text',
-
-                                                inputLabel:
-                                                    'Judul dokumen baru',
-
-                                                inputValue:
-                                                    @js(
-                                                        ($document -> title ?? 'Dokumen').
-                                                        ' (Salinan)'
-                                                    ),
-
-                                                showCancelButton:
-                                                    true,
-
-                                                confirmButtonText:
-                                                    'Simpan Sebagai Baru',
-
-                                                cancelButtonText:
-                                                    'Batal',
-
-                                                confirmButtonColor:
-                                                    '#1B2A4A'
-                                            });
-
-                                        if (!newTitle) {
-                                            return;
-                                        }
-
-                                        try {
-
-                                            const data =
-                                                Alpine.$data(
-                                                    editorRoot
-                                                );
-
-                                            const newId =
-                                                await data.saveAsNewDocument(
-                                                    newTitle
-                                                );
-
-                                            window.hasUnsavedChanges =
-                                                false;
-
-                                            window.location.href =
-                                                '/documents/' +
-                                                newId +
-                                                '/edit';
-
-                                        } catch (err) {
-
-                                            Swal.fire({
-                                                icon: 'error',
-                                                title: 'Gagal',
-                                                text: 'Gagal menyimpan sebagai dokumen baru.',
-                                                confirmButtonColor:
-                                                    '#1B2A4A'
-                                            });
-
-                                            console.error(err);
-                                        }
-                                    }
-                                );
-                        }
-
-                    }).then(async (result) => {
-
-                        // SIMPAN & KELUAR
-                        if (result.isConfirmed) {
-
-                            try {
-
-                                const data =
-                                    Alpine.$data(
-                                        editorRoot
-                                    );
-
-                                await data.saveDocument();
-
-                                window.hasUnsavedChanges =
-                                    false;
-
-                                window.location.href =
-                                    destinationUrl;
-
-                            } catch (err) {
-
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Gagal',
-                                    text: 'Gagal menyimpan dokumen.',
-                                    confirmButtonColor:
-                                        '#1B2A4A'
-                                });
-
-                                console.error(err);
-                            }
-
-                            // BUANG PERUBAHAN
-                        } else if (result.isDenied) {
-
-                            window.hasUnsavedChanges =
-                                false;
-
-                            window.location.href =
-                                destinationUrl;
+                        try {
+                            const data = Alpine.$data(editorRoot);
+                            const newId = await data.saveAsNewDocument(newTitle);
+                            window.hasUnsavedChanges = false;
+                            window.location.href = '/documents/' + newId + '/edit';
+                        } catch (err) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: 'Gagal menyimpan sebagai dokumen baru.',
+                                confirmButtonColor: '#1B2A4A'
+                            });
+                            console.error(err);
                         }
                     });
                 }
-            );
-        }
-    );
+
+            }).then(async (result) => {
+
+                if (result.isConfirmed) {
+                    try {
+                        const data = Alpine.$data(editorRoot);
+                        await data.saveDocument();
+                        window.hasUnsavedChanges = false;
+                        window.location.href = destinationUrl;
+                    } catch (err) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Gagal menyimpan dokumen.',
+                            confirmButtonColor: '#1B2A4A'
+                        });
+                        console.error(err);
+                    }
+                } else if (result.isDenied) {
+                    window.hasUnsavedChanges = false;
+                    window.location.href = destinationUrl;
+                }
+            });
+        });
+    });
 </script>
 @endpush
 

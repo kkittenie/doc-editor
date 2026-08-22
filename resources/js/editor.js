@@ -257,21 +257,157 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null, 
                 word-break: break-word;
             }
 
-            img {
-                max-width: 100%;
+            .doc-sheet {
+                position: relative;
+                width: 210mm;
+                min-height: 297mm;
+                height: 297mm;
+                max-height: 297mm;
+                margin: 0 auto 24px;
+                box-sizing: border-box;
+                overflow: hidden;
+                background: white;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+                padding: 20mm 20mm;
+                font-family: Arial, sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+                color: #111827;
+                outline: none;
+                display: flex;
+                flex-direction: column;
             }
 
-            table {
+            .doc-sheet-header {
+                position: relative;
+                min-height: 40px;
+                padding-bottom: 8px;
+            }
+
+            .doc-sheet-body {
+                flex: 1;
+                min-height: 0;
+            }
+
+            .doc-sheet-footer {
+                position: relative;
+                min-height: 40px;
+                padding-top: 8px;
+            }
+
+            .doc-sheet-divider {
+                border-top: 2px solid #111827;
+                margin: 8px 0;
+            }
+
+            .doc-sheet p {
+                margin: 0 0 10px 0;
+                padding: 0;
+            }
+
+            .doc-sheet p+p {
+                margin-top: 4px;
+            }
+
+            .doc-sheet p:last-child {
+                margin-bottom: 0;
+            }
+
+            .doc-sheet h1 {
+                font-size: 28px;
+                line-height: 1.3;
+                font-weight: 700;
+                margin: 18px 0 12px;
+            }
+
+            .doc-sheet h2 {
+                font-size: 22px;
+                line-height: 1.3;
+                font-weight: 700;
+                margin: 16px 0 10px;
+            }
+
+            .doc-sheet h3 {
+                font-size: 18px;
+                line-height: 1.35;
+                font-weight: 700;
+                margin: 14px 0 8px;
+            }
+
+            .doc-sheet>h1:first-child,
+            .doc-sheet>h2:first-child,
+            .doc-sheet>h3:first-child,
+            .doc-sheet>h4:first-child,
+            .doc-sheet>h5:first-child,
+            .doc-sheet>h6:first-child {
+                margin-top: 0;
+            }
+
+            .doc-sheet ul,
+            .doc-sheet ol {
+                margin-top: 8px;
+                margin-bottom: 12px;
+                padding-left: 30px;
+            }
+
+            .doc-sheet li {
+                margin-bottom: 4px;
+            }
+
+            .doc-sheet blockquote {
+                margin: 14px 0;
+                padding-left: 15px;
+                border-left: 3px solid #ccc;
+                font-style: italic;
+            }
+
+            .doc-sheet table {
                 width: 100%;
-                max-width: 100%;
-                border-collapse: collapse;
-                margin: 10px 0;
+                border-collapse: collapse !important;
+                border-spacing: 0 !important;
+                margin: 14px 0;
+                table-layout: fixed;
             }
 
-            table td,
-            table th {
-                border: 1px solid #cbd5e1;
-                padding: 8px;
+            .doc-sheet table,
+            .doc-sheet tr,
+            .doc-sheet td,
+            .doc-sheet th {
+                box-sizing: border-box;
+            }
+
+            .doc-sheet table th,
+            .doc-sheet table td {
+                border: 1px solid #374151 !important;
+                padding: 8px 10px !important;
+                min-width: 60px;
+                height: 32px;
+                vertical-align: top;
+            }
+
+            .doc-sheet th {
+                font-weight: 700;
+                background: #f3f4f6;
+            }
+
+            .doc-sheet td p,
+            .doc-sheet th p {
+                margin: 0 !important;
+            }
+
+            .doc-sheet img {
+                display: block;
+                margin-top: 8px;
+                margin-bottom: 12px;
+                cursor: pointer !important;
+                max-width: 100%;
+            }
+
+            .doc-sheet img.image-selected {
+                outline: 1px solid #2563eb !important;
+                outline-offset: 1px;
+                user-select: none !important;
+                -webkit-user-drag: none !important;
             }
         `,
 
