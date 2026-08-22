@@ -74,7 +74,6 @@ const enableLogoDragging = (editor) => {
 
         const bodyRect = body.getBoundingClientRect();
         const logoRect = logo.getBoundingClientRect();
-        // The printable A4 page has a 634px-wide content column (794px page - 80px margins).
         const printableHeaderWidth = Math.min(bodyRect.width, 634);
         const logoColumnWidth = 190;
         const horizontalMargin = 10;
@@ -96,6 +95,32 @@ const enableLogoDragging = (editor) => {
         logo.style.cursor = 'grab';
         logo = null;
         editor.save();
+    });
+};
+
+// Helper dipakai bareng-bareng sama initBodyEditor & initHeaderFooterEditor,
+// biar toolbar cuma nampilin punya editor yang lagi difokus.
+const registerSharedToolbarVisibility = (editor) => {
+    editor.on('init', function () {
+        const container = editor.getContainer();
+        if (container) {
+            container.style.maxWidth = '100%';
+            container.style.width = '100%';
+        }
+    });
+
+    editor.on('focus', function () {
+        const wrapper = document.getElementById('body-toolbar-container');
+        if (!wrapper) return;
+
+        Array.from(wrapper.children).forEach((child) => {
+            child.classList.remove('active-page-toolbar');
+        });
+
+        const container = editor.getContainer();
+        if (container) {
+            container.classList.add('active-page-toolbar');
+        }
     });
 };
 
@@ -125,54 +150,54 @@ window.initDocumentEditor = function (selector, initialContent = '', allowLogoUp
         setup: function (editor) {
             if (allowLogoUpload) {
                 editor.ui.registry.addButton('uploadlogo', {
-                icon: 'image',
-                text: 'Logo',
-                tooltip: 'Unggah logo dari perangkat',
-                onAction: () => {
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = 'image/png,image/jpeg,image/svg+xml';
+                    icon: 'image',
+                    text: 'Logo',
+                    tooltip: 'Unggah logo dari perangkat',
+                    onAction: () => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/png,image/jpeg,image/svg+xml';
 
-                    input.addEventListener('change', async () => {
-                        const file = input.files?.[0];
-                        if (!file) return;
+                        input.addEventListener('change', async () => {
+                            const file = input.files?.[0];
+                            if (!file) return;
 
-                        editor.setProgressState(true);
-                        try {
-                            const url = await uploadLogo(file);
-                            const image = document.createElement('img');
-                            image.src = url;
-                            image.alt = file.name;
-                            image.className = 'document-logo';
-                            image.style.maxWidth = '150px';
-                            image.style.maxHeight = '70px';
-                            image.style.width = 'auto';
-                            image.style.height = 'auto';
-                            image.style.position = 'absolute';
-                            image.style.left = '10px';
-                            image.style.top = '10px';
-                            image.style.zIndex = '1';
-                            image.style.cursor = 'grab';
-                            const body = editor.getBody();
-                            body.classList.add('has-document-logo');
-                            body.insertBefore(image, body.firstChild);
-                            editor.nodeChanged();
-                            editor.save();
-                        } catch (error) {
-                            window.Swal?.fire({
-                                icon: 'error',
-                                title: 'Gagal',
-                                text: 'Gagal mengunggah gambar.',
-                                confirmButtonColor: '#1B2A4A',
-                            });
-                            console.error(error);
-                        } finally {
-                            editor.setProgressState(false);
-                        }
-                    });
+                            editor.setProgressState(true);
+                            try {
+                                const url = await uploadLogo(file);
+                                const image = document.createElement('img');
+                                image.src = url;
+                                image.alt = file.name;
+                                image.className = 'document-logo';
+                                image.style.maxWidth = '150px';
+                                image.style.maxHeight = '70px';
+                                image.style.width = 'auto';
+                                image.style.height = 'auto';
+                                image.style.position = 'absolute';
+                                image.style.left = '10px';
+                                image.style.top = '10px';
+                                image.style.zIndex = '1';
+                                image.style.cursor = 'grab';
+                                const body = editor.getBody();
+                                body.classList.add('has-document-logo');
+                                body.insertBefore(image, body.firstChild);
+                                editor.nodeChanged();
+                                editor.save();
+                            } catch (error) {
+                                window.Swal?.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: 'Gagal mengunggah gambar.',
+                                    confirmButtonColor: '#1B2A4A',
+                                });
+                                console.error(error);
+                            } finally {
+                                editor.setProgressState(false);
+                            }
+                        });
 
-                    input.click();
-                },
+                        input.click();
+                    },
                 });
             }
 
@@ -181,7 +206,7 @@ window.initDocumentEditor = function (selector, initialContent = '', allowLogoUp
                 if (allowLogoUpload) enableLogoDragging(editor);
             });
             editor.on('change keyup', function () {
-                editor.save(); // sync ke textarea asli, biar kebaca Alpine
+                editor.save();
             });
         }
     });
@@ -200,17 +225,17 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
         branding: false,
         statusbar: false,
 
-            plugins: 'lists link table image code fullscreen charmap searchreplace visualblocks',
+        plugins: 'lists link table image code fullscreen charmap searchreplace visualblocks',
 
-            toolbar:
-                    'undo redo | blocks | fontfamily fontsizeinput | ' +
-                    'bold italic underline strikethrough | ' +
-                    'forecolor backcolor | ' +
-                    'alignleft aligncenter alignright alignjustify | ' +
-                    'outdent indent | bullist numlist | ' +
-                    'superscript subscript | ' +
-                    'table link image charmap hr | ' +
-                    'searchreplace removeformat code fullscreen',
+        toolbar:
+            'undo redo | blocks | fontfamily fontsizeinput | ' +
+            'bold italic underline strikethrough | ' +
+            'forecolor backcolor | ' +
+            'alignleft aligncenter alignright alignjustify | ' +
+            'outdent indent | bullist numlist | ' +
+            'superscript subscript | ' +
+            'table link image charmap hr | ' +
+            'searchreplace removeformat code fullscreen',
 
         toolbar_mode: 'wrap',
 
@@ -218,11 +243,8 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
 
         toolbar_persist: true,
 
-        // Inline mode prevents TinyMCE from rendering another toolbar inside the paper.
         inline: true,
 
-        // Matikan resize bawaan TinyMCE untuk semua elemen (termasuk gambar).
-        // Resize gambar ditangani manual lewat custom handle di wordDocumentEditor().
         object_resizing: false,
 
         content_style: `
@@ -261,43 +283,25 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
 
         setup: function (editor) {
 
+            registerSharedToolbarVisibility(editor);
+
             editor.on('init', function () {
 
                 if (initialContent) {
                     editor.setContent(initialContent);
                 }
 
-                const container = editor.getContainer();
-
-                if (container) {
-                    container.style.maxWidth = '100%';
-                    container.style.width = '100%';
-                }
-
-                // Aktifkan toolbar editor pertama secara default,
-                // supaya toolbar tetap terlihat saat halaman dimuat.
                 const wrapper = document.getElementById('body-toolbar-container');
                 if (wrapper) {
                     const hasActive = Array.from(wrapper.children).some((child) =>
                         child.classList.contains('active-page-toolbar')
                     );
-                    if (!hasActive && container) {
-                        container.classList.add('active-page-toolbar');
+                    if (!hasActive) {
+                        const container = editor.getContainer();
+                        if (container) {
+                            container.classList.add('active-page-toolbar');
+                        }
                     }
-                }
-            });
-
-            editor.on('focus', function() {
-                const wrapper = document.getElementById('body-toolbar-container');
-                if (!wrapper) return;
-
-                Array.from(wrapper.children).forEach((child) => {
-                    child.classList.remove('active-page-toolbar');
-                });
-
-                const container = editor.getContainer();
-                if (container) {
-                    container.classList.add('active-page-toolbar');
                 }
             });
 
@@ -314,8 +318,6 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
 
             editor.on('NodeChange SetContent', ensureTrailingParagraph);
 
-            // Matikan native HTML5 drag pada semua <img> di dalam body,
-            // supaya tidak bentrok dengan custom resize-drag di wordDocumentEditor().
             editor.on('SetContent NodeChange', () => {
                 editor.getBody()
                     .querySelectorAll('img:not([data-drag-disabled])')
@@ -328,9 +330,85 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
             });
 
             editor.on('change keyup undo redo', function () {
-
                 editor.save();
+                if (typeof onSync === 'function') {
+                    onSync(editor.getContent());
+                }
+            });
+        }
+    });
+};
 
+// Dipakai buat editor Header & Footer LANGSUNG di Studio Editor.
+window.initHeaderFooterEditor = function (selector, onSync = null, allowLogoUpload = false) {
+
+    tinymce.init({
+        selector: selector,
+        license_key: 'gpl',
+        menubar: false,
+        branding: false,
+        statusbar: false,
+
+        plugins: 'lists link image',
+
+        toolbar: `undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | link image${allowLogoUpload ? ' uploadlogo' : ''} | removeformat`,
+
+        toolbar_mode: 'wrap',
+        fixed_toolbar_container: '#body-toolbar-container',
+        toolbar_persist: true,
+
+        inline: true,
+        object_resizing: false,
+
+        content_style: 'body { font-family: Arial, sans-serif; font-size: 14px; }',
+
+        skin: false,
+        content_css: false,
+
+        images_upload_handler: imagesUploadHandler,
+
+        setup: function (editor) {
+
+            registerSharedToolbarVisibility(editor);
+
+            if (allowLogoUpload) {
+                editor.ui.registry.addButton('uploadlogo', {
+                    icon: 'image',
+                    text: 'Logo',
+                    tooltip: 'Unggah logo dari perangkat',
+                    onAction: () => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/png,image/jpeg,image/svg+xml';
+
+                        input.addEventListener('change', async () => {
+                            const file = input.files?.[0];
+                            if (!file) return;
+
+                            editor.setProgressState(true);
+                            try {
+                                const url = await uploadLogo(file);
+                                editor.insertContent(`<img src="${url}" style="max-width:150px;max-height:70px;" />`);
+                            } catch (error) {
+                                window.Swal?.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: 'Gagal mengunggah gambar.',
+                                    confirmButtonColor: '#1B2A4A',
+                                });
+                                console.error(error);
+                            } finally {
+                                editor.setProgressState(false);
+                            }
+                        });
+
+                        input.click();
+                    },
+                });
+            }
+
+            editor.on('change keyup undo redo', function () {
+                editor.save();
                 if (typeof onSync === 'function') {
                     onSync(editor.getContent());
                 }

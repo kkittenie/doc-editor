@@ -473,7 +473,7 @@
         <div class="mb-5">
 
             <label class="block text-xs font-medium mb-1.5">
-                Footer Dokumen
+                Footer 
             </label>
 
 

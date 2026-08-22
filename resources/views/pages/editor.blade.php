@@ -67,6 +67,14 @@
 
         <div class="mx-auto w-full max-w-[794px] space-y-8">
 
+            {{-- HEADER / KOP SURAT (mandiri, di atas semua halaman) --}}
+            <div class="document-page relative w-full bg-white shadow-xl">
+                <div class="document-header relative px-[80px] pt-[24px] pb-2 text-black">
+                    <div id="document-header-editor">{!! $document->header_data['content'] ?? '' !!}</div>
+                    <div class="mt-4 border-b-2 border-black"></div>
+                </div>
+            </div>
+
             <template x-for="(page, index) in pages" :key="page.uid">
 
                 <div class="document-page relative flex min-h-[1123px] w-full flex-col bg-white shadow-xl">
@@ -82,11 +90,11 @@
                     </div>
 
                     {{-- HEADER / KOP SURAT --}}
-                    <div x-show="index === 0" class="document-header relative px-[80px] pt-[20px] text-black">
+                    <!-- <div x-show="index === 0" class="document-header relative px-[80px] pt-[20px] text-black">
                         {!! $document->header_data['content'] ?? '' !!}
 
                         <div class="mt-4 border-b-2 border-black"></div>
-                    </div>
+                    </div> -->
 
                     {{-- PENANDA HALAMAN LANJUTAN --}}
                     <div x-show="index > 0" class="px-[80px] pt-[40px] text-xs italic text-slate-400">
@@ -100,9 +108,9 @@
                     </div>
 
                     {{-- FOOTER --}}
-                    <div x-show="index === pages.length -1" class="px-[80px] pb-20 text-sm text-black">
+                    <!-- <div x-show="index === pages.length -1" class="px-[80px] pb-20 text-sm text-black">
                         {!! $document->footer_data['content'] ?? '' !!}
-                    </div>
+                    </div> -->
 
                     {{-- DRAGGABLE SIGNATURE --}}
                     <template x-if="index === pages.length - 1 && selectedSignature">
@@ -144,6 +152,13 @@
                 </div>
 
             </template>
+
+            {{-- FOOTER (mandiri, di bawah semua halaman) --}}
+            <div class="document-page relative w-full bg-white shadow-xl">
+                <div class="px-[80px] py-10 text-sm text-black">
+                    <div id="document-footer-editor">{!! $document->footer_data['content'] ?? '' !!}</div>
+                </div>
+            </div>
 
             {{-- TAMBAH HALAMAN --}}
             <div class="flex justify-center print:hidden">
@@ -630,7 +645,6 @@
     | Overlay dibuat langsung di dalam iframe TinyMCE
     |
     */
-
 </style>
 @endpush
 
@@ -646,21 +660,12 @@
             signatures: @js($signatures ?? []),
 
             // TTD yang sedang dipakai dokumen
-            selectedSignature: @js(
-                $document -> signature_data['signatureUrl'] ?? null
-            ),
-
-            selectedSignatureId: @js(
-                $document -> signature_data['signatureId'] ?? null
-            ),
-
-            signatureX: @js(
-                $document -> signature_data['signatureX'] ?? 500
-            ),
-
-            signatureY: @js(
-                $document -> signature_data['signatureY'] ?? 650
-            ),
+            selectedSignature: @js($document -> signature_data['signatureUrl'] ?? null),
+            selectedSignatureId: @js($document -> signature_data['signatureId'] ?? null),
+            signatureX: @js($document -> signature_data['signatureX'] ?? 500),
+            signatureY: @js($document -> signature_data['signatureY'] ?? 650),
+            headerHtml: @js($document -> header_data['content'] ?? ''),
+            footerHtml: @js($document -> footer_data['content'] ?? ''),
 
             showSignaturePicker: false,
 
@@ -736,7 +741,19 @@
 
                     });
 
+                    window.initHeaderFooterEditor('#document-header-editor', (html) => {
+                        this.headerHtml = html;
+                        this.markAsChanged();
+                    }, true);
+
+                    window.initHeaderFooterEditor('#document-footer-editor', (html) => {
+                        this.footerHtml = html;
+                        this.markAsChanged();
+                    }, false);
+
                 });
+
+
 
 
                 // CTRL + S
@@ -795,12 +812,12 @@
 
             focusPageEditor(uid) {
                 const editorId = 'document-editor-' + uid;
-const editor = tinymce.get(editorId);
-if (!editor) return;
+                const editor = tinymce.get(editorId);
+                if (!editor) return;
 
-editor.focus();
-editor.selection.select(editor.getBody(), true);
-editor.selection.collapse(false);
+                editor.focus();
+                editor.selection.select(editor.getBody(), true);
+                editor.selection.collapse(false);
             },
 
 
@@ -1066,7 +1083,7 @@ editor.selection.collapse(false);
                 const pagesHtml =
                     this.pages.map((page) => {
 
-                        const html =  tinymce.get('document-editor-' + page.uid)?.getContent();
+                        const html = tinymce.get('document-editor-' + page.uid)?.getContent();
                         return html ?? page.html ?? '';
                     });
 
@@ -1078,17 +1095,18 @@ editor.selection.collapse(false);
                         $document -> type ?? 'surat'
                     ),
 
-                    header_data: @js(
-                        $document -> header_data ?? []
-                    ),
+                    header_data: {
+                        nomorSurat: @js($document -> header_data['nomorSurat'] ?? ''),
+                        content: tinymce.get('document-header-editor')?.getContent() ?? this.headerHtml ?? '',
+                    },
 
                     body_content: {
                         pages: pagesHtml
                     },
 
-                    footer_data: @js(
-                        $document -> footer_data ?? []
-                    ),
+                    footer_data: {
+                        content: tinymce.get('document-footer-editor')?.getContent() ?? this.footerHtml ?? '',
+                    },
 
                     signature_data: {
 
@@ -1139,7 +1157,7 @@ editor.selection.collapse(false);
 
                         const html =
                             tinymce.get('document-editor-' + page.uid)?.getContent();
-                            return html ?? page.html ?? '';
+                        return html ?? page.html ?? '';
                     });
 
                 const payload = {
@@ -1150,17 +1168,18 @@ editor.selection.collapse(false);
                         $document -> type ?? 'surat'
                     ),
 
-                    header_data: @js(
-                        $document -> header_data ?? []
-                    ),
+                    header_data: {
+                        nomorSurat: @js($document -> header_data['nomorSurat'] ?? ''),
+                        content: tinymce.get('document-header-editor')?.getContent() ?? this.headerHtml ?? '',
+                    },
 
                     body_content: {
                         pages: pagesHtml
                     },
 
-                    footer_data: @js(
-                        $document -> footer_data ?? []
-                    ),
+                    footer_data: {
+                        content: tinymce.get('document-footer-editor')?.getContent() ?? this.footerHtml ?? '',
+                    },
 
                     signature_data: {
 
