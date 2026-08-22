@@ -321,6 +321,15 @@
         border-color: rgb(180 140 80);
     }
 
+    /* Hanya tampilkan toolbar editor yang sedang aktif */
+    #body-toolbar-container .tox-tinymce {
+        display: none !important;
+    }
+
+    #body-toolbar-container .tox-tinymce.active-page-toolbar {
+        display: block !important;
+    }
+
     @media (max-width: 768px) {
         .toolbar-select {
             min-width: 100px;
@@ -884,9 +893,35 @@ editor.selection.collapse(false);
                     return;
                 }
 
-                tinymce.get('document-editor-' + this.pages[index].uid);
+                const removedUid = this.pages[index].uid;
+                const removedEditor = tinymce.get('document-editor-' + removedUid);
+
+                if (removedEditor) {
+                    // Hapus toolbar editor dari container supaya tidak nyangkut
+                    const container = removedEditor.getContainer();
+                    if (container && container.parentNode) {
+                        container.parentNode.removeChild(container);
+                    }
+                    removedEditor.remove();
+                }
 
                 this.pages.splice(index, 1);
+
+                // Kalau editor yang dihapus tadi sedang aktif,
+                // aktifkan toolbar editor pertama yang tersisa.
+                if (this.activePageUid === removedUid) {
+                    this.activePageUid = null;
+                    const wrapper = document.getElementById('body-toolbar-container');
+                    if (wrapper) {
+                        Array.from(wrapper.children).forEach((child) => {
+                            child.classList.remove('active-page-toolbar');
+                        });
+                        const firstEditor = tinymce.get('document-editor-' + (this.pages[0]?.uid ?? ''));
+                        if (firstEditor) {
+                            firstEditor.getContainer()?.classList.add('active-page-toolbar');
+                        }
+                    }
+                }
 
                 this.markAsChanged();
             },

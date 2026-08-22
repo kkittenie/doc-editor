@@ -273,6 +273,18 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null) 
                     container.style.maxWidth = '100%';
                     container.style.width = '100%';
                 }
+
+                // Aktifkan toolbar editor pertama secara default,
+                // supaya toolbar tetap terlihat saat halaman dimuat.
+                const wrapper = document.getElementById('body-toolbar-container');
+                if (wrapper) {
+                    const hasActive = Array.from(wrapper.children).some((child) =>
+                        child.classList.contains('active-page-toolbar')
+                    );
+                    if (!hasActive && container) {
+                        container.classList.add('active-page-toolbar');
+                    }
+                }
             });
 
             editor.on('focus', function() {
