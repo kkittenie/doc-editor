@@ -295,11 +295,6 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null, 
                 padding-top: 8px;
             }
 
-            .doc-sheet-divider {
-                border-top: 2px solid #111827;
-                margin: 8px 0;
-            }
-
             .doc-sheet p {
                 margin: 0 0 10px 0;
                 padding: 0;

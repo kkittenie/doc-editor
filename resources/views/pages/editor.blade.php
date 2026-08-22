@@ -292,11 +292,6 @@
         padding-top: 8px;
     }
 
-    .doc-sheet-divider {
-        border-top: 2px solid #111827;
-        margin: 8px 0;
-    }
-
     .doc-sheet p {
         margin: 0 0 10px 0;
         padding: 0;
@@ -545,7 +540,6 @@
                     if (i === 0) {
                         html += '<div class="doc-sheet-header" data-region="header">';
                         html += this.headerHtml || '<p></p>';
-                        html += '<div class="doc-sheet-divider"></div>';
                         html += '</div>';
                     }
 
