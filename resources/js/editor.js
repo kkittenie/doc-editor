@@ -457,12 +457,28 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null, 
                 }
             }, true);
 
-            // Jaring pengaman: pastikan struktur kertas selalu ada
+            // Jaring pengaman: pastikan struktur kertas selalu ada,
+            // dan TANPA menyisakan paragraf/elemen kosong (tidak bikin celah)
+            const isEmptyBlock = (el) => {
+                if (!el || (el.nodeName !== 'P' && el.nodeName !== 'DIV')) return false;
+                if (el.classList.contains('doc-signature')) return false;
+                if (el.querySelector('img, table, ul, ol, hr, h1, h2, h3, h4, h5, h6, a, span')) return false;
+                return (el.textContent || '').trim() === '';
+            };
+
             const ensureDocumentStructure = () => {
                 const body = editor.getBody();
                 if (!body) return;
 
-                // Minimal satu kertas harus selalu ada
+                // 1. Buang elemen liar yang nyasar langsung di bawah editor
+                //    (di luar kertas) -> ini sumber "celah" di atas kertas
+                Array.from(body.childNodes).forEach((child) => {
+                    if (child.nodeType === 1 && !(child.classList && child.classList.contains('doc-sheet'))) {
+                        editor.dom.remove(child);
+                    }
+                });
+
+                // 2. Minimal satu kertas harus selalu ada
                 if (!body.querySelector('.doc-sheet[data-sheet-type="page"]')) {
                     const sheet = editor.dom.create('div', {
                         class: 'doc-sheet',
@@ -472,13 +488,13 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null, 
                     body.appendChild(sheet);
                 }
 
-                // Tiap kertas wajib punya region body
+                // 3. Tiap kertas wajib punya region body
                 body.querySelectorAll('.doc-sheet[data-sheet-type="page"]').forEach((sheet) => {
                     if (!sheet.querySelector('.doc-sheet-body[data-region="body"]')) {
                         const region = editor.dom.create('div', {
                             class: 'doc-sheet-body',
                             'data-region': 'body'
-                        }, '<p><br data-mce-bogus="1"></p>');
+                        });
 
                         const footer = sheet.querySelector('.doc-sheet-footer');
                         if (footer) sheet.insertBefore(region, footer);
@@ -486,17 +502,49 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null, 
                     }
                 });
 
-                // Region kosong total diberi paragraf kosong agar bisa diklik/ketik
+                // 4. Region yang isinya CUMA paragraf kosong:
+                //    - kursor masih di dalam region -> sisakan TEPAT SATU baris
+                //      kosong (tempat kedipan kursor, hilang saat pindah klik)
+                //    - kursor sudah di luar          -> buang semuanya,
+                //      kertas bersih total tanpa celah
                 body.querySelectorAll(
                     '.doc-sheet-body[data-region="body"], .doc-sheet-header[data-region="header"], .doc-sheet-footer[data-region="footer"]'
                 ).forEach((region) => {
-                    if (!region.firstChild) {
-                        region.innerHTML = '<p><br data-mce-bogus="1"></p>';
+                    const blocks = Array.from(region.children);
+                    if (blocks.length === 0 || !blocks.every(isEmptyBlock)) return;
+
+                    let caretInside = false;
+                    try {
+                        const node = editor.selection.getNode();
+                        caretInside = !!(node && region.contains(node));
+                    } catch (err) {
+                        caretInside = false;
+                    }
+
+                    if (caretInside) {
+                        blocks.slice(1).forEach((b) => editor.dom.remove(b));
+                    } else {
+                        blocks.forEach((b) => editor.dom.remove(b));
                     }
                 });
             };
 
-            editor.on('SetContent change keyup', ensureDocumentStructure);
+            editor.on('SetContent change keyup NodeChange', ensureDocumentStructure);
+
+            // Klik pada region yang benar-benar kosong -> siapkan SATU
+            // paragraf kosong sebagai tempat kursor SEBELUM caret ditempatkan,
+            // supaya halaman yang sudah dibersihkan tetap bisa diketik lagi.
+            editor.on('mousedown', (e) => {
+                const target = e.target;
+                if (!target || !target.closest) return;
+                const region = target.closest('.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer');
+                if (!region) return;
+                if (region.firstElementChild) return;
+
+                const p = editor.dom.create('p');
+                p.innerHTML = '<br data-mce-bogus="1">';
+                region.appendChild(p);
+            });
 
             editor.ui.registry.addButton('kopdivider', {
                 icon: 'horizontal-rule',
