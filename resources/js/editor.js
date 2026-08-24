@@ -659,8 +659,22 @@ let dragSurfaceEl = null;
 let panelEl = null;
 let handleEls = [];
 let isResizingImage = false;
-let resizeStartW = 0, resizeStartX = 0, resizeCorner = null;
+let resizeCorner = null;
+let resizeStartW = 0, resizeStartH = 0;
+let resizeStartCursorX = 0, resizeStartCursorY = 0;
+let resizeStartLeft = 0, resizeStartTop = 0;
+let resizeIsFloating = false;
 let watchTimer = null;
+
+// State drag "angkat & jatuhkan" untuk gambar biasa (non-floating)
+let flowDragArmed = false;
+let isDraggingFlowImage = false;
+let flowStartX = 0, flowStartY = 0;
+let flowDragOffsetX = 0, flowDragOffsetY = 0;
+let flowImgOriginalCssText = '';
+let flowImgOriginalParent = null;
+let flowImgOriginalNext = null;
+let flowDragSourceImg = null;
 
 // Semua editor yang memasang image tools (dipakai listener global
 // untuk menemukan editor pemilik gambar)
@@ -812,6 +826,144 @@ const findEditorContaining = (node) => {
     return null;
 };
 
+// =========================================
+// DRAG ANGKAT & JATUHKAN UNTUK GAMBAR BIASA (non-floating)
+// Tekan gambar + geser -> gambar "terangkat" mengikuti kursor.
+// Lepas di atas kertas -> berhenti PERSIS di titik pelepasan
+//                         (otomatis jadi gambar floating).
+// Lepas di luar kertas -> kembali ke tempat & gaya semula.
+// =========================================
+
+const mulaiFlowDrag = () => {
+    const img = flowDragSourceImg;
+    if (!img) return;
+
+    isDraggingFlowImage = true;
+    try { window.getSelection()?.removeAllRanges(); } catch (err) { /* noop */ }
+
+    const rect = img.getBoundingClientRect();
+    flowDragOffsetX = flowStartX - rect.left;
+    flowDragOffsetY = flowStartY - rect.top;
+
+    // Kunci ukuran supaya tidak berubah saat pindah induk
+    img.style.width = rect.width + 'px';
+    img.style.height = rect.height + 'px';
+
+    // Angkat dari aliran teks (layout langsung menyesuaikan,
+    // persis seperti memegang gambar di Word)
+    img.style.position = 'fixed';
+    img.style.margin = '0';
+    img.style.zIndex = '999997';
+    img.style.pointerEvents = 'none';
+    img.style.cursor = 'grabbing';
+    img.style.maxWidth = 'none';
+
+    document.body.appendChild(img);
+    document.body.style.userSelect = 'none';
+};
+
+const kembalikanKePosisiSemula = (img) => {
+    img.setAttribute('style', flowImgOriginalCssText);
+
+    if (flowImgOriginalParent && flowImgOriginalParent.isConnected) {
+        flowImgOriginalParent.insertBefore(img, flowImgOriginalNext);
+        return;
+    }
+
+    // Induk lama sudah hilang -> taruh di awal region pertama
+    const firstRegion = document.querySelector('#document-editor .doc-sheet-body');
+    if (firstRegion) firstRegion.insertBefore(img, firstRegion.firstChild);
+};
+
+const rapikanSetelahDrop = (img) => {
+    const parent = img.parentElement;
+    if (!parent) return;
+
+    // Kalau jatuh langsung di region (bukan di dalam paragraf),
+    // bungkus dengan paragraf baru supaya rapi
+    const region = parent.closest('.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer');
+    if (region && parent === region) {
+        const p = document.createElement('p');
+        parent.insertBefore(p, img);
+        p.appendChild(img);
+    }
+};
+
+const selesaiFlowDrag = (e) => {
+    const img = flowDragSourceImg;
+    flowDragSourceImg = null;
+    if (!img) return;
+
+    // Titik jatuh yang diinginkan user = posisi kiri-atas ghost saat dilepas
+    const ghostLeft = e.clientX - flowDragOffsetX;
+    const ghostTop = e.clientY - flowDragOffsetY;
+    const ghostW = img.offsetWidth;
+    const ghostH = img.offsetHeight;
+
+    // Cari region kertas di bawah kursor
+    // (ghost pointer-events:none, jadi tidak menghalangi deteksi)
+    let region = null;
+    try {
+        const stack = document.elementsFromPoint(e.clientX, e.clientY) || [];
+        for (const el of stack) {
+            if (!el.closest) continue;
+            region = el.closest('.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer');
+            if (region) break;
+            const sheet = el.closest('.doc-sheet');
+            if (sheet) { region = sheet.querySelector('.doc-sheet-body'); break; }
+        }
+    } catch (err) {
+        region = null;
+    }
+
+    // Lepas gaya "angkat" (ukuran width/height sengaja dipertahankan)
+    img.style.position = '';
+    img.style.margin = '';
+    img.style.zIndex = '';
+    img.style.pointerEvents = '';
+    img.style.cursor = '';
+    img.style.maxWidth = '';
+
+    if (region && region.isConnected) {
+        // Berhenti PERSIS di titik pelepasan: jadikan gambar floating
+        const rRect = region.getBoundingClientRect();
+        const maxX = Math.max(0, rRect.width - ghostW);
+        const maxY = Math.max(0, rRect.height - ghostH);
+        const left = Math.min(Math.max(ghostLeft - rRect.left, 0), maxX);
+        const top = Math.min(Math.max(ghostTop - rRect.top, 0), maxY);
+
+        img.classList.remove('doc-image-behind');
+        img.classList.add('doc-image-front');
+        img.setAttribute('draggable', 'false');
+
+        img.style.float = '';
+        img.style.display = 'block';
+        img.style.position = 'absolute';
+        img.style.left = left + 'px';
+        img.style.top = top + 'px';
+        img.style.margin = '0';
+        img.style.zIndex = '20';
+        img.style.cursor = 'grab';
+
+        region.appendChild(img);
+    } else {
+        // Dilepas di luar kertas -> kembali ke tempat & gaya semula
+        img.style.left = '';
+        img.style.top = '';
+        kembalikanKePosisiSemula(img);
+    }
+
+    const ed = findEditorContaining(flowImgOriginalParent) ||
+        (window.tinymce && window.tinymce.get('document-editor'));
+    if (ed) {
+        ed.save();
+        ed.fire('change');
+        ed.nodeChanged();
+    }
+
+    positionImageTools();
+};
+
 const applyImageLayout = (img, layout) => {
     const editor = activeEditor;
     if (!editor) return;
@@ -927,12 +1079,18 @@ const buildPanel = () => {
 const startImageResize = (e, corner) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!activeImage) return;
+
     isResizingImage = true;
     resizeCorner = corner;
     resizeStartW = activeImage.offsetWidth;
-    resizeStartX = e.clientX;
-    const ratio = activeImage.offsetHeight / activeImage.offsetWidth;
-    activeImage.dataset.ratio = ratio;
+    resizeStartH = activeImage.offsetHeight;
+    resizeIsFloating = isFloatingImage(activeImage);
+    resizeStartLeft = parseFloat(activeImage.style.left) || 0;
+    resizeStartTop = parseFloat(activeImage.style.top) || 0;
+    resizeStartCursorX = e.clientX;
+    resizeStartCursorY = e.clientY;
+
     document.body.style.userSelect = 'none';
 };
 
@@ -1033,22 +1191,75 @@ if (!window.__imageToolsBound) {
     window.__imageToolsBound = true;
 
     document.addEventListener('mousemove', (e) => {
+        // ---- RESIZE: membesar/mengecil ke arah handle, poros di sudut seberangan ----
         if (isResizingImage && activeImage) {
-            const deltaX = e.clientX - resizeStartX;
-            const ratio = parseFloat(activeImage.dataset.ratio) || 1;
-            let newW = resizeStartW;
+            const ratio = resizeStartH / resizeStartW;
+            const dx = e.clientX - resizeStartCursorX;
+            const dy = e.clientY - resizeStartCursorY;
 
-            if (resizeCorner === 'ne' || resizeCorner === 'se') newW = resizeStartW + deltaX;
-            else newW = resizeStartW - deltaX;
+            // Pertumbuhan mengikuti handle yang ditekan (dengan tanda):
+            //   ne/se -> tarik ke kanan membesar   | nw/sw -> tarik ke kiri membesar
+            //   sw/se -> tarik ke bawah membesar   | nw/ne -> tarik ke atas membesar
+            // Tarik ke arah sebaliknya = mengecil. Porosnya selalu sudut seberangan.
+            const growW = (resizeCorner === 'ne' || resizeCorner === 'se') ? dx : -dx;
+            const growH = (resizeCorner === 'sw' || resizeCorner === 'se') ? dy : -dy;
 
-            newW = Math.max(30, newW);
+            const scale = Math.max(
+                (resizeStartW + growW) / resizeStartW,
+                (resizeStartH + growH) / resizeStartH,
+                30 / resizeStartW
+            );
+            const newW = resizeStartW * scale;
+            const newH = newW * ratio;
+
             activeImage.style.width = newW + 'px';
-            activeImage.style.height = (newW * ratio) + 'px';
+            activeImage.style.height = newH + 'px';
+
+            if (resizeIsFloating) {
+                // Geser posisi supaya POROS (sudut seberangan) tetap diam
+                let left = resizeStartLeft;
+                let top = resizeStartTop;
+
+                if (resizeCorner === 'nw') { left += resizeStartW - newW; top += resizeStartH - newH; }
+                else if (resizeCorner === 'ne') { top += resizeStartH - newH; }
+                else if (resizeCorner === 'sw') { left += resizeStartW - newW; }
+
+                activeImage.style.left = left + 'px';
+                activeImage.style.top = top + 'px';
+            }
+
             positionImageTools();
+        }
+
+        // ---- DRAG ANGKAT & JATUHKAN untuk gambar biasa ----
+        if (flowDragArmed && flowDragSourceImg && !isDraggingFlowImage) {
+            if (Math.hypot(e.clientX - flowStartX, e.clientY - flowStartY) >= 4) {
+                mulaiFlowDrag();
+            }
+        }
+
+        if (isDraggingFlowImage && flowDragSourceImg) {
+            e.preventDefault();
+            flowDragSourceImg.style.left = (e.clientX - flowDragOffsetX) + 'px';
+            flowDragSourceImg.style.top = (e.clientY - flowDragOffsetY) + 'px';
         }
     });
 
-    document.addEventListener('mouseup', () => {
+    document.addEventListener('mouseup', (e) => {
+        // Selesaikan drag angkat & jatuhkan gambar biasa
+        if (flowDragArmed || isDraggingFlowImage) {
+            const wasDragging = isDraggingFlowImage;
+            flowDragArmed = false;
+            isDraggingFlowImage = false;
+            document.body.style.userSelect = '';
+
+            if (wasDragging) {
+                selesaiFlowDrag(e);
+            } else {
+                flowDragSourceImg = null; // hanya klik biasa, batal saja
+            }
+        }
+
         if (isResizingImage) {
             activeEditor?.save();
             activeEditor?.fire('change');
@@ -1093,6 +1304,23 @@ if (!window.__imageToolsBound) {
         floatStartY = e.clientY;
         floatBaseLeft = parseFloat(img.style.left) || 0;
         floatBaseTop = parseFloat(img.style.top) || 0;
+    });
+
+    // ---- DRAG ANGKAT & JATUHKAN: siapkan saat menekan gambar biasa ----
+    document.addEventListener('mousedown', (e) => {
+        if (e.target?.nodeName !== 'IMG') return;
+        const img = e.target;
+        if (isFloatingImage(img)) return;          // floating ditangani handler di atas
+        if (!img.closest('.doc-sheet')) return;    // hanya gambar di dalam dokumen
+
+        flowDragSourceImg = img;
+        flowDragArmed = true;
+        isDraggingFlowImage = false;
+        flowStartX = e.clientX;
+        flowStartY = e.clientY;
+        flowImgOriginalCssText = img.getAttribute('style') || '';
+        flowImgOriginalParent = img.parentElement;
+        flowImgOriginalNext = img.nextSibling;
     });
 
     document.addEventListener('mousemove', (e) => {
