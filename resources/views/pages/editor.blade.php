@@ -298,6 +298,21 @@
         padding-top: 8px;
     }
 
+    /* Jadikan tiap region stacking context, agar gambar dengan z-index negatif
+       (mode "Di Belakang Teks") tetap tampil di atas kertas putih
+       tapi berada di bawah teks. */
+    .doc-sheet-header,
+    .doc-sheet-body,
+    .doc-sheet-footer {
+        position: relative;
+        z-index: 0;
+    }
+
+    .doc-sheet img.doc-image-front,
+    .doc-sheet img.doc-image-behind {
+        cursor: grab !important;
+    }
+
     .doc-sheet p {
         margin: 0 0 10px 0;
         padding: 0;

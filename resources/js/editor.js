@@ -280,17 +280,21 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null, 
 
             .doc-sheet-header {
                 position: relative;
+                z-index: 0;
                 min-height: 40px;
                 padding-bottom: 8px;
             }
 
             .doc-sheet-body {
+                position: relative;
+                z-index: 0;
                 flex: 1;
                 min-height: 0;
             }
 
             .doc-sheet-footer {
                 position: relative;
+                z-index: 0;
                 min-height: 40px;
                 padding-top: 8px;
             }
@@ -417,6 +421,83 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null, 
             registerImageLayoutTools(editor);
             registerToolbarTooltips();
 
+            // =========================================
+            // CTRL+A: PILIH ISI KONTEN SAJA
+            // Struktur kertas (.doc-sheet) tidak boleh ikut
+            // terseleksi/terhapus saat select-all + delete.
+            // =========================================
+            const selectPageContentOnly = () => {
+                try {
+                    const node = editor.selection.getNode();
+                    if (!node) return false;
+
+                    const container =
+                        editor.dom.getParent(node, '.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer') ||
+                        editor.dom.getParent(node, '.doc-sheet')?.querySelector('.doc-sheet-body') ||
+                        editor.getBody().querySelector('.doc-sheet-body');
+
+                    if (!container) return false;
+
+                    const rng = editor.dom.createRng();
+                    rng.selectNodeContents(container);
+                    editor.selection.setRng(rng);
+                    return true;
+                } catch (err) {
+                    return false;
+                }
+            };
+
+            editor.on('keydown', (e) => {
+                if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
+                if ((e.key || '').toLowerCase() !== 'a') return;
+
+                if (selectPageContentOnly()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }, true);
+
+            // Jaring pengaman: pastikan struktur kertas selalu ada
+            const ensureDocumentStructure = () => {
+                const body = editor.getBody();
+                if (!body) return;
+
+                // Minimal satu kertas harus selalu ada
+                if (!body.querySelector('.doc-sheet[data-sheet-type="page"]')) {
+                    const sheet = editor.dom.create('div', {
+                        class: 'doc-sheet',
+                        'data-sheet-type': 'page',
+                        'data-page-uid': 'page-' + Date.now()
+                    });
+                    body.appendChild(sheet);
+                }
+
+                // Tiap kertas wajib punya region body
+                body.querySelectorAll('.doc-sheet[data-sheet-type="page"]').forEach((sheet) => {
+                    if (!sheet.querySelector('.doc-sheet-body[data-region="body"]')) {
+                        const region = editor.dom.create('div', {
+                            class: 'doc-sheet-body',
+                            'data-region': 'body'
+                        }, '<p><br data-mce-bogus="1"></p>');
+
+                        const footer = sheet.querySelector('.doc-sheet-footer');
+                        if (footer) sheet.insertBefore(region, footer);
+                        else sheet.appendChild(region);
+                    }
+                });
+
+                // Region kosong total diberi paragraf kosong agar bisa diklik/ketik
+                body.querySelectorAll(
+                    '.doc-sheet-body[data-region="body"], .doc-sheet-header[data-region="header"], .doc-sheet-footer[data-region="footer"]'
+                ).forEach((region) => {
+                    if (!region.firstChild) {
+                        region.innerHTML = '<p><br data-mce-bogus="1"></p>';
+                    }
+                });
+            };
+
+            editor.on('SetContent change keyup', ensureDocumentStructure);
+
             editor.ui.registry.addButton('kopdivider', {
                 icon: 'horizontal-rule',
                 text: '===',
@@ -525,19 +606,37 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null, 
 let activeImage = null;
 let activeEditor = null;
 let bubbleEl = null;
+let removeBtnEl = null;
+let dragSurfaceEl = null;
 let panelEl = null;
 let handleEls = [];
 let isResizingImage = false;
 let resizeStartW = 0, resizeStartX = 0, resizeCorner = null;
 let watchTimer = null;
 
+// Semua editor yang memasang image tools (dipakai listener global
+// untuk menemukan editor pemilik gambar)
+let registeredImageToolEditors = [];
+
+// State drag bebas untuk gambar floating (behind/front text)
+let floatingImg = null;
+let floatingRegion = null;
+let floatingDragArmed = false;
+let isDraggingFloating = false;
+let floatStartX = 0, floatStartY = 0;
+let floatBaseLeft = 0, floatBaseTop = 0;
+
 const removeImageTools = () => {
     clearInterval(watchTimer);
     watchTimer = null;
     bubbleEl?.remove();
+    removeBtnEl?.remove();
+    dragSurfaceEl?.remove();
     panelEl?.remove();
     handleEls.forEach((h) => h.remove());
     bubbleEl = null;
+    removeBtnEl = null;
+    dragSurfaceEl = null;
     panelEl = null;
     handleEls = [];
     activeImage = null;
@@ -557,6 +656,19 @@ const positionImageTools = () => {
         bubbleEl.style.top = (rect.top - 12) + 'px';
     }
 
+    if (removeBtnEl) {
+        removeBtnEl.style.left = (rect.right - 12 - 32) + 'px';
+        removeBtnEl.style.top = (rect.top - 12) + 'px';
+    }
+
+    // Permukaan drag menutupi area gambar selama mode edit aktif
+    if (dragSurfaceEl) {
+        dragSurfaceEl.style.left = rect.left + 'px';
+        dragSurfaceEl.style.top = rect.top + 'px';
+        dragSurfaceEl.style.width = rect.width + 'px';
+        dragSurfaceEl.style.height = rect.height + 'px';
+    }
+
     const corners = [
         ['nw', rect.left, rect.top],
         ['ne', rect.right, rect.top],
@@ -571,22 +683,142 @@ const positionImageTools = () => {
     });
 };
 
+// =========================================
+// HELPER GAMBAR FLOATING (MS WORD STYLE)
+// =========================================
+
+const FLOAT_REGION_SELECTOR = '.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer';
+
+const isFloatingImage = (img) => getComputedStyle(img).position === 'absolute';
+
+const getImageLayout = (img) => {
+    if (!img) return 'inline';
+    if (isFloatingImage(img)) {
+        const z = parseInt(getComputedStyle(img).zIndex, 10);
+        return z < 0 ? 'behind' : 'front';
+    }
+    const f = getComputedStyle(img).cssFloat;
+    if (f === 'left' || f === 'right') return 'square';
+    if (getComputedStyle(img).display === 'block') return 'topbottom';
+    return 'inline';
+};
+
+// Pastikan region masih punya minimal satu blok untuk menaruh kursor
+const ensureRegionHasBlock = (editor, region) => {
+    const hasBlock = Array.from(region.children).some((el) =>
+        ['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'TABLE', 'BLOCKQUOTE', 'HR']
+            .includes(el.nodeName) &&
+        !(el.classList && el.classList.contains('doc-signature'))
+    );
+    if (!hasBlock) {
+        const p = editor.dom.create('p');
+        p.innerHTML = '<br data-mce-bogus="1">';
+        region.insertBefore(p, region.firstChild);
+    }
+};
+
+// Bersihkan paragraf yang jadi kosong setelah gambarnya dipindah jadi floating
+const cleanupAfterFloatMove = (editor, oldParent, region) => {
+    try {
+        if (
+            oldParent &&
+            oldParent.nodeType === 1 &&
+            oldParent !== region &&
+            region.contains(oldParent) &&
+            !oldParent.matches(FLOAT_REGION_SELECTOR) &&
+            !oldParent.querySelector('img') &&
+            !(oldParent.textContent || '').trim() &&
+            !oldParent.querySelector('table, hr, ul, ol')
+        ) {
+            editor.dom.remove(oldParent);
+        }
+    } catch (err) {
+        // noop
+    }
+};
+
+// Cari editor TinyMCE yang memuat node tertentu.
+// Prioritas: registry internal (pasti terisi saat init),
+// lalu tinymce.editors (kalau tersedia), lalu activeEditor.
+const findEditorContaining = (node) => {
+    const candidates = [
+        ...registeredImageToolEditors,
+        ...((window.tinymce && window.tinymce.editors) || []),
+    ];
+
+    for (let i = 0; i < candidates.length; i++) {
+        const ed = candidates[i];
+        try {
+            if (ed?.getBody?.().contains(node)) return ed;
+        } catch (err) {
+            // noop
+        }
+    }
+
+    try {
+        if (activeEditor?.getBody?.().contains(node)) return activeEditor;
+    } catch (err) {
+        // noop
+    }
+
+    return null;
+};
+
 const applyImageLayout = (img, layout) => {
+    const editor = activeEditor;
+    if (!editor) return;
+
+    const oldParent = img.parentElement;
+
+    // Reset semua style layout dulu
     img.style.float = '';
     img.style.display = '';
     img.style.margin = '';
+    img.style.position = '';
+    img.style.left = '';
+    img.style.top = '';
+    img.style.zIndex = '';
+    img.style.cursor = '';
+    img.classList.remove('doc-image-behind', 'doc-image-front');
 
-    if (layout === 'square') {
-        img.style.float = 'left';
-        img.style.margin = '4px 14px 8px 0';
-    } else if (layout === 'topbottom') {
-        img.style.display = 'block';
-        img.style.margin = '12px auto';
+    const region = img.closest(FLOAT_REGION_SELECTOR);
+
+    if ((layout === 'behind' || layout === 'front') && region) {
+        // Catat posisi visual gambar SAAT INI relatif terhadap region,
+        // supaya gambar tidak "lompat" saat berubah jadi floating.
+        const imgRect = img.getBoundingClientRect();
+        const regionRect = region.getBoundingClientRect();
+        const left = Math.max(0, Math.round(imgRect.left - regionRect.left));
+        const top = Math.max(0, Math.round(imgRect.top - regionRect.top));
+
+        // Keluarkan gambar dari paragrafnya -> jadi anak langsung region.
+        // Teks jadi mengalir normal di belakang / di depan gambar.
+        region.appendChild(img);
+        cleanupAfterFloatMove(editor, oldParent, region);
+        ensureRegionHasBlock(editor, region);
+
+        img.style.position = 'absolute';
+        img.style.left = left + 'px';
+        img.style.top = top + 'px';
+        img.style.margin = '0';
+        img.style.cursor = 'grab';
+        img.setAttribute('draggable', 'false');
+
+        if (layout === 'behind') {
+            // z-index negatif = di bawah teks (region wajib stacking context,
+            // sudah diatur via CSS .doc-sheet-body { z-index: 0 })
+            img.style.zIndex = '-1';
+            img.classList.add('doc-image-behind');
+        } else {
+            // z-index positif = di atas semua teks & tabel
+            img.style.zIndex = '20';
+            img.classList.add('doc-image-front');
+        }
     }
-    // 'inline' -> biarin default, gak perlu style tambahan
 
-    activeEditor.save();
-    activeEditor.fire('change');
+    editor.save();
+    editor.fire('change');
+    editor.nodeChanged();
 
     requestAnimationFrame(positionImageTools);
 };
@@ -596,31 +828,45 @@ const buildPanel = () => {
 
     const options = [
         { key: 'inline', label: 'Sejajar dengan Teks' },
-        { key: 'square', label: 'Persegi (teks di samping)' },
+        { key: 'square', label: 'Persegi — Teks di Samping' },
         { key: 'topbottom', label: 'Atas dan Bawah' },
+        { key: 'behind', label: 'Di Belakang Teks' },
+        { key: 'front', label: 'Di Depan Teks' },
     ];
+
+    const currentLayout = getImageLayout(activeImage);
 
     panelEl = document.createElement('div');
     panelEl.style.cssText =
-        'position:fixed;z-index:999999;width:210px;background:#fff;border:1px solid #d6d3cc;' +
+        'position:fixed;z-index:999999;width:230px;background:#fff;border:1px solid #d6d3cc;' +
         'border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:8px;font-family:Arial,sans-serif;';
 
     panelEl.innerHTML =
-        '<div style="font-size:12px;font-weight:700;color:#1B2A4A;margin-bottom:6px;padding:0 4px;">Layout Options</div>' +
-        options.map(o =>
-            `<button type="button" data-layout="${o.key}" style="display:block;width:100%;text-align:left;` +
-            `padding:7px 8px;border-radius:6px;background:transparent;border:none;cursor:pointer;font-size:12.5px;color:#1B2A4A;">${o.label}</button>`
-        ).join('');
+        '<div style="font-size:12px;font-weight:700;color:#1B2A4A;margin-bottom:6px;padding:0 4px;">Atur Posisi Gambar</div>' +
+        options.map((o) => {
+            const active = o.key === currentLayout;
+            return '<button type="button" data-layout="' + o.key + '"' + (active ? ' data-active="1"' : '') +
+                ' style="display:block;width:100%;text-align:left;padding:7px 8px;border-radius:6px;' +
+                (active
+                    ? 'background:#1B2A4A;color:#fff;font-weight:600;'
+                    : 'background:transparent;color:#1B2A4A;') +
+                'border:none;cursor:pointer;font-size:12.5px;">' +
+                (active ? '✓ ' : '') + o.label + '</button>';
+        }).join('');
 
     document.body.appendChild(panelEl);
 
     const bubbleRect = bubbleEl.getBoundingClientRect();
-    panelEl.style.left = Math.max(8, bubbleRect.left - 190) + 'px';
+    panelEl.style.left = Math.max(8, bubbleRect.left - 210) + 'px';
     panelEl.style.top = (bubbleRect.bottom + 6) + 'px';
 
     panelEl.querySelectorAll('button[data-layout]').forEach((btn) => {
-        btn.addEventListener('mouseenter', () => btn.style.background = '#f5f2eb');
-        btn.addEventListener('mouseleave', () => btn.style.background = 'transparent');
+        btn.addEventListener('mouseenter', () => {
+            if (!btn.dataset.active) btn.style.background = '#f5f2eb';
+        });
+        btn.addEventListener('mouseleave', () => {
+            if (!btn.dataset.active) btn.style.background = 'transparent';
+        });
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             applyImageLayout(activeImage, btn.dataset.layout);
@@ -651,7 +897,7 @@ const showImageTools = (editor, img) => {
 
     bubbleEl = document.createElement('div');
     bubbleEl.innerHTML = '⚓';
-    bubbleEl.title = 'Layout Options';
+    bubbleEl.title = 'Atur Posisi Gambar';
     bubbleEl.style.cssText =
         'position:fixed;z-index:999999;width:26px;height:26px;border-radius:6px;background:#1B2A4A;' +
         'color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;' +
@@ -663,6 +909,28 @@ const showImageTools = (editor, img) => {
         panelEl ? (panelEl.remove(), panelEl = null) : buildPanel();
     });
 
+    // Tombol hapus cepat di samping anchor
+    removeBtnEl = document.createElement('div');
+    removeBtnEl.innerHTML = '✕';
+    removeBtnEl.title = 'Hapus gambar';
+    removeBtnEl.style.cssText =
+        'position:fixed;z-index:999999;width:26px;height:26px;border-radius:6px;background:#dc2626;' +
+        'color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;' +
+        'box-shadow:0 2px 6px rgba(0,0,0,.25);font-size:12px;';
+    document.body.appendChild(removeBtnEl);
+
+    removeBtnEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!activeImage || !activeEditor) return;
+        const ed = activeEditor;
+        const img = activeImage;
+        removeImageTools();
+        ed.dom.remove(img);
+        ed.save();
+        ed.fire('change');
+        ed.nodeChanged();
+    });
+
     handleEls = ['nw', 'ne', 'sw', 'se'].map((corner) => {
         const h = document.createElement('div');
         h.style.cssText =
@@ -672,6 +940,32 @@ const showImageTools = (editor, img) => {
         h.addEventListener('mousedown', (e) => startImageResize(e, corner));
         return h;
     });
+
+    // Permukaan drag untuk gambar floating: supaya gambar "Di Belakang Teks"
+    // tetap bisa digeser meski secara visual tertutup teks.
+    if (isFloatingImage(img)) {
+        dragSurfaceEl = document.createElement('div');
+        dragSurfaceEl.title = 'Geser gambar';
+        dragSurfaceEl.style.cssText =
+            'position:fixed;z-index:999998;cursor:move;background:transparent;';
+        document.body.appendChild(dragSurfaceEl);
+
+        dragSurfaceEl.addEventListener('mousedown', (e) => {
+            if (!activeImage || !isFloatingImage(activeImage)) return;
+            const region = activeImage.closest(FLOAT_REGION_SELECTOR) || activeImage.closest('.doc-sheet');
+            if (!region) return;
+
+            e.preventDefault();
+            floatingImg = activeImage;
+            floatingRegion = region;
+            floatingDragArmed = true;
+            isDraggingFloating = false;
+            floatStartX = e.clientX;
+            floatStartY = e.clientY;
+            floatBaseLeft = parseFloat(activeImage.style.left) || 0;
+            floatBaseTop = parseFloat(activeImage.style.top) || 0;
+        });
+    }
 
     positionImageTools();
 
@@ -720,14 +1014,125 @@ if (!window.__imageToolsBound) {
 
     document.addEventListener('click', (e) => {
         if (e.target === bubbleEl || bubbleEl?.contains(e.target)) return;
+        if (e.target === removeBtnEl || removeBtnEl?.contains(e.target)) return;
+        if (e.target === dragSurfaceEl || dragSurfaceEl?.contains(e.target)) return;
         if (e.target === panelEl || panelEl?.contains(e.target)) return;
         if (handleEls.includes(e.target)) return;
         if (e.target.nodeName === 'IMG') return;
         removeImageTools();
     });
+
+    // =========================================
+    // DRAG BEBAS UNTUK GAMBAR FLOATING (behind/front text)
+    // =========================================
+
+    document.addEventListener('mousedown', (e) => {
+        if (e.target?.nodeName !== 'IMG') return;
+        const img = e.target;
+        if (!isFloatingImage(img)) return;
+
+        const region = img.closest(FLOAT_REGION_SELECTOR) || img.closest('.doc-sheet');
+        if (!region) return;
+
+        // Tanpa preventDefault: klik sekali pada gambar harus tetap
+        // berperilaku normal (menaruh kursor teks). Drag baru aktif
+        // setelah kursor bergerak melewati threshold di mousemove.
+        floatingImg = img;
+        floatingRegion = region;
+        floatingDragArmed = true;
+        isDraggingFloating = false;
+        floatStartX = e.clientX;
+        floatStartY = e.clientY;
+        floatBaseLeft = parseFloat(img.style.left) || 0;
+        floatBaseTop = parseFloat(img.style.top) || 0;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!floatingImg) return;
+
+        // Aktifkan drag hanya setelah kursor bergerak > 4px,
+        // supaya klik biasa tetap terdeteksi sebagai klik.
+        if (floatingDragArmed && !isDraggingFloating) {
+            if (Math.hypot(e.clientX - floatStartX, e.clientY - floatStartY) < 4) return;
+            isDraggingFloating = true;
+            try { window.getSelection()?.removeAllRanges(); } catch (err) { /* noop */ }
+            floatingImg.style.cursor = 'grabbing';
+            document.body.style.userSelect = 'none';
+        }
+
+        if (!isDraggingFloating) return;
+        e.preventDefault();
+
+        const regionRect = floatingRegion.getBoundingClientRect();
+        const maxX = Math.max(0, regionRect.width - floatingImg.offsetWidth);
+        const maxY = Math.max(0, regionRect.height - floatingImg.offsetHeight);
+        const nextLeft = Math.min(Math.max(floatBaseLeft + (e.clientX - floatStartX), 0), maxX);
+        const nextTop = Math.min(Math.max(floatBaseTop + (e.clientY - floatStartY), 0), maxY);
+
+        floatingImg.style.left = nextLeft + 'px';
+        floatingImg.style.top = nextTop + 'px';
+        positionImageTools();
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (!floatingImg) return;
+
+        const wasDragged = isDraggingFloating;
+        floatingImg.style.cursor = 'grab';
+        floatingImg = null;
+        floatingRegion = null;
+        floatingDragArmed = false;
+        isDraggingFloating = false;
+        document.body.style.userSelect = '';
+
+        if (wasDragged && activeEditor) {
+            activeEditor.save();
+            activeEditor.fire('change');
+        }
+    });
+
+    // =========================================
+    // KLIK DUA KALI UNTUK GAMBAR YANG TERTUTUP TEKS
+    // Klik sekali pada gambar yang terlihat langsung membuka tools.
+    // Gambar "Di Belakang Teks" yang tertutup teks tidak bisa
+    // diklik langsung — klik dua kali akan menembus teks dan
+    // memilihnya (elementsFromPoint).
+    // =========================================
+
+    document.addEventListener('dblclick', (e) => {
+        const stack = document.elementsFromPoint(e.clientX, e.clientY);
+        const img = stack.find((el) => el.nodeName === 'IMG');
+        if (!img) return;
+
+        // Kalau gambar ada di posisi paling atas (bisa diklik langsung),
+        // biarkan klik TUNGGAL yang membuka tools — jangan ganggu
+        // seleksi kata bawaan browser.
+        if (stack[0] === img) return;
+
+        // Tanda tangan punya sistem drag sendiri, jangan ganggu
+        if (img.closest('.doc-signature')) return;
+
+        // Harus ada editor TinyMCE yang memuat gambar ini
+        // (mencegah ikut menangkap gambar di modal/luar editor)
+        const editor = findEditorContaining(img);
+        if (!editor) return;
+
+        e.preventDefault();
+        try { window.getSelection()?.removeAllRanges(); } catch (err) { /* noop */ }
+
+        showImageTools(editor, img);
+    });
 }
 
 const registerImageLayoutTools = (editor) => {
+    // Daftarkan editor agar listener global (klik dua kali untuk gambar
+    // yang tertutup teks) bisa menemukan editor pemiliknya
+    if (!registeredImageToolEditors.includes(editor)) {
+        registeredImageToolEditors.push(editor);
+    }
+
+    // Klik sekali pada gambar langsung membuka mode edit
+    // (perilaku seperti awal)
     editor.on('click', (e) => {
         if (e.target.nodeName === 'IMG') {
             showImageTools(editor, e.target);
@@ -745,6 +1150,7 @@ const registerImageLayoutTools = (editor) => {
     });
 
     editor.on('remove', () => {
+        registeredImageToolEditors = registeredImageToolEditors.filter((ed) => ed !== editor);
         if (activeEditor === editor) removeImageTools();
     });
 };
@@ -796,3 +1202,43 @@ const registerToolbarTooltips = () => {
         if (btn) hideTooltip();
     });
 };
+
+// =========================================
+// GUARD GLOBAL CTRL+A UNTUK DOKUMEN (lapis kedua, capture phase)
+// Memastikan select-all bawaan browser/TinyMCE tidak pernah
+// memilih elemen kertas (.doc-sheet) — hanya isi kontennya.
+// =========================================
+
+if (!window.__selectAllGuardBound) {
+    window.__selectAllGuardBound = true;
+
+    document.addEventListener('keydown', (e) => {
+        if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
+        if ((e.key || '').toLowerCase() !== 'a') return;
+
+        const editorEl = document.getElementById('document-editor');
+        if (!editorEl || !editorEl.contains(e.target)) return;
+
+        const editor = window.tinymce && window.tinymce.get('document-editor');
+        if (!editor) return;
+
+        try {
+            const node = editor.selection.getNode();
+            const container =
+                editor.dom.getParent(node, '.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer') ||
+                editor.dom.getParent(node, '.doc-sheet')?.querySelector('.doc-sheet-body') ||
+                editor.getBody().querySelector('.doc-sheet-body');
+
+            if (!container) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const rng = editor.dom.createRng();
+            rng.selectNodeContents(container);
+            editor.selection.setRng(rng);
+        } catch (err) {
+            // noop
+        }
+    }, true);
+}
