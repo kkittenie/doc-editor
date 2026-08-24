@@ -243,6 +243,12 @@
         }
     }
 
+    .doc-editable-body img,
+    .doc-editable-header img,
+    .doc-editable-footer img {
+        cursor: pointer;
+    }
+
     /* =========================================
        KANVAS EDITOR (SATU INSTANCE)
        ========================================= */

@@ -244,7 +244,7 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null, 
 
         inline: true,
 
-        object_resizing: 'img,table',
+        object_resizing: 'table',
 
         content_style: `
             body {
@@ -414,6 +414,8 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null, 
         setup: function (editor) {
 
             registerSharedToolbarVisibility(editor);
+            registerImageLayoutTools(editor);
+            registerToolbarTooltips();
 
             editor.ui.registry.addButton('kopdivider', {
                 icon: 'horizontal-rule',
@@ -513,5 +515,284 @@ window.initBodyEditor = function (selector, initialContent = '', onSync = null, 
                 }
             });
         }
+    });
+};
+
+// =========================================
+// IMAGE LAYOUT TOOLS (versi simpel: bubble + resize saja)
+// =========================================
+
+let activeImage = null;
+let activeEditor = null;
+let bubbleEl = null;
+let panelEl = null;
+let handleEls = [];
+let isResizingImage = false;
+let resizeStartW = 0, resizeStartX = 0, resizeCorner = null;
+let watchTimer = null;
+
+const removeImageTools = () => {
+    clearInterval(watchTimer);
+    watchTimer = null;
+    bubbleEl?.remove();
+    panelEl?.remove();
+    handleEls.forEach((h) => h.remove());
+    bubbleEl = null;
+    panelEl = null;
+    handleEls = [];
+    activeImage = null;
+    activeEditor = null;
+};
+
+const positionImageTools = () => {
+    if (!activeImage || !activeImage.isConnected) {
+        removeImageTools();
+        return;
+    }
+
+    const rect = activeImage.getBoundingClientRect();
+
+    if (bubbleEl) {
+        bubbleEl.style.left = (rect.right - 12) + 'px';
+        bubbleEl.style.top = (rect.top - 12) + 'px';
+    }
+
+    const corners = [
+        ['nw', rect.left, rect.top],
+        ['ne', rect.right, rect.top],
+        ['sw', rect.left, rect.bottom],
+        ['se', rect.right, rect.bottom],
+    ];
+
+    handleEls.forEach((h, i) => {
+        const [, x, y] = corners[i];
+        h.style.left = x + 'px';
+        h.style.top = y + 'px';
+    });
+};
+
+const applyImageLayout = (img, layout) => {
+    img.style.float = '';
+    img.style.display = '';
+    img.style.margin = '';
+
+    if (layout === 'square') {
+        img.style.float = 'left';
+        img.style.margin = '4px 14px 8px 0';
+    } else if (layout === 'topbottom') {
+        img.style.display = 'block';
+        img.style.margin = '12px auto';
+    }
+    // 'inline' -> biarin default, gak perlu style tambahan
+
+    activeEditor.save();
+    activeEditor.fire('change');
+
+    requestAnimationFrame(positionImageTools);
+};
+
+const buildPanel = () => {
+    panelEl?.remove();
+
+    const options = [
+        { key: 'inline', label: 'Sejajar dengan Teks' },
+        { key: 'square', label: 'Persegi (teks di samping)' },
+        { key: 'topbottom', label: 'Atas dan Bawah' },
+    ];
+
+    panelEl = document.createElement('div');
+    panelEl.style.cssText =
+        'position:fixed;z-index:999999;width:210px;background:#fff;border:1px solid #d6d3cc;' +
+        'border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:8px;font-family:Arial,sans-serif;';
+
+    panelEl.innerHTML =
+        '<div style="font-size:12px;font-weight:700;color:#1B2A4A;margin-bottom:6px;padding:0 4px;">Layout Options</div>' +
+        options.map(o =>
+            `<button type="button" data-layout="${o.key}" style="display:block;width:100%;text-align:left;` +
+            `padding:7px 8px;border-radius:6px;background:transparent;border:none;cursor:pointer;font-size:12.5px;color:#1B2A4A;">${o.label}</button>`
+        ).join('');
+
+    document.body.appendChild(panelEl);
+
+    const bubbleRect = bubbleEl.getBoundingClientRect();
+    panelEl.style.left = Math.max(8, bubbleRect.left - 190) + 'px';
+    panelEl.style.top = (bubbleRect.bottom + 6) + 'px';
+
+    panelEl.querySelectorAll('button[data-layout]').forEach((btn) => {
+        btn.addEventListener('mouseenter', () => btn.style.background = '#f5f2eb');
+        btn.addEventListener('mouseleave', () => btn.style.background = 'transparent');
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            applyImageLayout(activeImage, btn.dataset.layout);
+            panelEl?.remove();
+            panelEl = null;
+        });
+    });
+};
+
+const startImageResize = (e, corner) => {
+    e.preventDefault();
+    e.stopPropagation();
+    isResizingImage = true;
+    resizeCorner = corner;
+    resizeStartW = activeImage.offsetWidth;
+    resizeStartX = e.clientX;
+    const ratio = activeImage.offsetHeight / activeImage.offsetWidth;
+    activeImage.dataset.ratio = ratio;
+    document.body.style.userSelect = 'none';
+};
+
+const showImageTools = (editor, img) => {
+    if (activeImage === img) return;
+    removeImageTools();
+
+    activeImage = img;
+    activeEditor = editor;
+
+    bubbleEl = document.createElement('div');
+    bubbleEl.innerHTML = '⚓';
+    bubbleEl.title = 'Layout Options';
+    bubbleEl.style.cssText =
+        'position:fixed;z-index:999999;width:26px;height:26px;border-radius:6px;background:#1B2A4A;' +
+        'color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;' +
+        'box-shadow:0 2px 6px rgba(0,0,0,.25);font-size:13px;';
+    document.body.appendChild(bubbleEl);
+
+    bubbleEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        panelEl ? (panelEl.remove(), panelEl = null) : buildPanel();
+    });
+
+    handleEls = ['nw', 'ne', 'sw', 'se'].map((corner) => {
+        const h = document.createElement('div');
+        h.style.cssText =
+            'position:fixed;z-index:999999;width:10px;height:10px;background:#fff;border:2px solid #1B2A4A;' +
+            `border-radius:50%;cursor:${corner === 'nw' || corner === 'se' ? 'nwse-resize' : 'nesw-resize'};`;
+        document.body.appendChild(h);
+        h.addEventListener('mousedown', (e) => startImageResize(e, corner));
+        return h;
+    });
+
+    positionImageTools();
+
+    const loop = () => {
+        if (!activeImage) return;
+        if (!activeImage.isConnected) {
+            removeImageTools();
+            return;
+        }
+        positionImageTools();
+        watchTimer = requestAnimationFrame(loop);
+    };
+    watchTimer = requestAnimationFrame(loop);
+};
+
+if (!window.__imageToolsBound) {
+    window.__imageToolsBound = true;
+
+    document.addEventListener('mousemove', (e) => {
+        if (isResizingImage && activeImage) {
+            const deltaX = e.clientX - resizeStartX;
+            const ratio = parseFloat(activeImage.dataset.ratio) || 1;
+            let newW = resizeStartW;
+
+            if (resizeCorner === 'ne' || resizeCorner === 'se') newW = resizeStartW + deltaX;
+            else newW = resizeStartW - deltaX;
+
+            newW = Math.max(30, newW);
+            activeImage.style.width = newW + 'px';
+            activeImage.style.height = (newW * ratio) + 'px';
+            positionImageTools();
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isResizingImage) {
+            activeEditor?.save();
+            activeEditor?.fire('change');
+        }
+        isResizingImage = false;
+        document.body.style.userSelect = '';
+    });
+
+    document.addEventListener('scroll', () => positionImageTools(), true);
+    window.addEventListener('resize', () => positionImageTools());
+
+    document.addEventListener('click', (e) => {
+        if (e.target === bubbleEl || bubbleEl?.contains(e.target)) return;
+        if (e.target === panelEl || panelEl?.contains(e.target)) return;
+        if (handleEls.includes(e.target)) return;
+        if (e.target.nodeName === 'IMG') return;
+        removeImageTools();
+    });
+}
+
+const registerImageLayoutTools = (editor) => {
+    editor.on('click', (e) => {
+        if (e.target.nodeName === 'IMG') {
+            showImageTools(editor, e.target);
+        }
+    });
+
+    editor.on('keydown', (e) => {
+        if ((e.key === 'Backspace' || e.key === 'Delete') && activeImage) {
+            setTimeout(() => {
+                if (!activeImage || !activeImage.isConnected) {
+                    removeImageTools();
+                }
+            }, 50);
+        }
+    });
+
+    editor.on('remove', () => {
+        if (activeEditor === editor) removeImageTools();
+    });
+};
+
+// =========================================
+// TOOLTIP BUBBLE UNTUK TOOLBAR
+// =========================================
+
+const registerToolbarTooltips = () => {
+    if (window.__toolbarTooltipsBound) return;
+    window.__toolbarTooltipsBound = true;
+
+    const container = document.getElementById('body-toolbar-container');
+    if (!container) return;
+
+    let hoverTimer = null;
+    let tooltipEl = null;
+
+    const hideTooltip = () => {
+        clearTimeout(hoverTimer);
+        tooltipEl?.remove();
+        tooltipEl = null;
+    };
+
+    container.addEventListener('mouseover', (e) => {
+        const btn = e.target.closest('.tox-tbtn, .tox-split-button, [aria-label]');
+        if (!btn) return;
+
+        const label = btn.getAttribute('aria-label') || btn.getAttribute('title');
+        if (!label) return;
+
+        clearTimeout(hoverTimer);
+        hoverTimer = setTimeout(() => {
+            hideTooltip();
+            const rect = btn.getBoundingClientRect();
+            tooltipEl = document.createElement('div');
+            tooltipEl.textContent = label;
+            tooltipEl.style.cssText =
+                'position:fixed;z-index:999999;background:#1B2A4A;color:#fff;padding:5px 9px;' +
+                'border-radius:6px;font-size:11px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.2);';
+            document.body.appendChild(tooltipEl);
+            tooltipEl.style.left = (rect.left + rect.width / 2 - tooltipEl.offsetWidth / 2) + 'px';
+            tooltipEl.style.top = (rect.bottom + 6) + 'px';
+        }, 900);
+    });
+
+    container.addEventListener('mouseout', (e) => {
+        const btn = e.target.closest('.tox-tbtn, .tox-split-button, [aria-label]');
+        if (btn) hideTooltip();
     });
 };
