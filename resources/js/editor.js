@@ -664,6 +664,132 @@ const selesaiFlowDrag = (e) => {
 };
 
 // =========================================
+// TITIK SISIP DI MANA SAJA (ala Microsoft Word):
+// klik di mana pun pada kertas -> caret pindah ke
+// baris terdekat yang bisa diketik.
+// =========================================
+
+// Kelompokkan karakter tiap text-node menjadi baris-baris visual,
+// lalu cari baris dengan jarak terdekat ke titik klik.
+const nearestLine = (rootEl, x, y) => {
+    const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT);
+    let best = null;
+    let node;
+
+    const consider = (L) => {
+        const midY = (L.top + L.bottom) / 2;
+        const score =
+            Math.abs(y - midY) * 1000 +
+            Math.abs(x - (L.left + L.right) / 2) * 0.001;
+        if (!best || score < best.score) best = Object.assign({ score }, L);
+    };
+
+    while ((node = walker.nextNode())) {
+        const txt = node.nodeValue;
+        if (!txt || !txt.trim()) continue;
+
+        let cur = null;
+        for (let i = 0; i < txt.length; i++) {
+            const r = document.createRange();
+            r.setStart(node, i);
+            r.setEnd(node, i + 1);
+            const rc = r.getBoundingClientRect();
+            if (rc.width === 0 && rc.height === 0) continue;
+
+            if (!cur || Math.abs(rc.top - cur.top) > 2) {
+                if (cur) consider(cur);
+                cur = {
+                    top: rc.top,
+                    bottom: rc.bottom,
+                    start: i,
+                    end: i + 1,
+                    node,
+                    left: rc.left,
+                    right: rc.right,
+                };
+            } else {
+                cur.end = i + 1;
+                cur.left = Math.min(cur.left, rc.left);
+                cur.right = Math.max(cur.right, rc.right);
+                cur.top = Math.min(cur.top, rc.top);
+                cur.bottom = Math.max(cur.bottom, rc.bottom);
+            }
+        }
+        if (cur) consider(cur);
+    }
+    return best;
+};
+
+// Tempatkan caret ke baris terdekat dari titik (x, y) layar.
+const caretToNearestLine = (x, y) => {
+    // 1) kumpulkan semua editor yang sedang bisa diketik
+    const editors = [];
+    quillsByRegion.forEach((q, regionEl) => {
+        if (!q.isEnabled()) return;
+        const er = regionEl.querySelector('.ql-editor');
+        if (er) editors.push(er);
+    });
+    if (!editors.length) return false;
+
+    // 2) pilih editor terdekat secara vertikal terhadap titik klik
+    let target = null;
+    let bestDy = Infinity;
+    for (const er of editors) {
+        const r = er.getBoundingClientRect();
+        const dy = y < r.top ? r.top - y : (y > r.bottom ? y - r.bottom : 0);
+        if (dy < bestDy) {
+            bestDy = dy;
+            target = er;
+        }
+    }
+    if (!target) return false;
+
+    const focusAndSet = (node, offset) => {
+        target.focus({ preventScroll: false });
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        const rg = document.createRange();
+        rg.setStart(node, Math.min(offset, node.nodeValue ? node.nodeValue.length : 0));
+        rg.collapse(true);
+        sel.addRange(rg);
+        return true;
+    };
+
+    // 3a) presisi: pakai jawaban browser HANYA bila ia menunjuk NODE TEKS
+    //     nyata. Bila titik berada di area kosong, Chrome sering menjawab
+    //     elemen kontainer dengan offset 0 (= awal dokumen/baris pertama!)
+    //     — hasil seperti itu dibuang dan dipakai pencarian baris terdekat.
+    let native = null;
+    try {
+        if (document.caretRangeFromPoint) {
+            native = document.caretRangeFromPoint(x, y);
+        } else if (document.caretPositionFromPoint) {
+            const p = document.caretPositionFromPoint(x, y);
+            if (p) {
+                native = document.createRange();
+                native.setStart(p.offsetNode, p.offset);
+            }
+        }
+    } catch (_) {
+        native = null;
+    }
+    if (
+        native &&
+        native.startContainer &&
+        native.startContainer.nodeType === Node.TEXT_NODE &&
+        target.contains(native.startContainer)
+    ) {
+        return focusAndSet(native.startContainer, native.startOffset);
+    }
+
+    // 3b) cadangan geometris: baris terdekat, caret di awal/akhir baris
+    const line = nearestLine(target, x, y);
+    if (!line) return false;
+    const offset = x < line.left + 1 ? line.start : line.end;
+    return focusAndSet(line.node, offset);
+};
+
+// =========================================
 // LISTENER GLOBAL (dipasang sekali)
 // =========================================
 
@@ -720,6 +846,38 @@ if (!window.__imageToolsBound) {
         if (!img.closest('.doc-sheet')) return;
         e.preventDefault();
     });
+
+    // TITIK SISIP DI MANA SAJA: SEMUA klik kiri di kertas dihitung lewat
+    // resolver ini (capture phase), sehingga caret SELALU mengikuti titik klik —
+    // termasuk saat mengeklik baris kedua/ketiga dan area kosong sekitarnya.
+    document.addEventListener(
+        'mousedown',
+        (e) => {
+            if (e.button !== 0) return;
+
+            const sheet = e.target?.closest?.('.doc-sheet');
+            if (!sheet) return; // hanya di dalam kertas
+
+            // Interaksi khusus yang tidak boleh diganggu
+            if (e.target.closest?.('.doc-signature')) return;
+            if (e.target.closest?.('img')) return;
+            if (e.target.closest?.('button, a, input, select, textarea')) return;
+
+            // Zona terkunci (di luar sesi): biarkan tanpa caret —
+            // double-click untuk membuka sesi ditangani handler lain
+            const zone = e.target.closest?.('.doc-sheet-header, .doc-sheet-footer');
+            if (zone) {
+                const zq = quillsByRegion.get(zone);
+                if (!zq || !zq.isEnabled()) return;
+            }
+
+            // Hitung & pasang caret tepat di titik klik (fallback: baris terdekat)
+            if (caretToNearestLine(e.clientX, e.clientY)) {
+                e.preventDefault(); // kita yang memasang caret
+            }
+        },
+        true // capture: jalan paling awal, tidak bisa diganggu handler lain
+    );
 
     document.addEventListener('mousemove', (e) => {
         // ---- DRAG ANGKAT GAMBAR FLOW: trigger saat digeser + ghost ikut kursor ----
@@ -1303,7 +1461,7 @@ window.initBodyEditor = function (rootSelector, onSync = null) {
 
 window.DocQuill = {
     // Penanda versi untuk deteksi aset usang dari blade
-    __version: 'hf-2',
+    __version: 'hf-5',
 
     // Pasang editor pada region baru (misal saat tambah halaman)
     attachRegion: attachQuillToRegion,
