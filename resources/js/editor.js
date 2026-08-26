@@ -300,9 +300,32 @@ const cleanupAfterFloatMove = (editor, oldParent, region) => {
     }
 };
 
+// Kembalikan gambar floating (anak langsung region, di luar editor Quill)
+// ke dalam aliran konten editor — dipakai saat berganti ke layout aliran
+// teks (inline / persegi / atas-bawah) agar ikut ter-render & tersimpan.
+const returnImageToFlow = (editor, img) => {
+    const region = img.closest(FLOAT_REGION_SELECTOR);
+    const qlEditor = region?.querySelector('.ql-editor');
+    if (!qlEditor || qlEditor.contains(img)) return;
+
+    // Selipkan di awal blok pertama; bila editor kosong, buat paragraf baru
+    let firstBlock = qlEditor.querySelector('p, h1, h2, h3, h4, h5, h6, li');
+    if (!firstBlock) {
+        firstBlock = editor.dom.create('p');
+        firstBlock.innerHTML = '<br>';
+        qlEditor.insertBefore(firstBlock, qlEditor.firstChild);
+    }
+    firstBlock.insertBefore(img, firstBlock.firstChild);
+};
+
 const applyImageLayout = (img, layout) => {
     const editor = activeEditor;
     if (!editor) return;
+
+    // Layout & sisi float SEBELUM direset (dipakai toggle sisi opsi 'square')
+    const prevLayout = getImageLayout(img);
+    const prevFloat =
+        prevLayout === 'square' ? getComputedStyle(img).cssFloat : 'none';
 
     const oldParent = img.parentElement;
 
@@ -315,6 +338,8 @@ const applyImageLayout = (img, layout) => {
     img.style.top = '';
     img.style.zIndex = '';
     img.style.cursor = '';
+    img.style.verticalAlign = '';
+    img.style.clear = '';
     img.classList.remove('doc-image-behind', 'doc-image-front');
 
     const region = img.closest(FLOAT_REGION_SELECTOR);
@@ -352,6 +377,32 @@ const applyImageLayout = (img, layout) => {
         } else {
             img.style.zIndex = '20';
             img.classList.add('doc-image-front');
+        }
+    } else if (layout === 'inline' || layout === 'square' || layout === 'topbottom') {
+        // Layout aliran teks: gambar WAJIB kembali ke dalam editor Quill.
+        // (bila sebelumnya floating, ia anak langsung region — di luar editor)
+        returnImageToFlow(editor, img);
+
+        if (layout === 'inline') {
+            // Sejajar dengan teks: mengalir seperti huruf dalam satu baris
+            img.style.display = 'inline';
+            img.style.verticalAlign = 'middle';
+        } else if (layout === 'square') {
+            // Persegi — teks mengalir di sampingnya: CSS float kiri/kanan.
+            // Klik ulang opsi ini saat sudah persegi untuk pindah sisi.
+            const side =
+                prevLayout === 'square'
+                    ? prevFloat === 'left'
+                        ? 'right'
+                        : 'left'
+                    : 'left';
+            img.style.float = side;
+            img.style.margin =
+                side === 'left' ? '4px 14px 8px 0' : '4px 0 8px 14px';
+        } else {
+            // Atas dan bawah: blok penuh — teks hanya di atas & bawah gambar
+            img.style.display = 'block';
+            img.style.clear = 'both';
         }
     }
 
@@ -1489,6 +1540,20 @@ const attachQuillToRegion = (regionEl) => {
 
         if (existingHtml.trim()) {
             q.clipboard.dangerouslyPasteHTML(existingHtml);
+
+            // Pulihkan gambar floating yang tersimpan menempel di akhir HTML:
+            // keluarkan dari editor Quill ke region supaya posisinya persis
+            // seperti saat disimpan (bebas di seluruh area kertas).
+            q.root.querySelectorAll('img').forEach((im) => {
+                const st = im.getAttribute('style') || '';
+                if (!/position\s*:\s*absolute/i.test(st)) return;
+                const zi = parseInt(im.style.zIndex, 10);
+                im.classList.add(
+                    Number.isNaN(zi) || zi >= 0 ? 'doc-image-front' : 'doc-image-behind'
+                );
+                im.style.cursor = 'grab';
+                regionEl.appendChild(im);
+            });
         }
 
         // Zona header/footer mulai dalam keadaan INERT (ala Word):
@@ -1574,16 +1639,23 @@ window.initBodyEditor = function (rootSelector, onSync = null) {
 
 window.DocQuill = {
     // Penanda versi untuk deteksi aset usang dari blade
-    __version: 'hf-8-caret',
+    __version: 'hf-9-layout',
 
     // Pasang editor pada region baru (misal saat tambah halaman)
     attachRegion: attachQuillToRegion,
 
-    // Ambil HTML bersih dari sebuah region
+    // Ambil HTML bersih dari sebuah region.
+    // Gambar floating (anak langsung region, di luar editor Quill)
+    // disertakan di akhir HTML agar IKUT TERSIMPAN dan bisa dipulihkan
+    // lagi saat dokumen dibuka.
     getHtml: (regionEl) => {
         if (!regionEl) return '';
         const q = quillsByRegion.get(regionEl);
-        return q ? q.root.innerHTML : regionEl.innerHTML;
+        let html = q ? q.root.innerHTML : regionEl.innerHTML;
+        regionEl.querySelectorAll(':scope > img').forEach((im) => {
+            html += im.outerHTML;
+        });
+        return html;
     },
 
     getActive: getActiveQuill,

@@ -140,12 +140,34 @@ class DocumentController extends Controller
                     'sifatSurat' => 'Penting',
                 ],
                 'body_content' => [
-                    'tujuanSurat' => 'Pada hari ini telah dibuat dan disepakati Perjanjian Kerja Sama antara Para Pihak.',
-                    'menimbang' => "Bahwa Para Pihak sepakat untuk melakukan kerja sama sesuai dengan ketentuan yang berlaku.",
-                    'mengingat' => "Bahwa kerja sama ini perlu dituangkan dalam suatu perjanjian tertulis.",
-                    'isiPasal1' => "Pasal 1\nRUANG LINGKUP KERJA SAMA\n\nPara Pihak sepakat untuk melaksanakan kerja sama sesuai ruang lingkup yang telah disepakati.",
-                    'isiPasal2' => "Pasal 2\nHAK DAN KEWAJIBAN\n\nMasing-masing Pihak mempunyai hak dan kewajiban sesuai dengan ketentuan dalam perjanjian ini.",
-                ],
+                    'preamble' => "Pada hari ini, Senin tanggal dua puluh enam bulan Agustus tahun dua ribu dua puluh enam (26-08-2026), yang bertanda tangan di bawah ini:",
+
+                    'paraPihak' => [
+                        "1. PT NUSANTARA CITRA MEDIA TBBK, suatu perseroan terbatas yang berkedudukan dan berkantor pusat di Jakarta Selatan, beralamat di Gedung Menara Palma Lantai 18, Jalan H.R. Rasuna Said Blok X-2, Jakarta Selatan 12950, dalam hal ini diwakili secara sah oleh Bapak Arya Wibisono, S.H., M.H., selaku Direktur Utama, yang bertindak untuk dan atas nama Perseroan, berdasarkan Akta Pendirian Nomor 12 tanggal 8 Februari 2015 yang telah diubah dengan Akta Nomor 27 tanggal 5 Juli 2020 dan disahkan oleh Menteri Hukum dan Hak Asasi Manusia Republik Indonesia, selanjutnya disebut sebagai “PIHAK PERTAMA”;",
+                        "2. CV KARYA DIGITAL NUSANTARA, suatu persekutuan komanditer yang berkedudukan di Bandung, beralamat di Jalan Dago Asri Nomor 45, Bandung 40135, dalam hal ini diwakili secara sah oleh Ibu Ratna Kumala Sari, selaku Direktur, yang bertindak berdasarkan Akta Pendirian Nomor 33 tanggal 21 Maret 2018, selanjutnya disebut sebagai “PIHAK KEDUA”;",
+                        "PIHAK PERTAMA dan PIHAK KEDUA selanjutnya secara bersama-sama disebut sebagai “PARA PIHAK”, dan masing-masing disebut sebagai “PIHAK”.",
+                        "PARA PIHAK terlebih dahulu menerangkan sebagai berikut:",
+                    ],
+
+                    'menimbang' => "a. bahwa PIHAK PERTAMA bergerak di bidang penyediaan jasa media, komunikasi, dan pengelolaan konten digital, serta membutuhkan mitra kerja profesional untuk mengembangkan dan mengelola layanannya;\nb. bahwa PIHAK KEDUA bergerak di bidang teknologi informasi dan pengembangan perangkat lunak, serta memiliki kemampuan, kapasitas, dan sumber daya yang dibutuhkan oleh PIHAK PERTAMA;\nc. bahwa PARA PIHAK telah melakukan musyawarah dan sepakat untuk mengadakan kerja sama yang dituangkan dalam bentuk perjanjian secara tertulis.",
+
+                    'mengingat' => "1. Kitab Undang-Undang Hukum Perdata (KUHP);\n2. Undang-Undang Nomor 19 Tahun 2016 tentang perubahan atas Undang-Undang Nomor 11 Tahun 2008 tentang Informasi dan Transaksi Elektronik;\n3. Peraturan perundang-undangan lainnya yang berlaku serta Anggaran Dasar dan ketentuan internal masing-masing PIHAK.",
+
+                    'isi' => [
+                        ['judul' => 'DEFINISI', 'text' => "Dalam Perjanjian ini, kecuali ditentukan lain, istilah-istilah berikut memiliki arti sebagai berikut:\n\n1. “Perjanjian” adalah Perjanjian Kerja Sama ini beserta seluruh lampiran, addendum, dan/atau amandemen yang merupakan satu kesatuan yang tidak terpisahkan.\n2. “Jasa” adalah layanan teknologi informasi dan pengelolaan konten digital yang disediakan oleh PIHAK KEDUA kepada PIHAK PERTAMA.\n3. “Materi” adalah seluruh dokumen, konten, data, dan informasi yang dihasilkan atau diolah dalam rangka pelaksanaan Perjanjian ini.\n4. “Hari Kerja” adalah hari Senin sampai dengan Jumat, tidak termasuk hari Sabtu, Minggu, dan hari libur nasional yang ditetapkan oleh Pemerintah."],
+                        ['judul' => 'MAKSUD DAN TUJUAN', 'text' => "Perjanjian ini dibuat dengan maksud untuk mengikat PARA PIHAK dalam suatu hubungan kerja sama yang saling menguntungkan, dengan tujuan:\n\na. menyelaraskan kepentingan PARA PIHAK dalam penyediaan dan pemanfaatan Jasa;\nb. menjamin terlaksananya hak dan kewajiban masing-masing PIHAK sesuai dengan ketentuan yang disepakati; dan\nc. memberikan dasar hukum yang jelas bagi PARA PIHAK dalam pelaksanaan kerja sama ini."],
+                        ['judul' => 'RUANG LINGKUP KERJA SAMA', 'text' => "PIHAK KEDUA bersedia menyediakan Jasa kepada PIHAK PERTAMA sesuai dengan karakteristik dan spesifikasi yang dicantumkan dalam Lampiran I Perjanjian ini. PIHAK PERTAMA dengan ini bersedia untuk menerima dan membayar Jasa tersebut sesuai dengan spesifikasi serta biaya yang dicantumkan dalam Lampiran II Perjanjian ini."],
+                        ['judul' => 'JANGKA WAKTU', 'text' => "Perjanjian ini berlaku sejak tanggal penandatanganannya untuk jangka waktu selama 2 (dua) tahun dan dapat diperpanjang berdasarkan kesepakatan PARA PIHAK dengan menerbitkan Addendum. Dalam hal salah satu PIHAK bermaksud mengakhiri Perjanjian ini, wajib memberitahukan secara tertulis kepada PIHAK lainnya sekurang-kurangnya 30 (tiga puluh) hari sebelum tanggal berakhirnya."],
+                        ['judul' => 'HAK DAN KEWAJIBAN PIHAK PERTAMA', 'text' => "Hak dan kewajiban PIHAK PERTAMA adalah sebagai berikut:\n\na. menerima Jasa dan hasil kerja sesuai dengan ketentuan dalam Perjanjian ini;\nb. menyediakan data, dokumen, dan informasi kepada PIHAK KEDUA yang diperlukan untuk kelancaran pelaksanaan pekerjaan;\nc. membayar biaya jasa sesuai dengan nominal serta jadwal yang disepakati; dan\nd. melakukan monitoring terhadap hasil pekerjaan yang dilakukan oleh PIHAK KEDUA."],
+                        ['judul' => 'HAK DAN KEWAJIBAN PIHAK KEDUA', 'text' => "Hak dan kewajiban PIHAK KEDUA adalah sebagai berikut:\n\na. melaksanakan dan menyediakan Jasa sesuai dengan spesifikasi dan jadwal yang disepakati;\nb. menjamin bahwa Jasa yang diberikan bebas dari gangguan dan sesuai dengan standar yang ditentukan;\nc. menjaga kerahasiaan seluruh data dan informasi milik PIHAK PERTAMA yang diperoleh selama berlangsungnya pelaksanaan pekerjaan; dan\nd. berhak menerima pembayaran atas pekerjaan yang telah disepakati sesuai dengan ketentuan yang berlaku."],
+                        ['judul' => 'KAIDAH PELAKSANAAN', 'text' => "PARA PIHAK sepakat untuk melaksanakan kegiatan sebagaimana dimaksud dalam Pasal 3 dengan penuh itikad baik, ketekunan, dan semangat kerja sama, serta berpedoman pada rencana kerja dan jadwal yang telah disepakati bersama. Segala perubahan terhadap ruang lingkup dan jadwal pelaksanaan dapat dilakukan atas kesepakatan tertulis PARA PIHAK."],
+                        ['judul' => 'KERAHASIAAN', 'text' => "PARA PIHAK sepakat, baik selama jangka waktu maupun setelah berakhirnya Perjanjian, untuk menjaga kerahasiaan seluruh informasi tertulis maupun lisan yang berhubungan dengan bisnis, kegiatan usaha, dan pekerjaan PIHAK lainnya yang diperoleh selama pelaksanaan Perjanjian ini, kecuali informasi yang telah menjadi domain publik bukan disebabkan oleh pelanggaran salah satu PIHAK."],
+                        ['judul' => 'JAMINAN DAN TANGGUNG JAWAB', 'text' => "Masing-masing PIHAK bertanggung jawab atas seluruh kerugian yang timbul sebagai akibat kelalaian, pelanggaran, atau itikad tidak baik dalam melaksanakan ketentuan Perjanjian ini. PIHAK yang terbukti melanggar wajib mengganti seluruh kerugian yang dialami oleh PIHAK lainnya sesuai dengan ketentuan peraturan perundang-undangan yang berlaku."],
+                        ['judul' => 'FORCE MAJEURE', 'text' => "Yang dimaksud dengan force majeure adalah keadaan di luar kekuasaan salah satu PIHAK yang mengakibatkan kewajibannya tidak dapat dilaksanakan, antara lain bencana alam, perang, huru-hara, kebakaran, pemogokan, dan larangan dari Pemerintah. PIHAK yang mengalami force majeure wajib memberitahukan kepada PIHAK lainnya dalam waktu 7 (tujuh) Hari Kerja disertai dengan surat keterangan dari instansi yang berwenang."],
+                        ['judul' => 'PENYELESAIAN PERSELISIHAN', 'text' => "Setiap perselisihan yang timbul akibat atau dalam pelaksanaan Perjanjian ini akan diselesaikan secara musyawarah dan kekeluargaan untuk mufakat. Apabila tidak tercapai kesepakatan dalam jangka waktu 30 (tiga puluh) hari, PARA PIHAK sepakat untuk memilih domisili hukum yang tetap di Pengadilan Negeri Jakarta Selatan."],
+                        ['judul' => 'PENUTUP', 'text' => "Demikian Perjanjian Kerja Sama ini dibuat dan ditandatangani oleh PARA PIHAK dalam rangkap dua (2) yang masing-masing berkekuatan hukum yang sama, untuk dilaksanakan dengan penuh itikad baik. Apabila terdapat hal-hal yang belum diatur dalam Perjanjian ini, PARA PIHAK sepakat untuk menetapkannya kemudian dan dituangkan dalam Addendum yang merupakan satu kesatuan yang tidak terpisahkan dari Perjanjian ini."],
+                    ],
+            ],
             ],
             'kontrak-kerja' => [
                 'title' => 'Kontrak Kerja',
@@ -158,12 +180,33 @@ class DocumentController extends Controller
                     'sifatSurat' => 'Penting',
                 ],
                 'body_content' => [
-                    'tujuanSurat' => 'Perjanjian kerja antara Perusahaan dan Pekerja.',
-                    'menimbang' => "Bahwa Perusahaan membutuhkan tenaga kerja dan Pekerja bersedia melaksanakan pekerjaan sesuai ketentuan.",
-                    'mengingat' => "Ketentuan peraturan perundang-undangan ketenagakerjaan yang berlaku.",
-                    'isiPasal1' => "Pasal 1\nJABATAN DAN PEKERJAAN\n\nPekerja ditempatkan pada jabatan sesuai dengan kebutuhan Perusahaan.",
-                    'isiPasal2' => "Pasal 2\nHAK DAN KEWAJIBAN\n\nPara Pihak wajib melaksanakan hak dan kewajibannya sebagaimana diatur dalam perjanjian ini.",
-                ],
+                    'preamble' => "Pada hari ini, Senin tanggal dua puluh empat bulan Agustus tahun dua ribu dua puluh enam (24-08-2026), yang bertanda tangan di bawah ini:",
+
+                    'paraPihak' => [
+                        "1. PT NUSANTARA CITRA MEDIA TBBK, suatu perseroan terbatas yang berkedudukan di Jakarta Selatan, beralamat di Gedung Menara Palma Lantai 18, Jalan H.R. Rasuna Said Blok X-2, Jakarta Selatan 12950, dalam hal ini diwakili secara sah oleh Ibu Dewi Lestari, S.E., selaku Direktur Sumber Daya Manusia, yang bertindak untuk dan atas nama Perusahaan, selanjutnya disebut sebagai “PERUSAHAAN”;",
+                        "2. Sdr. DIMAS ADI PRAYOGA, lahir di Surabaya pada tanggal 17 Maret 1998, NIK 3578171703980001, bertempat tinggal di Jalan Menur Permai Nomor 21, Surabaya, selaku calon Pekerja yang selanjutnya disebut sebagai “PEKERJA”;",
+                        "PERUSAHAAN dan PEKERJA secara bersama-sama disebut sebagai “PARA PIHAK”.",
+                    ],
+
+                    'menimbang' => "a. bahwa PERUSAHAAN membutuhkan tenaga kerja untuk melaksanakan pekerjaan di bidang pemasaran digital;\nb. bahwa PEKERJA bersedia dan sanggup untuk melaksanakan pekerjaan tersebut sesuai dengan kualifikasi yang dipersyaratkan; dan\nc. bahwa PARA PIHAK sepakat untuk mengadakan Perjanjian Kerja dalam bentuk tertulis berdasarkan ketentuan peraturan perundang-undangan yang berlaku.",
+
+                    'mengingat' => "1. Undang-Undang Nomor 13 Tahun 2003 tentang Ketenagakerjaan;\n2. Peraturan Pemerintah Nomor 35 Tahun 2021 tentang Perjanjian Kerja Waktu Tertentu, Alih Daya, dan Keselamatan dan Kesehatan Kerja;\n3. Ketentuan dan tata tertib yang berlaku di lingkungan PERUSAHAAN.",
+
+                    'isi' => [
+                        ['judul' => 'JABATAN DAN RUANG LINGKUP PEKERJAAN', 'text' => "PEKERJA dengan ini ditempatkan pada jabatan sebagai Staff Pemasaran Digital di lingkungan Divisi Pemasaran PERUSAHAAN. PEKERJA wajib melaksanakan seluruh pekerjaan, tugas, dan tanggung jawab yang diberikan oleh PERUSAHAAN sesuai dengan jabatan dan keahliannya, serta bersedia ditempatkan di lokasi kerja yang ditentukan oleh PERUSAHAAN."],
+                        ['judul' => 'STATUS DAN JANGKA WAKTU', 'text' => "Perjanjian Kerja ini dibuat dalam bentuk Perjanjian Kerja Waktu Tertentu (PKWT) untuk jangka waktu selama 1 (satu) tahun terhitung mulai tanggal 1 September 2026 sampai dengan tanggal 31 Agustus 2027. Perjanjian ini dapat diperpanjang sesuai dengan ketentuan peraturan perundang-undangan yang berlaku dan berdasarkan kesepakatan PARA PIHAK."],
+                        ['judul' => 'WAKTU KERJA', 'text' => "Waktu kerja PEKERJA ditetapkan sebanyak 8 (delapan) jam dalam 1 (satu) hari dan 40 (empat puluh) jam dalam 1 (satu) minggu selama 5 (lima) hari kerja. PEKERJA wajib hadir dan melaksanakan pekerjaan tepat waktu sesuai dengan jam kerja yang ditetapkan oleh PERUSAHAAN."],
+                        ['judul' => 'GAJI DAN TUNJANGAN', 'text' => "Sebagai imbalan atas pelaksanaan pekerjaan, PERUSAHAAN akan membayar kepada PEKERJA berupa:\n\na. gaji pokok sebesar Rp. 5.000.000,- (lima juta rupiah) setiap bulan;\nb. tunjangan makan sebesar Rp. 500.000,- (lima ratus ribu rupiah) setiap bulan;\nc. Tunjangan Hari Raya (THR) sesuai dengan ketentuan peraturan perundang-undangan yang berlaku.\n\nPembayaran gaji dilakukan selambat-lambatnya pada tanggal 2 (dua) setiap bulannya.\n"],
+                        ['judul' => 'JAMINAN SOSIAL', 'text' => "Selama berlakunya Perjanjian ini, PERUSAHAAN akan mendaftarkan PEKERJA dalam program Jaminan Sosial Ketenagakerjaan dan Jaminan Kesehatan sesuai dengan ketentuan BPJS Ketenagakerjaan dan BPJS Kesehatan yang biaya iurannya dibebankan sesuai dengan ketentuan peraturan perundang-undangan yang berlaku."],
+                        ['judul' => 'HAK DAN KEWAJIBAN PEKERJA', 'text' => "Hak dan kewajiban PEKERJA adalah sebagai berikut:\n\na. menerima gaji dan tunjangan serta memperoleh lingkungan kerja yang sehat dan aman;\nb. melaksanakan pekerjaan dengan penuh tanggung jawab, teliti, dan menjunjung tinggi etika kerja;\nc. mematuhi seluruh peraturan dan tata tertib yang berlaku di lingkungan PERUSAHAAN; dan\nd. menjaga rahasia PERUSAHAAN selama bekerja maupun setelah perhubungan kerja berakhir.\n"],
+                        ['judul' => 'HAK DAN KEWAJIBAN PERUSAHAAN', 'text' => "Hak dan kewajiban PERUSAHAAN adalah sebagai berikut:\n\na. memberikan pekerjaan, gaji, tunjangan, dan jaminan sosial kepada PEKERJA sesuai dengan ketentuan yang berlaku;\nb. memberikan pembinaan, pelatihan, dan pengembangan kompetensi kepada PEKERJA;\nc. menyediakan sarana dan prasarana kerja yang diperlukan bagi kelancaran pelaksanaan pekerjaan; dan\nd. menilai dan mengevaluasi kinerja PEKERJA secara periodik dan objektif."],
+                        ['judul' => 'DISIPLIN DAN TATA TERTIB', 'text' => "PEKERJA wajib mematuhi seluruh peraturan perusahaan dan tata tertib yang berlaku. Pelanggaran terhadap tata tertib dapat dikenakan sanksi sesuai dengan tingkat pelanggaran, berupa teguran lisan, teguran tertulis, sampai dengan pemutusan hubungan kerja berdasarkan ketentuan yang berlaku."],
+                        ['judul' => 'PEMUTUSAN HUBUNGAN KERJA', 'text' => "Perjanjian Kerja ini berakhir apabila: (a) jangka waktu yang ditentukan telah berakhir; (b) atas kesepakatan PARA PIHAK; atau (c) sesuai dengan ketentuan peraturan perundang-undangan tentang ketenagakerjaan yang berlaku. Dalam hal terjadi pemutusan hubungan kerja, PERUSAHAAN akan memberikan hak-hak PEKERJA sesuai dengan peraturan perundang-undangan."],
+                        ['judul' => 'KERAHASIAAN', 'text' => "PEKERJA wajib menjaga dan menyimpan kerahasiaan seluruh dokumen, data, dan keterangan yang berkaitan dengan kegiatan usaha PERUSAHAAN yang diketahuinya baik selama maupun setelah berakhirnya Perjanjian ini, kecuali yang telah menjadi informasi publik atau diwajibkan oleh peraturan perundang-undangan untuk diungkapkan."],
+                        ['judul' => 'PENYELESAIAN PERSELISIHAN', 'text' => "Segala perselisihan yang timbul dalam pelaksanaan Perjanjian ini wajib diselesaikan secara musyawarah untuk mencapai mufakat terlebih dahulu. Apabila tidak tercapai kesepakatan, maka akan diselesaikan melalui mekanisme penyelesaian perselisihan hubungan industri berdasarkan ketentuan peraturan perundang-undangan yang berlaku."],
+                        ['judul' => 'PENUTUP', 'text' => "Demikian Perjanjian Kerja ini dibuat dan ditandatangani oleh PARA PIHAK dalam rangkap dua (2), masing-masing berkekuatan hukum yang sama. Apabila terdapat hal-hal yang belum diatur dalam Perjanjian ini, PARA PIHAK sepakat untuk mengaturnya kemudian dan dituangkan dalam Perjanjian Tambahan (Addendum) yang merupakan satu kesatuan dan tidak terpisahkan dari Perjanjian ini."],
+                    ],
+            ],
             ],
             'surat-kuasa' => [
                 'title' => 'Surat Kuasa',
@@ -176,12 +219,25 @@ class DocumentController extends Controller
                     'sifatSurat' => 'Penting',
                 ],
                 'body_content' => [
-                    'tujuanSurat' => 'SURAT KUASA',
-                    'menimbang' => "Yang bertanda tangan di bawah ini memberikan kuasa kepada pihak yang disebutkan dalam surat ini.",
-                    'mengingat' => "Untuk melaksanakan tindakan sebagaimana ruang lingkup kuasa yang diberikan.",
-                    'isiPasal1' => "RUANG LINGKUP KUASA\n\nPenerima Kuasa diberikan kewenangan untuk mewakili Pemberi Kuasa dalam urusan yang telah ditentukan.",
-                    'isiPasal2' => "MASA BERLAKU\n\nSurat kuasa ini berlaku sejak tanggal ditandatangani sampai dengan dinyatakan berakhir.",
-                ],
+                    'preamble' => "Yang bertanda tangan di bawah ini:",
+
+                    'paraPihak' => [
+                        "1. Bapak BUDI SETIAWAN, lahir di Jakarta pada tanggal 12 Mei 1978, NIK 3171021205780009, pekerjaan Wiraswasta, bertempat tinggal di Jalan Kemang Timur Nomor 8, Jakarta Selatan, dalam hal ini bertindak untuk dan atas nama Pribadi, selanjutnya disebut sebagai “PEMBERI KUASA”;",
+                        "2. Ibu SUCIATI, S.H., lahir di Semarang pada tanggal 3 Juli 1985, NIK 3174037307850002, pekerjaan Advokat, bertempat tinggal di Jalan Senopati Dalam III Nomor 21, Jakarta Selatan, dalam hal ini bertindak untuk dan atas nama Pribadi, selanjutnya disebut sebagai “PENERIMA KUASA”;",
+                    ],
+
+                    'menimbang' => "a. bahwa PEMBERI KUASA memberikan kuasa yang sah kepada PENERIMA KUASA untuk melaksanakan seluruh tindakan sebagaimana tercantum dalam Surat Kuasa ini;\nb. bahwa PENERIMA KUASA bersedia dan sanggup untuk menerima serta melaksanakan kuasa yang diberikan tersebut; dan\nc. bahwa pemberian kuasa ini dibuat berdasarkan persetujuan sukarela kedua belah pihak tanpa adanya paksaan dari pihak manapun.",
+
+                    'mengingat' => "1. Kitab Undang-Undang Hukum Perdata (KUHPerdata);\n2. Undang-Undang Nomor 18 Tahun 2003 tentang Advokat; dan\n3. Peraturan perundang-undangan lainnya yang berlaku.",
+
+                    'isi' => [
+                        ['judul' => 'RUANG LINGKUP KUASA', 'text' => "PENERIMA KUASA dengan ini diberikan kewenangan penuh untuk mewakili PEMBERI KUASA dalam melakukan segala tindakan hukum yang berkaitan dengan pengurusan dokumen pertanahan atas tanah dan bangunan yang terletak di Jalan Kemang Timur Nomor 8, Jakarta Selatan, atas nama PEMBERI KUASA."],
+                        ['judul' => 'TINDAKAN YANG DIKUASAKAN', 'text' => "Berdasarkan kuasa yang diberikan, PENERIMA KUASA untuk dan atas nama PEMBERI KUASA berwenang untuk:\n\na. menghadiri dan mewakili PEMBERI KUASA dalam setiap pengurusan administrasi dan perizinan;\nb. menandatangani seluruh dokumen yang diperlukan dalam rangka penyelesaian urusan yang dikuasakan;\nc. menerima dan menyerahkan dokumen, uang, serta bukti-bukti kepemilikan yang berkaitan dengan penyelesaian urusan; dan\nd. melakukan tindakan umum lainnya yang diperlukan agar kuasa dapat dilaksanakan sesuai dengan maksud dan tujuannya.\n"],
+                        ['judul' => 'KEWAJIBAN PENERIMA KUASA', 'text' => "PENERIMA KUASA wajib melaksanakan seluruh kuasa yang diberikan dengan itikad baik, teliti, penuh tanggung jawab, serta sesuai dengan petunjuk dan kepentingan PEMBERI KUASA. PENERIMA KUASA wajib memberikan laporan pelaksanaan kuasa secara berkala kepada PEMBERI KUASA."],
+                        ['judul' => 'MASA BERLAKU', 'text' => "Surat Kuasa ini berlaku sejak tanggal ditandatangani dan berakhir pada saat seluruh kuasa telah selesai dilaksanakan, dicabut kembali oleh PEMBERI KUASA, atau melalui surat pernyataan berakhirnya kuasa dari PEMBERI KUASA."],
+                        ['judul' => 'PENUTUP', 'text' => "Demikian Surat Kuasa ini dibuat dengan sebenar-benarnya untuk dipergunakan sebagaimana mestinya. Apabila di kemudian hari terdapat kekeliruan dalam Surat Kuasa ini, akan dilakukan perbaikan sebagaimana semestinya."],
+                    ],
+            ],
             ],
             'surat-pernyataan' => [
                 'title' => 'Surat Pernyataan',
@@ -194,12 +250,27 @@ class DocumentController extends Controller
                     'sifatSurat' => 'Penting',
                 ],
                 'body_content' => [
-                    'tujuanSurat' => 'SURAT PERNYATAAN',
-                    'menimbang' => "Dengan ini saya menyatakan dengan sebenar-benarnya bahwa seluruh informasi yang diberikan adalah benar.",
-                    'mengingat' => "Pernyataan ini dibuat dengan penuh tanggung jawab.",
-                    'isiPasal1' => "ISI PERNYATAAN\n\nDengan ini saya menyatakan bahwa seluruh data dan keterangan yang diberikan kepada Perusahaan adalah benar.",
-                    'isiPasal2' => "KETENTUAN\n\nApabila di kemudian hari terdapat ketidaksesuaian, saya bersedia bertanggung jawab sesuai ketentuan yang berlaku.",
-                ],
+                    'preamble' => "Yang bertanda tangan di bawah ini:",
+
+                    'paraPihak' => [
+                        "Nama : RIZKI PRATAMA\nTempat, Tanggal Lahir : Surabaya, 9 November 1995\nNIK : 3578120911950006\nAlamat : Jalan Dukuh Kupang Barat Nomor 12, Surabaya\nPekerjaan : Karyawan Swasta\n\nSelanjutnya disebut sebagai “SAYA”.",
+                        "Untuk keperluan administrasi perusahaan, dengan ini menyatakan sebagai berikut:",
+                    ],
+
+                    'menimbang' => "a. bahwa SAYA menyatakan kebenaran atas seluruh keterangan dan data yang diberikan sesuai dengan yang diketahui sepenuhnya serta dapat dipertanggungjawabkan; dan\nb. bahwa pernyataan ini dibuat dengan sebenar-benarnya dan tanpa ada paksaan dari pihak manapun, serta digunakan untuk keperluan yang sah.",
+
+                    'mengingat' => "1. Kitab Undang-Undang Hukum Perdata (KUHPerdata); dan\n2. Ketentuan peraturan perundang-undangan yang berlaku.",
+
+                    'isi' => [
+                        ['judul' => 'PERNYATAAN', 'text' => "Dengan ini menyatakan bahwa seluruh data, dokumen, dan keterangan yang diberikan kepada PT NUSANTARA CITRA MEDIA TBBK adalah benar, sah, dan dapat dipertanggungjawabkan secara hukum. Seluruh informasi tersebut tidak pernah diubah, dipalsukan, atau direkayasa dengan maksud tertentu."],
+                        ['judul' => 'ITIKAD BAIK', 'text' => "Dengan ini menyatakan bersedia untuk melaksanakan seluruh kewajiban dan ketentuan yang berlaku dengan penuh itikad baik, serta tidak akan melakukan perbuatan yang dapat merugikan pihak perusahaan maupun pihak lainnya."],
+                        ['judul' => 'KETENTUAN HUKUM', 'text' => "Apabila di kemudian hari terdapat ketidaksesuaian antara pernyataan dengan keadaan yang sebenarnya, maka dengan ini bersedia bertanggung jawab dan menanggung segala akibat hukum yang timbul sesuai dengan ketentuan peraturan perundang-undangan yang berlaku."],
+                        ['judul' => 'SANKSI', 'text' => "Menyadari bahwa pernyataan ini dipergunakan untuk berbagai keperluan yang sah, maka apabila terdapat penyalahgunaan atau pemalsuan dalam pernyataan ini, bersedia menerima sanksi yang ditetapkan berdasarkan peraturan perundang-undangan."],
+                        ['judul' => 'PENUTUP', 'text' => "Demikian Surat Pernyataan ini saya buat dengan sebenarnya dan tanpa adanya paksaan dari pihak manapun, untuk dipergunakan sebagaimana mestinya, serta dengan penuh kesadaran bahwa setiap pernyataan yang tidak benar dapat menimbulkan akibat hukum bagi saya."],
+                    ],
+
+                    'tutup' => "Demikian Surat Pernyataan ini dibuat dan ditandatangani di tempat dan pada tanggal sebagaimana tersebut di atas.",
+            ],
             ],
             'kemitraan' => [
                 'title' => 'Perjanjian Kerjasama Jual Kembali Jasa Layanan Akses Internet',
@@ -249,35 +320,115 @@ class DocumentController extends Controller
     }
 
     /**
-     * Bangun HTML body dari data template.
+     * Bangun HTML body dari data template menjadi dokumen perjanjian yang utuh.
+     *
+     * Mendukung struktur:
+     *  - 'preamble'  : kalimat pembuka (fallback ke legacy 'tujuanSurat')
+     *  - 'menimbang' : konsideran Menimbang (satu poin per baris)
+     *  - 'mengingat' : konsideran Mengingat (satu poin per baris)
+     *  - 'paraPihak' : array deskripsi para pihak
+     *  - 'isi'       : array pasal berisi ['judul' => .., 'text' => ..]
+     *                  (fallback ke legacy 'isiPasal1'..'isiPasalN')
+     *  - 'tutup'     : kalimat penutup
      */
     private function buildTemplateBodyHtml(array $body): string
     {
         $parts = [];
 
-        if (!empty($body['tujuanSurat'])) {
-            $parts[] = '<p>'.nl2br(e($body['tujuanSurat'])).'</p>';
+        // 1) Pembuka
+        $preamble = $body['preamble'] ?? $body['tujuanSurat'] ?? null;
+        if (!empty($preamble)) {
+            $parts[] = $this->contractPara($preamble);
         }
 
+        // 2) Para pihak (identitas pihak biasanya langsung setelah pembuka)
+        if (!empty($body['paraPihak']) && is_array($body['paraPihak'])) {
+            foreach ($body['paraPihak'] as $pihak) {
+                $parts[] = $this->contractPara($pihak);
+            }
+        }
+
+        // 3) Konsideran Menimbang
         if (!empty($body['menimbang'])) {
-            $parts[] = '<p><strong>Menimbang:</strong></p>';
-            $parts[] = '<p>'.nl2br(e($body['menimbang'])).'</p>';
+            $parts[] = '<p><strong>MENIMBANG:</strong></p>';
+            $parts[] = $this->contractRecitals($body['menimbang'], 'lower-alpha');
         }
 
+        // 4) Konsideran Mengingat
         if (!empty($body['mengingat'])) {
-            $parts[] = '<p><strong>Mengingat:</strong></p>';
-            $parts[] = '<p>'.nl2br(e($body['mengingat'])).'</p>';
+            $parts[] = '<p><strong>MENGINGAT:</strong></p>';
+            $parts[] = $this->contractRecitals($body['mengingat'], 'decimal');
         }
 
-        if (!empty($body['isiPasal1'])) {
-            $parts[] = '<p>'.nl2br(e($body['isiPasal1'])).'</p>';
+        // 5) Pasal-pasal
+        $pasals = $body['isi'] ?? [];
+        if (empty($pasals)) {
+            // Fallback ke kunci legacy isiPasal1..N
+            $pasals = [];
+            $i = 1;
+            while (!empty($body['isiPasal'.$i])) {
+                $pasals[] = ['judul' => '', 'text' => $body['isiPasal'.$i]];
+                $i++;
+            }
         }
 
-        if (!empty($body['isiPasal2'])) {
-            $parts[] = '<p>'.nl2br(e($body['isiPasal2'])).'</p>';
+        $number = 1;
+        foreach ($pasals as $pasal) {
+            $judul = strtoupper(trim($pasal['judul'] ?? ''));
+            $heading = 'PASAL '.$number.($judul !== '' ? ' — '.$judul : '');
+            $parts[] = '<p><strong>'.$heading.'</strong></p>';
+            $parts[] = $this->contractPara($pasal['text'] ?? '');
+            $number++;
+        }
+
+        // 6) Penutup
+        if (!empty($body['tutup'])) {
+            $parts[] = $this->contractPara($body['tutup']);
         }
 
         return implode("\n", $parts);
+    }
+
+    /**
+     * Ubah teks yang mungkin berisi beberapa paragraf (dipisah baris kosong)
+     * menjadi satu atau lebih tag <p> yang sudah di-escape dan dijaga barisnya.
+     */
+    private function contractPara(string $text): string
+    {
+        $blocks = preg_split('/(\r?\n){2,}/', $text);
+        $out = [];
+
+        foreach ($blocks as $block) {
+            $block = trim($block);
+            if ($block === '') {
+                continue;
+            }
+            $out[] = '<p>'.nl2br(e($block)).'</p>';
+        }
+
+        return count($out) ? implode("\n", $out) : '<p></p>';
+    }
+
+    /**
+     * Ubah daftar poin (satu poin per baris) menjadi daftar <ol>.
+     * $listStyle: 'decimal' atau 'lower-alpha'.
+     */
+    private function contractRecitals(string $text, string $listStyle): string
+    {
+        $lines = preg_split('/\r?\n/', $text);
+        $lines = array_values(array_filter(array_map('trim', $lines), fn ($l) => $l !== ''));
+
+        // Hanya satu poin → cukup satu paragraf.
+        if (count($lines) <= 1) {
+            return '<p>'.e($lines[0] ?? '').'</p>';
+        }
+
+        $items = '';
+        foreach ($lines as $line) {
+            $items .= '<li>'.e($line).'</li>';
+        }
+
+        return '<ol style="list-style-type:'.$listStyle.'; padding-left:2rem; margin:0 0 0.75rem;">'.$items.'</ol>';
     }
 
     public function update(Request $request, Document $document)

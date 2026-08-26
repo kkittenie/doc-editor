@@ -1288,7 +1288,7 @@
                     type: @js($document -> type ?? 'surat'),
                     header_data: {
                         nomorSurat: @js($document -> header_data['nomorSurat'] ?? ''),
-                        content: headerRegion ? headerRegion.innerHTML : (this.headerHtml || ''),
+                        content: headerRegion ? window.DocQuill.getHtml(headerRegion) : (this.headerHtml || ''),
                     },
                     body_content: {
                         pages: pagesHtml
