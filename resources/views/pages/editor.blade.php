@@ -35,6 +35,16 @@
                     <b>TTD</b>
                 </button>
 
+                {{-- CHIP SESI EDIT HEADER/FOOTER --}}
+                <span x-show="editSection" x-cloak
+                    class="flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 dark:bg-amber-500/20 dark:text-amber-200">
+                    <span x-text="editSection === 'header' ? '✏️ Mengedit Header' : '✏️ Mengedit Footer'"></span>
+                    <button type="button" @click="exitEditSection()"
+                        class="rounded-full bg-amber-800 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white hover:bg-amber-900">
+                        Tutup
+                    </button>
+                </span>
+
                 <span x-show="saveStatus === 'saving'" class="text-xs text-slate-warm-500">
                     Menyimpan...
                 </span>
@@ -544,6 +554,151 @@
         left: -9999px;
     }
 
+    /* =========================================
+       HEADER/FOOTER ALA WORD
+       - zona default INERT + hint saat hover
+       - sesi edit: area lain redup & terkunci
+       ========================================= */
+    .doc-sheet-header,
+    .doc-sheet-footer {
+        cursor: default;
+    }
+
+    .doc-sheet-header::after,
+    .doc-sheet-footer::after {
+        position: absolute;
+        right: 0;
+        z-index: 5;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        color: #a8a29e;
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px dashed #d6d3cc;
+        border-radius: 999px;
+        padding: 2px 10px;
+        opacity: 0;
+        transition: opacity 0.15s;
+        pointer-events: none;
+        white-space: nowrap;
+    }
+
+    .doc-sheet-header::after {
+        content: 'Klik dua kali untuk mengedit Header';
+        top: -14px;
+    }
+
+    .doc-sheet-footer::after {
+        content: 'Klik dua kali untuk mengedit Footer';
+        bottom: -14px;
+    }
+
+    .dark .doc-sheet-header::after,
+    .dark .doc-sheet-footer::after {
+        background: rgba(15, 23, 42, 0.85);
+        border-color: #57534e;
+    }
+
+    .doc-sheet-header:hover::after,
+    .doc-sheet-footer:hover::after {
+        opacity: 1;
+    }
+
+    /* Redupkan area lain selama sesi edit aktif.
+       MURNI VISUAL — tidak memblokir interaksi:
+       satu klik pada isi dokumen langsung mengakhiri sesi. */
+    .editing-header .doc-sheet-body,
+    .editing-header .doc-sheet-footer,
+    .editing-footer .doc-sheet-body,
+    .editing-footer .doc-sheet-header {
+        opacity: 0.35;
+        transition: opacity 0.2s;
+    }
+
+    /* Petunjuk saat menyentuh area yang terkunci */
+    .editing-header .doc-sheet-body:hover::after,
+    .editing-header .doc-sheet-footer:hover::after,
+    .editing-footer .doc-sheet-body:hover::after,
+    .editing-footer .doc-sheet-header:hover::after {
+        opacity: 1;
+    }
+
+    .editing-header .doc-sheet-body::after,
+    .editing-footer .doc-sheet-body::after {
+        content: 'Klik di sini untuk kembali ke dokumen';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 30;
+        font-size: 12px;
+        font-weight: 600;
+        color: #78716c;
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px dashed #d6d3cc;
+        border-radius: 999px;
+        padding: 6px 16px;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.15s;
+    }
+
+    .dark .editing-header .doc-sheet-body::after,
+    .dark .editing-footer .doc-sheet-body::after {
+        color: #a8a29e;
+        background: rgba(15, 23, 42, 0.88);
+        border-color: #57534e;
+    }
+
+    .editing-header .doc-sheet-body:hover::after,
+    .editing-footer .doc-sheet-body:hover::after {
+        opacity: 1;
+    }
+
+    /* Garis pembatas ala Word: pemisah zona aktif vs konten utama.
+       Dipasang via .zone-editing (langsung di elemen zona) DAN
+       .editing-* (induk) sebagai lapisan ganda. */
+    .editing-header .doc-sheet-header,
+    .doc-sheet-header.zone-editing {
+        border-bottom: 1px dashed rgb(180 140 80);
+    }
+
+    .editing-footer .doc-sheet-footer,
+    .doc-sheet-footer.zone-editing {
+        border-top: 1px dashed rgb(180 140 80);
+    }
+
+    @media print {
+
+        .doc-sheet-header::after,
+        .doc-sheet-footer::after {
+            display: none !important;
+        }
+
+        /* Garis pembatas hanya milik layar */
+        .editing-header .doc-sheet-header,
+        .editing-footer .doc-sheet-footer,
+        .doc-sheet-header.zone-editing,
+        .doc-sheet-footer.zone-editing {
+            border-color: transparent !important;
+        }
+
+        .editing-header .doc-sheet-body,
+        .editing-header .doc-sheet-footer,
+        .editing-footer .doc-sheet-body,
+        .editing-footer .doc-sheet-header {
+            opacity: 1 !important;
+        }
+
+        .editing-header .doc-sheet-body::before,
+        .editing-header .doc-sheet-footer::before,
+        .editing-footer .doc-sheet-body::before,
+        .editing-footer .doc-sheet-header::before {
+            display: none !important;
+        }
+    }
+
     @media print {
         body * {
             visibility: hidden;
@@ -606,6 +761,9 @@
 
             showSignaturePicker: false,
 
+            // Sesi edit header/footer ala Word ('header' | 'footer' | null)
+            editSection: null,
+
             isDraggingSignature: false,
 
             dragStartX: 0,
@@ -645,6 +803,19 @@
 
                 this.$nextTick(() => {
                     this.initSingleEditor();
+
+                    // Deteksi aset JS usang: fitur zona butuh API DocQuill baru.
+                    if (typeof window.DocQuill?.setZonesEnabled === 'function') {
+                        this.initZoneEditMode();
+                    } else {
+                        console.error(
+                            '[ZoneEdit] editor.js yang dimuat TERSOLETE ' +
+                            '(DocQuill.setZonesEnabled hilang, versi: ' +
+                            (window.DocQuill?.__version || 'tidak diketahui') + '). ' +
+                            'Jalankan ulang "npm run dev", atau "npm run build", ' +
+                            'lalu hard-refresh browser (Ctrl+F5).'
+                        );
+                    }
                 });
 
                 // CTRL + S
@@ -665,27 +836,23 @@
                 // Bangun konten awal: setiap kertas berisi header + body + footer
                 let html = '';
 
-                this.pages.forEach((page, i) => {
+                this.pages.forEach((page) => {
                     html += '<div class="doc-sheet" data-sheet-type="page" data-page-uid="' + page.uid + '">';
 
-                    // Header (hanya di halaman pertama)
-                    if (i === 0) {
-                        html += '<div class="doc-sheet-header" data-region="header">';
-                        html += this.headerHtml || '<p></p>';
-                        html += '</div>';
-                    }
+                    // Header & footer di SEMUA halaman (ala Microsoft Word).
+                    // Semua zona dengan role sama berbagi SATU konten.
+                    html += '<div class="doc-sheet-header" data-region="header">';
+                    html += this.headerHtml || '<p></p>';
+                    html += '</div>';
 
                     // Body
                     html += '<div class="doc-sheet-body" data-region="body">';
                     html += page.html || '<p></p>';
                     html += '</div>';
 
-                    // Footer (hanya di halaman terakhir)
-                    if (i === this.pages.length - 1) {
-                        html += '<div class="doc-sheet-footer" data-region="footer">';
-                        html += this.footerHtml || '<p></p>';
-                        html += '</div>';
-                    }
+                    html += '<div class="doc-sheet-footer" data-region="footer">';
+                    html += this.footerHtml || '<p></p>';
+                    html += '</div>';
 
                     html += '</div>';
                 });
@@ -701,6 +868,9 @@
                 window.initBodyEditor('#document-editor', () => {
                     this.markAsChanged();
                 });
+
+                // Jaminan: isi dokumen selalu aktif saat halaman dibuka
+                window.DocQuill.ensureBodyEditable?.();
 
                 this.renderSignature();
             },
@@ -748,38 +918,43 @@
                 const root = document.getElementById('document-editor');
                 if (!root) return;
 
-                const sheets = root.querySelectorAll('.doc-sheet[data-sheet-type="page"]');
-                const oldLastSheet = sheets[sheets.length - 1];
-                const oldFooter = oldLastSheet ? oldLastSheet.querySelector('.doc-sheet-footer') : null;
-
-                // Sheet baru
+                // Sheet baru lengkap dengan zona header & footer (ala Word)
                 const sheet = document.createElement('div');
                 sheet.className = 'doc-sheet';
                 sheet.setAttribute('data-sheet-type', 'page');
                 sheet.setAttribute('data-page-uid', uid);
 
-                const bodyRegion = document.createElement('div');
-                bodyRegion.className = 'doc-sheet-body';
-                bodyRegion.setAttribute('data-region', 'body');
-                bodyRegion.innerHTML = '<p></p>';
+                const mkRegion = (cls, region, inner) => {
+                    const el = document.createElement('div');
+                    el.className = cls;
+                    el.setAttribute('data-region', region);
+                    el.innerHTML = inner;
+                    return el;
+                };
 
+                // Zona header & footer baru = cermin konten halaman lain
+                const firstHeader = root.querySelector('.doc-sheet-header[data-region="header"]');
+                const firstFooter = root.querySelector('.doc-sheet-footer[data-region="footer"]');
+
+                const headerRegion = mkRegion('doc-sheet-header', 'header',
+                    firstHeader ? window.DocQuill.getHtml(firstHeader) : '<p></p>');
+                const bodyRegion = mkRegion('doc-sheet-body', 'body', '<p></p>');
+                const footerRegion = mkRegion('doc-sheet-footer', 'footer',
+                    firstFooter ? window.DocQuill.getHtml(firstFooter) : '<p></p>');
+
+                sheet.appendChild(headerRegion);
                 sheet.appendChild(bodyRegion);
+                sheet.appendChild(footerRegion);
                 root.appendChild(sheet);
 
-                // Footer: pindahkan ELEMEN lamanya (instance Quill ikut terbawa)
-                if (oldFooter) {
-                    sheet.appendChild(oldFooter);
-                } else {
-                    const footerRegion = document.createElement('div');
-                    footerRegion.className = 'doc-sheet-footer';
-                    footerRegion.setAttribute('data-region', 'footer');
-                    footerRegion.innerHTML = '<p></p>';
-                    sheet.appendChild(footerRegion);
-                    window.DocQuill.attachRegion(footerRegion);
-                }
-
-                // Pasang Quill pada body region baru
+                // Pasang editor pada ketiga region baru
+                window.DocQuill.attachRegion(headerRegion);
                 window.DocQuill.attachRegion(bodyRegion);
+                window.DocQuill.attachRegion(footerRegion);
+
+                // Zona baru mengikuti status sesi edit yang sedang berjalan
+                window.DocQuill.setZonesEnabled('header', this.editSection === 'header');
+                window.DocQuill.setZonesEnabled('footer', this.editSection === 'footer');
 
                 // Pindahkan tanda tangan ke halaman baru
                 this.renderSignature();
@@ -824,12 +999,127 @@
                 if (root) {
                     const sheet = root.querySelector('[data-page-uid="' + removedUid + '"]');
                     if (sheet) {
+                        // Lepaskan instance editor zona milik halaman yang dihapus
+                        sheet.querySelectorAll('.doc-sheet-header, .doc-sheet-body, .doc-sheet-footer')
+                            .forEach((rg) => window.DocQuill.forgetRegion(rg));
                         sheet.remove();
                     }
                 }
 
                 this.pages.splice(index, 1);
                 this.markAsChanged();
+            },
+
+            // =========================================
+            // HEADER/FOOTER EDIT MODE (ala Word):
+            // default INERT -> double-click untuk masuk,
+            // double-click body / tombol Tutup untuk keluar.
+            // =========================================
+
+            initZoneEditMode() {
+                const rootEl = document.getElementById('document-editor');
+                if (!rootEl || rootEl.dataset.zoneEditBound === '1') return;
+                rootEl.dataset.zoneEditBound = '1';
+
+                rootEl.addEventListener('dblclick', (e) => {
+                    const headerZone = e.target.closest('.doc-sheet-header');
+                    if (headerZone) {
+                        this.enterEditSection('header', headerZone);
+                        return;
+                    }
+
+                    const footerZone = e.target.closest('.doc-sheet-footer');
+                    if (footerZone) {
+                        this.enterEditSection('footer', footerZone);
+                        return;
+                    }
+
+                    if (e.target.closest('.doc-sheet-body') && this.editSection) {
+                        this.exitEditSection();
+                    }
+                });
+
+                // SATU KLIK pada isi dokumen saat sesi aktif -> langsung kembali
+                // ke konten utama (caret otomatis mengikuti posisi klik).
+                rootEl.addEventListener(
+                    'mousedown',
+                    (e) => {
+                        if (!this.editSection) return;
+                        if (e.target.closest('.doc-sheet-body')) {
+                            this.exitEditSection();
+                            // tanpa preventDefault: caret menempel di titik klik
+                        }
+                    },
+                    true
+                );
+
+                // Tombol Esc juga mengakhiri sesi edit
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.editSection) {
+                        this.exitEditSection();
+                    }
+                });
+            },
+
+            enterEditSection(section, zoneEl = null) {
+                if (section !== 'header' && section !== 'footer') return;
+
+                try {
+                    // Pastikan sesi role lain benar-benar mati
+                    // (supaya pindah Header <-> Footer tidak meninggalkan sesuatu aktif)
+                    const other = section === 'header' ? 'footer' : 'header';
+                    window.DocQuill.setZonesEnabled(other, false);
+
+                    this.editSection = section;
+
+                    const rootEl = document.getElementById('document-editor');
+                    rootEl?.classList.remove('editing-header', 'editing-footer');
+                    rootEl?.classList.add('editing-' + section);
+
+                    window.DocQuill.setZonesEnabled(section, true);
+                    window.DocQuill.syncAllMirrors();
+
+                    const target = zoneEl ||
+                        document.querySelector('.doc-sheet-' + section + '[data-region="' + section + '"]');
+                    if (target) window.DocQuill.focusZone(target);
+                } catch (err) {
+                    console.error('[ZoneEdit] Gagal masuk sesi:', err);
+                }
+            },
+
+            exitEditSection() {
+                this.editSection = null;
+
+                try {
+                    const rootEl = document.getElementById('document-editor');
+                    rootEl?.classList.remove('editing-header', 'editing-footer');
+
+                    // Kunci KEDUA role sekaligus + bersihkan jejak pembatas.
+                    // Mode konten utama dijamin selalu meninggalkan semua zona terkunci.
+                    ['header', 'footer'].forEach((role) => {
+                        window.DocQuill.setZonesEnabled(role, false);
+                        document.querySelectorAll('.doc-sheet-' + role + '.zone-editing')
+                            .forEach((el) => el.classList.remove('zone-editing'));
+                    });
+
+                    // Blur hanya bila fokus masih berada di dalam zona
+                    const ae = document.activeElement;
+                    if (ae && ae.closest?.('.doc-sheet-header, .doc-sheet-footer')) {
+                        ae.blur?.();
+                    }
+
+                    // Bersihkan sisa kunci seleksi dari interaksi lain (resize gambar dll.)
+                    document.body.style.userSelect = '';
+
+                    // Jaminan terakhir: konten utama pasti bisa diketik kembali
+                    const revived = window.DocQuill.ensureBodyEditable?.() || 0;
+                    console.info(
+                        '[ZoneEdit] Sesi ' + (section || '-') + ' diakhiri. ' +
+                        'Body dipulihkan: ' + revived + '. Mode konten utama aktif.'
+                    );
+                } catch (err) {
+                    console.error('[ZoneEdit] Gagal keluar sesi:', err);
+                }
             },
 
             markAsChanged() {
@@ -897,6 +1187,8 @@
 
             async saveDocument() {
 
+                // Akhiri sesi edit header/footer sebelum menyimpan
+                this.exitEditSection();
                 this.saveStatus = 'saving';
 
                 const root = document.getElementById('document-editor');

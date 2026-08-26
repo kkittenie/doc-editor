@@ -836,6 +836,10 @@ if (!window.__imageToolsBound) {
 
         if (isResizingImage) {
             notifyDirty();
+            // Pulihkan seleksi teks yang dikunci saat resize dimulai.
+            // Tanpa ini, user-select:none menempel selamanya dan mematikan
+            // caret/ketikan di seluruh dokumen secara diam-diam.
+            document.body.style.userSelect = '';
         }
         isResizingImage = false;
     });
@@ -886,7 +890,11 @@ let hiddenImageInput = null;
 
 const getActiveQuill = () => {
     if (activeQuill && activeQuill.isEnabled()) return activeQuill;
-    for (const q of quillsByRegion.values()) return q;
+    // Fallback: instance pertama yang MASIH AKTIF —
+    // jangan pernah memilih zona terkunci (format() di editor mati = no-op diam)
+    for (const q of quillsByRegion.values()) {
+        if (q.isEnabled()) return q;
+    }
     return null;
 };
 
@@ -1136,6 +1144,53 @@ const bindToolbar = () => {
     });
 };
 
+// =========================================
+// HEADER/FOOTER MIRROR (ala Microsoft Word):
+// semua zona header berbagi SATU konten,
+// semua zona footer berbagi SATU konten.
+// Edit di halaman mana pun -> halaman lain ikut.
+// =========================================
+
+const mirrorRegistry = { header: [], footer: [] };
+let mirroringInProgress = false;
+
+const registerMirror = (regionEl, q) => {
+    const role = regionEl.dataset?.region;
+    if ((role === 'header' || role === 'footer') &&
+        !mirrorRegistry[role].some((m) => m.q === q)) {
+        mirrorRegistry[role].push({ regionEl, q, role, lastCaret: 0 });
+    }
+};
+
+const unregisterRegion = (regionEl) => {
+    ['header', 'footer'].forEach((role) => {
+        mirrorRegistry[role] = mirrorRegistry[role].filter((m) => m.regionEl !== regionEl);
+    });
+    quillsByRegion.delete(regionEl);
+};
+
+const syncMirrorsFrom = (sourceQ) => {
+    if (mirroringInProgress) return;
+    const entry = [...mirrorRegistry.header, ...mirrorRegistry.footer]
+        .find((m) => m.q === sourceQ);
+    if (!entry) return;
+
+    mirroringInProgress = true;
+    try {
+        const html = sourceQ.root.innerHTML;
+        mirrorRegistry[entry.role].forEach((m) => {
+            if (m.q === sourceQ) return;
+            const sel = m.q.getSelection();
+            if (sel) m.lastCaret = sel.index;
+            m.q.clipboard.dangerouslyPasteHTML(html);
+            const maxIndex = Math.max(0, m.q.getLength() - 1);
+            m.q.setSelection(Math.min(m.lastCaret, maxIndex), 'silent');
+        });
+    } finally {
+        mirroringInProgress = false;
+    }
+};
+
 // Pasang Quill pada satu region kertas.
 // Pola aman: buat DIV HOST baru yang 100% dimiliki Quill,
 // sehingga elemen region kertas TIDAK pernah dimutasi Quill.
@@ -1165,8 +1220,17 @@ const attachQuillToRegion = (regionEl) => {
             q.clipboard.dangerouslyPasteHTML(existingHtml);
         }
 
+        // Zona header/footer mulai dalam keadaan INERT (ala Word):
+        // hanya aktif saat sesi edit via double-click.
+        const zoneRole = regionEl.dataset?.region;
+        if (zoneRole === 'header' || zoneRole === 'footer') {
+            q.enable(false);
+            registerMirror(regionEl, q);
+        }
+
         q.on('text-change', () => {
             notifyDirty();
+            syncMirrorsFrom(q);
             if (typeof window.__docEditorSync === 'function') {
                 window.__docEditorSync(q.root.innerHTML);
             }
@@ -1238,6 +1302,9 @@ window.initBodyEditor = function (rootSelector, onSync = null) {
 // =========================================
 
 window.DocQuill = {
+    // Penanda versi untuk deteksi aset usang dari blade
+    __version: 'hf-2',
+
     // Pasang editor pada region baru (misal saat tambah halaman)
     attachRegion: attachQuillToRegion,
 
@@ -1249,6 +1316,63 @@ window.DocQuill = {
     },
 
     getActive: getActiveQuill,
+
+    // ----- Header/Footer ala Word -----
+
+    // Buang instance region yang halamannya dihapus
+    forgetRegion: unregisterRegion,
+
+    // Samakan semua zona header/footer dengan konten instance pertama
+    syncAllMirrors: () => {
+        ['header', 'footer'].forEach((role) => {
+            const list = mirrorRegistry[role];
+            if (list.length < 2) return;
+            const html = list[0].q.root.innerHTML;
+            mirroringInProgress = true;
+            try {
+                list.slice(1).forEach((m) => {
+                    const sel = m.q.getSelection();
+                    if (sel) m.lastCaret = sel.index;
+                    m.q.clipboard.dangerouslyPasteHTML(html);
+                    const maxIndex = Math.max(0, m.q.getLength() - 1);
+                    m.q.setSelection(Math.min(m.lastCaret, maxIndex), 'silent');
+                });
+            } finally {
+                mirroringInProgress = false;
+            }
+        });
+    },
+
+    // Aktif/nonaktifkan semua zona satu role (sesi edit double-click)
+    setZonesEnabled: (role, enabled) => {
+        mirrorRegistry[role]?.forEach((m) => {
+            if (enabled) m.q.enable();
+            else m.q.enable(false);
+            // Kelas dipasang LANGSUNG di elemen zona agar garis pembatas
+            // selalu tampil tanpa bergantung pada class induk mana pun.
+            m.regionEl.classList.toggle('zone-editing', !!enabled);
+        });
+    },
+
+    // Fokus ke satu zona tertentu (taruh kursor di akhir konten)
+    focusZone: (regionEl) => {
+        const q = quillsByRegion.get(regionEl);
+        if (!q) return;
+        q.setSelection(Math.max(0, q.getLength() - 1));
+    },
+
+    // Jaminan: semua isi dokumen (body) selalu bisa diketik di luar sesi.
+    // Mengembalikan jumlah body yang sempat mati lalu dipulihkan.
+    ensureBodyEditable: () => {
+        let revived = 0;
+        quillsByRegion.forEach((q, el) => {
+            if (el.dataset?.region === 'body' && !q.isEnabled()) {
+                q.enable();
+                revived++;
+            }
+        });
+        return revived;
+    },
 };
 
 
