@@ -112,6 +112,53 @@
 
                     console.error(error);
                 });
+            },
+
+            async deleteAllDocuments() {
+                const result = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Hapus semua dokumen?',
+                    html: `Semua <strong>${this.documents.length}</strong> dokumen akan dipindahkan ke Trash.`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, hapus semua',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#dc2626',
+                });
+
+                if (!result.isConfirmed) return;
+
+                fetch('/documents', {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Gagal menghapus semua dokumen.');
+                    }
+
+                    return response.json();
+                })
+                .then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Terhapus',
+                        text: 'Semua dokumen berhasil dihapus.',
+                        confirmButtonColor: '#1B2A4A'
+                    }).then(() => window.location.reload());
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: error.message,
+                        confirmButtonColor: '#1B2A4A'
+                    });
+
+                    console.error(error);
+                });
             }
         };
     }
@@ -380,10 +427,33 @@
                 </p>
             </div>
 
-            <span
-                class="rounded-full bg-parchment-100 px-2.5 py-1 text-[11px] font-medium text-slate-warm-600 dark:bg-slate-warm-800 dark:text-parchment-300"
-                x-text="documents.length + ' dokumen'"
-            ></span>
+            <div class="flex items-center gap-2">
+
+                <button
+                    type="button"
+                    @click="deleteAllDocuments()"
+                    x-show="documents.length > 0"
+                    class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-transparent px-2.5 text-[11px] font-semibold text-slate-warm-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:hover:border-red-900/40 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                    title="Hapus semua dokumen"
+                >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                        <path d="M10 11v6"/>
+                        <path d="M14 11v6"/>
+                        <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
+                    </svg>
+
+                    Hapus Semua
+                </button>
+
+                <span
+                    class="rounded-full bg-parchment-100 px-2.5 py-1 text-[11px] font-medium text-slate-warm-600 dark:bg-slate-warm-800 dark:text-parchment-300"
+                    x-text="documents.length + ' dokumen'"
+                ></span>
+
+            </div>
 
         </div>
 

@@ -326,6 +326,25 @@ class DocumentController extends Controller
         return response()->json(['message' => 'Dokumen dipindah ke trash.']);
     }
 
+    public function deleteAll()
+    {
+        $query = Document::where('user_id', Auth::id());
+        $count = (clone $query)->count();
+
+        if ($count === 0) {
+            return response()->json([
+                'message' => 'Tidak ada dokumen untuk dihapus.',
+            ], 422);
+        }
+
+        $query->delete();
+
+        return response()->json([
+            'message' => "{$count} dokumen berhasil dipindahkan ke trash.",
+            'deleted' => $count,
+        ]);
+    }
+
     public function exportPdf(Document $document)
     {
         abort_unless($document->user_id === Auth::id(), 403);
