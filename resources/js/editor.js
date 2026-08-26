@@ -1,43 +1,72 @@
-import tinymce from 'tinymce/tinymce';
+// =========================================
+// QUILL EDITOR — pengganti TinyMCE
+// Satu instance Quill per region kertas
+// (.doc-sheet-header / body / footer),
+// dengan SATU toolbar bersama di atas.
+// =========================================
 
-// Core UI & theme
-import 'tinymce/icons/default';
-import 'tinymce/themes/silver';
-import 'tinymce/models/dom';
+import Quill from 'quill';
+import 'quill/dist/quill.snow.css';
 
-// Plugin yang dipakai
-import 'tinymce/plugins/lists';
-import 'tinymce/plugins/link';
-import 'tinymce/plugins/table';
-import 'tinymce/plugins/image';
-import 'tinymce/plugins/code';
-import 'tinymce/plugins/fullscreen';
-import 'tinymce/plugins/charmap';
-import 'tinymce/plugins/searchreplace';
-import 'tinymce/plugins/visualblocks';
+// ---- Font family: pakai inline style (bukan class), seperti TinyMCE ----
+const FontAttributor = Quill.import('attributors/style/font');
+FontAttributor.whitelist = [
+    'Arial', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana',
+];
+Quill.register(FontAttributor, true);
 
-// Skin & content css (self-hosted)
-import 'tinymce/skins/ui/oxide/skin.css';
-import 'tinymce/skins/content/default/content.css';
+// ---- Ukuran font: nilai px nyata ----
+const SizeAttributor = Quill.import('attributors/style/size');
+SizeAttributor.whitelist = ['10px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px'];
+Quill.register(SizeAttributor, true);
 
-window.tinymce = tinymce;
+// ---- Gambar: pertahankan attribute style & class
+//      (dibutuhkan fitur posisi gambar depan/belakang teks) ----
+const BaseImage = Quill.import('formats/image');
 
-const uploadLogo = async (file) => {
-    const image = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(new Error('Gagal membaca file gambar.'));
-        reader.readAsDataURL(file);
-    });
+class StyledImage extends BaseImage {
+    static formats(domNode) {
+        const formats = super.formats(domNode);
+        const style = domNode.getAttribute('style');
+        if (style) formats.style = style;
+        return formats;
+    }
 
-    const response = await window.axios.post('/documents/logo', { image });
-    return response.data.url;
-};
+    format(name, value) {
+        if (name === 'style') {
+            if (value) this.domNode.setAttribute('style', value);
+            else this.domNode.removeAttribute('style');
+        } else {
+            super.format(name, value);
+        }
+    }
+}
 
-const imagesUploadHandler = (blobInfo) =>
+Quill.register(StyledImage, true);
+
+// ---- Garis pemisah kop surat (<hr>) ----
+const BlockEmbed = Quill.import('blots/block/embed');
+
+class HrBlot extends BlockEmbed {
+    static blotName = 'hr';
+    static tagName = 'HR';
+}
+
+Quill.register(HrBlot);
+
+// Daftar format yang diizinkan (dipakai semua instance)
+const ALLOWED_FORMATS = [
+    'header', 'bold', 'italic', 'underline', 'strike',
+    'script', 'list', 'align', 'indent',
+    'blockquote', 'link', 'image', 'hr',
+    'font', 'size', 'color', 'background',
+];
+
+// ---- Upload gambar ke server ----
+const uploadImageFile = (file) =>
     new Promise((resolve, reject) => {
         const formData = new FormData();
-        formData.append('file', blobInfo.blob(), blobInfo.filename());
+        formData.append('file', file, file.name);
 
         window.axios
             .post('/documents/image', formData, {
@@ -46,609 +75,63 @@ const imagesUploadHandler = (blobInfo) =>
             .then((response) => resolve(response.data.url))
             .catch((error) => {
                 console.error(error);
-                reject('Gagal mengunggah gambar.');
+                reject(new Error('Gagal mengunggah gambar.'));
             });
     });
 
-const enableLogoDragging = (editor) => {
-    const body = editor.getBody();
-    body.style.position = 'relative';
+// =========================================
+// REGISTRY EDITOR (shim agar seluruh sistem
+// gambar lama tetap bekerja tanpa TinyMCE)
+// =========================================
 
-    let logo = null;
-    let offsetX = 0;
-    let offsetY = 0;
+// Semua root editor yang memasang image tools
+let registeredImageToolEditors = [];
 
-    body.addEventListener('mousedown', (event) => {
-        if (event.target.tagName !== 'IMG' || !event.target.classList.contains('document-logo')) return;
+// Callback "dokumen berubah" — diisi dari blade (Alpine)
+window.__docEditorDirty = null;
 
-        const logoRect = event.target.getBoundingClientRect();
-        logo = event.target;
-        offsetX = event.clientX - logoRect.left;
-        offsetY = event.clientY - logoRect.top;
-        event.preventDefault();
-        logo.style.cursor = 'grabbing';
-    });
-
-    body.addEventListener('mousemove', (event) => {
-        if (!logo) return;
-
-        const bodyRect = body.getBoundingClientRect();
-        const logoRect = logo.getBoundingClientRect();
-        const printableHeaderWidth = Math.min(bodyRect.width, 634);
-        const logoColumnWidth = 190;
-        const horizontalMargin = 10;
-        const minX = horizontalMargin;
-        const maxX = Math.max(
-            minX,
-            Math.min(printableHeaderWidth, logoColumnWidth) - logoRect.width - horizontalMargin,
-        );
-        const maxY = Math.max(0, bodyRect.height - logoRect.height);
-        const left = Math.max(minX, Math.min(event.clientX - bodyRect.left - offsetX, maxX));
-        const top = Math.max(0, Math.min(event.clientY - bodyRect.top - offsetY, maxY));
-
-        logo.style.left = `${left}px`;
-        logo.style.top = `${top}px`;
-    });
-
-    body.addEventListener('mouseup', () => {
-        if (!logo) return;
-        logo.style.cursor = 'grab';
-        logo = null;
-        editor.save();
-    });
+const notifyDirty = () => {
+    if (typeof window.__docEditorDirty === 'function') {
+        window.__docEditorDirty();
+    }
 };
 
+// Shim dengan API minimal yang dipakai sistem gambar:
+// save / fire / nodeChanged / getBody / dom.remove / dom.create
+const makeEditorShim = (rootEl) => ({
+    rootEl,
+    getBody: () => rootEl,
+    save() {},
+    fire(name) {
+        if (name === 'change') notifyDirty();
+    },
+    nodeChanged() {
+        notifyDirty();
+    },
+    dom: {
+        remove: (el) => {
+            try { el?.remove?.(); } catch (err) { /* noop */ }
+        },
+        create: (tag) => document.createElement(tag),
+    },
+});
 
-const registerSharedToolbarVisibility = (editor) => {
-    editor.on('init', function () {
-        const container = editor.getContainer();
-        if (container) {
-            container.style.maxWidth = '100%';
-            container.style.width = '100%';
+const findEditorContaining = (node) => {
+    if (!node) return null;
+    for (let i = 0; i < registeredImageToolEditors.length; i++) {
+        const ed = registeredImageToolEditors[i];
+        try {
+            if (ed.getBody().contains(node)) return ed;
+        } catch (err) {
+            // noop
         }
-    });
-
-    editor.on('focus', function () {
-        const wrapper = document.getElementById('body-toolbar-container');
-        if (!wrapper) return;
-
-        Array.from(wrapper.children).forEach((child) => {
-            child.classList.remove('active-page-toolbar');
-        });
-
-        const container = editor.getContainer();
-        if (container) {
-            container.classList.add('active-page-toolbar');
-        }
-    });
-};
-
-// Dipakai buat editor Header & Footer di halaman "Buat Dokumen Baru".
-window.initDocumentEditor = function (selector, initialContent = '', allowLogoUpload = true) {
-    tinymce.init({
-        selector: selector,
-
-        license_key: 'gpl',
-
-        height: 400,
-        menubar: false,
-        branding: false,
-        statusbar: false,
-
-        relative_urls: false,
-        remove_script_host: false,
-        convert_urls: false,
-
-        plugins: 'lists link table image',
-
-        toolbar: `undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | table link image${allowLogoUpload ? ' uploadlogo' : ''} | removeformat`,
-        content_style: 'body { position: relative; font-family: Georgia, serif; font-size: 13px; } body > p, body > h1, body > h2, body > h3, body > h4, body > h5, body > h6, body > ul, body > ol, body > table, body > blockquote, body > div { position: relative; z-index: 2; } body.has-document-logo > p, body.has-document-logo > h1, body.has-document-logo > h2, body.has-document-logo > h3, body.has-document-logo > h4, body.has-document-logo > h5, body.has-document-logo > h6 { margin-left: 190px; } .document-logo { position: absolute; z-index: 1; width: auto; max-width: 150px; height: auto; max-height: 70px; cursor: grab; }',
-        skin: false,
-        content_css: false,
-        images_upload_handler: imagesUploadHandler,
-        setup: function (editor) {
-            if (allowLogoUpload) {
-                editor.ui.registry.addButton('uploadlogo', {
-                    icon: 'image',
-                    text: 'Logo',
-                    tooltip: 'Unggah logo dari perangkat',
-                    onAction: () => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/png,image/jpeg,image/svg+xml';
-
-                        input.addEventListener('change', async () => {
-                            const file = input.files?.[0];
-                            if (!file) return;
-
-                            editor.setProgressState(true);
-                            try {
-                                const url = await uploadLogo(file);
-                                const image = document.createElement('img');
-                                image.src = url;
-                                image.alt = file.name;
-                                image.className = 'document-logo';
-                                image.style.maxWidth = '150px';
-                                image.style.maxHeight = '70px';
-                                image.style.width = 'auto';
-                                image.style.height = 'auto';
-                                image.style.position = 'absolute';
-                                image.style.left = '10px';
-                                image.style.top = '10px';
-                                image.style.zIndex = '1';
-                                image.style.cursor = 'grab';
-                                const body = editor.getBody();
-                                body.classList.add('has-document-logo');
-                                body.insertBefore(image, body.firstChild);
-                                editor.nodeChanged();
-                                editor.save();
-                            } catch (error) {
-                                window.Swal?.fire({
-                                    icon: 'error',
-                                    title: 'Gagal',
-                                    text: 'Gagal mengunggah gambar.',
-                                    confirmButtonColor: '#1B2A4A',
-                                });
-                                console.error(error);
-                            } finally {
-                                editor.setProgressState(false);
-                            }
-                        });
-
-                        input.click();
-                    },
-                });
-            }
-
-            editor.on('init', function () {
-                if (initialContent) editor.setContent(initialContent);
-                if (allowLogoUpload) enableLogoDragging(editor);
-            });
-            editor.on('change keyup', function () {
-                editor.save();
-            });
-        }
-    });
-};
-
-window.initBodyEditor = function (selector, initialContent = '', onSync = null, allowLogoUpload = false) {
-
-    tinymce.init({
-        selector: selector,
-
-        license_key: 'gpl',
-
-        height: 500,
-
-        menubar: false,
-        branding: false,
-        statusbar: false,
-
-        plugins: 'lists link table image code fullscreen charmap searchreplace visualblocks',
-
-        toolbar:
-            'undo redo | blocks | fontfamily fontsizeinput | ' +
-            'bold italic underline strikethrough | ' +
-            'forecolor backcolor | ' +
-            'alignleft aligncenter alignright alignjustify | ' +
-            'outdent indent | bullist numlist | ' +
-            'superscript subscript | ' +
-            `table link image charmap hr kopdivider${allowLogoUpload ? ' uploadlogo' : ''} | ` +
-            'searchreplace removeformat code fullscreen',
-
-        toolbar_mode: 'wrap',
-
-        fixed_toolbar_container: '#body-toolbar-container',
-
-        toolbar_persist: true,
-
-        inline: true,
-
-        object_resizing: 'table',
-
-        content_style: `
-            body {
-                font-family: Arial, sans-serif;
-                font-size: 14px;
-                line-height: 1.8;
-                margin: 0;
-                padding: 0;
-                overflow-wrap: break-word;
-                word-break: break-word;
-            }
-
-            .doc-sheet {
-                position: relative;
-                width: 210mm;
-                min-height: 297mm;
-                height: 297mm;
-                max-height: 297mm;
-                margin: 0 auto 24px;
-                box-sizing: border-box;
-                overflow: hidden;
-                background: white;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-                padding: 20mm 20mm;
-                font-family: Arial, sans-serif;
-                font-size: 14px;
-                line-height: 1.6;
-                color: #111827;
-                outline: none;
-                display: flex;
-                flex-direction: column;
-            }
-
-            .doc-sheet-header {
-                position: relative;
-                z-index: 0;
-                min-height: 40px;
-                padding-bottom: 8px;
-            }
-
-            .doc-sheet-body {
-                position: relative;
-                z-index: 0;
-                flex: 1;
-                min-height: 0;
-            }
-
-            .doc-sheet-footer {
-                position: relative;
-                z-index: 0;
-                min-height: 40px;
-                padding-top: 8px;
-            }
-
-            .doc-sheet p {
-                margin: 0 0 10px 0;
-                padding: 0;
-            }
-
-            .doc-sheet p+p {
-                margin-top: 4px;
-            }
-
-            .doc-sheet p:last-child {
-                margin-bottom: 0;
-            }
-
-            .doc-sheet h1 {
-                font-size: 28px;
-                line-height: 1.3;
-                font-weight: 700;
-                margin: 18px 0 12px;
-            }
-
-            .doc-sheet h2 {
-                font-size: 22px;
-                line-height: 1.3;
-                font-weight: 700;
-                margin: 16px 0 10px;
-            }
-
-            .doc-sheet h3 {
-                font-size: 18px;
-                line-height: 1.35;
-                font-weight: 700;
-                margin: 14px 0 8px;
-            }
-
-            .doc-sheet>h1:first-child,
-            .doc-sheet>h2:first-child,
-            .doc-sheet>h3:first-child,
-            .doc-sheet>h4:first-child,
-            .doc-sheet>h5:first-child,
-            .doc-sheet>h6:first-child {
-                margin-top: 0;
-            }
-
-            .doc-sheet ul,
-            .doc-sheet ol {
-                margin-top: 8px;
-                margin-bottom: 12px;
-                padding-left: 30px;
-            }
-
-            .doc-sheet li {
-                margin-bottom: 4px;
-            }
-
-            .doc-sheet blockquote {
-                margin: 14px 0;
-                padding-left: 15px;
-                border-left: 3px solid #ccc;
-                font-style: italic;
-            }
-
-            .doc-sheet table {
-                width: 100%;
-                border-collapse: collapse !important;
-                border-spacing: 0 !important;
-                margin: 14px 0;
-                table-layout: fixed;
-            }
-
-            .doc-sheet table,
-            .doc-sheet tr,
-            .doc-sheet td,
-            .doc-sheet th {
-                box-sizing: border-box;
-            }
-
-            .doc-sheet table th,
-            .doc-sheet table td {
-                border: 1px solid #374151 !important;
-                padding: 8px 10px !important;
-                min-width: 60px;
-                height: 32px;
-                vertical-align: top;
-            }
-
-            .doc-sheet th {
-                font-weight: 700;
-                background: #f3f4f6;
-            }
-
-            .doc-sheet td p,
-            .doc-sheet th p {
-                margin: 0 !important;
-            }
-
-            .doc-sheet img {
-                display: block;
-                margin-top: 8px;
-                margin-bottom: 12px;
-                cursor: pointer !important;
-                max-width: 100%;
-            }
-
-            .doc-sheet img.image-selected {
-                outline: 1px solid #2563eb !important;
-                outline-offset: 1px;
-                user-select: none !important;
-                -webkit-user-drag: none !important;
-            }
-        `,
-
-        skin: false,
-        content_css: false,
-
-        images_upload_handler: imagesUploadHandler,
-
-        setup: function (editor) {
-
-            registerSharedToolbarVisibility(editor);
-            registerImageLayoutTools(editor);
-            registerToolbarTooltips();
-
-            // =========================================
-            // CTRL+A: PILIH ISI KONTEN SAJA
-            // Struktur kertas (.doc-sheet) tidak boleh ikut
-            // terseleksi/terhapus saat select-all + delete.
-            // =========================================
-            const selectPageContentOnly = () => {
-                try {
-                    const node = editor.selection.getNode();
-                    if (!node) return false;
-
-                    const container =
-                        editor.dom.getParent(node, '.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer') ||
-                        editor.dom.getParent(node, '.doc-sheet')?.querySelector('.doc-sheet-body') ||
-                        editor.getBody().querySelector('.doc-sheet-body');
-
-                    if (!container) return false;
-
-                    const rng = editor.dom.createRng();
-                    rng.selectNodeContents(container);
-                    editor.selection.setRng(rng);
-                    return true;
-                } catch (err) {
-                    return false;
-                }
-            };
-
-            editor.on('keydown', (e) => {
-                if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
-                if ((e.key || '').toLowerCase() !== 'a') return;
-
-                if (selectPageContentOnly()) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            }, true);
-
-            // Jaring pengaman: pastikan struktur kertas selalu ada,
-            // dan TANPA menyisakan paragraf/elemen kosong (tidak bikin celah)
-            const isEmptyBlock = (el) => {
-                if (!el || (el.nodeName !== 'P' && el.nodeName !== 'DIV')) return false;
-                if (el.classList.contains('doc-signature')) return false;
-                if (el.querySelector('img, table, ul, ol, hr, h1, h2, h3, h4, h5, h6, a, span')) return false;
-                return (el.textContent || '').trim() === '';
-            };
-
-            const ensureDocumentStructure = () => {
-                const body = editor.getBody();
-                if (!body) return;
-
-                // 1. Buang elemen liar yang nyasar langsung di bawah editor
-                //    (di luar kertas) -> ini sumber "celah" di atas kertas
-                Array.from(body.childNodes).forEach((child) => {
-                    if (child.nodeType === 1 && !(child.classList && child.classList.contains('doc-sheet'))) {
-                        editor.dom.remove(child);
-                    }
-                });
-
-                // 2. Minimal satu kertas harus selalu ada
-                if (!body.querySelector('.doc-sheet[data-sheet-type="page"]')) {
-                    const sheet = editor.dom.create('div', {
-                        class: 'doc-sheet',
-                        'data-sheet-type': 'page',
-                        'data-page-uid': 'page-' + Date.now()
-                    });
-                    body.appendChild(sheet);
-                }
-
-                // 3. Tiap kertas wajib punya region body
-                body.querySelectorAll('.doc-sheet[data-sheet-type="page"]').forEach((sheet) => {
-                    if (!sheet.querySelector('.doc-sheet-body[data-region="body"]')) {
-                        const region = editor.dom.create('div', {
-                            class: 'doc-sheet-body',
-                            'data-region': 'body'
-                        });
-
-                        const footer = sheet.querySelector('.doc-sheet-footer');
-                        if (footer) sheet.insertBefore(region, footer);
-                        else sheet.appendChild(region);
-                    }
-                });
-
-                // 4. Region yang isinya CUMA paragraf kosong:
-                //    - kursor masih di dalam region -> sisakan TEPAT SATU baris
-                //      kosong (tempat kedipan kursor, hilang saat pindah klik)
-                //    - kursor sudah di luar          -> buang semuanya,
-                //      kertas bersih total tanpa celah
-                body.querySelectorAll(
-                    '.doc-sheet-body[data-region="body"], .doc-sheet-header[data-region="header"], .doc-sheet-footer[data-region="footer"]'
-                ).forEach((region) => {
-                    const blocks = Array.from(region.children);
-                    if (blocks.length === 0 || !blocks.every(isEmptyBlock)) return;
-
-                    let caretInside = false;
-                    try {
-                        const node = editor.selection.getNode();
-                        caretInside = !!(node && region.contains(node));
-                    } catch (err) {
-                        caretInside = false;
-                    }
-
-                    if (caretInside) {
-                        blocks.slice(1).forEach((b) => editor.dom.remove(b));
-                    } else {
-                        blocks.forEach((b) => editor.dom.remove(b));
-                    }
-                });
-            };
-
-            editor.on('SetContent change keyup NodeChange', ensureDocumentStructure);
-
-            // Klik pada region yang benar-benar kosong -> siapkan SATU
-            // paragraf kosong sebagai tempat kursor SEBELUM caret ditempatkan,
-            // supaya halaman yang sudah dibersihkan tetap bisa diketik lagi.
-            editor.on('mousedown', (e) => {
-                const target = e.target;
-                if (!target || !target.closest) return;
-                const region = target.closest('.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer');
-                if (!region) return;
-                if (region.firstElementChild) return;
-
-                const p = editor.dom.create('p');
-                p.innerHTML = '<br data-mce-bogus="1">';
-                region.appendChild(p);
-            });
-
-            editor.ui.registry.addButton('kopdivider', {
-                icon: 'horizontal-rule',
-                text: '===',
-                tooltip: 'Sisipkan garis pembatas kop surat',
-                onAction: () => {
-                    editor.insertContent(
-                        '<hr class="kop-divider" style="border:none;border-top:2px solid #1B2A4A;margin:8px 0;" />'
-                    );
-                },
-            });
-
-            if (allowLogoUpload) {
-                editor.ui.registry.addButton('uploadlogo', {
-                    icon: 'image',
-                    text: 'Logo',
-                    tooltip: 'Unggah logo dari perangkat',
-                    onAction: () => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/png,image/jpeg,image/svg+xml';
-
-                        input.addEventListener('change', async () => {
-                            const file = input.files?.[0];
-                            if (!file) return;
-
-                            editor.setProgressState(true);
-                            try {
-                                const url = await uploadLogo(file);
-                                editor.insertContent(`<img src="${url}" style="max-width:150px;max-height:70px;" />`);
-                            } catch (error) {
-                                window.Swal?.fire({
-                                    icon: 'error',
-                                    title: 'Gagal',
-                                    text: 'Gagal mengunggah gambar.',
-                                    confirmButtonColor: '#1B2A4A',
-                                });
-                                console.error(error);
-                            } finally {
-                                editor.setProgressState(false);
-                            }
-                        });
-
-                        input.click();
-                    },
-                });
-            }
-
-            editor.on('init', function () {
-
-                if (initialContent) {
-                    editor.setContent(initialContent);
-                }
-
-                const wrapper = document.getElementById('body-toolbar-container');
-                if (wrapper) {
-                    const hasActive = Array.from(wrapper.children).some((child) =>
-                        child.classList.contains('active-page-toolbar')
-                    );
-                    if (!hasActive) {
-                        const container = editor.getContainer();
-                        if (container) {
-                            container.classList.add('active-page-toolbar');
-                        }
-                    }
-                }
-            });
-
-            const ensureTrailingParagraph = () => {
-                const body = editor.getBody();
-                const last = body.lastElementChild;
-
-                if (last && last.nodeName === 'IMG') {
-                    const p = editor.dom.create('p');
-                    p.innerHTML = '<br data-mce-bogus="1">';
-                    body.appendChild(p);
-                }
-            };
-
-            editor.on('NodeChange SetContent', ensureTrailingParagraph);
-
-            editor.on('SetContent NodeChange', () => {
-                editor.getBody()
-                    .querySelectorAll('img:not([data-drag-disabled])')
-                    .forEach((img) => {
-                        img.setAttribute('draggable', 'false');
-                        img.style.webkitUserDrag = 'none';
-                        img.dataset.dragDisabled = '1';
-                        img.addEventListener('dragstart', (e) => e.preventDefault());
-                    });
-            });
-
-            editor.on('change keyup undo redo', function () {
-                editor.save();
-                if (typeof onSync === 'function') {
-                    onSync(editor.getContent());
-                }
-            });
-        }
-    });
+    }
+    return null;
 };
 
 // =========================================
-// IMAGE LAYOUT TOOLS (versi simpel: bubble + resize saja)
+// IMAGE LAYOUT TOOLS
+// (bubble ⚓ + titik resize + posisi depan/belakang teks)
 // =========================================
 
 let activeImage = null;
@@ -664,6 +147,9 @@ let resizeStartW = 0, resizeStartH = 0;
 let resizeStartCursorX = 0, resizeStartCursorY = 0;
 let resizeStartLeft = 0, resizeStartTop = 0;
 let resizeIsFloating = false;
+let resizeAnchorX = 0, resizeAnchorY = 0;      // posisi layar sudut OPOSISI (anchor)
+let resizeBaseVecX = 0, resizeBaseVecY = 0;    // vektor handle -> anchor saat mulai
+let resizeStartMarginLeft = 0, resizeStartMarginTop = 0;
 let watchTimer = null;
 
 // State drag "angkat & jatuhkan" untuk gambar biasa (non-floating)
@@ -676,10 +162,6 @@ let flowImgOriginalParent = null;
 let flowImgOriginalNext = null;
 let flowDragSourceImg = null;
 
-// Semua editor yang memasang image tools (dipakai listener global
-// untuk menemukan editor pemilik gambar)
-let registeredImageToolEditors = [];
-
 // State drag bebas untuk gambar floating (behind/front text)
 let floatingImg = null;
 let floatingRegion = null;
@@ -688,8 +170,47 @@ let isDraggingFloating = false;
 let floatStartX = 0, floatStartY = 0;
 let floatBaseLeft = 0, floatBaseTop = 0;
 
+const FLOAT_REGION_SELECTOR = '.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer';
+
+const isFloatingImage = (img) => getComputedStyle(img).position === 'absolute';
+
+const getImageLayout = (img) => {
+    if (!img) return 'inline';
+    if (isFloatingImage(img)) {
+        const z = parseInt(getComputedStyle(img).zIndex, 10);
+        return z < 0 ? 'behind' : 'front';
+    }
+    const f = getComputedStyle(img).cssFloat;
+    if (f === 'left' || f === 'right') return 'square';
+    if (getComputedStyle(img).display === 'block') return 'topbottom';
+    return 'inline';
+};
+
+// Batas posisi gambar mengikuti KERTAS penuh (.doc-sheet), bukan region-nya —
+// jadi gambar bisa ditaruh sampai ke sudut, tepi, area kop, dan footer.
+// koordinat masukan/keluaran tetap relatif terhadap region gambar itu sendiri.
+const clampPosToSheet = (regionEl, left, top, w, h) => {
+    const sheet = regionEl?.closest?.('.doc-sheet');
+    if (!sheet) return [Math.max(0, left), Math.max(0, top)];
+
+    const sRect = sheet.getBoundingClientRect();
+    const rRect = regionEl.getBoundingClientRect();
+    const offX = rRect.left - sRect.left;
+    const offY = rRect.top - sRect.top;
+
+    const minX = -offX;
+    const minY = -offY;
+    const maxX = sRect.width - w - offX;
+    const maxY = sRect.height - h - offY;
+
+    const cx = Math.min(Math.max(left, minX), Math.max(minX, maxX));
+    const cy = Math.min(Math.max(top, minY), Math.max(minY, maxY));
+    return [cx, cy];
+};
+
 const removeImageTools = () => {
     clearInterval(watchTimer);
+    cancelAnimationFrame(watchTimer || 0);
     watchTimer = null;
     bubbleEl?.remove();
     removeBtnEl?.remove();
@@ -745,36 +266,16 @@ const positionImageTools = () => {
     });
 };
 
-// =========================================
-// HELPER GAMBAR FLOATING (MS WORD STYLE)
-// =========================================
-
-const FLOAT_REGION_SELECTOR = '.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer';
-
-const isFloatingImage = (img) => getComputedStyle(img).position === 'absolute';
-
-const getImageLayout = (img) => {
-    if (!img) return 'inline';
-    if (isFloatingImage(img)) {
-        const z = parseInt(getComputedStyle(img).zIndex, 10);
-        return z < 0 ? 'behind' : 'front';
-    }
-    const f = getComputedStyle(img).cssFloat;
-    if (f === 'left' || f === 'right') return 'square';
-    if (getComputedStyle(img).display === 'block') return 'topbottom';
-    return 'inline';
-};
-
 // Pastikan region masih punya minimal satu blok untuk menaruh kursor
 const ensureRegionHasBlock = (editor, region) => {
     const hasBlock = Array.from(region.children).some((el) =>
-        ['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'TABLE', 'BLOCKQUOTE', 'HR']
+        ['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'BLOCKQUOTE']
             .includes(el.nodeName) &&
         !(el.classList && el.classList.contains('doc-signature'))
     );
     if (!hasBlock) {
         const p = editor.dom.create('p');
-        p.innerHTML = '<br data-mce-bogus="1">';
+        p.innerHTML = '<br>';
         region.insertBefore(p, region.firstChild);
     }
 };
@@ -797,171 +298,6 @@ const cleanupAfterFloatMove = (editor, oldParent, region) => {
     } catch (err) {
         // noop
     }
-};
-
-// Cari editor TinyMCE yang memuat node tertentu.
-// Prioritas: registry internal (pasti terisi saat init),
-// lalu tinymce.editors (kalau tersedia), lalu activeEditor.
-const findEditorContaining = (node) => {
-    const candidates = [
-        ...registeredImageToolEditors,
-        ...((window.tinymce && window.tinymce.editors) || []),
-    ];
-
-    for (let i = 0; i < candidates.length; i++) {
-        const ed = candidates[i];
-        try {
-            if (ed?.getBody?.().contains(node)) return ed;
-        } catch (err) {
-            // noop
-        }
-    }
-
-    try {
-        if (activeEditor?.getBody?.().contains(node)) return activeEditor;
-    } catch (err) {
-        // noop
-    }
-
-    return null;
-};
-
-// =========================================
-// DRAG ANGKAT & JATUHKAN UNTUK GAMBAR BIASA (non-floating)
-// Tekan gambar + geser -> gambar "terangkat" mengikuti kursor.
-// Lepas di atas kertas -> berhenti PERSIS di titik pelepasan
-//                         (otomatis jadi gambar floating).
-// Lepas di luar kertas -> kembali ke tempat & gaya semula.
-// =========================================
-
-const mulaiFlowDrag = () => {
-    const img = flowDragSourceImg;
-    if (!img) return;
-
-    isDraggingFlowImage = true;
-    try { window.getSelection()?.removeAllRanges(); } catch (err) { /* noop */ }
-
-    const rect = img.getBoundingClientRect();
-    flowDragOffsetX = flowStartX - rect.left;
-    flowDragOffsetY = flowStartY - rect.top;
-
-    // Kunci ukuran supaya tidak berubah saat pindah induk
-    img.style.width = rect.width + 'px';
-    img.style.height = rect.height + 'px';
-
-    // Angkat dari aliran teks (layout langsung menyesuaikan,
-    // persis seperti memegang gambar di Word)
-    img.style.position = 'fixed';
-    img.style.margin = '0';
-    img.style.zIndex = '999997';
-    img.style.pointerEvents = 'none';
-    img.style.cursor = 'grabbing';
-    img.style.maxWidth = 'none';
-
-    document.body.appendChild(img);
-    document.body.style.userSelect = 'none';
-};
-
-const kembalikanKePosisiSemula = (img) => {
-    img.setAttribute('style', flowImgOriginalCssText);
-
-    if (flowImgOriginalParent && flowImgOriginalParent.isConnected) {
-        flowImgOriginalParent.insertBefore(img, flowImgOriginalNext);
-        return;
-    }
-
-    // Induk lama sudah hilang -> taruh di awal region pertama
-    const firstRegion = document.querySelector('#document-editor .doc-sheet-body');
-    if (firstRegion) firstRegion.insertBefore(img, firstRegion.firstChild);
-};
-
-const rapikanSetelahDrop = (img) => {
-    const parent = img.parentElement;
-    if (!parent) return;
-
-    // Kalau jatuh langsung di region (bukan di dalam paragraf),
-    // bungkus dengan paragraf baru supaya rapi
-    const region = parent.closest('.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer');
-    if (region && parent === region) {
-        const p = document.createElement('p');
-        parent.insertBefore(p, img);
-        p.appendChild(img);
-    }
-};
-
-const selesaiFlowDrag = (e) => {
-    const img = flowDragSourceImg;
-    flowDragSourceImg = null;
-    if (!img) return;
-
-    // Titik jatuh yang diinginkan user = posisi kiri-atas ghost saat dilepas
-    const ghostLeft = e.clientX - flowDragOffsetX;
-    const ghostTop = e.clientY - flowDragOffsetY;
-    const ghostW = img.offsetWidth;
-    const ghostH = img.offsetHeight;
-
-    // Cari region kertas di bawah kursor
-    // (ghost pointer-events:none, jadi tidak menghalangi deteksi)
-    let region = null;
-    try {
-        const stack = document.elementsFromPoint(e.clientX, e.clientY) || [];
-        for (const el of stack) {
-            if (!el.closest) continue;
-            region = el.closest('.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer');
-            if (region) break;
-            const sheet = el.closest('.doc-sheet');
-            if (sheet) { region = sheet.querySelector('.doc-sheet-body'); break; }
-        }
-    } catch (err) {
-        region = null;
-    }
-
-    // Lepas gaya "angkat" (ukuran width/height sengaja dipertahankan)
-    img.style.position = '';
-    img.style.margin = '';
-    img.style.zIndex = '';
-    img.style.pointerEvents = '';
-    img.style.cursor = '';
-    img.style.maxWidth = '';
-
-    if (region && region.isConnected) {
-        // Berhenti PERSIS di titik pelepasan: jadikan gambar floating
-        const rRect = region.getBoundingClientRect();
-        const maxX = Math.max(0, rRect.width - ghostW);
-        const maxY = Math.max(0, rRect.height - ghostH);
-        const left = Math.min(Math.max(ghostLeft - rRect.left, 0), maxX);
-        const top = Math.min(Math.max(ghostTop - rRect.top, 0), maxY);
-
-        img.classList.remove('doc-image-behind');
-        img.classList.add('doc-image-front');
-        img.setAttribute('draggable', 'false');
-
-        img.style.float = '';
-        img.style.display = 'block';
-        img.style.position = 'absolute';
-        img.style.left = left + 'px';
-        img.style.top = top + 'px';
-        img.style.margin = '0';
-        img.style.zIndex = '20';
-        img.style.cursor = 'grab';
-
-        region.appendChild(img);
-    } else {
-        // Dilepas di luar kertas -> kembali ke tempat & gaya semula
-        img.style.left = '';
-        img.style.top = '';
-        kembalikanKePosisiSemula(img);
-    }
-
-    const ed = findEditorContaining(flowImgOriginalParent) ||
-        (window.tinymce && window.tinymce.get('document-editor'));
-    if (ed) {
-        ed.save();
-        ed.fire('change');
-        ed.nodeChanged();
-    }
-
-    positionImageTools();
 };
 
 const applyImageLayout = (img, layout) => {
@@ -988,11 +324,18 @@ const applyImageLayout = (img, layout) => {
         // supaya gambar tidak "lompat" saat berubah jadi floating.
         const imgRect = img.getBoundingClientRect();
         const regionRect = region.getBoundingClientRect();
-        const left = Math.max(0, Math.round(imgRect.left - regionRect.left));
-        const top = Math.max(0, Math.round(imgRect.top - regionRect.top));
+        // Posisi bebas di seluruh area kertas — bukan hanya di dalam region
+        const [freeLeft, freeTop] = clampPosToSheet(
+            region,
+            imgRect.left - regionRect.left,
+            imgRect.top - regionRect.top,
+            imgRect.width,
+            imgRect.height
+        );
+        const left = Math.round(freeLeft);
+        const top = Math.round(freeTop);
 
         // Keluarkan gambar dari paragrafnya -> jadi anak langsung region.
-        // Teks jadi mengalir normal di belakang / di depan gambar.
         region.appendChild(img);
         cleanupAfterFloatMove(editor, oldParent, region);
         ensureRegionHasBlock(editor, region);
@@ -1002,15 +345,11 @@ const applyImageLayout = (img, layout) => {
         img.style.top = top + 'px';
         img.style.margin = '0';
         img.style.cursor = 'grab';
-        img.setAttribute('draggable', 'false');
 
         if (layout === 'behind') {
-            // z-index negatif = di bawah teks (region wajib stacking context,
-            // sudah diatur via CSS .doc-sheet-body { z-index: 0 })
             img.style.zIndex = '-1';
             img.classList.add('doc-image-behind');
         } else {
-            // z-index positif = di atas semua teks & tabel
             img.style.zIndex = '20';
             img.classList.add('doc-image-front');
         }
@@ -1079,7 +418,7 @@ const buildPanel = () => {
 const startImageResize = (e, corner) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!activeImage) return;
+    if (!activeImage || e.button !== 0) return;
 
     isResizingImage = true;
     resizeCorner = corner;
@@ -1090,6 +429,26 @@ const startImageResize = (e, corner) => {
     resizeStartTop = parseFloat(activeImage.style.top) || 0;
     resizeStartCursorX = e.clientX;
     resizeStartCursorY = e.clientY;
+
+    // Anchor = sudut OPOSISI dari handle yang ditarik -> titik ini yang tetap diam,
+    // gambar "tumbuh menuju" handle sesuai posisi kursor.
+    const rect = activeImage.getBoundingClientRect();
+    const cornerPts = {
+        nw: [rect.left, rect.top],
+        ne: [rect.right, rect.top],
+        sw: [rect.left, rect.bottom],
+        se: [rect.right, rect.bottom],
+    };
+    const opposite = { nw: 'se', ne: 'sw', sw: 'ne', se: 'nw' }[corner];
+    resizeAnchorX = cornerPts[opposite][0];
+    resizeAnchorY = cornerPts[opposite][1];
+    resizeBaseVecX = cornerPts[corner][0] - resizeAnchorX;
+    resizeBaseVecY = cornerPts[corner][1] - resizeAnchorY;
+
+    // Untuk gambar non-floating: kompensasi margin agar anchor tidak bergeser.
+    const cs = getComputedStyle(activeImage);
+    resizeStartMarginLeft = parseFloat(cs.marginLeft) || 0;
+    resizeStartMarginTop = parseFloat(cs.marginTop) || 0;
 
     document.body.style.userSelect = 'none';
 };
@@ -1129,9 +488,9 @@ const showImageTools = (editor, img) => {
         e.stopPropagation();
         if (!activeImage || !activeEditor) return;
         const ed = activeEditor;
-        const img = activeImage;
+        const image = activeImage;
         removeImageTools();
-        ed.dom.remove(img);
+        ed.dom.remove(image);
         ed.save();
         ed.fire('change');
         ed.nodeChanged();
@@ -1147,8 +506,7 @@ const showImageTools = (editor, img) => {
         return h;
     });
 
-    // Permukaan drag untuk gambar floating: supaya gambar "Di Belakang Teks"
-    // tetap bisa digeser meski secara visual tertutup teks.
+    // Permukaan drag untuk gambar floating
     if (isFloatingImage(img)) {
         dragSurfaceEl = document.createElement('div');
         dragSurfaceEl.title = 'Geser gambar';
@@ -1187,115 +545,144 @@ const showImageTools = (editor, img) => {
     watchTimer = requestAnimationFrame(loop);
 };
 
+// =========================================
+// DRAG ANGKAT & JATUHKAN UNTUK GAMBAR BIASA
+// Tekan gambar + geser -> gambar "terangkat" mengikuti kursor.
+// Lepas di atas kertas -> berhenti PERSIS di titik pelepasan
+//                         (otomatis jadi gambar floating).
+// Lepas di luar kertas -> kembali ke tempat & gaya semula.
+// =========================================
+
+const mulaiFlowDrag = () => {
+    const img = flowDragSourceImg;
+    if (!img) return;
+
+    isDraggingFlowImage = true;
+    try { window.getSelection()?.removeAllRanges(); } catch (err) { /* noop */ }
+
+    const rect = img.getBoundingClientRect();
+    flowDragOffsetX = flowStartX - rect.left;
+    flowDragOffsetY = flowStartY - rect.top;
+
+    // Kunci ukuran supaya tidak berubah saat pindah induk
+    img.style.width = rect.width + 'px';
+    img.style.height = rect.height + 'px';
+
+    // Angkat dari aliran teks
+    img.style.position = 'fixed';
+    img.style.margin = '0';
+    img.style.zIndex = '999997';
+    img.style.pointerEvents = 'none';
+    img.style.cursor = 'grabbing';
+    img.style.maxWidth = 'none';
+
+    document.body.appendChild(img);
+    document.body.style.userSelect = 'none';
+};
+
+const kembalikanKePosisiSemula = (img) => {
+    img.setAttribute('style', flowImgOriginalCssText);
+
+    if (flowImgOriginalParent && flowImgOriginalParent.isConnected) {
+        flowImgOriginalParent.insertBefore(img, flowImgOriginalNext);
+        return;
+    }
+
+    // Induk lama sudah hilang -> taruh di awal region pertama
+    const firstRegion = document.querySelector('#document-editor .doc-sheet-body');
+    if (firstRegion) firstRegion.insertBefore(img, firstRegion.firstChild);
+};
+
+const selesaiFlowDrag = (e) => {
+    const img = flowDragSourceImg;
+    flowDragSourceImg = null;
+    if (!img) return;
+
+    // Titik jatuh yang diinginkan user = posisi ghost saat dilepas
+    const ghostLeft = e.clientX - flowDragOffsetX;
+    const ghostTop = e.clientY - flowDragOffsetY;
+    const ghostW = img.offsetWidth;
+    const ghostH = img.offsetHeight;
+
+    // Cari region kertas di bawah kursor
+    let region = null;
+    try {
+        const stack = document.elementsFromPoint(e.clientX, e.clientY) || [];
+        for (const el of stack) {
+            if (!el.closest) continue;
+            region = el.closest('.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer');
+            if (region) break;
+            const sheet = el.closest('.doc-sheet');
+            if (sheet) { region = sheet.querySelector('.doc-sheet-body'); break; }
+        }
+    } catch (err) {
+        region = null;
+    }
+
+    // Lepas gaya "angkat" (ukuran sengaja dipertahankan)
+    img.style.position = '';
+    img.style.margin = '';
+    img.style.zIndex = '';
+    img.style.pointerEvents = '';
+    img.style.cursor = '';
+    img.style.maxWidth = '';
+
+    if (region && region.isConnected) {
+        // Berhenti PERSIS di titik pelepasan: jadikan gambar floating
+        const rRect = region.getBoundingClientRect();
+        // Bebas menempel di mana saja dalam kertas (tepi, sudut, kop, footer)
+        const [left, top] = clampPosToSheet(
+            region,
+            ghostLeft - rRect.left,
+            ghostTop - rRect.top,
+            ghostW,
+            ghostH
+        );
+
+        img.classList.remove('doc-image-behind');
+        img.classList.add('doc-image-front');
+
+        img.style.float = '';
+        img.style.display = 'block';
+        img.style.position = 'absolute';
+        img.style.left = left + 'px';
+        img.style.top = top + 'px';
+        img.style.margin = '0';
+        img.style.zIndex = '20';
+        img.style.cursor = 'grab';
+
+        region.appendChild(img);
+    } else {
+        // Dilepas di luar kertas -> kembali ke tempat & gaya semula
+        img.style.left = '';
+        img.style.top = '';
+        kembalikanKePosisiSemula(img);
+    }
+
+    notifyDirty();
+    positionImageTools();
+};
+
+// =========================================
+// LISTENER GLOBAL (dipasang sekali)
+// =========================================
+
 if (!window.__imageToolsBound) {
     window.__imageToolsBound = true;
-
-    document.addEventListener('mousemove', (e) => {
-        // ---- RESIZE: membesar/mengecil ke arah handle, poros di sudut seberangan ----
-        if (isResizingImage && activeImage) {
-            const ratio = resizeStartH / resizeStartW;
-            const dx = e.clientX - resizeStartCursorX;
-            const dy = e.clientY - resizeStartCursorY;
-
-            // Pertumbuhan mengikuti handle yang ditekan (dengan tanda):
-            //   ne/se -> tarik ke kanan membesar   | nw/sw -> tarik ke kiri membesar
-            //   sw/se -> tarik ke bawah membesar   | nw/ne -> tarik ke atas membesar
-            // Tarik ke arah sebaliknya = mengecil. Porosnya selalu sudut seberangan.
-            const growW = (resizeCorner === 'ne' || resizeCorner === 'se') ? dx : -dx;
-            const growH = (resizeCorner === 'sw' || resizeCorner === 'se') ? dy : -dy;
-
-            const scale = Math.max(
-                (resizeStartW + growW) / resizeStartW,
-                (resizeStartH + growH) / resizeStartH,
-                30 / resizeStartW
-            );
-            const newW = resizeStartW * scale;
-            const newH = newW * ratio;
-
-            activeImage.style.width = newW + 'px';
-            activeImage.style.height = newH + 'px';
-
-            if (resizeIsFloating) {
-                // Geser posisi supaya POROS (sudut seberangan) tetap diam
-                let left = resizeStartLeft;
-                let top = resizeStartTop;
-
-                if (resizeCorner === 'nw') { left += resizeStartW - newW; top += resizeStartH - newH; }
-                else if (resizeCorner === 'ne') { top += resizeStartH - newH; }
-                else if (resizeCorner === 'sw') { left += resizeStartW - newW; }
-
-                activeImage.style.left = left + 'px';
-                activeImage.style.top = top + 'px';
-            }
-
-            positionImageTools();
-        }
-
-        // ---- DRAG ANGKAT & JATUHKAN untuk gambar biasa ----
-        if (flowDragArmed && flowDragSourceImg && !isDraggingFlowImage) {
-            if (Math.hypot(e.clientX - flowStartX, e.clientY - flowStartY) >= 4) {
-                mulaiFlowDrag();
-            }
-        }
-
-        if (isDraggingFlowImage && flowDragSourceImg) {
-            e.preventDefault();
-            flowDragSourceImg.style.left = (e.clientX - flowDragOffsetX) + 'px';
-            flowDragSourceImg.style.top = (e.clientY - flowDragOffsetY) + 'px';
-        }
-    });
-
-    document.addEventListener('mouseup', (e) => {
-        // Selesaikan drag angkat & jatuhkan gambar biasa
-        if (flowDragArmed || isDraggingFlowImage) {
-            const wasDragging = isDraggingFlowImage;
-            flowDragArmed = false;
-            isDraggingFlowImage = false;
-            document.body.style.userSelect = '';
-
-            if (wasDragging) {
-                selesaiFlowDrag(e);
-            } else {
-                flowDragSourceImg = null; // hanya klik biasa, batal saja
-            }
-        }
-
-        if (isResizingImage) {
-            activeEditor?.save();
-            activeEditor?.fire('change');
-        }
-        isResizingImage = false;
-        document.body.style.userSelect = '';
-    });
-
-    document.addEventListener('scroll', () => positionImageTools(), true);
-    window.addEventListener('resize', () => positionImageTools());
-
-    document.addEventListener('click', (e) => {
-        if (e.target === bubbleEl || bubbleEl?.contains(e.target)) return;
-        if (e.target === removeBtnEl || removeBtnEl?.contains(e.target)) return;
-        if (e.target === dragSurfaceEl || dragSurfaceEl?.contains(e.target)) return;
-        if (e.target === panelEl || panelEl?.contains(e.target)) return;
-        if (handleEls.includes(e.target)) return;
-        if (e.target.nodeName === 'IMG') return;
-        removeImageTools();
-    });
-
-    // =========================================
-    // DRAG BEBAS UNTUK GAMBAR FLOATING (behind/front text)
-    // =========================================
 
     document.addEventListener('mousedown', (e) => {
         if (e.target?.nodeName !== 'IMG') return;
         const img = e.target;
         if (!isFloatingImage(img)) return;
 
+        if (e.button !== 0) return;
+
         const region = img.closest(FLOAT_REGION_SELECTOR) || img.closest('.doc-sheet');
         if (!region) return;
 
-        // Tanpa preventDefault: klik sekali pada gambar harus tetap
-        // berperilaku normal (menaruh kursor teks). Drag baru aktif
-        // setelah kursor bergerak melewati threshold di mousemove.
+        // preventDefault: cegah seleksi teks & drag bawaan browser.
+        // Klik singkat tetap menghasilkan event click -> perilaku normal.
+        e.preventDefault();
         floatingImg = img;
         floatingRegion = region;
         floatingDragArmed = true;
@@ -1306,9 +693,10 @@ if (!window.__imageToolsBound) {
         floatBaseTop = parseFloat(img.style.top) || 0;
     });
 
-    // ---- DRAG ANGKAT & JATUHKAN: siapkan saat menekan gambar biasa ----
+    // Siapkan drag angkat & jatuhkan saat menekan gambar biasa
     document.addEventListener('mousedown', (e) => {
         if (e.target?.nodeName !== 'IMG') return;
+        if (e.button !== 0) return;
         const img = e.target;
         if (isFloatingImage(img)) return;          // floating ditangani handler di atas
         if (!img.closest('.doc-sheet')) return;    // hanya gambar di dalam dokumen
@@ -1323,11 +711,74 @@ if (!window.__imageToolsBound) {
         flowImgOriginalNext = img.nextSibling;
     });
 
+    // Blokir drag bawaan browser pada gambar dokumen —
+    // ghost drag native membunuh event mousemove/mouseup milik drag kustom.
+    document.addEventListener('dragstart', (e) => {
+        const img = e.target;
+        if (img?.nodeName !== 'IMG') return;
+        if (img.closest('.doc-signature')) return;
+        if (!img.closest('.doc-sheet')) return;
+        e.preventDefault();
+    });
+
     document.addEventListener('mousemove', (e) => {
+        // ---- DRAG ANGKAT GAMBAR FLOW: trigger saat digeser + ghost ikut kursor ----
+        if (flowDragArmed && !isDraggingFlowImage && flowDragSourceImg) {
+            if (e.buttons === 0) {
+                // Tombol sudah dilepas tanpa mouseup -> batalkan arm-nya saja
+                flowDragArmed = false;
+                flowDragSourceImg = null;
+            } else if (Math.hypot(e.clientX - flowStartX, e.clientY - flowStartY) >= 4) {
+                mulaiFlowDrag();
+            }
+        }
+
+        if (isDraggingFlowImage && flowDragSourceImg) {
+            e.preventDefault();
+            // Ghost mengikuti kursor dengan offset genggaman yang sama
+            flowDragSourceImg.style.left = (e.clientX - flowDragOffsetX) + 'px';
+            flowDragSourceImg.style.top = (e.clientY - flowDragOffsetY) + 'px';
+        }
+
+        // ---- RESIZE: tumbuh menuju handle, sudut oposisi tetap sebagai anchor ----
+        if (isResizingImage && activeImage) {
+            // Proyeksikan pergerakan kursor ke vektor handle->anchor (skala seragam)
+            const vx = e.clientX - resizeAnchorX;
+            const vy = e.clientY - resizeAnchorY;
+            const denom = resizeBaseVecX * resizeBaseVecX + resizeBaseVecY * resizeBaseVecY;
+            let scale = denom > 0 ? (vx * resizeBaseVecX + vy * resizeBaseVecY) / denom : 1;
+
+            const minScale = Math.max(24 / resizeStartW, 24 / resizeStartH, 0.02);
+            scale = Math.max(scale, minScale);
+
+            const newW = Math.max(24, Math.round(resizeStartW * scale));
+            const newH = Math.max(24, Math.round(resizeStartH * scale));
+            const dW = newW - resizeStartW;
+            const dH = newH - resizeStartH;
+
+            // Sisi yang bergerak tergantung handle yang ditarik
+            const shiftLeft = resizeCorner === 'nw' || resizeCorner === 'sw';
+            const shiftTop = resizeCorner === 'nw' || resizeCorner === 'ne';
+
+            activeImage.style.width = newW + 'px';
+            activeImage.style.height = newH + 'px';
+
+            if (resizeIsFloating) {
+                // Anchor diam: geser left/top hanya bila sisi kiri/atas yang bergerak
+                if (shiftLeft) activeImage.style.left = (resizeStartLeft - dW) + 'px';
+                if (shiftTop) activeImage.style.top = (resizeStartTop - dH) + 'px';
+            } else {
+                // Gambar di aliran teks: kompensasi margin agar anchor tak bergeser visual
+                if (shiftLeft) activeImage.style.marginLeft = (resizeStartMarginLeft - dW) + 'px';
+                if (shiftTop) activeImage.style.marginTop = (resizeStartMarginTop - dH) + 'px';
+            }
+
+            positionImageTools();
+        }
+
+        // ---- DRAG FLOATING ----
         if (!floatingImg) return;
 
-        // Aktifkan drag hanya setelah kursor bergerak > 4px,
-        // supaya klik biasa tetap terdeteksi sebagai klik.
         if (floatingDragArmed && !isDraggingFloating) {
             if (Math.hypot(e.clientX - floatStartX, e.clientY - floatStartY) < 4) return;
             isDraggingFloating = true;
@@ -1339,57 +790,81 @@ if (!window.__imageToolsBound) {
         if (!isDraggingFloating) return;
         e.preventDefault();
 
-        const regionRect = floatingRegion.getBoundingClientRect();
-        const maxX = Math.max(0, regionRect.width - floatingImg.offsetWidth);
-        const maxY = Math.max(0, regionRect.height - floatingImg.offsetHeight);
-        const nextLeft = Math.min(Math.max(floatBaseLeft + (e.clientX - floatStartX), 0), maxX);
-        const nextTop = Math.min(Math.max(floatBaseTop + (e.clientY - floatStartY), 0), maxY);
+        // Bebas digeser ke seluruh area kertas (tanpa batas kotak region)
+        const [nextLeft, nextTop] = clampPosToSheet(
+            floatingRegion,
+            floatBaseLeft + (e.clientX - floatStartX),
+            floatBaseTop + (e.clientY - floatStartY),
+            floatingImg.offsetWidth,
+            floatingImg.offsetHeight
+        );
 
         floatingImg.style.left = nextLeft + 'px';
         floatingImg.style.top = nextTop + 'px';
         positionImageTools();
     });
 
-    document.addEventListener('mouseup', () => {
-        if (!floatingImg) return;
+    document.addEventListener('mouseup', (e) => {
+        // Selesaikan drag floating
+        if (floatingImg) {
+            const wasDragged = isDraggingFloating;
+            floatingImg.style.cursor = 'grab';
+            floatingImg = null;
+            floatingRegion = null;
+            floatingDragArmed = false;
+            isDraggingFloating = false;
 
-        const wasDragged = isDraggingFloating;
-        floatingImg.style.cursor = 'grab';
-        floatingImg = null;
-        floatingRegion = null;
-        floatingDragArmed = false;
-        isDraggingFloating = false;
-        document.body.style.userSelect = '';
-
-        if (wasDragged && activeEditor) {
-            activeEditor.save();
-            activeEditor.fire('change');
+            if (wasDragged) {
+                document.body.style.userSelect = '';
+                notifyDirty();
+            }
         }
+
+        // Selesaikan drag angkat & jatuhkan gambar biasa
+        if (flowDragArmed || isDraggingFlowImage) {
+            const wasDragging = isDraggingFlowImage;
+            flowDragArmed = false;
+            isDraggingFlowImage = false;
+
+            if (wasDragging) {
+                document.body.style.userSelect = '';
+                selesaiFlowDrag(e);
+            } else {
+                flowDragSourceImg = null; // hanya klik biasa, batal saja
+            }
+        }
+
+        if (isResizingImage) {
+            notifyDirty();
+        }
+        isResizingImage = false;
     });
 
-    // =========================================
-    // KLIK DUA KALI UNTUK GAMBAR YANG TERTUTUP TEKS
-    // Klik sekali pada gambar yang terlihat langsung membuka tools.
-    // Gambar "Di Belakang Teks" yang tertutup teks tidak bisa
-    // diklik langsung — klik dua kali akan menembus teks dan
-    // memilihnya (elementsFromPoint).
-    // =========================================
+    document.addEventListener('scroll', () => positionImageTools(), true);
+    window.addEventListener('resize', () => positionImageTools());
 
+    // Klik di luar gambar & alatnya -> tutup mode edit gambar
+    document.addEventListener('click', (e) => {
+        if (e.target === bubbleEl || bubbleEl?.contains(e.target)) return;
+        if (e.target === removeBtnEl || removeBtnEl?.contains(e.target)) return;
+        if (e.target === dragSurfaceEl || dragSurfaceEl?.contains(e.target)) return;
+        if (e.target === panelEl || panelEl?.contains(e.target)) return;
+        if (handleEls.includes(e.target)) return;
+        if (e.target.nodeName === 'IMG') return;
+        removeImageTools();
+    });
+
+    // Klik dua kali pada gambar yang TERTUTUP teks -> pilih gambarnya
     document.addEventListener('dblclick', (e) => {
         const stack = document.elementsFromPoint(e.clientX, e.clientY);
         const img = stack.find((el) => el.nodeName === 'IMG');
         if (!img) return;
 
-        // Kalau gambar ada di posisi paling atas (bisa diklik langsung),
-        // biarkan klik TUNGGAL yang membuka tools — jangan ganggu
-        // seleksi kata bawaan browser.
+        // Gambar yang terlihat ditangani klik tunggal per-editor
         if (stack[0] === img) return;
 
-        // Tanda tangan punya sistem drag sendiri, jangan ganggu
         if (img.closest('.doc-signature')) return;
 
-        // Harus ada editor TinyMCE yang memuat gambar ini
-        // (mencegah ikut menangkap gambar di modal/luar editor)
         const editor = findEditorContaining(img);
         if (!editor) return;
 
@@ -1400,121 +875,387 @@ if (!window.__imageToolsBound) {
     });
 }
 
-const registerImageLayoutTools = (editor) => {
-    // Daftarkan editor agar listener global (klik dua kali untuk gambar
-    // yang tertutup teks) bisa menemukan editor pemiliknya
-    if (!registeredImageToolEditors.includes(editor)) {
-        registeredImageToolEditors.push(editor);
-    }
+// =========================================
+// TOOLBAR QUILL (satu toolbar bersama untuk semua region)
+// =========================================
 
-    // Klik sekali pada gambar langsung membuka mode edit
-    // (perilaku seperti awal)
-    editor.on('click', (e) => {
-        if (e.target.nodeName === 'IMG') {
-            showImageTools(editor, e.target);
-        }
-    });
+let activeQuill = null;
+const quillsByRegion = new Map();
 
-    editor.on('keydown', (e) => {
-        if ((e.key === 'Backspace' || e.key === 'Delete') && activeImage) {
-            setTimeout(() => {
-                if (!activeImage || !activeImage.isConnected) {
-                    removeImageTools();
-                }
-            }, 50);
-        }
-    });
+let hiddenImageInput = null;
 
-    editor.on('remove', () => {
-        registeredImageToolEditors = registeredImageToolEditors.filter((ed) => ed !== editor);
-        if (activeEditor === editor) removeImageTools();
-    });
+const getActiveQuill = () => {
+    if (activeQuill && activeQuill.isEnabled()) return activeQuill;
+    for (const q of quillsByRegion.values()) return q;
+    return null;
 };
 
-// =========================================
-// TOOLTIP BUBBLE UNTUK TOOLBAR
-// =========================================
+const TOOLBAR_TOGGLES = ['bold', 'italic', 'underline', 'strike'];
 
-const registerToolbarTooltips = () => {
-    if (window.__toolbarTooltipsBound) return;
-    window.__toolbarTooltipsBound = true;
+const refreshToolbarStates = () => {
+    const q = activeQuill;
+    if (!q) return;
+    const sel = q.getSelection();
+    if (!sel) return;
+
+    const fmt = q.getFormat(sel.index, sel.length);
+
+    document.querySelectorAll('#body-toolbar-container [data-cmd]').forEach((btn) => {
+        const cmd = btn.dataset.cmd;
+        if (TOOLBAR_TOGGLES.includes(cmd)) {
+            btn.classList.toggle('active', !!fmt[cmd]);
+        } else if (cmd === 'superscript') {
+            btn.classList.toggle('active', fmt.script === 'super');
+        } else if (cmd === 'subscript') {
+            btn.classList.toggle('active', fmt.script === 'sub');
+        } else if (cmd === 'bullist') {
+            btn.classList.toggle('active', fmt.list === 'bullet');
+        } else if (cmd === 'numlist') {
+            btn.classList.toggle('active', fmt.list === 'ordered');
+        }
+    });
+
+    document.querySelectorAll('#body-toolbar-container [data-align]').forEach((btn) => {
+        btn.classList.toggle('active', (fmt.align || 'left') === btn.dataset.align);
+    });
+
+    const blockSel = document.getElementById('tb-block');
+    if (blockSel) blockSel.value = fmt.header ? String(fmt.header) : '';
+    const fontSel = document.getElementById('tb-font');
+    if (fontSel) fontSel.value = fmt.font || '';
+    const sizeSel = document.getElementById('tb-size');
+    if (sizeSel) sizeSel.value = fmt.size || '';
+};
+
+const ensureHiddenImageInput = () => {
+    if (hiddenImageInput) return hiddenImageInput;
+
+    hiddenImageInput = document.createElement('input');
+    hiddenImageInput.type = 'file';
+    hiddenImageInput.accept = 'image/png,image/jpeg,image/gif,image/webp';
+    hiddenImageInput.style.display = 'none';
+    document.body.appendChild(hiddenImageInput);
+
+    hiddenImageInput.addEventListener('change', async () => {
+        const file = hiddenImageInput.files?.[0];
+        hiddenImageInput.value = '';
+        if (!file) return;
+
+        try {
+            const url = await uploadImageFile(file);
+            const q = getActiveQuill();
+            if (!q) return;
+            const range = q.getSelection(true);
+            q.insertEmbed(range.index, 'image', url, 'user');
+            q.setSelection(range.index + 1);
+            notifyDirty();
+        } catch (err) {
+            window.Swal?.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: 'Gagal mengunggah gambar.',
+                confirmButtonColor: '#1B2A4A',
+            });
+        }
+    });
+
+    return hiddenImageInput;
+};
+
+const applyCmd = (cmd) => {
+    const q = getActiveQuill();
+    if (!q) return;
+
+    const sel = q.getSelection(true);
+
+    switch (cmd) {
+        case 'undo':
+            q.history.undo();
+            break;
+        case 'redo':
+            q.history.redo();
+            break;
+        case 'bold':
+        case 'italic':
+        case 'underline':
+        case 'strike':
+            q.format(cmd, !q.getFormat(sel)[cmd]);
+            break;
+        case 'superscript':
+        case 'subscript': {
+            // Nama format Quill yang benar adalah 'script' ('super' | 'sub'),
+            // bukan 'superscript'/'subscript'.
+            const scriptKey = cmd === 'superscript' ? 'super' : 'sub';
+            q.format('script', q.getFormat(sel).script === scriptKey ? false : scriptKey);
+            break;
+        }
+        case 'bullist': {
+            const cur = q.getFormat(sel).list === 'bullet';
+            q.format('list', cur ? false : 'bullet');
+            break;
+        }
+        case 'numlist': {
+            const cur = q.getFormat(sel).list === 'ordered';
+            q.format('list', cur ? false : 'ordered');
+            break;
+        }
+        case 'outdent':
+        case 'indent': {
+            // Whitelist indent Quill = angka 1..8; string '+1'/'-1' tidak valid.
+            const curIndent = q.getFormat(sel).indent;
+            const level = typeof curIndent === 'number' ? curIndent : 0;
+            const nextLevel =
+                cmd === 'indent'
+                    ? Math.min(8, level + 1)
+                    : Math.max(0, level - 1);
+            q.format('indent', nextLevel > 0 ? nextLevel : false);
+            break;
+        }
+        case 'link': {
+            const prev = q.getFormat(sel).link || '';
+            const url = window.prompt('URL link:', prev || 'https://');
+            if (url === null) return;
+            if (!url) q.formatText(sel.index, sel.length, 'link', false);
+            else q.formatText(sel.index, sel.length, 'link', url);
+            break;
+        }
+        case 'image':
+            ensureHiddenImageInput().click();
+            return;
+        case 'hr': {
+            const range = q.getSelection(true);
+            q.insertEmbed(range.index, 'hr', true, 'user');
+            q.setSelection(range.index + 1);
+            break;
+        }
+        case 'removeformat':
+            q.removeFormat(sel.index, sel.length);
+            break;
+        default:
+            return;
+    }
+
+    notifyDirty();
+    refreshToolbarStates();
+};
+
+const bindToolbar = () => {
+    if (window.__quillToolbarBound) return;
+    window.__quillToolbarBound = true;
 
     const container = document.getElementById('body-toolbar-container');
     if (!container) return;
 
-    let hoverTimer = null;
-    let tooltipEl = null;
-
-    const hideTooltip = () => {
-        clearTimeout(hoverTimer);
-        tooltipEl?.remove();
-        tooltipEl = null;
-    };
-
-    container.addEventListener('mouseover', (e) => {
-        const btn = e.target.closest('.tox-tbtn, .tox-split-button, [aria-label]');
-        if (!btn) return;
-
-        const label = btn.getAttribute('aria-label') || btn.getAttribute('title');
-        if (!label) return;
-
-        clearTimeout(hoverTimer);
-        hoverTimer = setTimeout(() => {
-            hideTooltip();
-            const rect = btn.getBoundingClientRect();
-            tooltipEl = document.createElement('div');
-            tooltipEl.textContent = label;
-            tooltipEl.style.cssText =
-                'position:fixed;z-index:999999;background:#1B2A4A;color:#fff;padding:5px 9px;' +
-                'border-radius:6px;font-size:11px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.2);';
-            document.body.appendChild(tooltipEl);
-            tooltipEl.style.left = (rect.left + rect.width / 2 - tooltipEl.offsetWidth / 2) + 'px';
-            tooltipEl.style.top = (rect.bottom + 6) + 'px';
-        }, 900);
+    container.querySelectorAll('[data-cmd]').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            applyCmd(btn.dataset.cmd);
+        });
     });
 
-    container.addEventListener('mouseout', (e) => {
-        const btn = e.target.closest('.tox-tbtn, .tox-split-button, [aria-label]');
-        if (btn) hideTooltip();
+    container.querySelectorAll('[data-align]').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const q = getActiveQuill();
+            if (!q) return;
+
+            // Tombol mencuri fokus dari editor -> pulihkan seleksi terakhir
+            if (!q.getSelection(true)) return;
+
+            // 'left' BUKAN nilai whitelist Quill ('center'|'right'|'justify').
+            // Rata kiri = default = HAPUS atribut align.
+            const val = btn.dataset.align;
+            q.format('align', val === 'left' ? false : val);
+
+            notifyDirty();
+            refreshToolbarStates();
+        });
+    });
+
+    const blockSel = document.getElementById('tb-block');
+    blockSel?.addEventListener('change', () => {
+        const q = getActiveQuill();
+        if (!q) return;
+        if (!q.getSelection(true)) return;
+        q.format('header', blockSel.value ? parseInt(blockSel.value, 10) : false);
+        notifyDirty();
+        refreshToolbarStates();
+    });
+
+    const fontSel = document.getElementById('tb-font');
+    fontSel?.addEventListener('change', () => {
+        const q = getActiveQuill();
+        if (!q) return;
+        if (!q.getSelection(true)) return;
+        q.format('font', fontSel.value || false);
+        notifyDirty();
+        refreshToolbarStates();
+    });
+
+    const sizeSel = document.getElementById('tb-size');
+    sizeSel?.addEventListener('change', () => {
+        const q = getActiveQuill();
+        if (!q) return;
+        if (!q.getSelection(true)) return;
+        q.format('size', sizeSel.value || false);
+        notifyDirty();
+        refreshToolbarStates();
+    });
+
+    const colorInput = document.getElementById('tb-color');
+    colorInput?.addEventListener('input', () => {
+        const q = getActiveQuill();
+        if (!q) return;
+        if (!q.getSelection(true)) return;
+        q.format('color', colorInput.value);
+        notifyDirty();
+        refreshToolbarStates();
+    });
+
+    const bgColorInput = document.getElementById('tb-bgcolor');
+    bgColorInput?.addEventListener('input', () => {
+        const q = getActiveQuill();
+        if (!q) return;
+        if (!q.getSelection(true)) return;
+        q.format('background', bgColorInput.value);
+        notifyDirty();
+        refreshToolbarStates();
+    });
+
+    // Klik kanan pada swatch warna = hapus warna
+    [colorInput, bgColorInput].forEach((input) => {
+        input?.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const q = getActiveQuill();
+            if (!q) return;
+            if (!q.getSelection(true)) return;
+            q.format(input === colorInput ? 'color' : 'background', false);
+            notifyDirty();
+            refreshToolbarStates();
+        });
     });
 };
 
-// =========================================
-// GUARD GLOBAL CTRL+A UNTUK DOKUMEN (lapis kedua, capture phase)
-// Memastikan select-all bawaan browser/TinyMCE tidak pernah
-// memilih elemen kertas (.doc-sheet) — hanya isi kontennya.
-// =========================================
+// Pasang Quill pada satu region kertas.
+// Pola aman: buat DIV HOST baru yang 100% dimiliki Quill,
+// sehingga elemen region kertas TIDAK pernah dimutasi Quill.
+const attachQuillToRegion = (regionEl) => {
+    if (!regionEl || regionEl.dataset.quillReady === '1') {
+        return quillsByRegion.get(regionEl) || null;
+    }
 
-if (!window.__selectAllGuardBound) {
-    window.__selectAllGuardBound = true;
+    const existingHtml = regionEl.innerHTML;
+    regionEl.innerHTML = '';
 
-    document.addEventListener('keydown', (e) => {
-        if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
-        if ((e.key || '').toLowerCase() !== 'a') return;
+    // Host terpisah khusus untuk Quill
+    const host = document.createElement('div');
+    regionEl.appendChild(host);
 
-        const editorEl = document.getElementById('document-editor');
-        if (!editorEl || !editorEl.contains(e.target)) return;
+    try {
+        regionEl.dataset.quillReady = '1';
 
-        const editor = window.tinymce && window.tinymce.get('document-editor');
-        if (!editor) return;
+        const q = new Quill(host, {
+            theme: 'snow',
+            placeholder: '',
+            modules: { toolbar: false },
+            formats: ALLOWED_FORMATS,
+        });
 
-        try {
-            const node = editor.selection.getNode();
-            const container =
-                editor.dom.getParent(node, '.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer') ||
-                editor.dom.getParent(node, '.doc-sheet')?.querySelector('.doc-sheet-body') ||
-                editor.getBody().querySelector('.doc-sheet-body');
-
-            if (!container) return;
-
-            e.preventDefault();
-            e.stopPropagation();
-
-            const rng = editor.dom.createRng();
-            rng.selectNodeContents(container);
-            editor.selection.setRng(rng);
-        } catch (err) {
-            // noop
+        if (existingHtml.trim()) {
+            q.clipboard.dangerouslyPasteHTML(existingHtml);
         }
-    }, true);
-}
+
+        q.on('text-change', () => {
+            notifyDirty();
+            if (typeof window.__docEditorSync === 'function') {
+                window.__docEditorSync(q.root.innerHTML);
+            }
+        });
+
+        q.on('selection-change', (range) => {
+            if (range) {
+                activeQuill = q;
+                refreshToolbarStates();
+            }
+        });
+
+        quillsByRegion.set(regionEl, q);
+        return q;
+    } catch (err) {
+        // Kegagalan Quil TIDAK BOLEH membuat kertas hilang:
+        // pulihkan konten asli + jadikan region biasa bisa diketik
+        console.error('[DocQuill] Gagal memasang editor pada region:', err);
+        regionEl.dataset.quillReady = '';
+        regionEl.innerHTML = existingHtml || '<p><br></p>';
+        regionEl.setAttribute('contenteditable', 'true');
+        regionEl.classList.add('ql-editor');
+        return null;
+    }
+};
+
+// =========================================
+// INIT UTAMA — dipanggil dari blade
+// =========================================
+
+window.initBodyEditor = function (rootSelector, onSync = null) {
+    try {
+        const root = document.querySelector(rootSelector);
+        if (!root) {
+            console.error('[DocQuill] Root tidak ditemukan:', rootSelector);
+            return;
+        }
+
+        window.__docEditorSync = onSync;
+
+        // Shim untuk sistem gambar
+        const shim = makeEditorShim(root);
+        if (!registeredImageToolEditors.some((ed) => ed.rootEl === root)) {
+            registeredImageToolEditors.push(shim);
+        }
+
+        // Satu instance Quill per region
+        const regions = root.querySelectorAll('.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer');
+        regions.forEach(attachQuillToRegion);
+
+        // Klik gambar yang terlihat -> langsung buka mode edit gambar
+        root.addEventListener('click', (e) => {
+            if (e.target.nodeName !== 'IMG') return;
+            if (e.target.closest('.doc-signature')) return;
+            showImageTools(shim, e.target);
+        });
+
+        bindToolbar();
+
+        console.log('[DocQuill] Siap —', regions.length, 'region,',
+            root.querySelectorAll('.ql-editor').length, 'editor aktif.');
+    } catch (err) {
+        console.error('[DocQuill] initBodyEditor gagal total:', err);
+    }
+};
+
+// =========================================
+// API PUBLIK UNTUK BLADE
+// =========================================
+
+window.DocQuill = {
+    // Pasang editor pada region baru (misal saat tambah halaman)
+    attachRegion: attachQuillToRegion,
+
+    // Ambil HTML bersih dari sebuah region
+    getHtml: (regionEl) => {
+        if (!regionEl) return '';
+        const q = quillsByRegion.get(regionEl);
+        return q ? q.root.innerHTML : regionEl.innerHTML;
+    },
+
+    getActive: getActiveQuill,
+};
+
+
+
+
+
+
+
+
+

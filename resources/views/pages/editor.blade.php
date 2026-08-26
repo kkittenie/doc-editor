@@ -2,7 +2,7 @@
 
 @section('content')
 
-<div x-data="wordDocumentEditor()" x-init="init()" class="min-h-screen">
+<div x-data="wordDocumentEditor()" class="min-h-screen">
 
     {{-- TOP BAR --}}
     <div
@@ -56,9 +56,82 @@
         </div>
     </div>
 
-    {{-- TINYMCE TOOLBAR (SATU INSTANCE) --}}
-    <div id="body-toolbar-container" class="sticky top-[57px] z-30"
-        style="display:flex; flex-direction:row; align-items:center;"></div>
+    {{-- QUILL TOOLBAR (satu toolbar bersama untuk semua region) --}}
+    <div id="body-toolbar-container"
+        class="sticky top-[57px] z-30 flex flex-wrap items-center gap-1 border-b border-parchment-300 bg-white/95 px-3 py-2 backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95 print:hidden">
+
+        <button type="button" class="toolbar-button" data-cmd="undo" title="Urungkan"><b>↺</b></button>
+        <button type="button" class="toolbar-button" data-cmd="redo" title="Ulangi"><b>↻</b></button>
+
+        <span class="toolbar-divider"></span>
+
+        <select id="tb-block" class="toolbar-select" title="Gaya paragraf">
+            <option value="">Paragraf</option>
+            <option value="1">Judul 1</option>
+            <option value="2">Judul 2</option>
+            <option value="3">Judul 3</option>
+        </select>
+
+        <select id="tb-font" class="toolbar-select" title="Jenis font">
+            <option value="">Font</option>
+            <option value="Arial">Arial</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Verdana">Verdana</option>
+        </select>
+
+        <select id="tb-size" class="toolbar-select" title="Ukuran font">
+            <option value="">Ukuran</option>
+            <option value="10px">10</option>
+            <option value="12px">12</option>
+            <option value="14px">14</option>
+            <option value="16px">16</option>
+            <option value="18px">18</option>
+            <option value="20px">20</option>
+            <option value="24px">24</option>
+            <option value="28px">28</option>
+            <option value="32px">32</option>
+        </select>
+
+        <span class="toolbar-divider"></span>
+
+        <button type="button" class="toolbar-button font-bold" data-cmd="bold" title="Tebal">B</button>
+        <button type="button" class="toolbar-button italic" data-cmd="italic" title="Miring">I</button>
+        <button type="button" class="toolbar-button underline" data-cmd="underline" title="Garis bawah">U</button>
+        <button type="button" class="toolbar-button line-through" data-cmd="strike" title="Coret">S</button>
+
+        <span class="toolbar-divider"></span>
+
+        <input type="color" id="tb-color" class="toolbar-color" value="#111827" title="Warna teks (klik kanan = hapus)">
+        <input type="color" id="tb-bgcolor" class="toolbar-color" value="#ffffff" title="Warna stabilo (klik kanan = hapus)">
+
+        <span class="toolbar-divider"></span>
+
+        <button type="button" class="toolbar-button" data-align="left" title="Rata kiri"><b>⯇</b></button>
+        <button type="button" class="toolbar-button" data-align="center" title="Rata tengah"><b>≡</b></button>
+        <button type="button" class="toolbar-button" data-align="right" title="Rata kanan"><b>⯈</b></button>
+        <button type="button" class="toolbar-button" data-align="justify" title="Rata kiri-kanan"><b>☰</b></button>
+
+        <span class="toolbar-divider"></span>
+
+        <button type="button" class="toolbar-button" data-cmd="outdent" title="Kurangi indentasi"><b>⇤</b></button>
+        <button type="button" class="toolbar-button" data-cmd="indent" title="Tambah indentasi"><b>⇥</b></button>
+        <button type="button" class="toolbar-button" data-cmd="bullist" title="Daftar poin"><b>•</b></button>
+        <button type="button" class="toolbar-button" data-cmd="numlist" title="Daftar nomor"><b>1.</b></button>
+
+        <span class="toolbar-divider"></span>
+
+        <button type="button" class="toolbar-button" data-cmd="superscript" title="Superscript"><b>A²</b></button>
+        <button type="button" class="toolbar-button" data-cmd="subscript" title="Subscript"><b>A₂</b></button>
+
+        <span class="toolbar-divider"></span>
+
+        <button type="button" class="toolbar-button" data-cmd="link" title="Sisipkan link"><b>🔗</b></button>
+        <button type="button" class="toolbar-button" data-cmd="image" title="Sisipkan gambar"><b>🖼</b></button>
+        <button type="button" class="toolbar-button" data-cmd="hr" title="Garis pembatas kop"><b>⎯</b></button>
+        <button type="button" class="toolbar-button" data-cmd="removeformat" title="Hapus format"><b>⌫</b></button>
+    </div>
 
     {{-- DOCUMENT AREA --}}
     <main class="documentPrintArea bg-slate-100 px-4 py-10 dark:bg-slate-warm-950">
@@ -428,9 +501,47 @@
         margin-top: 24px;
     }
 
-    /* Toolbar hanya satu, selalu tampil */
-    #body-toolbar-container .tox-tinymce {
-        display: block !important;
+    /* Toolbar Quill: tombol aktif diberi latar lembut */
+    .toolbar-button.active {
+        background: #e7e0d2;
+    }
+
+    .dark .toolbar-button.active {
+        background: #3b3428;
+    }
+
+    /* Editor Quill menyatu dengan gaya kertas */
+    .doc-sheet .ql-container {
+        border: none !important;
+        font-family: inherit;
+        font-size: 14px;
+        height: auto !important;     /* jangan kunci 100% — biarkan ikut aliran flex */
+    }
+
+    .doc-sheet .ql-editor {
+        padding: 0;
+        min-height: 40px;
+        height: auto !important;         /* tanpa ini konten malah scroll di dalam kertas */
+        overflow: visible !important;    /* dan terlihat "menghilang" saat konten panjang */
+        font-family: inherit;
+        font-size: 14px;
+        line-height: 1.6;
+        color: #111827;
+    }
+
+    .doc-sheet .ql-editor p {
+        margin: 0 0 10px 0;
+    }
+
+    .doc-sheet .ql-editor img {
+        cursor: pointer !important;
+        max-width: 100%;
+    }
+
+    /* Sembunyikan chrome bawaan tema snow yang tidak dipakai */
+    .doc-sheet .ql-clipboard {
+        position: absolute;
+        left: -9999px;
     }
 
     @media print {
@@ -545,7 +656,7 @@
                 });
             },
 
-            // SATU INSTANCE TINYMCE UNTUK SEMUA KERTAS
+            // INISIALISASI QUILL UNTUK SEMUA KERTAS
             initSingleEditor() {
 
                 const editorEl = document.getElementById('document-editor');
@@ -583,40 +694,16 @@
 
                 this.setupSignatureEvents();
 
-                window.initBodyEditor('#document-editor', '', () => {
+                // Hook global "dokumen berubah" untuk sistem gambar
+                window.__docEditorDirty = () => this.markAsChanged();
+
+                // Pasang Quill pada setiap region kertas + toolbar bersama
+                window.initBodyEditor('#document-editor', () => {
                     this.markAsChanged();
-                    this.renderSignature();
                 });
 
-                this.$nextTick(() => {
-                    const editor = tinymce.get('document-editor');
-                    if (!editor) return;
-
-                editor.on('keydown', function (e) {
-                    if (e.key !== 'Backspace' && e.key !== 'Delete') return;
-
-                const selection = editor.selection;
-                if (!selection.isCollapsed()) return;
-
-                const rng = selection.getRng();
-                const region = editor.dom.getParent(
-                    rng.startContainer,
-                    '.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer'
-                );
-
-                if (!region) return;
-
-                const isAtStart =
-                    rng.startOffset === 0 &&
-                    (rng.startContainer === region || rng.startContainer === region.firstChild);
-
-                if (e.key === 'Backspace' && isAtStart) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            });
-        });
-    },
+                this.renderSignature();
+            },
 
             // Event delegation untuk tanda tangan di dalam editor TinyMCE
             setupSignatureEvents() {
@@ -648,7 +735,7 @@
                 });
             },
 
-            // TAMBAH HALAMAN (tambah sheet baru di akhir, sebelum footer)
+            // TAMBAH HALAMAN (sheet baru di akhir, footer ikut pindah)
             addPage() {
 
                 const uid = 'page-' + (this.pageSeq++);
@@ -658,43 +745,41 @@
                     html: ''
                 });
 
-                const editor = tinymce.get('document-editor');
-                if (!editor) return;
+                const root = document.getElementById('document-editor');
+                if (!root) return;
 
-                const body = editor.getBody();
+                const sheets = root.querySelectorAll('.doc-sheet[data-sheet-type="page"]');
+                const oldLastSheet = sheets[sheets.length - 1];
+                const oldFooter = oldLastSheet ? oldLastSheet.querySelector('.doc-sheet-footer') : null;
 
-                // Pindahkan footer dari halaman terakhir lama ke halaman baru
-                const oldFooter = body.querySelector('.doc-sheet-footer');
-                const oldFooterHtml = oldFooter ? oldFooter.innerHTML : '';
+                // Sheet baru
+                const sheet = document.createElement('div');
+                sheet.className = 'doc-sheet';
+                sheet.setAttribute('data-sheet-type', 'page');
+                sheet.setAttribute('data-page-uid', uid);
 
-                // Hapus footer lama
-                if (oldFooter) {
-                    editor.dom.remove(oldFooter);
-                }
-
-                // Buat sheet baru (dengan footer)
-                const sheet = editor.dom.create('div', {
-                    'class': 'doc-sheet',
-                    'data-sheet-type': 'page',
-                    'data-page-uid': uid
-                });
-
-                const bodyRegion = editor.dom.create('div', {
-                    'class': 'doc-sheet-body',
-                    'data-region': 'body'
-                }, '<p></p>');
-
-                const footerRegion = editor.dom.create('div', {
-                    'class': 'doc-sheet-footer',
-                    'data-region': 'footer'
-                });
-
-                footerRegion.innerHTML = oldFooterHtml || '<p></p>';
+                const bodyRegion = document.createElement('div');
+                bodyRegion.className = 'doc-sheet-body';
+                bodyRegion.setAttribute('data-region', 'body');
+                bodyRegion.innerHTML = '<p></p>';
 
                 sheet.appendChild(bodyRegion);
-                sheet.appendChild(footerRegion);
+                root.appendChild(sheet);
 
-                body.appendChild(sheet);
+                // Footer: pindahkan ELEMEN lamanya (instance Quill ikut terbawa)
+                if (oldFooter) {
+                    sheet.appendChild(oldFooter);
+                } else {
+                    const footerRegion = document.createElement('div');
+                    footerRegion.className = 'doc-sheet-footer';
+                    footerRegion.setAttribute('data-region', 'footer');
+                    footerRegion.innerHTML = '<p></p>';
+                    sheet.appendChild(footerRegion);
+                    window.DocQuill.attachRegion(footerRegion);
+                }
+
+                // Pasang Quill pada body region baru
+                window.DocQuill.attachRegion(bodyRegion);
 
                 // Pindahkan tanda tangan ke halaman baru
                 this.renderSignature();
@@ -735,11 +820,11 @@
 
                 const removedUid = this.pages[index].uid;
 
-                const editor = tinymce.get('document-editor');
-                if (editor) {
-                    const sheet = editor.getBody().querySelector('[data-page-uid="' + removedUid + '"]');
+                const root = document.getElementById('document-editor');
+                if (root) {
+                    const sheet = root.querySelector('[data-page-uid="' + removedUid + '"]');
                     if (sheet) {
-                        editor.dom.remove(sheet);
+                        sheet.remove();
                     }
                 }
 
@@ -767,26 +852,25 @@
             },
 
             renderSignature() {
-                const editor = tinymce.get('document-editor');
-                if (!editor) return;
-
-                const body = editor.getBody();
+                const root = document.getElementById('document-editor');
+                if (!root) return;
 
                 // Hapus signature lama
-                body.querySelectorAll('.doc-signature').forEach((el) => el.remove());
+                root.querySelectorAll('.doc-signature').forEach((el) => el.remove());
 
                 if (!this.selectedSignature) return;
 
                 // Tampilkan di halaman terakhir
-                const sheets = body.querySelectorAll('.doc-sheet[data-sheet-type="page"]');
+                const sheets = root.querySelectorAll('.doc-sheet[data-sheet-type="page"]');
                 const lastSheet = sheets[sheets.length - 1];
                 if (!lastSheet) return;
 
-                const sig = editor.dom.create('div', {
-                    'class': 'doc-signature',
-                    'data-signature': '1',
-                    style: 'position:absolute;left:' + this.signatureX + 'px;top:' + this.signatureY + 'px;z-index:30;cursor:move;'
-                });
+                const sig = document.createElement('div');
+                sig.className = 'doc-signature';
+                sig.setAttribute('data-signature', '1');
+                sig.style.cssText =
+                    'position:absolute;left:' + this.signatureX + 'px;top:' + this.signatureY +
+                    'px;z-index:30;cursor:move;';
 
                 sig.innerHTML =
                     '<img src="' + this.selectedSignature + '" style="max-height:80px;max-width:180px;pointer-events:none;display:block;" />' +
@@ -801,10 +885,8 @@
                 this.signatureX = 500;
                 this.signatureY = 650;
 
-                const editor = tinymce.get('document-editor');
-                if (editor) {
-                    editor.getBody().querySelectorAll('.doc-signature').forEach((el) => el.remove());
-                }
+                document.getElementById('document-editor')
+                    ?.querySelectorAll('.doc-signature').forEach((el) => el.remove());
 
                 this.markAsChanged();
             },
@@ -817,23 +899,26 @@
 
                 this.saveStatus = 'saving';
 
-                const editor = tinymce.get('document-editor');
-                const body = editor ? editor.getBody() : null;
+                const root = document.getElementById('document-editor');
 
                 // Baca header (region di halaman pertama)
-                const headerRegion = body?.querySelector('.doc-sheet-header[data-region="header"]');
-                const headerContent = headerRegion ? headerRegion.innerHTML : (this.headerHtml || '');
+                const headerRegion = root?.querySelector('.doc-sheet-header[data-region="header"]');
+                const headerContent = headerRegion
+                    ? window.DocQuill.getHtml(headerRegion)
+                    : (this.headerHtml || '');
 
                 // Baca footer (region di halaman terakhir)
-                const footerRegion = body?.querySelector('.doc-sheet-footer[data-region="footer"]');
-                const footerContent = footerRegion ? footerRegion.innerHTML : (this.footerHtml || '');
+                const footerRegion = root?.querySelector('.doc-sheet-footer[data-region="footer"]');
+                const footerContent = footerRegion
+                    ? window.DocQuill.getHtml(footerRegion)
+                    : (this.footerHtml || '');
 
                 // Baca semua halaman body
                 const pagesHtml = [];
-                if (body) {
-                    body.querySelectorAll('.doc-sheet[data-sheet-type="page"]').forEach((sheet) => {
+                if (root) {
+                    root.querySelectorAll('.doc-sheet[data-sheet-type="page"]').forEach((sheet) => {
                         const bodyRegion = sheet.querySelector('.doc-sheet-body[data-region="body"]');
-                        pagesHtml.push(bodyRegion ? bodyRegion.innerHTML : '');
+                        pagesHtml.push(bodyRegion ? window.DocQuill.getHtml(bodyRegion) : '');
                     });
                 }
 
@@ -883,17 +968,16 @@
 
             async saveAsNewDocument(newTitle) {
 
-                const editor = tinymce.get('document-editor');
-                const body = editor ? editor.getBody() : null;
+                const root = document.getElementById('document-editor');
 
-                const headerRegion = body?.querySelector('.doc-sheet-header[data-region="header"]');
-                const footerRegion = body?.querySelector('.doc-sheet-footer[data-region="footer"]');
+                const headerRegion = root?.querySelector('.doc-sheet-header[data-region="header"]');
+                const footerRegion = root?.querySelector('.doc-sheet-footer[data-region="footer"]');
 
                 const pagesHtml = [];
-                if (body) {
-                    body.querySelectorAll('.doc-sheet[data-sheet-type="page"]').forEach((sheet) => {
+                if (root) {
+                    root.querySelectorAll('.doc-sheet[data-sheet-type="page"]').forEach((sheet) => {
                         const bodyRegion = sheet.querySelector('.doc-sheet-body[data-region="body"]');
-                        pagesHtml.push(bodyRegion ? bodyRegion.innerHTML : '');
+                        pagesHtml.push(bodyRegion ? window.DocQuill.getHtml(bodyRegion) : '');
                     });
                 }
 
@@ -908,7 +992,9 @@
                         pages: pagesHtml
                     },
                     footer_data: {
-                        content: footerRegion ? footerRegion.innerHTML : (this.footerHtml || ''),
+                        content: footerRegion
+                            ? window.DocQuill.getHtml(footerRegion)
+                            : (this.footerHtml || ''),
                     },
                     signature_data: {
                         signatureId: this.selectedSignatureId,
@@ -969,13 +1055,10 @@
                 this.signatureY = Math.min(Math.max(nextY, minY), maxY);
 
                 // Update posisi visual elemen tanda tangan
-                const editor = tinymce.get('document-editor');
-                if (editor) {
-                    const sigEl = editor.getBody().querySelector('.doc-signature');
-                    if (sigEl) {
-                        sigEl.style.left = this.signatureX + 'px';
-                        sigEl.style.top = this.signatureY + 'px';
-                    }
+                const sigEl = document.querySelector('#document-editor .doc-signature');
+                if (sigEl) {
+                    sigEl.style.left = this.signatureX + 'px';
+                    sigEl.style.top = this.signatureY + 'px';
                 }
 
                 this.markAsChanged();

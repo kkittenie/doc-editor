@@ -16,6 +16,9 @@
     <!-- Vite Assets -->
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/editor.js'])
 
+    {{-- Stack untuk CSS tambahan dari halaman (@push('styles')) --}}
+    @stack('styles')
+
     <!-- Theme Store Script -->
     <script>
         document.addEventListener('alpine:init', () => {
