@@ -89,13 +89,10 @@ class DocumentController extends Controller
         $headerContent = $data['header_data']['content'];
         $footerContent = $data['footer_data']['content'] ?? '';
         $bodyHtml = $data['body_html'] ?? '';
-
+        
         if ($template) {
-            $title = $template['title'] ?? $title;
-            $nomorSurat = $template['header_data']['nomorSurat'] ?? $nomorSurat;
-            $headerContent = $template['header_data']['content'] ?? $headerContent;
-            $footerContent = $template['footer_data']['content'] ?? $footerContent;
-            $bodyHtml = $this->buildTemplateBodyHtml($template['body_content'] ?? []);
+            $bodyHtml = $template['body_html']
+                ?? $this->buildTemplateBodyHtml($template['body_content'] ?? []);
         }
 
         $document = Document::create([
@@ -204,9 +201,51 @@ class DocumentController extends Controller
                     'isiPasal2' => "KETENTUAN\n\nApabila di kemudian hari terdapat ketidaksesuaian, saya bersedia bertanggung jawab sesuai ketentuan yang berlaku.",
                 ],
             ],
+            'kemitraan' => [
+                'title' => 'Perjanjian Kerjasama Jual Kembali Jasa Layanan Akses Internet',
+                'header_data' => ['nomorSurat' => 'PKS/001/III/2026'],
+            ],
+            'colocation' => [
+                'title' => 'Perjanjian Berlangganan Jasa Colocation',
+                'header_data' => ['nomorSurat' => 'COLO/001/VII/2026'],
+            ],
+            'managed-service' => [
+                'title' => 'Perjanjian Berlangganan Jasa Managed Service',
+                'header_data' => ['nomorSurat' => 'MS/001/IV/2026'],
+            ],
+            'soho' => [
+                'title' => 'Perjanjian Berlangganan Jasa SOHO',
+                'header_data' => ['nomorSurat' => 'SOHO/001/IX/2025'],
+            ],
+            'kontrak-payung' => [
+                'title' => 'Perjanjian Kerja Sama (Kontrak Payung) Berlangganan Jasa Metro Fiber Optik',
+                'header_data' => ['nomorSurat' => 'METRO/001/VI/2026'],
+            ],
         ];
 
-        return $templates[$key] ?? null;
+        if (!isset($templates[$key])) {
+            return null;
+        }
+
+        $template = $templates[$key];
+
+        // body_html template yang beneran hasil convert docx cuma dimuat pas
+        // key-nya cocok -- biar gak baca 5 file tiap kali fungsi ini dipanggil
+        // buat key lain.
+        $htmlFiles = [
+            'kemitraan'       => 'kemitraan.html',
+            'colocation'      => 'colocation.html',
+            'managed-service' => 'managed-service.html',
+            'soho'            => 'soho.html',
+            'kontrak-payung'  => 'kontrak-payung.html',
+        ];
+
+        if (isset($htmlFiles[$key])) {
+            $path = resource_path('document-templates/'.$htmlFiles[$key]);
+            $template['body_html'] = file_exists($path) ? file_get_contents($path) : '';
+        }
+
+        return $template;
     }
 
     /**
@@ -398,6 +437,45 @@ class DocumentController extends Controller
         ]);
     }
 
+    private function sanitizeDocxHeaderFooterStyles(string $sourcePath): string
+    {
+        $sanitizedPath = tempnam(sys_get_temp_dir(), 'docxclean').'.docx';
+        copy($sourcePath, $sanitizedPath);
+
+        $zip = new \ZipArchive();
+
+        if ($zip->open($sanitizedPath) !== true) {
+            return $sourcePath; // gagal buka sebagai zip, coba pakai file asli aja
+        }
+
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+
+            if (!preg_match('#^word/(header|footer)\d*\.xml$#', $name)) {
+                continue;
+            }
+
+            $xml = $zip->getFromName($name);
+
+            if ($xml === false) {
+                continue;
+            }
+
+            $xml = preg_replace(
+                '/<w:pStyle w:val="(Title|Heading[1-6])"\s*\/>/i',
+                '<w:pStyle w:val="Normal"/>',
+                $xml
+            );
+
+            $zip->deleteName($name);
+            $zip->addFromString($name, $xml);
+        }
+
+        $zip->close();
+
+        return $sanitizedPath;
+    }
+
     public function importDocument(Request $request)
     {
         $request->validate([
@@ -423,7 +501,16 @@ class DocumentController extends Controller
                 ->map(fn($p) => '<p>'.nl2br(e($p)).'</p>')
                 ->implode('');
         } else {
-            $phpWord = \PhpOffice\PhpWord\IOFactory::load($file->getRealPath());
+            $sanitizedPath = $this->sanitizeDocxHeaderFooterStyles($file->getRealPath());
+
+            try {
+                $phpWord = \PhpOffice\PhpWord\IOFactory::load($sanitizedPath);
+            } finally {
+                if ($sanitizedPath !== $file->getRealPath()) {
+                    @unlink($sanitizedPath);
+                }
+            }
+
             $htmlWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'HTML');
 
             $tempPath = tempnam(sys_get_temp_dir(), 'docximport').'.html';

@@ -2,12 +2,14 @@
 
 @section('content')
 
-<div
-    x-data="{
+<div x-data="{
         loadingTemplate: null,
+        selectedTemplate: '',
+        bodyHtml: '',
 
         async loadTemplate(key) {
             this.loadingTemplate = key;
+            this.selectedTemplate = key;
 
             try {
                 const res = await window.axios.get('/documents/template/' + key);
@@ -21,6 +23,10 @@
                 if (t.header_data?.nomorSurat) {
                     const nomorInput = document.getElementById('header-nomor');
                     if (nomorInput) nomorInput.value = t.header_data.nomorSurat;
+                }
+
+                if (t.body_html) {
+                    this.bodyHtml = t.body_html;
                 }
 
                 Swal.fire({
@@ -44,13 +50,9 @@
                 this.loadingTemplate = null;
             }
         },
-    }"
-    class="max-w-4xl mx-auto py-8"
->
+    }" class="max-w-4xl mx-auto py-8">
 
-    {{-- ========================================== --}}
     {{-- TITLE --}}
-    {{-- ========================================== --}}
 
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-ink-900 dark:text-parchment-50">
@@ -67,15 +69,16 @@
         @csrf
 
         {{-- Kop surat & footer ditulis manual di halaman editor,
-             jadi selalu dikirim kosong dari sini. --}}
+        jadi selalu dikirim kosong dari sini. --}}
         <input type="hidden" name="header_data[content]" value="<p></p>">
         <input type="hidden" name="footer_data[content]" value="<p></p>">
+        <input type="hidden" name="template" x-model="selectedTemplate">
+        <input type="hidden" name="body_html" x-model="bodyHtml">
 
-        {{-- ========================================== --}}
         {{-- JUDUL & NOMOR --}}
-        {{-- ========================================== --}}
 
-        <div class="rounded-2xl border border-parchment-300 bg-white p-5 shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900 mb-6">
+        <div
+            class="rounded-2xl border border-parchment-300 bg-white p-5 shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900 mb-6">
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
@@ -97,9 +100,7 @@
 
         </div>
 
-        {{-- ========================================== --}}
         {{-- 4 TEMPLATE --}}
-        {{-- ========================================== --}}
 
         <div class="mb-6">
 
@@ -110,22 +111,26 @@
                 Klik template untuk mengisi judul & nomor otomatis, lalu tekan tombol simpan.
             </p>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
 
                 {{-- TEMPLATE 1: PERJANJIAN / PKS --}}
-                <div class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
+                <div
+                    class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
                     <div>
                         <div class="flex items-center justify-between mb-3">
-                            <span class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
+                            <span
+                                class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
                                 Perjanjian / PKS
                             </span>
                             <span class="text-[10px] font-mono text-slate-warm-400">TPL-PKS-01</span>
                         </div>
 
-                        <div class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-parchment-300 mb-2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <path d="M14 2v6h6"/>
+                        <div
+                            class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" class="text-parchment-300 mb-2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 2v6h6" />
                             </svg>
                             <span class="text-[10px] text-slate-warm-400">Perjanjian Kerja Sama</span>
                         </div>
@@ -140,24 +145,29 @@
 
                     <button type="button" @click="loadTemplate('perjanjian-kerja-sama')" :disabled="loadingTemplate"
                         class="btn-primary w-full text-xs text-center py-2.5">
-                        <span x-text="loadingTemplate === 'perjanjian-kerja-sama' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
+                        <span
+                            x-text="loadingTemplate === 'perjanjian-kerja-sama' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
                     </button>
                 </div>
 
                 {{-- TEMPLATE 2: KONTRAK KERJA --}}
-                <div class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
+                <div
+                    class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
                     <div>
                         <div class="flex items-center justify-between mb-3">
-                            <span class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
+                            <span
+                                class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
                                 Kontrak Kerja
                             </span>
                             <span class="text-[10px] font-mono text-slate-warm-400">TPL-KK-02</span>
                         </div>
 
-                        <div class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-parchment-300 mb-2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <path d="M14 2v6h6"/>
+                        <div
+                            class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" class="text-parchment-300 mb-2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 2v6h6" />
                             </svg>
                             <span class="text-[10px] text-slate-warm-400">Kontrak Kerja</span>
                         </div>
@@ -172,24 +182,29 @@
 
                     <button type="button" @click="loadTemplate('kontrak-kerja')" :disabled="loadingTemplate"
                         class="btn-primary w-full text-xs text-center py-2.5">
-                        <span x-text="loadingTemplate === 'kontrak-kerja' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
+                        <span
+                            x-text="loadingTemplate === 'kontrak-kerja' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
                     </button>
                 </div>
 
                 {{-- TEMPLATE 3: SURAT KUASA --}}
-                <div class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
+                <div
+                    class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
                     <div>
                         <div class="flex items-center justify-between mb-3">
-                            <span class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
+                            <span
+                                class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
                                 Surat Kuasa
                             </span>
                             <span class="text-[10px] font-mono text-slate-warm-400">TPL-SK-03</span>
                         </div>
 
-                        <div class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-parchment-300 mb-2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <path d="M14 2v6h6"/>
+                        <div
+                            class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" class="text-parchment-300 mb-2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 2v6h6" />
                             </svg>
                             <span class="text-[10px] text-slate-warm-400">Surat Kuasa</span>
                         </div>
@@ -204,24 +219,29 @@
 
                     <button type="button" @click="loadTemplate('surat-kuasa')" :disabled="loadingTemplate"
                         class="btn-primary w-full text-xs text-center py-2.5">
-                        <span x-text="loadingTemplate === 'surat-kuasa' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
+                        <span
+                            x-text="loadingTemplate === 'surat-kuasa' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
                     </button>
                 </div>
 
                 {{-- TEMPLATE 4: SURAT PERNYATAAN --}}
-                <div class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
+                <div
+                    class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
                     <div>
                         <div class="flex items-center justify-between mb-3">
-                            <span class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
+                            <span
+                                class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
                                 Surat Pernyataan
                             </span>
                             <span class="text-[10px] font-mono text-slate-warm-400">TPL-SP-04</span>
                         </div>
 
-                        <div class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-parchment-300 mb-2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <path d="M14 2v6h6"/>
+                        <div
+                            class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" class="text-parchment-300 mb-2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 2v6h6" />
                             </svg>
                             <span class="text-[10px] text-slate-warm-400">Surat Pernyataan</span>
                         </div>
@@ -236,17 +256,199 @@
 
                     <button type="button" @click="loadTemplate('surat-pernyataan')" :disabled="loadingTemplate"
                         class="btn-primary w-full text-xs text-center py-2.5">
-                        <span x-text="loadingTemplate === 'surat-pernyataan' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
+                        <span
+                            x-text="loadingTemplate === 'surat-pernyataan' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
+                    </button>
+                </div>
+
+                {{-- TEMPLATE 5: KONTRAK KEMITRAAN --}}
+                <div
+                    class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span
+                                class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
+                                Kontrak Kemitraan
+                            </span>
+                            <span class="text-[10px] font-mono text-slate-warm-400">TPL-KM-05</span>
+                        </div>
+
+                        <div
+                            class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" class="text-parchment-300 mb-2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 2v6h6" />
+                            </svg>
+                            <span class="text-[10px] text-slate-warm-400">Kontrak Kemitraan</span>
+                        </div>
+
+                        <h3 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-100 mb-2">
+                            Kontrak Kemitraan
+                        </h3>
+                        <p class="text-xs text-slate-warm-500 dark:text-parchment-400 mb-4 leading-relaxed">
+                            Perjanjian kerjasama jual kembali jasa layanan akses internet.
+                        </p>
+                    </div>
+
+                    <button type="button" @click="loadTemplate('kemitraan')" :disabled="loadingTemplate"
+                        class="btn-primary w-full text-xs text-center py-2.5">
+                        <span x-text="loadingTemplate === 'kemitraan' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
+                    </button>
+                </div>
+
+                {{-- TEMPLATE 6: JASA COLOCATION --}}
+                <div
+                    class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span
+                                class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
+                                Jasa Colocation
+                            </span>
+                            <span class="text-[10px] font-mono text-slate-warm-400">TPL-CO-06</span>
+                        </div>
+
+                        <div
+                            class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" class="text-parchment-300 mb-2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 2v6h6" />
+                            </svg>
+                            <span class="text-[10px] text-slate-warm-400">Jasa Colocation</span>
+                        </div>
+
+                        <h3 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-100 mb-2">
+                            Jasa Colocation
+                        </h3>
+                        <p class="text-xs text-slate-warm-500 dark:text-parchment-400 mb-4 leading-relaxed">
+                            Perjanjian berlangganan jasa colocation data center.
+                        </p>
+                    </div>
+
+                    <button type="button" @click="loadTemplate('colocation')" :disabled="loadingTemplate"
+                        class="btn-primary w-full text-xs text-center py-2.5">
+                        <span x-text="loadingTemplate === 'colocation' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
+                    </button>
+                </div>
+
+                {{-- TEMPLATE 7: MANAGED SERVICE --}}
+                <div
+                    class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span
+                                class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
+                                Managed Service
+                            </span>
+                            <span class="text-[10px] font-mono text-slate-warm-400">TPL-MS-07</span>
+                        </div>
+
+                        <div
+                            class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" class="text-parchment-300 mb-2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 2v6h6" />
+                            </svg>
+                            <span class="text-[10px] text-slate-warm-400">Managed Service</span>
+                        </div>
+
+                        <h3 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-100 mb-2">
+                            Managed Service
+                        </h3>
+                        <p class="text-xs text-slate-warm-500 dark:text-parchment-400 mb-4 leading-relaxed">
+                            Perjanjian berlangganan jasa dedicated / metro / managed service.
+                        </p>
+                    </div>
+
+                    <button type="button" @click="loadTemplate('managed-service')" :disabled="loadingTemplate"
+                        class="btn-primary w-full text-xs text-center py-2.5">
+                        <span
+                            x-text="loadingTemplate === 'managed-service' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
+                    </button>
+                </div>
+
+                {{-- TEMPLATE 8: JASA SOHO --}}
+                <div
+                    class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span
+                                class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
+                                Jasa SOHO
+                            </span>
+                            <span class="text-[10px] font-mono text-slate-warm-400">TPL-SH-08</span>
+                        </div>
+
+                        <div
+                            class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" class="text-parchment-300 mb-2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 2v6h6" />
+                            </svg>
+                            <span class="text-[10px] text-slate-warm-400">Jasa SOHO</span>
+                        </div>
+
+                        <h3 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-100 mb-2">
+                            Jasa SOHO
+                        </h3>
+                        <p class="text-xs text-slate-warm-500 dark:text-parchment-400 mb-4 leading-relaxed">
+                            Perjanjian berlangganan jasa SOHO untuk pelanggan.
+                        </p>
+                    </div>
+
+                    <button type="button" @click="loadTemplate('soho')" :disabled="loadingTemplate"
+                        class="btn-primary w-full text-xs text-center py-2.5">
+                        <span x-text="loadingTemplate === 'soho' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
+                    </button>
+                </div>
+
+                {{-- TEMPLATE 9: KONTRAK PAYUNG METRO --}}
+                <div
+                    class="template-card flex flex-col justify-between p-5 border border-parchment-300 bg-white rounded-2xl shadow-sm dark:border-slate-warm-700 dark:bg-slate-warm-900">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span
+                                class="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bronze-100 text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">
+                                Kontrak Payung Metro
+                            </span>
+                            <span class="text-[10px] font-mono text-slate-warm-400">TPL-KP-09</span>
+                        </div>
+
+                        <div
+                            class="template-card-preview rounded p-4 mb-4 flex flex-col justify-center items-center shadow-xs min-h-[120px] bg-parchment-50 dark:bg-slate-warm-800">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" class="text-parchment-300 mb-2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 2v6h6" />
+                            </svg>
+                            <span class="text-[10px] text-slate-warm-400">Kontrak Payung Metro</span>
+                        </div>
+
+                        <h3 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-100 mb-2">
+                            Kontrak Payung Metro
+                        </h3>
+                        <p class="text-xs text-slate-warm-500 dark:text-parchment-400 mb-4 leading-relaxed">
+                            Kontrak payung berlangganan jasa Metro Fiber Optik.
+                        </p>
+                    </div>
+
+                    <button type="button" @click="loadTemplate('kontrak-payung')" :disabled="loadingTemplate"
+                        class="btn-primary w-full text-xs text-center py-2.5">
+                        <span
+                            x-text="loadingTemplate === 'kontrak-payung' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
                     </button>
                 </div>
 
             </div>
+            {{-- ^ ini penutup grid template card yang kemarin kelewat --}}
 
         </div>
 
-        {{-- ========================================== --}}
-        {{-- TOMBOL SIMPAN --}}
-        {{-- ========================================== --}}
+        {{-- SIMPAN --}}
 
         <div class="flex justify-end">
             <button type="submit" class="btn-primary px-8 py-3 text-sm">
