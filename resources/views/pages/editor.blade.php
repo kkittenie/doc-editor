@@ -537,6 +537,18 @@
         color: #111827;
     }
 
+    /* Isi dokumen (body): kontainer & editor memenuhi SELURUH ruang
+       antara zona header dan zona footer, sehingga klik di mana pun
+       di area itu jatuh DI DALAM editor dan caret bisa ditempatkan. */
+    .doc-sheet .doc-sheet-body .ql-container {
+        height: 100% !important;
+    }
+
+    .doc-sheet .doc-sheet-body .ql-editor {
+        min-height: 100%;
+        height: auto !important;
+    }
+
     .doc-sheet .ql-editor p {
         margin: 0 0 10px 0;
     }

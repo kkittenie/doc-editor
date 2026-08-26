@@ -720,73 +720,186 @@ const nearestLine = (rootEl, x, y) => {
     return best;
 };
 
-// Tempatkan caret ke baris terdekat dari titik (x, y) layar.
-const caretToNearestLine = (x, y) => {
-    // 1) kumpulkan semua editor yang sedang bisa diketik
-    const editors = [];
-    quillsByRegion.forEach((q, regionEl) => {
-        if (!q.isEnabled()) return;
-        const er = regionEl.querySelector('.ql-editor');
-        if (er) editors.push(er);
-    });
-    if (!editors.length) return false;
+// Konversi posisi DOM (text node + offset) di dalam editor Quill
+// menjadi indeks karakter milik Quill. Bukan text node -> null.
+const domPosToQuillIndex = (q, node, offset) => {
+    try {
+        if (!node || node.nodeType !== Node.TEXT_NODE || !q.root.contains(node)) return null;
+        const leaf = Quill.find(node);
+        if (!leaf) return null;
+        const len = String(leaf.value?.() ?? '').length;
+        return q.getIndex(leaf) + Math.max(0, Math.min(offset, len));
+    } catch (_) {
+        return null;
+    }
+};
 
-    // 2) pilih editor terdekat secara vertikal terhadap titik klik
-    let target = null;
+// Range dari titik layar (cross-browser).
+const caretRangeAtPoint = (x, y) => {
+    try {
+        if (document.caretRangeFromPoint) return document.caretRangeFromPoint(x, y);
+        if (document.caretPositionFromPoint) {
+            const p = document.caretPositionFromPoint(x, y);
+            if (!p) return null;
+            const rg = document.createRange();
+            rg.setStart(p.offsetNode, p.offset);
+            rg.collapse(true);
+            return rg;
+        }
+    } catch (_) { /* noop */ }
+    return null;
+};
+
+// Semua "slot" blok dalam satu editor: paragraf/judul/list/kutipan,
+// plus embed hr/img. Dipakai untuk memetakan titik klik -> indeks Quill
+// TERMASUK di area kosong (paragraf kosong, ruang kosong kertas).
+const SLOT_SELECTOR = 'p, h1, h2, h3, h4, h5, h6, li, blockquote, pre, hr, img';
+
+// Indeks caret di dalam SATU slot blok berdasarkan titik klik.
+const indexInSlot = (q, el, x, y) => {
+    const r = el.getBoundingClientRect();
+    const blot = Quill.find(el);
+    const base = blot ? q.getIndex(blot) : 0;
+
+    // Embed tunggal (garis kop / gambar): sebelum atau sesudah embed
+    if (el.nodeName === 'HR' || el.nodeName === 'IMG') {
+        return y > r.top + r.height / 2
+            ? Math.min(base + 1, Math.max(0, q.getLength() - 1))
+            : base;
+    }
+
+    // Paragraf/baris KOSONG -> caret persis di baris kosong itu.
+    // (versi lama melompatinya karena tak punya text node)
+    if (!(el.textContent || '').trim()) return base;
+
+    // Presisi: baris karakter terdekat dalam slot ini
+    // (teks panjang yang wrap beberapa baris tetap akurat).
+    const line = nearestLine(el, x, y);
+    if (line) {
+        const idx = domPosToQuillIndex(
+            q, line.node,
+            x < line.left + 1 ? line.start : line.end
+        );
+        if (idx != null) return idx;
+    }
+
+    // Cadangan: awal/akhir blok
+    const len = typeof blot?.length === 'function' ? blot.length() : 1;
+    return x < r.left + r.width / 2 ? base : base + Math.max(0, len - 1);
+};
+// Fallback geometris: petakan titik klik -> indeks Quill dengan menyapu
+// semua slot blok. Menangani klik DI BAWAH teks (ruang kosong kertas =
+// akhir dokumen), DI ATAS teks (awal dokumen), dan di sela-sela blok.
+const quillIndexFromPoint = (q, editorEl, x, y) => {
+    const slots = Array.from(editorEl.querySelectorAll(SLOT_SELECTOR))
+        // ambil slot TERDALAM saja (blockquote>p -> p; li berisi ul -> li dalam),
+        // tapi paragraf bergambar inline TETAP dihitung sebagai slot teks
+        .filter((el) => !el.querySelector('p, h1, h2, h3, h4, h5, h6, li, blockquote, pre'))
+        .filter((el) => {
+            const r = el.getBoundingClientRect();
+            return r.width > 0 || r.height > 0;
+        });
+
+    if (!slots.length) return Math.max(0, q.getLength() - 1);
+
+    const first = slots[0].getBoundingClientRect();
+    const last = slots[slots.length - 1].getBoundingClientRect();
+
+    // Klik di atas semua konten -> awal dokumen
+    if (y < first.top) return 0;
+    // Klik di bawah semua konten (area kosong kertas) -> akhir dokumen
+    if (y > last.bottom) return Math.max(0, q.getLength() - 1);
+
+    // Slot dengan pita vertikal terdekat terhadap titik klik
+    let best = null;
     let bestDy = Infinity;
-    for (const er of editors) {
-        const r = er.getBoundingClientRect();
+    for (const el of slots) {
+        const r = el.getBoundingClientRect();
         const dy = y < r.top ? r.top - y : (y > r.bottom ? y - r.bottom : 0);
         if (dy < bestDy) {
             bestDy = dy;
-            target = er;
+            best = el;
         }
     }
-    if (!target) return false;
+    return best ? indexInSlot(q, best, x, y) : Math.max(0, q.getLength() - 1);
+};
 
-    const focusAndSet = (node, offset) => {
-        target.focus({ preventScroll: false });
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        const rg = document.createRange();
-        rg.setStart(node, Math.min(offset, node.nodeValue ? node.nodeValue.length : 0));
-        rg.collapse(true);
-        sel.addRange(rg);
-        return true;
+// Tempatkan caret Quill tepat (atau terdekat yang bisa diketik) dari titik
+// klik layar. Selalu lewat API Quill (focus + setSelection) supaya fokus,
+// seleksi internal Quill, toolbar bersama, dan status "berubah" sinkron.
+const placeCaretAtPoint = (x, y) => {
+    // 1) Temukan region kertas di bawah titik klik. Target event bisa saja
+    //    BUKAN bagian editor (padding kertas, celah antar zona, sela blok),
+    //    makanya pakai elementsFromPoint, bukan cuma e.target.
+    let region = null;
+    let sheet = null;
+    try {
+        const stack = document.elementsFromPoint(x, y) || [];
+        for (const el of stack) {
+            if (!el.closest) continue;
+            sheet = sheet || el.closest('.doc-sheet');
+            region = region ||
+                el.closest('.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer');
+            if (region && sheet) break;
+        }
+    } catch (_) { /* noop */ }
+
+    // 2) Pilih instance Quill AKTIF untuk region tersebut.
+    //    Zona terkunci (header/footer di luar sesi edit) otomatis gagal di sini,
+    //    sehingga perilaku double-click ala Word tetap berjalan.
+    const pickEnabled = (reg) => {
+        if (!reg) return null;
+        const q = quillsByRegion.get(reg);
+        return q && q.isEnabled() ? q : null;
     };
 
-    // 3a) presisi: pakai jawaban browser HANYA bila ia menunjuk NODE TEKS
-    //     nyata. Bila titik berada di area kosong, Chrome sering menjawab
-    //     elemen kontainer dengan offset 0 (= awal dokumen/baris pertama!)
-    //     — hasil seperti itu dibuang dan dipakai pencarian baris terdekat.
-    let native = null;
-    try {
-        if (document.caretRangeFromPoint) {
-            native = document.caretRangeFromPoint(x, y);
-        } else if (document.caretPositionFromPoint) {
-            const p = document.caretPositionFromPoint(x, y);
-            if (p) {
-                native = document.createRange();
-                native.setStart(p.offsetNode, p.offset);
+    let q = pickEnabled(region);
+
+    if (!q && sheet) {
+        // Titik klik jatuh di celah/padding kertas -> pakai body kertas ini
+        // (region body terdekat secara vertikal terhadap titik klik).
+        let bestReg = null;
+        let bestDy = Infinity;
+        sheet.querySelectorAll('.doc-sheet-body[data-region="body"]').forEach((reg) => {
+            const cq = pickEnabled(reg);
+            if (!cq) return;
+            const rr = reg.getBoundingClientRect();
+            const dy = y < rr.top ? rr.top - y : (y > rr.bottom ? y - rr.bottom : 0);
+            if (dy < bestDy) {
+                bestDy = dy;
+                bestReg = reg;
             }
-        }
-    } catch (_) {
-        native = null;
+        });
+        q = bestReg ? quillsByRegion.get(bestReg) : null;
     }
+
+    if (!q) return false;
+
+    // 3a) Jawaban presisi browser — HANYA bila ia menunjuk NODE TEKS nyata
+    //     di dalam editor target. Jawaban "elemen kontainer" (sering muncul
+    //     saat mengklik area kosong) dibuang karena biasanya salah total.
+    let index = null;
+    const native = caretRangeAtPoint(x, y);
     if (
         native &&
         native.startContainer &&
         native.startContainer.nodeType === Node.TEXT_NODE &&
-        target.contains(native.startContainer)
+        q.root.contains(native.startContainer)
     ) {
-        return focusAndSet(native.startContainer, native.startOffset);
+        index = domPosToQuillIndex(q, native.startContainer, native.startOffset);
     }
 
-    // 3b) cadangan geometris: baris terdekat, caret di awal/akhir baris
-    const line = nearestLine(target, x, y);
-    if (!line) return false;
-    const offset = x < line.left + 1 ? line.start : line.end;
-    return focusAndSet(line.node, offset);
+    // 3b) Fallback geometris: area kosong, paragraf kosong, bawah kertas, hr
+    if (index == null) {
+        index = quillIndexFromPoint(q, q.root, x, y);
+    }
+    if (index == null) return false;
+
+    // 4) Pasang caret lewat Quill (bukan DOM mentah) agar semuanya konsisten
+    index = Math.max(0, Math.min(index, Math.max(0, q.getLength() - 1)));
+    q.focus();
+    q.setSelection(index, 0);
+    return true;
 };
 
 // =========================================
@@ -871,8 +984,8 @@ if (!window.__imageToolsBound) {
                 if (!zq || !zq.isEnabled()) return;
             }
 
-            // Hitung & pasang caret tepat di titik klik (fallback: baris terdekat)
-            if (caretToNearestLine(e.clientX, e.clientY)) {
+            // Hitung & pasang caret tepat di titik klik (fallback: posisi terdekat)
+            if (placeCaretAtPoint(e.clientX, e.clientY)) {
                 e.preventDefault(); // kita yang memasang caret
             }
         },
@@ -1461,7 +1574,7 @@ window.initBodyEditor = function (rootSelector, onSync = null) {
 
 window.DocQuill = {
     // Penanda versi untuk deteksi aset usang dari blade
-    __version: 'hf-5',
+    __version: 'hf-8-caret',
 
     // Pasang editor pada region baru (misal saat tambah halaman)
     attachRegion: attachQuillToRegion,
