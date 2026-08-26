@@ -346,11 +346,9 @@
         position: relative;
         width: 210mm;
         min-height: 297mm;
-        height: 297mm;
-        max-height: 297mm;
         margin: 0 auto;
         box-sizing: border-box;
-        overflow: hidden;
+        overflow: visible;
         background: white;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
         padding: 20mm 20mm;
