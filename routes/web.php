@@ -19,6 +19,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/documents/{document}/status', [DocumentController::class, 'updateStatus'])->name('documents.Status');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
     Route::get('/documents', [DocumentController::class, 'index'])->name('documents');
+    Route::delete('/documents', [DocumentController::class, 'deleteAll'])->name('documents.deleteAll');
     Route::get('/documents/{document}/export', [DocumentController::class, 'exportPdf']);
     Route::post('documents/logo', [DocumentController::class, 'uploadLogo'])->name('documents.logo');
     Route::post('documents/image', [DocumentController::class, 'uploadImage'])->name('documents.image');
