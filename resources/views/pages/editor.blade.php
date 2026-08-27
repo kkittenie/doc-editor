@@ -104,6 +104,17 @@
             <option value="32px">32</option>
         </select>
 
+        <select id="tb-lineheight" class="toolbar-select" title="Spasi baris">
+            <option value="">Spasi</option>
+            <option value="1">1.0</option>
+            <option value="1.15">1.15</option>
+            <option value="1.5">1.5</option>
+            <option value="2">2.0</option>
+            <option value="2.5">2.5</option>
+        </select>
+
+        <span class="toolbar-divider"></span>
+
         <span class="toolbar-divider"></span>
 
         <button type="button" class="toolbar-button font-bold" data-cmd="bold" title="Tebal">B</button>
@@ -114,7 +125,8 @@
         <span class="toolbar-divider"></span>
 
         <input type="color" id="tb-color" class="toolbar-color" value="#111827" title="Warna teks (klik kanan = hapus)">
-        <input type="color" id="tb-bgcolor" class="toolbar-color" value="#ffffff" title="Warna stabilo (klik kanan = hapus)">
+        <input type="color" id="tb-bgcolor" class="toolbar-color" value="#ffffff"
+            title="Warna stabilo (klik kanan = hapus)">
 
         <span class="toolbar-divider"></span>
 
@@ -505,7 +517,7 @@
     }
 
     /* Garis pemisah antar kertas (hanya di layar) */
-    .doc-sheet + .doc-sheet {
+    .doc-sheet+.doc-sheet {
         margin-top: 24px;
     }
 
@@ -523,14 +535,17 @@
         border: none !important;
         font-family: inherit;
         font-size: 14px;
-        height: auto !important;     /* jangan kunci 100% — biarkan ikut aliran flex */
+        height: auto !important;
+        /* jangan kunci 100% — biarkan ikut aliran flex */
     }
 
     .doc-sheet .ql-editor {
         padding: 0;
         min-height: 40px;
-        height: auto !important;         /* tanpa ini konten malah scroll di dalam kertas */
-        overflow: visible !important;    /* dan terlihat "menghilang" saat konten panjang */
+        height: auto !important;
+        /* tanpa ini konten malah scroll di dalam kertas */
+        overflow: visible !important;
+        /* dan terlihat "menghilang" saat konten panjang */
         font-family: inherit;
         font-size: 14px;
         line-height: 1.6;
@@ -1020,18 +1035,13 @@
                 this.markAsChanged();
             },
 
-            // =========================================
-            // HEADER/FOOTER EDIT MODE (ala Word):
-            // default INERT -> double-click untuk masuk,
-            // double-click body / tombol Tutup untuk keluar.
-            // =========================================
-
             initZoneEditMode() {
                 const rootEl = document.getElementById('document-editor');
                 if (!rootEl || rootEl.dataset.zoneEditBound === '1') return;
                 rootEl.dataset.zoneEditBound = '1';
 
                 rootEl.addEventListener('dblclick', (e) => {
+                    console.log('[dblclick] jalan', { target: e.target, editSection: this.editSection });
                     const headerZone = e.target.closest('.doc-sheet-header');
                     if (headerZone) {
                         this.enterEditSection('header', headerZone);
@@ -1046,6 +1056,16 @@
 
                     if (e.target.closest('.doc-sheet-body') && this.editSection) {
                         this.exitEditSection();
+                        return;
+                    }
+
+                    const bodyZone = e.target.closest('.doc-sheet-body');
+                    if (bodyZone && !this.editSection) {
+                        const handled = window.DocQuill.clickAndType?.(bodyZone, e.clientX, e.clientY);
+                        if (handled) {
+                            e.preventDefault();
+                            try { window.getSelection()?.removeAllRanges(); } catch (err) { /* noop */ }
+                        }
                     }
                 });
 
@@ -1442,7 +1462,7 @@
                             title: 'Simpan Sebagai',
                             input: 'text',
                             inputLabel: 'Judul dokumen baru',
-                            inputValue: @js(($document -> title ?? 'Dokumen') . ' (Salinan)'),
+                            inputValue: @js(($document -> title ?? 'Dokumen'). ' (Salinan)'),
                             showCancelButton: true,
                             confirmButtonText: 'Simpan Sebagai Baru',
                             cancelButtonText: 'Batal',
