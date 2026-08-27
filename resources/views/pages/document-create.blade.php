@@ -6,6 +6,8 @@
         loadingTemplate: null,
         selectedTemplate: '',
         bodyHtml: '',
+        headerHtml: '<p></p>',
+        footerHtml: '<p></p>',
 
         async loadTemplate(key) {
             this.loadingTemplate = key;
@@ -29,10 +31,25 @@
                     this.bodyHtml = t.body_html;
                 }
 
+                // Isi otomatis section HEADER & FOOTER dari template.
+                // Template ber-cover mengirim HTML jadi (header_content =
+                // ikon pihak pertama, footer_content = identitas pihak +
+                // paraf + stample/materai); sisanya dirangkai dari data kop.
+                if (t.header_content) {
+                    this.headerHtml = t.header_content;
+                } else if (t.header_data) {
+                    this.headerHtml = this.buildHeaderHtml(t.header_data);
+                }
+                if (t.footer_content) {
+                    this.footerHtml = t.footer_content;
+                } else if (t.footer_data) {
+                    this.footerHtml = this.buildFooterHtml(t.footer_data);
+                }
+
                 Swal.fire({
                     icon: 'success',
                     title: 'Template dimuat',
-                    text: 'Judul & nomor dokumen sudah diisi otomatis.',
+                    text: 'Judul, nomor, ikon, isi, & footer dokumen sudah diisi otomatis.',
                     confirmButtonColor: '#1B2A4A',
                     timer: 1200,
                     showConfirmButton: false,
@@ -49,6 +66,53 @@
             } finally {
                 this.loadingTemplate = null;
             }
+        },
+
+        // Susun HTML untuk section HEADER (kop surat) dari data header template.
+        buildHeaderHtml(hd) {
+            if (!hd) return '<p></p>';
+
+            const parts = [];
+
+            if (hd.kopInstansi) {
+                parts.push('<p style=&quot;text-align:center&quot;><strong>' + hd.kopInstansi + '</strong></p>');
+            }
+            if (hd.kopAlamat) {
+                parts.push('<p style=&quot;text-align:center&quot;>' + hd.kopAlamat + '</p>');
+            }
+            if (hd.kopKontrak) {
+                parts.push('<p style=&quot;text-align:center&quot;>' + hd.kopKontrak + '</p>');
+            }
+            if (hd.perihalSurat) {
+                parts.push('<p style=&quot;text-align:center&quot;><em>' + hd.perihalSurat + '</em></p>');
+            }
+
+            return parts.length ? parts.join('') : '<p></p>';
+        },
+
+        // Susun HTML untuk section FOOTER dari data footer template.
+        buildFooterHtml(fd) {
+            if (!fd) return '<p></p>';
+
+            const parts = [];
+
+            if (fd.kotaTtd) {
+                parts.push('<p style=&quot;text-align:center&quot;>' + fd.kotaTtd + '</p>');
+            }
+            if (fd.jabatanPenandatangan) {
+                parts.push('<p style=&quot;text-align:center&quot;><strong>' + fd.jabatanPenandatangan + '</strong></p>');
+            }
+            if (fd.namaPenandatangan) {
+                parts.push('<p style=&quot;text-align:center&quot;><strong><u>' + fd.namaPenandatangan + '</u></strong></p>');
+            }
+            if (fd.nipPenandatangan) {
+                parts.push('<p style=&quot;text-align:center&quot;>' + fd.nipPenandatangan + '</p>');
+            }
+            if (fd.tembusan) {
+                parts.push('<p><strong>TEMBUSAN:</strong><br>' + fd.tembusan.replace(/\n/g, '<br>') + '</p>');
+            }
+
+            return parts.length ? parts.join('') : '<p></p>';
         },
     }" class="max-w-4xl mx-auto py-8">
 
@@ -68,10 +132,10 @@
 
         @csrf
 
-        {{-- Kop surat & footer ditulis manual di halaman editor,
-        jadi selalu dikirim kosong dari sini. --}}
-        <input type="hidden" name="header_data[content]" value="<p></p>">
-        <input type="hidden" name="footer_data[content]" value="<p></p>">
+        {{-- Kop surat & footer otomatis diisi dari template terpilih lewat
+        headerHtml / footerHtml (kalau tanpa template, tetap kosong). --}}
+        <input type="hidden" name="header_data[content]" :value="headerHtml">
+        <input type="hidden" name="footer_data[content]" :value="footerHtml">
         <input type="hidden" name="template" x-model="selectedTemplate">
         <input type="hidden" name="body_html" x-model="bodyHtml">
 

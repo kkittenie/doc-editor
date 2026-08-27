@@ -95,6 +95,19 @@ class DocumentController extends Controller
                 ?? $this->buildTemplateBodyHtml($template['body_content'] ?? []);
         }
 
+        // Halaman pertama dokumen: sampul (cover) untuk semua template kecuali
+        // surat-kuasa & surat-pernyataan; tanpa template -> langsung isi saja.
+        // Untuk cover: ikon masuk section header, identitas/pihak + paraf +
+        // stample/materai masuk section footer (server yang menentukan,
+        // nilai dari form diabaikan).
+        if ($templateKey && in_array($templateKey, $this->coverTemplateKeys(), true)) {
+            $headerContent = $this->buildCoverHeaderHtml();
+            $footerContent = $this->buildCoverFooterHtml();
+            $pages = [$this->buildCoverPageHtml($title), $bodyHtml];
+        } else {
+            $pages = [$bodyHtml];
+        }
+
         $document = Document::create([
             'user_id' => Auth::id(),
             'title' => $title,
@@ -104,7 +117,7 @@ class DocumentController extends Controller
                 'content' => $headerContent,
             ],
             'body_content' => [
-                'pages' => [$bodyHtml],
+                'pages' => $pages,
             ],
             'footer_data' => [
                 'content' => $footerContent,
@@ -132,9 +145,9 @@ class DocumentController extends Controller
             'perjanjian-kerja-sama' => [
                 'title' => 'Perjanjian Kerja Sama (PKS)',
                 'header_data' => [
-                    'kopInstansi' => 'PT NUSANTARA CITRA MEDIA TBBK',
-                    'kopAlamat' => 'Gedung Menara Palma Lt. 18, Jl. H.R. Rasuna Said Blok X-2, Jakarta Selatan 12950',
-                    'kopKontrak' => 'Telp: (021) 5290-8888 | Email: sekretariat@ncm-media.co.id | Web: www.ncm-media.co.id',
+                    'kopInstansi' => '[Ketik nama perusahaan PIHAK PERTAMA]',
+                    'kopAlamat' => '[Ketik alamat instansi di sini]',
+                    'kopKontrak' => 'Telp: [Ketik nomor telepon di sini] | Email: [Ketik email di sini] | Web: [Ketik alamat website di sini]',
                     'nomorSurat' => 'PKS/001/VIII/2026',
                     'perihalSurat' => 'Perjanjian Kerja Sama',
                     'sifatSurat' => 'Penting',
@@ -143,8 +156,8 @@ class DocumentController extends Controller
                     'preamble' => "Pada hari ini, Senin tanggal dua puluh enam bulan Agustus tahun dua ribu dua puluh enam (26-08-2026), yang bertanda tangan di bawah ini:",
 
                     'paraPihak' => [
-                        "1. PT NUSANTARA CITRA MEDIA TBBK, suatu perseroan terbatas yang berkedudukan dan berkantor pusat di Jakarta Selatan, beralamat di Gedung Menara Palma Lantai 18, Jalan H.R. Rasuna Said Blok X-2, Jakarta Selatan 12950, dalam hal ini diwakili secara sah oleh Bapak Arya Wibisono, S.H., M.H., selaku Direktur Utama, yang bertindak untuk dan atas nama Perseroan, berdasarkan Akta Pendirian Nomor 12 tanggal 8 Februari 2015 yang telah diubah dengan Akta Nomor 27 tanggal 5 Juli 2020 dan disahkan oleh Menteri Hukum dan Hak Asasi Manusia Republik Indonesia, selanjutnya disebut sebagai “PIHAK PERTAMA”;",
-                        "2. CV KARYA DIGITAL NUSANTARA, suatu persekutuan komanditer yang berkedudukan di Bandung, beralamat di Jalan Dago Asri Nomor 45, Bandung 40135, dalam hal ini diwakili secara sah oleh Ibu Ratna Kumala Sari, selaku Direktur, yang bertindak berdasarkan Akta Pendirian Nomor 33 tanggal 21 Maret 2018, selanjutnya disebut sebagai “PIHAK KEDUA”;",
+                        "1. [Ketik nama perusahaan PIHAK PERTAMA], suatu perseroan terbatas yang berkedudukan dan berkantor pusat di Jakarta Selatan, beralamat di [Ketik alamat perusahaan di sini], dalam hal ini diwakili secara sah oleh Bapak [Ketik nama di sini], selaku Direktur Utama, yang bertindak untuk dan atas nama Perseroan, berdasarkan Akta Pendirian Nomor [Nomor Akta] tanggal [Tanggal Akta] yang telah diubah dengan Akta Nomor [Nomor Akta] tanggal [Tanggal Akta] dan disahkan oleh Menteri Hukum dan Hak Asasi Manusia Republik Indonesia, selanjutnya disebut sebagai “PIHAK PERTAMA”;",
+                        "2. [Ketik nama perusahaan PIHAK KEDUA], suatu persekutuan komanditer yang berkedudukan di Bandung, beralamat di [Ketik alamat perusahaan di sini], dalam hal ini diwakili secara sah oleh Ibu [Ketik nama di sini], selaku Direktur, yang bertindak berdasarkan Akta Pendirian Nomor [Nomor Akta] tanggal [Tanggal Akta], selanjutnya disebut sebagai “PIHAK KEDUA”;",
                         "PIHAK PERTAMA dan PIHAK KEDUA selanjutnya secara bersama-sama disebut sebagai “PARA PIHAK”, dan masing-masing disebut sebagai “PIHAK”.",
                         "PARA PIHAK terlebih dahulu menerangkan sebagai berikut:",
                     ],
@@ -178,9 +191,9 @@ class DocumentController extends Controller
             'kontrak-kerja' => [
                 'title' => 'Kontrak Kerja',
                 'header_data' => [
-                    'kopInstansi' => 'PT NUSANTARA CITRA MEDIA TBBK',
-                    'kopAlamat' => 'Gedung Menara Palma Lt. 18, Jakarta Selatan',
-                    'kopKontrak' => 'Telp: (021) 5290-8888 | Email: sekretariat@ncm-media.co.id',
+                    'kopInstansi' => '[Ketik nama perusahaan PIHAK PERTAMA]',
+                    'kopAlamat' => '[Ketik alamat instansi di sini]',
+                    'kopKontrak' => 'Telp: [Ketik nomor telepon di sini] | Email: [Ketik email di sini]',
                     'nomorSurat' => 'PK/001/VIII/2026',
                     'perihalSurat' => 'Perjanjian Kerja',
                     'sifatSurat' => 'Penting',
@@ -189,8 +202,8 @@ class DocumentController extends Controller
                     'preamble' => "Pada hari ini, Senin tanggal dua puluh empat bulan Agustus tahun dua ribu dua puluh enam (24-08-2026), yang bertanda tangan di bawah ini:",
 
                     'paraPihak' => [
-                        "1. PT NUSANTARA CITRA MEDIA TBBK, suatu perseroan terbatas yang berkedudukan di Jakarta Selatan, beralamat di Gedung Menara Palma Lantai 18, Jalan H.R. Rasuna Said Blok X-2, Jakarta Selatan 12950, dalam hal ini diwakili secara sah oleh Ibu Dewi Lestari, S.E., selaku Direktur Sumber Daya Manusia, yang bertindak untuk dan atas nama Perusahaan, selanjutnya disebut sebagai “PERUSAHAAN”;",
-                        "2. Sdr. DIMAS ADI PRAYOGA, lahir di Surabaya pada tanggal 17 Maret 1998, NIK 3578171703980001, bertempat tinggal di Jalan Menur Permai Nomor 21, Surabaya, selaku calon Pekerja yang selanjutnya disebut sebagai “PEKERJA”;",
+                        "1. [Ketik nama perusahaan PIHAK PERTAMA], suatu perseroan terbatas yang berkedudukan di Jakarta Selatan, beralamat di [Ketik alamat perusahaan di sini], dalam hal ini diwakili secara sah oleh Ibu [Ketik nama di sini], selaku Direktur Sumber Daya Manusia, yang bertindak untuk dan atas nama Perusahaan, selanjutnya disebut sebagai “PERUSAHAAN”;",
+                        "2. Sdr. [Ketik nama di sini], lahir di [Kota] pada tanggal [Tanggal Lahir], NIK [Ketik NIK di sini], bertempat tinggal di [Ketik alamat di sini], selaku calon Pekerja yang selanjutnya disebut sebagai “PEKERJA”;",
                         "PERUSAHAAN dan PEKERJA secara bersama-sama disebut sebagai “PARA PIHAK”.",
                     ],
 
@@ -223,9 +236,9 @@ class DocumentController extends Controller
             'surat-kuasa' => [
                 'title' => 'Surat Kuasa',
                 'header_data' => [
-                    'kopInstansi' => 'PT NUSANTARA CITRA MEDIA TBBK',
-                    'kopAlamat' => 'Gedung Menara Palma Lt. 18, Jakarta Selatan',
-                    'kopKontrak' => 'Telp: (021) 5290-8888 | Email: sekretariat@ncm-media.co.id',
+                    'kopInstansi' => '[Ketik nama perusahaan PIHAK PERTAMA]',
+                    'kopAlamat' => '[Ketik alamat instansi di sini]',
+                    'kopKontrak' => 'Telp: [Ketik nomor telepon di sini] | Email: [Ketik email di sini]',
                     'nomorSurat' => 'SK/001/VIII/2026',
                     'perihalSurat' => 'Surat Kuasa',
                     'sifatSurat' => 'Penting',
@@ -234,8 +247,8 @@ class DocumentController extends Controller
                     'preamble' => "Yang bertanda tangan di bawah ini:",
 
                     'paraPihak' => [
-                        "1. Bapak BUDI SETIAWAN, lahir di Jakarta pada tanggal 12 Mei 1978, NIK 3171021205780009, pekerjaan Wiraswasta, bertempat tinggal di Jalan Kemang Timur Nomor 8, Jakarta Selatan, dalam hal ini bertindak untuk dan atas nama Pribadi, selanjutnya disebut sebagai “PEMBERI KUASA”;",
-                        "2. Ibu SUCIATI, S.H., lahir di Semarang pada tanggal 3 Juli 1985, NIK 3174037307850002, pekerjaan Advokat, bertempat tinggal di Jalan Senopati Dalam III Nomor 21, Jakarta Selatan, dalam hal ini bertindak untuk dan atas nama Pribadi, selanjutnya disebut sebagai “PENERIMA KUASA”;",
+                        "1. Bapak [Ketik nama di sini], lahir di [Kota] pada tanggal [Tanggal Lahir], NIK [Ketik NIK di sini], pekerjaan Wiraswasta, bertempat tinggal di [Ketik alamat di sini], dalam hal ini bertindak untuk dan atas nama Pribadi, selanjutnya disebut sebagai “PEMBERI KUASA”;",
+                        "2. Ibu [Ketik nama di sini], lahir di [Kota] pada tanggal [Tanggal Lahir], NIK [Ketik NIK di sini], pekerjaan Advokat, bertempat tinggal di [Ketik alamat di sini], dalam hal ini bertindak untuk dan atas nama Pribadi, selanjutnya disebut sebagai “PENERIMA KUASA”;",
                     ],
 
                     'menimbang' => "a. bahwa PEMBERI KUASA memberikan kuasa yang sah kepada PENERIMA KUASA untuk melaksanakan seluruh tindakan sebagaimana tercantum dalam Surat Kuasa ini;\nb. bahwa PENERIMA KUASA bersedia dan sanggup untuk menerima serta melaksanakan kuasa yang diberikan tersebut; dan\nc. bahwa pemberian kuasa ini dibuat berdasarkan persetujuan sukarela kedua belah pihak tanpa adanya paksaan dari pihak manapun.",
@@ -243,7 +256,7 @@ class DocumentController extends Controller
                     'mengingat' => "1. Kitab Undang-Undang Hukum Perdata (KUHPerdata);\n2. Undang-Undang Nomor 18 Tahun 2003 tentang Advokat; dan\n3. Peraturan perundang-undangan lainnya yang berlaku.",
 
                     'isi' => [
-                        ['judul' => 'RUANG LINGKUP KUASA', 'text' => "PENERIMA KUASA dengan ini diberikan kewenangan penuh untuk mewakili PEMBERI KUASA dalam melakukan segala tindakan hukum yang berkaitan dengan pengurusan dokumen pertanahan atas tanah dan bangunan yang terletak di Jalan Kemang Timur Nomor 8, Jakarta Selatan, atas nama PEMBERI KUASA."],
+                        ['judul' => 'RUANG LINGKUP KUASA', 'text' => "PENERIMA KUASA dengan ini diberikan kewenangan penuh untuk mewakili PEMBERI KUASA dalam melakukan segala tindakan hukum yang berkaitan dengan pengurusan dokumen pertanahan atas tanah dan bangunan yang terletak di [Ketik alamat di sini], atas nama PEMBERI KUASA."],
                         ['judul' => 'TINDAKAN YANG DIKUASAKAN', 'text' => "Berdasarkan kuasa yang diberikan, PENERIMA KUASA untuk dan atas nama PEMBERI KUASA berwenang untuk:\n\na. menghadiri dan mewakili PEMBERI KUASA dalam setiap pengurusan administrasi dan perizinan;\nb. menandatangani seluruh dokumen yang diperlukan dalam rangka penyelesaian urusan yang dikuasakan;\nc. menerima dan menyerahkan dokumen, uang, serta bukti-bukti kepemilikan yang berkaitan dengan penyelesaian urusan; dan\nd. melakukan tindakan umum lainnya yang diperlukan agar kuasa dapat dilaksanakan sesuai dengan maksud dan tujuannya.\n"],
                         ['judul' => 'KEWAJIBAN PENERIMA KUASA', 'text' => "PENERIMA KUASA wajib melaksanakan seluruh kuasa yang diberikan dengan itikad baik, teliti, penuh tanggung jawab, serta sesuai dengan petunjuk dan kepentingan PEMBERI KUASA. PENERIMA KUASA wajib memberikan laporan pelaksanaan kuasa secara berkala kepada PEMBERI KUASA."],
                         ['judul' => 'MASA BERLAKU', 'text' => "Surat Kuasa ini berlaku sejak tanggal ditandatangani dan berakhir pada saat seluruh kuasa telah selesai dilaksanakan, dicabut kembali oleh PEMBERI KUASA, atau melalui surat pernyataan berakhirnya kuasa dari PEMBERI KUASA."],
@@ -259,16 +272,16 @@ class DocumentController extends Controller
                         ['judul' => 'PENUTUP', 'text' => "Demikian Surat Kuasa ini dibuat dengan sebenar-benarnya untuk dipergunakan sebagaimana mestinya. Apabila di kemudian hari terdapat kekeliruan dalam Surat Kuasa ini, akan dilakukan perbaikan sebagaimana semestinya."],
                     ],
 'lampiran' => [
-                        ['judul' => 'LAMPIRAN — DAFTAR DOKUMEN DAN URUSAN YANG DIKUASAKAN', 'text' => "Dalam rangka pelaksanaan Surat Kuasa ini, PEMBERI KUASA menyerahkan serta memberikan kewenangan kepada PENERIMA KUASA untuk mengurus hal-hal sebagai berikut:\n\n1. Pengurusan dan pendaftaran balik nama hak atas tanah dan bangunan yang terletak di Jalan Kemang Timur Nomor 8, Jakarta Selatan;\n2. Penandatanganan seluruh dokumen yang diperlukan, baik surat permohonan, pernyataan, maupun bukti-bukti administrasi lainnya;\n3. Pembayaran seluruh biaya, pajak, dan bea yang timbul sehubungan dengan pengurusan dimaksud;\n4. Penerimaan dan penyerahan dokumen kepemilikan serta seluruh kelengkapan lainnya kepada instansi yang berwenang.\n\nSeluruh dokumen yang diserahkan kepada PENERIMA KUASA dicatat dan harus dikembalikan kepada PEMBERI KUASA setelah seluruh urusan selesai dilaksanakan."],
+                        ['judul' => 'LAMPIRAN — DAFTAR DOKUMEN DAN URUSAN YANG DIKUASAKAN', 'text' => "Dalam rangka pelaksanaan Surat Kuasa ini, PEMBERI KUASA menyerahkan serta memberikan kewenangan kepada PENERIMA KUASA untuk mengurus hal-hal sebagai berikut:\n\n1. Pengurusan dan pendaftaran balik nama hak atas tanah dan bangunan yang terletak di [Ketik alamat di sini];\n2. Penandatanganan seluruh dokumen yang diperlukan, baik surat permohonan, pernyataan, maupun bukti-bukti administrasi lainnya;\n3. Pembayaran seluruh biaya, pajak, dan bea yang timbul sehubungan dengan pengurusan dimaksud;\n4. Penerimaan dan penyerahan dokumen kepemilikan serta seluruh kelengkapan lainnya kepada instansi yang berwenang.\n\nSeluruh dokumen yang diserahkan kepada PENERIMA KUASA dicatat dan harus dikembalikan kepada PEMBERI KUASA setelah seluruh urusan selesai dilaksanakan."],
                     ],
             ],
             ],
             'surat-pernyataan' => [
                 'title' => 'Surat Pernyataan',
                 'header_data' => [
-                    'kopInstansi' => 'PT NUSANTARA CITRA MEDIA TBBK',
-                    'kopAlamat' => 'Gedung Menara Palma Lt. 18, Jakarta Selatan',
-                    'kopKontrak' => 'Telp: (021) 5290-8888 | Email: sekretariat@ncm-media.co.id',
+                    'kopInstansi' => '[Ketik nama perusahaan PIHAK PERTAMA]',
+                    'kopAlamat' => '[Ketik alamat instansi di sini]',
+                    'kopKontrak' => 'Telp: [Ketik nomor telepon di sini] | Email: [Ketik email di sini]',
                     'nomorSurat' => 'SP/001/VIII/2026',
                     'perihalSurat' => 'Surat Pernyataan',
                     'sifatSurat' => 'Penting',
@@ -277,7 +290,7 @@ class DocumentController extends Controller
                     'preamble' => "Yang bertanda tangan di bawah ini:",
 
                     'paraPihak' => [
-                        "Nama : RIZKI PRATAMA\nTempat, Tanggal Lahir : Surabaya, 9 November 1995\nNIK : 3578120911950006\nAlamat : Jalan Dukuh Kupang Barat Nomor 12, Surabaya\nPekerjaan : Karyawan Swasta\n\nSelanjutnya disebut sebagai “SAYA”.",
+                        "Nama : [Ketik nama di sini]\nTempat, Tanggal Lahir : [Ketik kota & tanggal lahir di sini]\nNIK : [Ketik NIK di sini]\nAlamat : [Ketik alamat di sini]\nPekerjaan : [Ketik pekerjaan di sini]\n\nSelanjutnya disebut sebagai “SAYA”.",
                         "Untuk keperluan administrasi perusahaan, dengan ini menyatakan sebagai berikut:",
                     ],
 
@@ -286,15 +299,15 @@ class DocumentController extends Controller
                     'mengingat' => "1. Kitab Undang-Undang Hukum Perdata (KUHPerdata); dan\n2. Ketentuan peraturan perundang-undangan yang berlaku.",
 
                     'isi' => [
-                        ['judul' => 'PERNYATAAN', 'text' => "Dengan ini menyatakan bahwa seluruh data, dokumen, dan keterangan yang diberikan kepada PT NUSANTARA CITRA MEDIA TBBK adalah benar, sah, dan dapat dipertanggungjawabkan secara hukum. Seluruh informasi tersebut tidak pernah diubah, dipalsukan, atau direkayasa dengan maksud tertentu."],
+                        ['judul' => 'PERNYATAAN', 'text' => "Dengan ini menyatakan bahwa seluruh data, dokumen, dan keterangan yang diberikan kepada [Ketik nama perusahaan PIHAK PERTAMA] adalah benar, sah, dan dapat dipertanggungjawabkan secara hukum. Seluruh informasi tersebut tidak pernah diubah, dipalsukan, atau direkayasa dengan maksud tertentu."],
                         ['judul' => 'ITIKAD BAIK', 'text' => "Dengan ini menyatakan bersedia untuk melaksanakan seluruh kewajiban dan ketentuan yang berlaku dengan penuh itikad baik, serta tidak akan melakukan perbuatan yang dapat merugikan pihak perusahaan maupun pihak lainnya."],
                         ['judul' => 'KETENTUAN HUKUM', 'text' => "Apabila di kemudian hari terdapat ketidaksesuaian antara pernyataan dengan keadaan yang sebenarnya, maka dengan ini bersedia bertanggung jawab dan menanggung segala akibat hukum yang timbul sesuai dengan ketentuan peraturan perundang-undangan yang berlaku."],
                         ['judul' => 'SANKSI', 'text' => "Menyadari bahwa pernyataan ini dipergunakan untuk berbagai keperluan yang sah, maka apabila terdapat penyalahgunaan atau pemalsuan dalam pernyataan ini, bersedia menerima sanksi yang ditetapkan berdasarkan peraturan perundang-undangan."],
-                        ['judul' => 'PERNYATAAN KEBENARAN DOKUMEN', 'text' => "Saya menyatakan bahwa seluruh dokumen, surat, dan bukti yang saya lampirkan serta serahkan kepada PT NUSANTARA CITRA MEDIA TBBK adalah asli, sah, dan benar secara hukum, serta tidak pernah dipalsukan. Apabila diketahui dokumen tersebut tidak asli atau tidak benar, saya bersedia menanggung akibat hukum sebagaimana ketentuan peraturan perundang-undangan yang berlaku."],
+                        ['judul' => 'PERNYATAAN KEBENARAN DOKUMEN', 'text' => "Saya menyatakan bahwa seluruh dokumen, surat, dan bukti yang saya lampirkan serta serahkan kepada [Ketik nama perusahaan PIHAK PERTAMA] adalah asli, sah, dan benar secara hukum, serta tidak pernah dipalsukan. Apabila diketahui dokumen tersebut tidak asli atau tidak benar, saya bersedia menanggung akibat hukum sebagaimana ketentuan peraturan perundang-undangan yang berlaku."],
                         ['judul' => 'KEPEMILIKAN DAN KEABSAHAN DOKUMEN', 'text' => "Saya menyatakan bahwa seluruh dokumen yang diserahkan merupakan milik saya atau yang berhak, serta tidak sedang dijadikan jaminan, objek sengketa, atau tidak sedang berada dalam penguasaan pihak lain tanpa dasar hukum yang sah. Saya menjamin keabsahan seluruh dokumen tersebut untuk digunakan sebagaimana mestinya."],
                         ['judul' => 'KESADARAN DAN TANPA PAKSAAN', 'text' => "Saya menyatakan bahwa seluruh pernyataan dan keterangan dalam Surat Pernyataan ini saya buat dengan itikad baik, secara sadar, dan tanpa adanya unsur paksaan, tekanan, atau penyesatan dari pihak manapun, serta semata-mata untuk kepentingan yang sah dalam rangka melengkapi administrasi perusahaan."],
                         ['judul' => 'PELAKSANAAN KEWAJIBAN', 'text' => "Saya menyatakan sanggup dan bersedia untuk melaksanakan serta mematuhi seluruh kewajiban yang timbul berdasarkan Surat Pernyataan ini dan ketentuan peraturan perundang-undangan, serta bersedia memberikan seluruh informasi tambahan yang diperlukan bilamana diminta oleh perusahaan atau instansi yang berwenang."],
-                        ['judul' => 'PENGGUNAAN DATA', 'text' => "Saya menyatakan bahwa seluruh data dan keterangan pribadi yang saya sampaikan dapat dipergunakan oleh PT NUSANTARA CITRA MEDIA TBBK untuk keperluan administrasi, pengelolaan data kepegawaian, serta kepentingan lainnya yang sah sesuai dengan peraturan perundang-undangan tentang perlindungan data pribadi."],
+                        ['judul' => 'PENGGUNAAN DATA', 'text' => "Saya menyatakan bahwa seluruh data dan keterangan pribadi yang saya sampaikan dapat dipergunakan oleh [Ketik nama perusahaan PIHAK PERTAMA] untuk keperluan administrasi, pengelolaan data kepegawaian, serta kepentingan lainnya yang sah sesuai dengan peraturan perundang-undangan tentang perlindungan data pribadi."],
                         ['judul' => 'JAMINAN', 'text' => "Saya menjamin bahwa seluruh data, dokumen, dan keterangan yang saya berikan adalah benar dan sah, serta saya bersedia mempertanggungjawabkan seluruhnya di hadapan hukum apabila di kemudian hari terbukti terdapat kekeliruan atau ketidaksesuaian antara pernyataan dengan keadaan yang sebenarnya."],
                         ['judul' => 'TANGGUNG JAWAB', 'text' => "Saya bertanggung jawab penuh secara pribadi atas kebenaran seluruh isi Surat Pernyataan ini, termasuk seluruh lampiran yang menyertainya. Apabila di kemudian hari timbul kerugian bagi pihak manapun sebagai akibat dari ketidakbenaran pernyataan saya, maka saya bersedia untuk mengganti seluruh kerugian tersebut."],
                         ['judul' => 'PENYELESAIAN PERSELISIHAN', 'text' => "Segala perselisihan yang timbul sehubungan dengan pelaksanaan Surat Pernyataan ini akan diselesaikan secara musyawarah untuk mencapai mufakat. Dalam hal tidak tercapai kesepakatan, perselisihan akan diselesaikan melalui sarana hukum yang tersedia sesuai dengan ketentuan peraturan perundang-undangan yang berlaku."],
@@ -353,6 +366,79 @@ class DocumentController extends Controller
         }
 
         return $template;
+    }
+
+    /**
+     * Daftar template yang memakai halaman sampul (cover).
+     * Dipakai bersama oleh store() dan createFromTemplate().
+     */
+    private function coverTemplateKeys(): array
+    {
+        return [
+            'perjanjian-kerja-sama',
+            'kontrak-kerja',
+            'kemitraan',
+            'colocation',
+            'managed-service',
+            'soho',
+            'kontrak-payung',
+        ];
+    }
+
+    /**
+     * Isi SECTION HEADER untuk dokumen ber-cover:
+     * area foto/ikon pihak pertama di atas halaman sampul.
+     *
+     * Catatan: disusun dari paragraf sederhana agar selamat dinormalisasi
+     * ulang oleh Quill di editor (format tabel tidak ada di whitelist).
+     */
+    private function buildCoverHeaderHtml(): string
+    {
+        return '<p style="text-align:center;">'
+            .'[ Foto / Ikon Pihak Pertama ]'
+            .'</p>';
+    }
+
+    /**
+     * Isi SECTION FOOTER untuk dokumen ber-cover:
+     * identitas pihak pertama di kiri, lalu paraf para pihak +
+     * area stample/materai di sisi kanan.
+     */
+    private function buildCoverFooterHtml(): string
+    {
+        return implode("\n", [
+            '<p><strong>Pihak Pertama</strong></p>',
+            '<p>Alamat: [Ketik alamat pihak pertama di sini]</p>',
+            '<p>No. Telp | Email | Web: '
+                .'[Ketik telp di sini] | [Ketik email di sini] | [Ketik website di sini]</p>',
+            '<p style="text-align:right;"><strong>Paraf PIHAK PERTAMA:</strong> ______________</p>',
+            '<p style="text-align:right;"><strong>Paraf PIHAK KEDUA:</strong> ______________</p>',
+            '<p style="text-align:right;">[ Tempel Stample/Materai di sini ]</p>',
+        ]);
+    }
+
+    /**
+     * Halaman sampul (cover): bagian tubuh saja — judul, para pihak,
+     * dan nomor dokumen. Semua data memakai placeholder agar diisi
+     * sendiri oleh pengguna.
+     *
+     * Ikon pihak pertama berada di section header (buildCoverHeaderHtml),
+     * sedangkan identitas + paraf + stample/materai berada di section
+     * footer (buildCoverFooterHtml).
+     */
+    private function buildCoverPageHtml(string $title): string
+    {
+        $judul = trim($title) !== '' ? e($title) : '[Ketik judul dokumen di sini]';
+
+        return <<<HTML
+        <h1 style="text-align:center; font-size:22pt; font-weight:bold; letter-spacing:1px; margin:120px 0 48px;">{$judul}</h1>
+
+        <p style="text-align:center; font-size:13pt; font-weight:bold; margin:10px 0;">[Ketik nama pihak pertama di sini]</p>
+        <p style="text-align:center; font-size:11pt; margin:10px 0;">Dengan</p>
+        <p style="text-align:center; font-size:13pt; font-weight:bold; margin:10px 0;">[Ketik nama pihak kedua di sini]</p>
+
+        <p style="text-align:center; font-size:11pt; margin:72px 0 0;"><strong>Nomor:</strong> [Ketik nomor dokumen di sini]</p>
+        HTML;
     }
 
     /**
@@ -580,6 +666,14 @@ class DocumentController extends Controller
         if (preg_match('/^([A-Z]+)\//', $data['header_data']['nomorSurat'], $m)) {
             $prefix = $m[1];
             $data['header_data']['nomorSurat'] = $this->nextDocumentNumber($prefix);
+        }
+
+        // Template ber-cover: kirim isi section header (ikon) & footer
+        // (pihak/paraf/stample) supaya form create mengisinya otomatis
+        // sama seperti yang akan disimpan oleh store().
+        if (in_array($template, $this->coverTemplateKeys(), true)) {
+            $data['header_content'] = $this->buildCoverHeaderHtml();
+            $data['footer_content'] = $this->buildCoverFooterHtml();
         }
 
         return response()->json($data);

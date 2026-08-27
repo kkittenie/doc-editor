@@ -1572,6 +1572,12 @@ const attachQuillToRegion = (regionEl) => {
             }
         });
 
+        // Paginasi otomatis: semua editor ISI (body) dipantau supaya konten
+        // yang meluap dipindah ke kertas berikutnya secara otomatis.
+        if (regionEl.dataset?.region === 'body') {
+            bindPageOverflowWatch(q, regionEl);
+        }
+
         q.on('selection-change', (range) => {
             if (range) {
                 activeQuill = q;
@@ -1594,7 +1600,340 @@ const attachQuillToRegion = (regionEl) => {
 };
 
 // =========================================
-// INIT UTAMA — dipanggil dari blade
+// PAGINASI OTOMATIS ANTAR KERTAS
+// Kertas punya tinggi tetap (297mm). Isi yang meluap dipindah
+// otomatis ke kertas berikutnya; kalau ruang menyempit kembali,
+// blok paling atas dari kertas berikutnya ditarik ke atas.
+// =========================================
+
+let autoPaginationApi = null;
+
+const PAGE_FLOW_TOL = 4;        // toleransi ukur (px)
+const PAGE_FLOW_MAX_STEPS = 24; // pengaman anti-loop
+
+const pageFlowTimers = new WeakMap();
+const pageFlowQueue = Promise.resolve();
+
+const __nextFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
+const __waitMs = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function __flowDeltaCtor(quill) {
+    try {
+        const sample = quill.getContents();
+        if (sample && typeof sample.constructor === 'function') return sample.constructor;
+    } catch (err) { /* coba jalur lain */ }
+    try { return Quill.import('delta'); } catch (err) { /* kalah */ }
+    return null;
+}
+
+// Pecah Delta menjadi blok per baris; op '\n' penutup membawa
+// atribut blok (header/list dsb) agar bisa direkonstruksi utuh.
+function __splitDeltaIntoBlocks(delta) {
+    const blocks = [];
+    let cur = [];
+    const flush = () => { if (cur.length) { blocks.push(cur); cur = []; } };
+
+    for (const op of (delta.ops || [])) {
+        if (typeof op.insert === 'string' && op.insert.indexOf('\n') >= 0) {
+            const segs = op.insert.split('\n');
+            const attr = op.attributes || null;
+            for (let i = 0; i < segs.length; i++) {
+                if (segs[i] !== '') {
+                    cur.push(attr ? { insert: segs[i], attributes: attr } : { insert: segs[i] });
+                }
+                if (i < segs.length - 1) {
+                    cur.push(attr ? { insert: '\n', attributes: attr } : { insert: '\n' });
+                    flush();
+                }
+            }
+        } else {
+            cur.push(op);
+        }
+    }
+    flush();
+    return blocks;
+}
+
+function __opLength(op) {
+    if (op.insert == null) return 0;
+    return (typeof op.insert === 'string') ? op.insert.length : 1;
+}
+
+function __deltaLength(delta) {
+    return (delta.ops || []).reduce((n, op) => n + __opLength(op), 0);
+}
+
+function __cloneOps(ops) {
+    return ops.map((o) => Object.assign({}, o));
+}
+
+function __isFloatingKid(kid) {
+    try {
+        const cs = getComputedStyle(kid);
+        return cs.position === 'absolute' || cs.position === 'fixed';
+    } catch (err) { return false; }
+}
+
+function __looksEmptyBody(bodyEl) {
+    try {
+        if (bodyEl.querySelector('img, iframe, video')) return false;
+        const txt = (bodyEl.innerText || '').replace(/\u200b/g, '').trim();
+        return txt === '';
+    } catch (err) { return false; }
+}
+
+function __contentOverflowPx(quill, boxEl) {
+    try {
+        const inner = (quill.root && quill.root !== boxEl) ? Math.max(0, quill.root.scrollHeight) : 0;
+        const outer = Math.max(boxEl.scrollHeight || 0, inner);
+        return outer - (boxEl.clientHeight || 0);
+    } catch (err) { return 0; }
+}
+
+// Anak (elemen blok) pertama yang melewati batas bawah kertas.
+// Mengembalikan -1 kalau struktur tak bisa dipetakan aman.
+function __firstOverflowIndex(quill, boxEl) {
+    const root = quill.root;
+    if (!root || !root.children || !root.children.length) return -1;
+    const kids = Array.from(root.children);
+    const boxRect = boxEl.getBoundingClientRect();
+    const padT = parseFloat(getComputedStyle(boxEl).paddingTop || '0');
+    const effBottom = boxRect.top + padT + boxEl.clientHeight - PAGE_FLOW_TOL;
+    const baseTop = kids[0].getBoundingClientRect().top;
+    for (let i = 0; i < kids.length; i++) {
+        if (__isFloatingKid(kids[i])) return -1; // gambar melayang: jangan disentuh
+        const bottom = kids[i].getBoundingClientRect().bottom;
+        if (bottom - PAGE_FLOW_TOL > effBottom) return i;
+    }
+    return kids.length; // semua muat (harusnya tak terjadi saat dipanggil)
+}
+
+// ---------- MESIN UTAMA: pindah blok antar kertas ----------
+//
+// Kontrak:
+//  - autoPaginationApi.createPageAfter(uid) : Promise<htmlBodyElement>
+//    (disediakan bridge Alpine di editor.blade.php; sheet baru langsung
+//    terpasang Quill pada region body-nya sebelum Promise resolve)
+//  - Hanya blok DOM biasa yang digeser; gambar melayang tidak disentuh.
+
+let pageFlowChain = Promise.resolve();
+
+function __sessionActive() {
+    try {
+        return !!document.querySelector('.zone-editing');
+    } catch (err) { return false; }
+}
+
+function __blockRangeOf(quill, kidEl) {
+    try {
+        const blot = Quill.find(kidEl);
+        if (!blot || typeof blot.length !== 'function') return null;
+        const start = blot.offset(quill.scroll);
+        const len = blot.length();
+        if (!Number.isFinite(start) || !Number.isFinite(len) || len <= 0) return null;
+        return { start, len };
+    } catch (err) { return null; }
+}
+
+async function __resolveTargetBody(sheet, apiCreate) {
+    // Kertas berikutnya yang sudah ada?
+    const nextSheet = sheet.nextElementSibling;
+    if (nextSheet && nextSheet.classList.contains('doc-sheet')) {
+        const nb = nextSheet.querySelector('.doc-sheet-body[data-region="body"]');
+        if (nb && quillsByRegion.has(nb)) return nb;
+    }
+    // Belum ada kertas di belakangnya -> minta Alpine membuat satu,
+    // lalu tunggu sampai region-nya benar-benar terpasang Quill.
+    const uid = sheet.dataset?.pageUid;
+    if (!uid || typeof apiCreate !== 'function') return null;
+    const created = await apiCreate(uid);
+    if (!created) return null;
+    for (let i = 0; i < 20; i++) {
+        if (quillsByRegion.has(created)) return created;
+        await __waitMs(25);
+    }
+    return quillsByRegion.has(created) ? created : null;
+}
+
+async function __flowPass(quill, bodyEl) {
+    const sheet = bodyEl.closest('.doc-sheet');
+    if (!sheet) return false;
+
+    if (__contentOverflowPx(quill, bodyEl) <= PAGE_FLOW_TOL) return false;
+
+    const idx = __firstOverflowIndex(quill, bodyEl);
+    const kids = Array.from(quill.root.children || []);
+    if (idx < 0 || idx >= kids.length) return false; // tak bisa dipetakan aman
+
+    const targetBody = await __resolveTargetBody(sheet,
+        autoPaginationApi && autoPaginationApi.createPageAfter);
+    if (!targetBody || targetBody === bodyEl) return false;
+    const targetQ = quillsByRegion.get(targetBody);
+    if (!targetQ || !targetQ.isEnabled()) return false;
+
+    const range = __blockRangeOf(quill, kids[idx]);
+    if (!range) return false;
+
+    const DeltaCtor = __flowDeltaCtor(quill);
+    const removed = quill.getContents(range.start, range.len);
+    if (!DeltaCtor || !removed || !(removed.ops || []).length) return false;
+
+    // Amankan caret pengguna sebelum mutasi
+    const selBefore = quill.getSelection();
+
+    quill.deleteText(range.start, range.len, 'silent');
+
+    // Sisipkan DI DEPAN isi kertas berikutnya agar urutan dokumen tetap benar.
+    const chg = new DeltaCtor();
+    for (const op of removed.ops) {
+        chg.push(op.insert == null
+            ? { retain: __opLength(op) }
+            : JSON.parse(JSON.stringify(op)));
+    }
+    targetQ.updateContents(chg, 'silent');
+    targetQ.setSelection(Math.max(0, Math.min(targetQ.getLength() - 1, __deltaLength(chg))), 'silent');
+
+    // Geser caret bila posisinya terdorong oleh konten yang pindah.
+    if (selBefore && selBefore.index > range.start) {
+        const ni = Math.max(range.start, selBefore.index - range.len);
+        quill.setSelection(Math.min(ni, Math.max(0, quill.getLength() - 1)), 'silent');
+    }
+
+    // Lanjutkan aliran: kertas berikutnya sekarang bisa meluap juga,
+    // jadwalkan pemeriksaannya agar konten merambat sampai muat semua.
+    if (autoPaginationApi) __runFlow(targetQ, targetBody);
+
+    notifyDirty();
+    return true;
+}
+
+/**
+ * Arah balik: saat kertas ini longgar dan kertas berikutnya berisi,
+ * tarik blok PALING ATAS kertas berikutnya ke akhir kertas ini.
+ * Memakai margin ketat agar tidak saling silang dengan arah maju.
+ */
+function __pullBackPass(quill, bodyEl) {
+    const sheet = bodyEl.closest('.doc-sheet');
+    if (!sheet) return false;
+
+    // Kertas ini masih meluap -> urusan arah maju, bukan balik.
+    if (__contentOverflowPx(quill, bodyEl) > PAGE_FLOW_TOL) return false;
+
+    // Cari kertas berikutnya yang sudah terpasang Quill.
+    let nextBody = null;
+    let s = sheet.nextElementSibling;
+    while (s && s.classList.contains('doc-sheet')) {
+        const nb = s.querySelector('.doc-sheet-body[data-region="body"]');
+        if (nb && quillsByRegion.has(nb)) { nextBody = nb; break; }
+        s = s.nextElementSibling;
+    }
+    if (!nextBody) return false;
+    const nextQ = quillsByRegion.get(nextBody);
+    if (!nextQ || !nextQ.isEnabled()) return false;
+
+    const kids = Array.from(quill.root.children || []);
+    const nkids = Array.from(nextQ.root.children || []);
+    if (!nkids.length) return false;
+    const k2 = nkids[0];
+    if (__isFloatingKid(k2)) return false;
+
+    // Blok kosong penutup Quill (<p><br></p>, panjang 1) tidak usah ditarik.
+    let k2Len = 0;
+    try {
+        const b2 = Quill.find(k2);
+        if (b2 && typeof b2.length === 'function') k2Len = b2.length();
+    } catch (err) { k2Len = 0; }
+    if (k2Len <= 1) return false;
+
+    // Sisa ruang di bawah blok terakhir kertas ini (px, sudah termasuk toleransi).
+    const boxRect = bodyEl.getBoundingClientRect();
+    const padT = parseFloat(getComputedStyle(bodyEl).paddingTop || '0');
+    const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
+    let baseBottom = boxRect.top + padT;
+    for (let i = kids.length - 1; i >= 0; i--) {
+        if (__isFloatingKid(kids[i])) continue;
+        baseBottom = Math.max(baseBottom, kids[i].getBoundingClientRect().bottom);
+        break;
+    }
+
+    // Harus muat PENUH dengan margin ekstra supaya arah maju tidak
+    // langsung mendorongnya balik (tidak ada bolak-balik).
+    const h2 = k2.getBoundingClientRect().height;
+    if (baseBottom + h2 > effBottom - PAGE_FLOW_TOL) return false;
+
+    const range = __blockRangeOf(nextQ, k2);
+    if (!range) return false;
+    const DeltaCtor = __flowDeltaCtor(quill);
+    const removed = nextQ.getContents(range.start, range.len);
+    if (!DeltaCtor || !removed || !(removed.ops || []).length) return false;
+
+    // Amankan caret pengguna pada kertas ini (posisinya akan bergeser maju).
+    const selBefore = quill.getSelection();
+
+    nextQ.deleteText(range.start, range.len, 'silent');
+
+    const chg = new DeltaCtor();
+    for (const op of removed.ops) {
+        chg.push(op.insert == null
+            ? { retain: __opLength(op) }
+            : JSON.parse(JSON.stringify(op)));
+    }
+    quill.updateContents(chg, 'silent');
+    if (selBefore) {
+        quill.setSelection(Math.min(
+            selBefore.index + __deltaLength(chg),
+            Math.max(0, quill.getLength() - 1)
+        ), 'silent');
+    }
+
+    notifyDirty();
+    return true;
+}
+
+function __runFlow(quill, bodyEl) {
+    if (!autoPaginationApi) return; // bridge belum siap
+    const job = pageFlowChain
+        .then(async () => {
+            for (let step = 0; step < PAGE_FLOW_MAX_STEPS; step++) {
+                if (__sessionActive()) break;
+                if (!document.body.contains(bodyEl)) break;
+                let moved = await __flowPass(quill, bodyEl);
+                if (!moved) {
+                    // Ruang longgar -> tarik blok atas kertas berikutnya ke sini.
+                    moved = await __pullBackPass(quill, bodyEl);
+                }
+                if (!moved) break;
+                await __nextFrame();
+                await __waitMs(10);
+            }
+        })
+        .catch((err) => console.warn('[DocQuill] Paginasi otomatis dilewati:', err));
+    pageFlowChain = job;
+}
+
+function bindPageOverflowWatch(quill, regionEl) {
+    if (!quill || regionEl.__pageFlowBound) return;
+    regionEl.__pageFlowBound = true;
+
+    let timer = 0;
+    const schedule = () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => __runFlow(quill, regionEl), 140);
+    };
+
+    quill.on('text-change', (_d, _o, source) => {
+        if (source === 'silent') return;
+        if (regionEl.dataset?.region !== 'body') return;
+        schedule();
+    });
+
+    window.addEventListener('resize', () => schedule(), { passive: true });
+
+    // Pemeriksaan awal saat kertas baru menyala / dokumen dibuka.
+    setTimeout(() => __runFlow(quill, regionEl), 350);
+}
+
+
 // =========================================
 
 window.initBodyEditor = function (rootSelector, onSync = null) {
@@ -1697,11 +2036,21 @@ window.DocQuill = {
         });
     },
 
-    // Fokus ke satu zona tertentu (taruh kursor di akhir konten)
+    // Fokus ke satu zona tertentu (mis. kursor di akhir konten)
     focusZone: (regionEl) => {
         const q = quillsByRegion.get(regionEl);
         if (!q) return;
         q.setSelection(Math.max(0, q.getLength() - 1));
+    },
+
+    // Aktifkan editor body lalu fokuskan caret di akhir konten.
+    // Dipakai pasca-hapus halaman supaya caret pindah ke halaman sebelumnya.
+    focusBodyEnd: (regionEl) => {
+        const q = quillsByRegion.get(regionEl);
+        if (!q) return;
+        if (!q.isEnabled()) q.enable();
+        q.setSelection(Math.max(0, q.getLength() - 1), 'silent');
+        q.focus();
     },
 
     // Jaminan: semua isi dokumen (body) selalu bisa diketik di luar sesi.
@@ -1715,6 +2064,17 @@ window.DocQuill = {
             }
         });
         return revived;
+    },
+
+    // Pasang API pembuat kertas (bridge Alpine) + bangun watcher untuk
+    // semua body yang sudah terlanjur terpasang sebelum API ini datang.
+    enableAutoPagination: (api) => {
+        autoPaginationApi = api || null;
+        quillsByRegion.forEach((qq, el) => {
+            if (el.dataset?.region === 'body') {
+                bindPageOverflowWatch(qq, el);
+            }
+        });
     },
 };
 

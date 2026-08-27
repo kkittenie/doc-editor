@@ -188,7 +188,7 @@
                     class="text-xl text-slate-warm-400 hover:text-slate-warm-700">
                     ×
                 </button>
-
+    
             </div>
 
             {{-- TIDAK ADA SIGNATURE --}}
@@ -345,6 +345,7 @@
     .doc-sheet {
         position: relative;
         width: 210mm;
+        height: 297mm;               /* KERTAS TETAP: tidak memanjang lagi */
         min-height: 297mm;
         margin: 0 auto;
         box-sizing: border-box;
@@ -371,6 +372,8 @@
     .doc-sheet-body {
         flex: 1;
         min-height: 0;
+        overflow: hidden;            /* konten yang meluap DIKELUARKAN otomatis
+                                        ke kertas berikutnya oleh paginasi */
     }
 
     .doc-sheet-footer {
@@ -826,6 +829,11 @@
                             'lalu hard-refresh browser (Ctrl+F5).'
                         );
                     }
+
+                    // Paginasi otomatis: kertas tetap 297mm, konten penuh
+                    // mengalir ke kertas baru di bawahnya (aman di-skip
+                    // kalau bundle editor.js belum dibangun ulang).
+                    this.initAutoPagination();
                 });
 
                 // CTRL + S
@@ -835,6 +843,42 @@
                         this.saveDocument();
                     }
                 });
+
+                // Backspace pada halaman (selain halaman pertama) yang ISINYA KOSONG
+                // = hapus halaman tersebut (tekan backspace lagi setelah isi habis).
+                // Pakai phase CAPTURE supaya cek isi terjadi SEBELUM Quill menghapus
+                // karakter pada tombol ini -> hapus isi butuh 1 tekkan, penghapusan
+                // halaman butuh 1 tekkan berikutnya (isi sudah kosong duluan).
+                document.addEventListener('keydown', (e) => {
+                    if (e.key !== 'Backspace') return;
+
+                    // Hanya berlaku saat mengedit isi utama (di luar sesi header/footer)
+                    if (this.editSection) return;
+
+                    const bodyRegion = e.target.closest?.('.doc-sheet-body');
+                    if (!bodyRegion) return;
+
+                    const sheet = bodyRegion.closest('.doc-sheet');
+                    if (!sheet) return;
+
+                    const uid = sheet.getAttribute('data-page-uid');
+                    const index = this.pages.findIndex((p) => p.uid === uid);
+                    if (index < 0) return;
+
+                    // Halaman pertama (utama) TIDAK boleh dihapus
+                    if (index === 0) return;
+
+                    // Kosong = tidak ada teks sekaligus tidak ada gambar.
+                    const kosong =
+                        (bodyRegion.textContent || '').trim() === '' &&
+                        bodyRegion.querySelectorAll('img').length === 0;
+
+                    if (!kosong) return;
+
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.removePageSilent(index);
+                }, true); // capture
             },
 
             // INISIALISASI QUILL UNTUK SEMUA KERTAS
@@ -1020,11 +1064,126 @@
                 this.markAsChanged();
             },
 
+            // HAPUS HALAMAN TANPA KONFIRMASI — dipakai saat halaman kosong di-backspace.
+            // Menghindari dialog, lalu pindah caret ke halaman sebelum halaman yang dibuang.
+            removePageSilent(index) {
+
+                const removedUid = this.pages[index]?.uid;
+                if (!removedUid) return;
+
+                const root = document.getElementById('document-editor');
+                let prevBody = null;
+
+                if (root) {
+                    const sheet = root.querySelector('[data-page-uid="' + removedUid + '"]');
+                    if (sheet) {
+                        // Lepaskan instance editor zona milik halaman yang dihapus
+                        sheet.querySelectorAll('.doc-sheet-header, .doc-sheet-body, .doc-sheet-footer')
+                            .forEach((rg) => window.DocQuill.forgetRegion(rg));
+                        sheet.remove();
+                    }
+
+                    // Sasar halaman baru terakhir (halaman sebelumnya)
+                    const prev = this.pages[index - 1];
+                    const prevSheet = prev && root.querySelector('[data-page-uid="' + prev.uid + '"]');
+                    prevBody = prevSheet?.querySelector('.doc-sheet-body');
+                    if (prevBody) prevBody.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+
+                this.pages.splice(index, 1);
+                this.markAsChanged();
+
+                // Fokuskan caret di akhir halaman sebelumnya
+                if (prevBody && typeof window.DocQuill?.focusBodyEnd === 'function') {
+                    window.DocQuill.focusBodyEnd(prevBody);
+                }
+            },
+
             // =========================================
-            // HEADER/FOOTER EDIT MODE (ala Word):
-            // default INERT -> double-click untuk masuk,
-            // double-click body / tombol Tutup untuk keluar.
+            // PAGINASI OTOMATIS (bridge Alpine <-> DocQuill)
+            // Dipanggil editor.js saat satu kertas sudah penuh:
+            // buat kertas baru tepat SETELAH kertas `uid`.
+            // Return elemen .doc-sheet-body milik kertas baru.
             // =========================================
+            async createPageAfter(uid) {
+
+                const pos = this.pages.findIndex((p) => p.uid === uid);
+                if (pos < 0) return null;
+
+                const newUid = 'page-' + (++this.pageSeq) + '-' +
+                    Date.now().toString(36);
+
+                // Jaga daftar halaman (dipakai saat init / hitung) tetap selaras.
+                this.pages.splice(pos + 1, 0, { uid: newUid, html: '<p></p>' });
+
+                const root = document.getElementById('document-editor');
+                const target = root && uid
+                    ? root.querySelector('[data-page-uid="' + uid + '"]')
+                    : null;
+                if (!root || !target) return null;
+
+                // Penting: kertas di sini TIDAK dirender dengan x-for — halaman
+                // dibuat secara IMPERATIF (pola sama dengan addPage()). Jadi hanya
+                // memutasi this.pages tidak akan memunculkan DOM baru. Kita harus
+                // membangun elemen <div class="doc-sheet"> baru secara eksplisit dan
+                // menyelipkannya TEPAT SETELAH kertas `uid`.
+                const sheet = document.createElement('div');
+                sheet.className = 'doc-sheet';
+                sheet.setAttribute('data-sheet-type', 'page');
+                sheet.setAttribute('data-page-uid', newUid);
+
+                const mkRegion = (cls, region, inner) => {
+                    const el = document.createElement('div');
+                    el.className = cls;
+                    el.setAttribute('data-region', region);
+                    el.innerHTML = inner;
+                    return el;
+                };
+
+                // Header & footer baru = cermin konten halaman lain (ala Word).
+                const firstHeader = root.querySelector('.doc-sheet-header[data-region="header"]');
+                const firstFooter = root.querySelector('.doc-sheet-footer[data-region="footer"]');
+
+                const headerRegion = mkRegion('doc-sheet-header', 'header',
+                    firstHeader ? window.DocQuill.getHtml(firstHeader) : '<p></p>');
+                const bodyRegion = mkRegion('doc-sheet-body', 'body', '<p></p>');
+                const footerRegion = mkRegion('doc-sheet-footer', 'footer',
+                    firstFooter ? window.DocQuill.getHtml(firstFooter) : '<p></p>');
+
+                sheet.appendChild(headerRegion);
+                sheet.appendChild(bodyRegion);
+                sheet.appendChild(footerRegion);
+
+                // Selipkan di belakang kertas `uid`.
+                if (target.nextSibling) {
+                    target.parentNode.insertBefore(sheet, target.nextSibling);
+                } else {
+                    target.parentNode.appendChild(sheet);
+                }
+
+                // Pasang editor pada ketiga region kertas baru.
+                window.DocQuill.attachRegion(headerRegion);
+                window.DocQuill.attachRegion(bodyRegion);
+                window.DocQuill.attachRegion(footerRegion);
+
+                // Zona baru mengikuti status sesi edit yang sedang berjalan.
+                window.DocQuill.setZonesEnabled('header', this.editSection === 'header');
+                window.DocQuill.setZonesEnabled('footer', this.editSection === 'footer');
+
+                this.markAsChanged();
+
+                return bodyRegion;
+            },
+
+            initAutoPagination() {
+                if (typeof window.DocQuill?.enableAutoPagination !== 'function') {
+                    return; // bundel usang — fitur lain tetap jalan
+                }
+
+                window.DocQuill.enableAutoPagination({
+                    createPageAfter: (uid) => this.createPageAfter(uid),
+                });
+            },
 
             initZoneEditMode() {
                 const rootEl = document.getElementById('document-editor');
