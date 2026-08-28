@@ -355,9 +355,9 @@
                         </p>
                     </div>
 
-                    <button type="button" @click="loadTemplate('kemitraan')" :disabled="loadingTemplate"
+                    <button type="button" @click="loadTemplate('kontrak-kemitraan')" :disabled="loadingTemplate"
                         class="btn-primary w-full text-xs text-center py-2.5">
-                        <span x-text="loadingTemplate === 'kemitraan' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
+                        <span x-text="loadingTemplate === 'kontrak-kemitraan' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
                     </button>
                 </div>
 
@@ -391,9 +391,9 @@
                         </p>
                     </div>
 
-                    <button type="button" @click="loadTemplate('colocation')" :disabled="loadingTemplate"
+                    <button type="button" @click="loadTemplate('kontrak-colocation')" :disabled="loadingTemplate"
                         class="btn-primary w-full text-xs text-center py-2.5">
-                        <span x-text="loadingTemplate === 'colocation' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
+                        <span x-text="loadingTemplate === 'kontrak-colocation' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
                     </button>
                 </div>
 
@@ -427,10 +427,10 @@
                         </p>
                     </div>
 
-                    <button type="button" @click="loadTemplate('managed-service')" :disabled="loadingTemplate"
+                    <button type="button" @click="loadTemplate('kontrak-managed-service')" :disabled="loadingTemplate"
                         class="btn-primary w-full text-xs text-center py-2.5">
                         <span
-                            x-text="loadingTemplate === 'managed-service' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
+                            x-text="loadingTemplate === 'kontrak-managed-service' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
                     </button>
                 </div>
 
@@ -464,9 +464,9 @@
                         </p>
                     </div>
 
-                    <button type="button" @click="loadTemplate('soho')" :disabled="loadingTemplate"
+                    <button type="button" @click="loadTemplate('kontrak-soho')" :disabled="loadingTemplate"
                         class="btn-primary w-full text-xs text-center py-2.5">
-                        <span x-text="loadingTemplate === 'soho' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
+                        <span x-text="loadingTemplate === 'kontrak-soho' ? 'Memuat...' : 'Gunakan Template Ini →'"></span>
                     </button>
                 </div>
 
