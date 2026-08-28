@@ -95,6 +95,10 @@ class DocumentController extends Controller
                 ?? $this->buildTemplateBodyHtml($template['body_content'] ?? []);
         }
 
+        // Pastikan judul "PASAL n" selalu berurutan sesuai urutan pasalnya,
+        // apa pun isi body (dari template, hasil import, atau manual).
+        $bodyHtml = $this->normalizePasalNumbering([$bodyHtml])[0];
+
         // Halaman pertama dokumen: sampul (cover) untuk semua template kecuali
         // surat-kuasa & surat-pernyataan; tanpa template -> langsung isi saja.
         // Untuk cover: ikon masuk section header, identitas/pihak + paraf +
@@ -441,6 +445,56 @@ class DocumentController extends Controller
         HTML;
     }
 
+        /**
+     * Pastikan judul "PASAL n" berurutan KESELURUHAN dokumen (1,2,3...),
+     * melintasi batas halaman. Dipanggil dengan seluruh array halaman
+     * body sehingga counter tidak ter-reset per halaman.
+     *
+     * Nomor pasal pada template disimpan sebagai TEKS keras (mis. "PASAL 5").
+     * Jika sebuah pasal pernah dipindah/diurut-ulang (di editor, hasil import,
+     * dsb.) nomor teks itu tidak ikut menyesuaikan, sehingga tampak tidak
+     * berurutan. Helper ini menomori ulang hanya untuk baris yang benar-benar
+     * merupakan JUDUL pasal berdiri sendiri (berawalan PASAL + angka), lalu
+     * membiarkan paragraf lain (yang sekadar menyebut "pasal 4 ayat 1", dst.)
+     * tetap apa adanya.
+     *
+     * Terima array halaman -> kembalikan array halaman yang sudah
+     * di-renumber secara berurutan.
+     */
+    private function normalizePasalNumbering(array $pages): array
+    {
+        $counter = 0;
+        $out = [];
+
+        foreach ($pages as $html) {
+            $parts = preg_split('/(\r?\n)/', (string) $html, -1, PREG_SPLIT_DELIM_CAPTURE);
+            $pageOut = '';
+
+            for ($i = 0; $i < count($parts); $i += 2) {
+                $line = $parts[$i];
+                $sep  = $parts[$i + 1] ?? '';
+
+                // Buang tag HTML utk uji: apakah baris ini hanya sebuah judul "PASAL n"?
+                $stripped = trim(preg_replace('/<[^>]*>/', '', $line));
+
+                // Harus benar2 judul pasal: diawali "pasal" + angka, dan tidak ada
+                // teks lanjutan di luar kemungkinan judul (mis. "— JUDUL").
+                if (preg_match('/^pasal\s+\d+(\s*[—-]\s*.+)?$/iu', $stripped)) {
+                    $counter++;
+                    $line = preg_replace_callback('/pasal\s+\d+/iu', function () use ($counter) {
+                        return 'PASAL ' . $counter;
+                    }, $line, 1);
+                }
+
+                $pageOut .= $line . $sep;
+            }
+
+            $out[] = $pageOut;
+        }
+
+        return $out;
+    }
+
     /**
      * Bangun HTML body dari data template menjadi dokumen perjanjian yang utuh.
      *
@@ -582,6 +636,12 @@ class DocumentController extends Controller
             'status'         => ['nullable', 'in:draft,pending,signed,archieved'],
         ]);
 
+        // Pastikan judul "PASAL n" berurutan KESELURUHAN dokumen (1,2,3...)
+        // melintasi batas halaman, bukan per halaman.
+        if (!empty($data['body_content']['pages']) && is_array($data['body_content']['pages'])) {
+            $data['body_content']['pages'] = $this->normalizePasalNumbering($data['body_content']['pages']);
+        }
+
         $document->update($data);
 
         return response()->json(['message' => 'Perubahan tersimpan.']);
@@ -674,6 +734,11 @@ class DocumentController extends Controller
         if (in_array($template, $this->coverTemplateKeys(), true)) {
             $data['header_content'] = $this->buildCoverHeaderHtml();
             $data['footer_content'] = $this->buildCoverFooterHtml();
+        }
+
+        // Pastikan judul "PASAL n" berurutan pada pratinjau template juga.
+        if (!empty($data['body_html'])) {
+            $data['body_html'] = $this->normalizePasalNumbering([$data['body_html']])[0];
         }
 
         return response()->json($data);

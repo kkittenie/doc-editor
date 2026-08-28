@@ -382,6 +382,36 @@
         padding-top: 8px;
     }
 
+    /* Tombol hapus halaman (muncul di semua kertas, kecuali kertas pertama) */
+    .page-remove-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 30;
+        width: 26px;
+        height: 26px;
+        line-height: 1;
+        border: 1px solid rgb(220 38 38 / 0.4);
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.92);
+        color: #dc2626;
+        font-size: 13px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+        opacity: 0;
+    }
+    .doc-sheet:hover .page-remove-btn {
+        opacity: 1;
+    }
+    .page-remove-btn:hover {
+        background: #dc2626;
+        color: #fff;
+    }
+
     /* Jadikan tiap region stacking context, agar gambar dengan z-index negatif
        (mode "Di Belakang Teks") tetap tampil di atas kertas putih
        tapi berada di bawah teks. */
@@ -793,6 +823,11 @@
             saveStatus: 'saved',
             changed: false,
 
+            // Riwayat UNDO/REDO tingkat dokumen (struktur halaman).
+            // Dipakai supaya tombol Undo bisa memulihkan halaman yang dihapus.
+            undoStack: [],
+            redoStack: [],
+
             // PAGES (hanya data, dirender sebagai sheet di dalam satu editor)
             pages: (
                 @js(
@@ -834,6 +869,30 @@
                     // mengalir ke kertas baru di bawahnya (aman di-skip
                     // kalau bundle editor.js belum dibangun ulang).
                     this.initAutoPagination();
+                });
+
+                // Bridge UNDO/REDO tingkat dokumen buat toolbar Quill.
+                // Editor.js akan memanggil ini dulu; kalau ada snapshot struktur
+                // halaman, dipakai (mis. memulihkan halaman yang dihapus).
+                window.__docUndoBridge = {
+                    undo: () => this.undoDocument(),
+                    redo: () => this.redoDocument(),
+                };
+
+                // Delegasi klik tombol hapus halaman (muncul di semua kertas,
+                // kecuali kertas pertama). Didelegasikan ke container supaya
+                // tombol yang dibuat lewat buildSheet/addPage/createPageAfter
+                // tetap berfungsi tanpa perlu listener per tombol.
+                const editorRootEl = document.getElementById('document-editor');
+                editorRootEl?.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.page-remove-btn');
+                    if (!btn) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const uid = btn.getAttribute('data-page-uid');
+                    const index = this.pages.findIndex((p) => p.uid === uid);
+                    if (index < 0) return;
+                    this.removePage(index);
                 });
 
                 // CTRL + S
@@ -890,25 +949,8 @@
                 // Bangun konten awal: setiap kertas berisi header + body + footer
                 let html = '';
 
-                this.pages.forEach((page) => {
-                    html += '<div class="doc-sheet" data-sheet-type="page" data-page-uid="' + page.uid + '">';
-
-                    // Header & footer di SEMUA halaman (ala Microsoft Word).
-                    // Semua zona dengan role sama berbagi SATU konten.
-                    html += '<div class="doc-sheet-header" data-region="header">';
-                    html += this.headerHtml || '<p></p>';
-                    html += '</div>';
-
-                    // Body
-                    html += '<div class="doc-sheet-body" data-region="body">';
-                    html += page.html || '<p></p>';
-                    html += '</div>';
-
-                    html += '<div class="doc-sheet-footer" data-region="footer">';
-                    html += this.footerHtml || '<p></p>';
-                    html += '</div>';
-
-                    html += '</div>';
+                this.pages.forEach((page, i) => {
+                    html += this.buildSheet(page, i);
                 });
 
                 editorEl.innerHTML = html;
@@ -999,6 +1041,16 @@
                 sheet.appendChild(headerRegion);
                 sheet.appendChild(bodyRegion);
                 sheet.appendChild(footerRegion);
+
+                // Tombol hapus halaman (halaman baru selalu bukan yang pertama).
+                const rmBtn = document.createElement('button');
+                rmBtn.type = 'button';
+                rmBtn.className = 'page-remove-btn print:hidden';
+                rmBtn.setAttribute('data-page-uid', uid);
+                rmBtn.title = 'Hapus halaman ini';
+                rmBtn.textContent = '✕';
+                sheet.appendChild(rmBtn);
+
                 root.appendChild(sheet);
 
                 // Pasang editor pada ketiga region baru
@@ -1047,6 +1099,9 @@
                     return;
                 }
 
+                // Simpan state sebelum menghapus (untuk tombol Undo).
+                this.pushHistory();
+
                 const removedUid = this.pages[index].uid;
 
                 const root = document.getElementById('document-editor');
@@ -1070,6 +1125,9 @@
 
                 const removedUid = this.pages[index]?.uid;
                 if (!removedUid) return;
+
+                // Simpan state sebelum menghapus (untuk tombol Undo).
+                this.pushHistory();
 
                 const root = document.getElementById('document-editor');
                 let prevBody = null;
@@ -1099,6 +1157,104 @@
                 }
             },
 
+            // Susun inner-HTML satu kertas (header + body + footer),
+            // lengkap dengan tombol hapus (kecuali kertas pertama).
+            buildSheet(page, index) {
+                let html = '<div class="doc-sheet" data-sheet-type="page" data-page-uid="' + page.uid + '">';
+
+                // Tombol hapus halaman: semua kertas KECUALI yang pertama.
+                if (index > 0) {
+                    html += '<button type="button" class="page-remove-btn print:hidden" ' +
+                        'data-page-uid="' + page.uid + '" title="Hapus halaman ini">✕</button>';
+                }
+
+                // Header & footer di SEMUA halaman (ala Microsoft Word).
+                // Semua zona dengan role sama berbagi SATU konten.
+                html += '<div class="doc-sheet-header" data-region="header">';
+                html += this.headerHtml || '<p></p>';
+                html += '</div>';
+
+                // Body
+                html += '<div class="doc-sheet-body" data-region="body">';
+                html += page.html || '<p></p>';
+                html += '</div>';
+
+                html += '<div class="doc-sheet-footer" data-region="footer">';
+                html += this.footerHtml || '<p></p>';
+                html += '</div>';
+
+                html += '</div>';
+                return html;
+            },
+
+            // ------------- UNDO/REDO TINGKAT DOKUMEN -------------
+            // Snapshot = salinan penuh state (halaman + header + footer).
+            // Ini memungkinkan tombol Undo memulihkan halaman yang dihapus.
+
+            snapshot() {
+                return JSON.stringify({
+                    pages: this.pages.map((p) => ({ uid: p.uid, html: p.html })),
+                    headerHtml: this.headerHtml,
+                    footerHtml: this.footerHtml,
+                });
+            },
+
+            // Simpan state SAAT INI ke tumpukan undo (dipanggil SEBELUM
+            // perubahan struktur halaman: tambah / hapus / pindah).
+            pushHistory() {
+                this.undoStack.push(this.snapshot());
+                if (this.undoStack.length > 60) this.undoStack.shift();
+                this.redoStack = [];
+            },
+
+            applySnapshot(s) {
+                this.pages = s.pages;
+                this.headerHtml = s.headerHtml || '<p></p>';
+                this.footerHtml = s.footerHtml || '<p></p>';
+                this.rebuildSheets();
+            },
+
+            // Bangun ulang seluruh DOM kertas dari this.pages + header/footer.
+            // Aman dipanggil kapan saja (pasca undo/redo struktural): lepaskan
+            // instance Quill lama, lalu pasang ulang untuk setiap region baru.
+            rebuildSheets() {
+                const editorEl = document.getElementById('document-editor');
+                if (!editorEl) return;
+
+                editorEl.querySelectorAll('.doc-sheet-header, .doc-sheet-body, .doc-sheet-footer')
+                    .forEach((rg) => window.DocQuill.forgetRegion(rg));
+
+                editorEl.innerHTML = this.pages
+                    .map((p, i) => this.buildSheet(p, i))
+                    .join('');
+
+                editorEl.querySelectorAll('.doc-sheet-header, .doc-sheet-body, .doc-sheet-footer')
+                    .forEach((rg) => window.DocQuill.attachRegion(rg));
+
+                window.DocQuill.ensureBodyEditable?.();
+                this.renderSignature();
+                this.markAsChanged();
+            },
+
+            // Undo tingkat dokumen. Mengembalikan true kalau ada snapshot
+            // struktur yang mau dipulihkan (supaya editor.js TIDAK meneruskan
+            // ke undo teks Quill); false kalau tidak ada -> biar Quill handle.
+            undoDocument() {
+                if (!this.undoStack.length) return false;
+                this.redoStack.push(this.snapshot());
+                const prev = JSON.parse(this.undoStack.pop());
+                this.applySnapshot(prev);
+                return true;
+            },
+
+            redoDocument() {
+                if (!this.redoStack.length) return false;
+                this.undoStack.push(this.snapshot());
+                const next = JSON.parse(this.redoStack.pop());
+                this.applySnapshot(next);
+                return true;
+            },
+
             // =========================================
             // PAGINASI OTOMATIS (bridge Alpine <-> DocQuill)
             // Dipanggil editor.js saat satu kertas sudah penuh:
@@ -1112,6 +1268,9 @@
 
                 const newUid = 'page-' + (++this.pageSeq) + '-' +
                     Date.now().toString(36);
+
+                // Simpan state sebelum menambah halaman (untuk tombol Undo).
+                this.pushHistory();
 
                 // Jaga daftar halaman (dipakai saat init / hitung) tetap selaras.
                 this.pages.splice(pos + 1, 0, { uid: newUid, html: '<p></p>' });
@@ -1153,6 +1312,15 @@
                 sheet.appendChild(headerRegion);
                 sheet.appendChild(bodyRegion);
                 sheet.appendChild(footerRegion);
+
+                // Tombol hapus halaman pada kertas baru (selalu bukan yang pertama).
+                const rmBtn = document.createElement('button');
+                rmBtn.type = 'button';
+                rmBtn.className = 'page-remove-btn print:hidden';
+                rmBtn.setAttribute('data-page-uid', newUid);
+                rmBtn.title = 'Hapus halaman ini';
+                rmBtn.textContent = '✕';
+                sheet.appendChild(rmBtn);
 
                 // Selipkan di belakang kertas `uid`.
                 if (target.nextSibling) {
@@ -1359,6 +1527,11 @@
                 // Akhiri sesi edit header/footer sebelum menyimpan
                 this.exitEditSection();
                 this.saveStatus = 'saving';
+
+                // Setelah tersimpan, riwayat undo dokumen direset supaya tidak
+                // muncul snapshot lama yang sudah tidak relevan lagi.
+                this.undoStack = [];
+                this.redoStack = [];
 
                 const root = document.getElementById('document-editor');
 

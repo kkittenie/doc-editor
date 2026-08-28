@@ -1299,12 +1299,25 @@ const applyCmd = (cmd) => {
     const sel = q.getSelection(true);
 
     switch (cmd) {
-        case 'undo':
+        case 'undo': {
+            // Coba UNDO tingkat dokumen dulu (memulihkan halaman yang dihapus
+            // atau dibatalkan dari snapshot struktur). Kalau tidak ada snapshot,
+            // jatuh ke undo teks Quill seperti biasa.
+            const bridge = window.__docUndoBridge;
+            if (bridge && typeof bridge.undo === 'function' && bridge.undo()) {
+                break;
+            }
             q.history.undo();
             break;
-        case 'redo':
+        }
+        case 'redo': {
+            const bridge = window.__docUndoBridge;
+            if (bridge && typeof bridge.redo === 'function' && bridge.redo()) {
+                break;
+            }
             q.history.redo();
             break;
+        }
         case 'bold':
         case 'italic':
         case 'underline':
