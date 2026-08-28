@@ -68,7 +68,7 @@
 
     {{-- QUILL TOOLBAR (satu toolbar bersama untuk semua region) --}}
     <div id="body-toolbar-container"
-        class="sticky top-[57px] z-30 flex flex-wrap items-center gap-1 border-b border-parchment-300 bg-white/95 px-3 py-2 backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95 print:hidden">
+        class="sticky top-[57px] z-30 flex flex-wrap items-center gap-1.5 border-b border-parchment-300 bg-white/95 px-4 py-2.5 shadow-sm backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95 print:hidden">
 
         <button type="button" class="toolbar-button" data-cmd="undo" title="Urungkan"><b>↺</b></button>
         <button type="button" class="toolbar-button" data-cmd="redo" title="Ulangi"><b>↻</b></button>
@@ -103,6 +103,11 @@
             <option value="28px">28</option>
             <option value="32px">32</option>
         </select>
+
+        <div class="toolbar-size-arrows" title="Perbesar/perkecil font">
+            <button type="button" class="toolbar-size-arrow" data-size-step="1" title="Perbesar font">▲</button>
+            <button type="button" class="toolbar-size-arrow" data-size-step="-1" title="Perkecil font">▼</button>
+        </div>
 
         <select id="tb-lineheight" class="toolbar-select" title="Spasi baris">
             <option value="">Spasi</option>
@@ -141,6 +146,7 @@
         <button type="button" class="toolbar-button" data-cmd="indent" title="Tambah indentasi"><b>⇥</b></button>
         <button type="button" class="toolbar-button" data-cmd="bullist" title="Daftar poin"><b>•</b></button>
         <button type="button" class="toolbar-button" data-cmd="numlist" title="Daftar nomor"><b>1.</b></button>
+        <button type="button" class="toolbar-button" data-cmd="alphalist" title="Daftar huruf"><b>a.</b></button>
 
         <span class="toolbar-divider"></span>
 
@@ -277,14 +283,30 @@
         min-width: 34px;
         align-items: center;
         justify-content: center;
-        border-radius: 7px;
+        border-radius: 8px;
         font-size: 14px;
+        color: #44403c;
         cursor: pointer;
-        transition: background-color 0.2s;
+        transition: background-color 0.15s, box-shadow 0.15s, color 0.15s;
     }
 
     .toolbar-button:hover {
-        background: rgb(245 242 235);
+        background: rgb(240 236 227);
+    }
+
+    .toolbar-button:active {
+        background: rgb(231 224 210);
+    }
+
+    .toolbar-button.active {
+        background: #1B2A4A;
+        color: #fff;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+    }
+
+    .dark .toolbar-button.active {
+        background: rgb(180 140 80);
+        color: #1c1917;
     }
 
     .toolbar-color {
@@ -292,9 +314,15 @@
         height: 30px;
         padding: 2px;
         border: 1px solid rgb(214 211 204);
-        border-radius: 7px;
+        border-radius: 8px;
         cursor: pointer;
         background: white;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .toolbar-color:hover {
+        border-color: rgb(180 140 80);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     }
 
     .toolbar-color::-webkit-color-swatch-wrapper {
@@ -312,24 +340,60 @@
 
     .toolbar-divider {
         width: 1px;
-        height: 24px;
-        margin: 0 4px;
+        height: 22px;
+        margin: 0 6px;
         background: rgb(214 211 204);
+        border-radius: 1px;
     }
 
     .toolbar-select {
         height: 34px;
         min-width: 130px;
-        padding: 0 8px;
+        padding: 0 10px;
         border: 1px solid rgb(214 211 204);
-        border-radius: 7px;
+        border-radius: 8px;
         background: white;
         font-size: 13px;
-        outline: none;
+        color: #292524;
+        cursor: pointer;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .toolbar-select:hover {
+        border-color: rgb(180 140 80);
     }
 
     .toolbar-select:focus {
+        outline: none;
         border-color: rgb(180 140 80);
+        box-shadow: 0 0 0 3px rgba(180, 140, 80, 0.15);
+    }
+
+    .toolbar-size-arrows {
+        display: flex;
+        flex-direction: column;
+        height: 34px;
+        width: 22px;
+        border: 1px solid rgb(214 211 204);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .toolbar-size-arrow {
+        flex: 1;
+        font-size: 8px;
+        line-height: 1;
+        color: #78716c;
+        cursor: pointer;
+        background: white;
+    }
+
+    .toolbar-size-arrow:hover {
+        background: rgb(240 236 227);
+    }
+
+    .toolbar-size-arrow:first-child {
+        border-bottom: 1px solid rgb(214 211 204);
     }
 
     @media (max-width: 768px) {
@@ -344,9 +408,7 @@
         cursor: pointer;
     }
 
-    /* =========================================
-       KANVAS EDITOR (SATU INSTANCE)
-       ========================================= */
+    /*KANVAS EDITOR (SATU INSTANCE)*/
     .document-editor-canvas {
         display: flex;
         flex-direction: column;
@@ -366,7 +428,7 @@
         padding: 20mm 20mm;
         font-family: Arial, sans-serif;
         font-size: 14px;
-        line-height: 1.6;
+        line-height: 1.5;
         color: #111827;
         outline: none;
         display: flex;
@@ -391,9 +453,6 @@
         padding-top: 8px;
     }
 
-    /* Jadikan tiap region stacking context, agar gambar dengan z-index negatif
-       (mode "Di Belakang Teks") tetap tampil di atas kertas putih
-       tapi berada di bawah teks. */
     .doc-sheet-header,
     .doc-sheet-body,
     .doc-sheet-footer {
@@ -516,6 +575,48 @@
         -webkit-user-drag: none !important;
     }
 
+    .doc-sheet .ql-editor li[data-list=ordered].ql-indent-1>.ql-ui:before {
+        content: counter(list-1, decimal) '. ';
+    }
+
+    .doc-sheet .ql-editor li[data-list=ordered].ql-indent-2>.ql-ui:before {
+        content: counter(list-2, decimal) '. ';
+    }
+
+    .doc-sheet .ql-editor li[data-list=ordered].ql-indent-4>.ql-ui:before {
+        content: counter(list-4, decimal) '. ';
+    }
+
+    .doc-sheet .ql-editor li[data-list=ordered].ql-indent-5>.ql-ui:before {
+        content: counter(list-5, decimal) '. ';
+    }
+
+    .doc-sheet .ql-editor li[data-list=ordered].ql-indent-7>.ql-ui:before {
+        content: counter(list-7, decimal) '. ';
+    }
+
+    .doc-sheet .ql-editor li[data-list=ordered].ql-indent-8>.ql-ui:before {
+        content: counter(list-8, decimal) '. ';
+    }
+
+    .doc-sheet .ql-editor li[data-list=ordered].ql-liststyle-alpha>.ql-ui:before {
+        content: counter(list-0, lower-alpha) '. ';
+    }
+
+    .doc-sheet .ql-editor li[data-list=ordered].ql-liststyle-alpha.ql-indent-1>.ql-ui:before {
+        content: counter(list-1, lower-alpha) '. ';
+    }
+
+    .doc-sheet .ql-editor li[data-list=ordered].ql-liststyle-alpha.ql-indent-2>.ql-ui:before {
+        content: counter(list-2, lower-alpha) '. ';
+    }
+
+    .doc-sheet .ql-editor li[data-list=ordered].ql-liststyle-alpha.ql-indent-3>.ql-ui:before {
+        content: counter(list-3, lower-alpha) '. ';
+    }
+
+
+
     /* Garis pemisah antar kertas (hanya di layar) */
     .doc-sheet+.doc-sheet {
         margin-top: 24px;
@@ -543,18 +644,13 @@
         padding: 0;
         min-height: 40px;
         height: auto !important;
-        /* tanpa ini konten malah scroll di dalam kertas */
         overflow: visible !important;
-        /* dan terlihat "menghilang" saat konten panjang */
         font-family: inherit;
         font-size: 14px;
-        line-height: 1.6;
+        line-height: 1.5;
         color: #111827;
     }
 
-    /* Isi dokumen (body): kontainer & editor memenuhi SELURUH ruang
-       antara zona header dan zona footer, sehingga klik di mana pun
-       di area itu jatuh DI DALAM editor dan caret bisa ditempatkan. */
     .doc-sheet .doc-sheet-body .ql-container {
         height: 100% !important;
     }
@@ -579,11 +675,10 @@
         left: -9999px;
     }
 
-    /* =========================================
-       HEADER/FOOTER ALA WORD
+    /*
+        HEADER/FOOTER ALA WORD
        - zona default INERT + hint saat hover
-       - sesi edit: area lain redup & terkunci
-       ========================================= */
+       - sesi edit: area lain redup & terkunci*/
     .doc-sheet-header,
     .doc-sheet-footer {
         cursor: default;

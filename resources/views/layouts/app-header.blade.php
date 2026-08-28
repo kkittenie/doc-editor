@@ -55,7 +55,7 @@
             </div>
 
             <!-- Quick Document Search Bar (desktop) -->
-            <div class="hidden xl:block ml-auto">
+            <!-- <div class="hidden xl:block ml-auto">
                 <form @submit.prevent>
                     <div class="relative">
                         <span
@@ -70,7 +70,7 @@
                             class="h-9 w-48 rounded-lg border border-parchment-300 bg-white py-1.5 pl-10 pr-8 text-xs text-ink-900 shadow-theme-xs focus:border-bronze-500 focus:w-64 transition-all dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100 dark:focus:border-bronze-400" />
                     </div>
                 </form>
-            </div>
+            </div> -->
         </div>
 
         <!-- Right Side Header Actions -->
