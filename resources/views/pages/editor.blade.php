@@ -159,6 +159,31 @@
         <button type="button" class="toolbar-button" data-cmd="image" title="Sisipkan gambar"><b>🖼</b></button>
         <button type="button" class="toolbar-button" data-cmd="hr" title="Garis pembatas kop"><b>⎯</b></button>
         <button type="button" class="toolbar-button" data-cmd="removeformat" title="Hapus format"><b>⌫</b></button>
+
+        <span class="toolbar-divider"></span>
+
+        {{-- TOOL TABEL: dropdown grid picker + aksi baris/kolom --}}
+        <div class="toolbar-dropdown" id="tb-table-dd">
+            <button type="button" class="toolbar-button toolbar-dropdown-toggle" data-cmd="table"
+                title="Sisipkan / kelola tabel">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-table" viewBox="0 0 16 16">
+                    <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm15 2h-4v3h4zm0 4h-4v3h4zm0 4h-4v3h3a1 1 0 0 0 1-1zm-5 3v-3H6v3zm-5 0v-3H1v2a1 1 0 0 0 1 1zm-4-4h4V8H1zm0-4h4V4H1zm5-3v3h4V4zm4 4H6v3h4z"/>
+                </svg>
+            </button>
+
+            <div class="toolbar-dropdown-menu">
+                <div class="table-grid-picker" role="grid"></div>
+                <div class="table-grid-label">Sisipkan tabel</div>
+
+                <div class="table-dd-divider"></div>
+
+                <button type="button" class="table-dd-action" data-table-action="insert-row">+ Sisip baris di bawah</button>
+                <button type="button" class="table-dd-action" data-table-action="insert-column">+ Sisip kolom di kanan</button>
+                <button type="button" class="table-dd-action table-dd-danger" data-table-action="delete-row">− Hapus baris</button>
+                <button type="button" class="table-dd-action table-dd-danger" data-table-action="delete-column">− Hapus kolom</button>
+                <button type="button" class="table-dd-action table-dd-danger" data-table-action="delete-table">✕ Hapus tabel</button>
+            </div>
+        </div>
     </div>
 
     {{-- DOCUMENT AREA --}}
@@ -406,6 +431,157 @@
     .doc-editable-header img,
     .doc-editable-footer img {
         cursor: pointer;
+    }
+
+    /* ─── TOOL TABEL: dropdown + grid picker ─── */
+    .toolbar-dropdown {
+        position: relative;
+        display: inline-flex;
+    }
+
+    .toolbar-dropdown-toggle {
+        width: auto;
+        min-width: 74px;
+        padding: 0 10px;
+        gap: 4px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .toolbar-dropdown-menu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        z-index: 60;
+        min-width: 200px;
+        padding: 10px;
+        background: white;
+        border: 1px solid rgb(214 211 204);
+        border-radius: 12px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
+    }
+
+    .toolbar-dropdown-menu.open {
+        display: block;
+    }
+
+    .dark .toolbar-dropdown-menu {
+        background: rgb(28 25 23);
+        border-color: rgb(68 64 60);
+    }
+
+    .table-grid-picker {
+        display: grid;
+        grid-template-columns: repeat(10, 16px);
+        gap: 2px;
+    }
+
+    .table-grid-cell {
+        width: 16px;
+        height: 16px;
+        padding: 0;
+        border: 1px solid rgb(214 211 204);
+        background: white;
+        cursor: pointer;
+    }
+
+    .table-grid-cell.hovered {
+        background: #1B2A4A;
+        border-color: #1B2A4A;
+    }
+
+    .dark .table-grid-cell {
+        background: rgb(41 37 36);
+        border-color: rgb(87 83 78);
+    }
+
+    .dark .table-grid-cell.hovered {
+        background: rgb(180 140 80);
+        border-color: rgb(180 140 80);
+    }
+
+    .table-grid-label {
+        margin-top: 8px;
+        font-size: 11px;
+        color: rgb(120 113 108);
+        text-align: center;
+    }
+
+    .dark .table-grid-label {
+        color: rgb(168 162 158);
+    }
+
+    .table-dd-divider {
+        height: 1px;
+        margin: 8px 0;
+        background: rgb(214 211 204);
+    }
+
+    .dark .table-dd-divider {
+        background: rgb(68 64 60);
+    }
+
+    .table-dd-action {
+        display: block;
+        width: 100%;
+        padding: 7px 10px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        text-align: left;
+        font-size: 13px;
+        color: #292524;
+        cursor: pointer;
+    }
+
+    .table-dd-action:hover {
+        background: rgb(240 236 227);
+    }
+
+    .dark .table-dd-action {
+        color: rgb(231 229 228);
+    }
+
+    .dark .table-dd-action:hover {
+        background: rgb(41 37 36);
+    }
+
+    .table-dd-action.disabled {
+        opacity: 0.4;
+        pointer-events: none;
+    }
+
+    .table-dd-danger {
+        color: #b91c1c;
+    }
+
+    .dark .table-dd-danger {
+        color: #fca5a5;
+    }
+
+    /* ─── TABEL DI DALAM EDITOR ─── */
+    .ql-editor table {
+        border-collapse: collapse;
+        table-layout: fixed;
+        width: 100%;
+        margin: 8px 0;
+    }
+
+    .ql-editor td {
+        border: 1px solid rgb(120 113 108);
+        padding: 5px 8px;
+        vertical-align: top;
+        position: relative;
+    }
+
+    .ql-editor td.selected-cell {
+        background: rgba(27, 42, 74, 0.12);
+    }
+
+    .dark .ql-editor td.selected-cell,
+    .ql-editor td.selected-cell.selected-cell {
+        background: rgba(180, 140, 80, 0.25);
     }
 
     /*KANVAS EDITOR (SATU INSTANCE)*/
