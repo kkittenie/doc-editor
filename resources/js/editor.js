@@ -17,11 +17,24 @@ Quill.register(FontAttributor, true);
 
 // ---- Ukuran font: nilai px nyata ----
 const SizeAttributor = Quill.import('attributors/style/size');
-SizeAttributor.whitelist = ['10px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px'];
+SizeAttributor.whitelist = null;
 Quill.register(SizeAttributor, true);
 
-// ---- Gambar: pertahankan attribute style & class
-//      (dibutuhkan fitur posisi gambar depan/belakang teks) ----
+
+const Parchment = Quill.import('parchment');
+const LineHeightStyle = new Parchment.StyleAttributor('lineheight', 'line-height', {
+    scope: Parchment.Scope.BLOCK,
+    whitelist: ['1', '1.15', '1.5', '2', '2.5'],
+});
+Quill.register(LineHeightStyle, true);
+
+// ---- Penanda "list ini pakai huruf (a, b, c)", terpisah dari nesting/indent ----
+const ListStyleAttributor = new Parchment.ClassAttributor('liststyle', 'ql-liststyle', {
+    scope: Parchment.Scope.BLOCK,
+    whitelist: ['alpha'],
+});
+Quill.register(ListStyleAttributor, true);
+
 const BaseImage = Quill.import('formats/image');
 
 class StyledImage extends BaseImage {
@@ -59,7 +72,7 @@ const ALLOWED_FORMATS = [
     'header', 'bold', 'italic', 'underline', 'strike',
     'script', 'list', 'align', 'indent',
     'blockquote', 'link', 'image', 'hr',
-    'font', 'size', 'color', 'background',
+    'font', 'size', 'color', 'background', 'lineheight', 'liststyle',
 ];
 
 // ---- Upload gambar ke server ----
@@ -1224,11 +1237,9 @@ const TOOLBAR_TOGGLES = ['bold', 'italic', 'underline', 'strike'];
 
 const refreshToolbarStates = () => {
     const q = activeQuill;
-    if (!q) return;
-    const sel = q.getSelection();
-    if (!sel) return;
+    const sel = q ? q.getSelection() : null;
 
-    const fmt = q.getFormat(sel.index, sel.length);
+    const fmt = (q && sel) ? q.getFormat(sel.index, sel.length) : {};
 
     document.querySelectorAll('#body-toolbar-container [data-cmd]').forEach((btn) => {
         const cmd = btn.dataset.cmd;
@@ -1241,7 +1252,9 @@ const refreshToolbarStates = () => {
         } else if (cmd === 'bullist') {
             btn.classList.toggle('active', fmt.list === 'bullet');
         } else if (cmd === 'numlist') {
-            btn.classList.toggle('active', fmt.list === 'ordered');
+            btn.classList.toggle('active', fmt.list === 'ordered' && !fmt.liststyle);
+        } else if (cmd === 'alphalist') {
+            btn.classList.toggle('active', fmt.list === 'ordered' && fmt.liststyle === 'alpha');
         }
     });
 
@@ -1252,9 +1265,11 @@ const refreshToolbarStates = () => {
     const blockSel = document.getElementById('tb-block');
     if (blockSel) blockSel.value = fmt.header ? String(fmt.header) : '';
     const fontSel = document.getElementById('tb-font');
-    if (fontSel) fontSel.value = fmt.font || '';
+    if (fontSel) fontSel.value = fmt.font || 'Arial';
     const sizeSel = document.getElementById('tb-size');
-    if (sizeSel) sizeSel.value = fmt.size || '';
+    if (sizeSel) sizeSel.value = fmt.size || '14px';
+    const lineHeightSel = document.getElementById('tb-lineheight');
+    if (lineHeightSel) lineHeightSel.value = fmt.lineheight || '1.5';
 };
 
 const ensureHiddenImageInput = () => {
@@ -1335,11 +1350,26 @@ const applyCmd = (cmd) => {
         case 'bullist': {
             const cur = q.getFormat(sel).list === 'bullet';
             q.format('list', cur ? false : 'bullet');
+            q.format('liststyle', false);
             break;
         }
         case 'numlist': {
-            const cur = q.getFormat(sel).list === 'ordered';
-            q.format('list', cur ? false : 'ordered');
+            const fmtNow = q.getFormat(sel);
+            const isPlainOrdered = fmtNow.list === 'ordered' && !fmtNow.liststyle;
+            q.format('list', isPlainOrdered ? false : 'ordered');
+            q.format('liststyle', false);
+            break;
+        }
+        case 'alphalist': {
+            const fmtNow = q.getFormat(sel);
+            const isAlpha = fmtNow.list === 'ordered' && fmtNow.liststyle === 'alpha';
+            if (isAlpha) {
+                q.format('list', false);
+                q.format('liststyle', false);
+            } else {
+                q.format('list', 'ordered');
+                q.format('liststyle', 'alpha');
+            }
             break;
         }
         case 'outdent':
@@ -1405,7 +1435,6 @@ const bindToolbar = () => {
             // Tombol mencuri fokus dari editor -> pulihkan seleksi terakhir
             if (!q.getSelection(true)) return;
 
-            // 'left' BUKAN nilai whitelist Quill ('center'|'right'|'justify').
             // Rata kiri = default = HAPUS atribut align.
             const val = btn.dataset.align;
             q.format('align', val === 'left' ? false : val);
@@ -1436,6 +1465,23 @@ const bindToolbar = () => {
     });
 
     const sizeSel = document.getElementById('tb-size');
+
+    const applyFontSize = (px) => {
+        const q = getActiveQuill();
+        if (!q) return;
+        if (!q.getSelection(true)) return;
+        const clamped = Math.max(6, Math.min(120, px));
+        const pxValue = clamped + 'px';
+
+        q.format('size', pxValue);
+
+        const hasOption = Array.from(sizeSel.options).some((o) => o.value === pxValue);
+        sizeSel.value = hasOption ? pxValue : '';
+
+        notifyDirty();
+        refreshToolbarStates();
+    };
+
     sizeSel?.addEventListener('change', () => {
         const q = getActiveQuill();
         if (!q) return;
@@ -1444,6 +1490,30 @@ const bindToolbar = () => {
         notifyDirty();
         refreshToolbarStates();
     });
+
+    document.querySelectorAll('.toolbar-size-arrow').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const step = parseInt(btn.dataset.sizeStep, 10);
+            const q = getActiveQuill();
+            if (!q) return;
+            const sel = q.getSelection(true);
+            if (!sel) return;
+            const currentPx = parseInt(q.getFormat(sel).size, 10) || 14;
+            applyFontSize(currentPx + step);
+        });
+    });
+
+        const lineHeightSel = document.getElementById('tb-lineheight');
+        lineHeightSel?.addEventListener('change', () => {
+            const q = getActiveQuill();
+            if (!q) return;
+            if (!q.getSelection(true)) return;
+
+            q.format('lineheight', lineHeightSel.value || false);
+
+            notifyDirty();
+            refreshToolbarStates();
+        });
 
     const colorInput = document.getElementById('tb-color');
     colorInput?.addEventListener('input', () => {
@@ -1479,12 +1549,7 @@ const bindToolbar = () => {
     });
 };
 
-// =========================================
-// HEADER/FOOTER MIRROR (ala Microsoft Word):
-// semua zona header berbagi SATU konten,
-// semua zona footer berbagi SATU konten.
-// Edit di halaman mana pun -> halaman lain ikut.
-// =========================================
+
 
 const mirrorRegistry = { header: [], footer: [] };
 let mirroringInProgress = false;
@@ -1526,9 +1591,6 @@ const syncMirrorsFrom = (sourceQ) => {
     }
 };
 
-// Pasang Quill pada satu region kertas.
-// Pola aman: buat DIV HOST baru yang 100% dimiliki Quill,
-// sehingga elemen region kertas TIDAK pernah dimutasi Quill.
 const attachQuillToRegion = (regionEl) => {
     if (!regionEl || regionEl.dataset.quillReady === '1') {
         return quillsByRegion.get(regionEl) || null;
@@ -1554,9 +1616,6 @@ const attachQuillToRegion = (regionEl) => {
         if (existingHtml.trim()) {
             q.clipboard.dangerouslyPasteHTML(existingHtml);
 
-            // Pulihkan gambar floating yang tersimpan menempel di akhir HTML:
-            // keluarkan dari editor Quill ke region supaya posisinya persis
-            // seperti saat disimpan (bebas di seluruh area kertas).
             q.root.querySelectorAll('img').forEach((im) => {
                 const st = im.getAttribute('style') || '';
                 if (!/position\s*:\s*absolute/i.test(st)) return;
@@ -1978,7 +2037,14 @@ window.initBodyEditor = function (rootSelector, onSync = null) {
 
         bindToolbar();
 
-        console.log('[DocQuill] Siap —', regions.length, 'region,',
+        const firstBody = root.querySelector('.doc-sheet-body[data-region="body"]');
+        if (firstBody) {
+            const firstQ = quillsByRegion.get(firstBody);
+            if (firstQ) activeQuill = firstQ;
+        }
+        refreshToolbarStates();
+
+        console.log('[DocQuill] Siap —', regions.length, 'region.',
             root.querySelectorAll('.ql-editor').length, 'editor aktif.');
     } catch (err) {
         console.error('[DocQuill] initBodyEditor gagal total:', err);
@@ -1990,16 +2056,10 @@ window.initBodyEditor = function (rootSelector, onSync = null) {
 // =========================================
 
 window.DocQuill = {
-    // Penanda versi untuk deteksi aset usang dari blade
     __version: 'hf-9-layout',
 
-    // Pasang editor pada region baru (misal saat tambah halaman)
     attachRegion: attachQuillToRegion,
 
-    // Ambil HTML bersih dari sebuah region.
-    // Gambar floating (anak langsung region, di luar editor Quill)
-    // disertakan di akhir HTML agar IKUT TERSIMPAN dan bisa dipulihkan
-    // lagi saat dokumen dibuka.
     getHtml: (regionEl) => {
         if (!regionEl) return '';
         const q = quillsByRegion.get(regionEl);
@@ -2012,12 +2072,9 @@ window.DocQuill = {
 
     getActive: getActiveQuill,
 
-    // ----- Header/Footer ala Word -----
 
-    // Buang instance region yang halamannya dihapus
     forgetRegion: unregisterRegion,
 
-    // Samakan semua zona header/footer dengan konten instance pertama
     syncAllMirrors: () => {
         ['header', 'footer'].forEach((role) => {
             const list = mirrorRegistry[role];
@@ -2038,13 +2095,10 @@ window.DocQuill = {
         });
     },
 
-    // Aktif/nonaktifkan semua zona satu role (sesi edit double-click)
     setZonesEnabled: (role, enabled) => {
         mirrorRegistry[role]?.forEach((m) => {
             if (enabled) m.q.enable();
             else m.q.enable(false);
-            // Kelas dipasang LANGSUNG di elemen zona agar garis pembatas
-            // selalu tampil tanpa bergantung pada class induk mana pun.
             m.regionEl.classList.toggle('zone-editing', !!enabled);
         });
     },
@@ -2074,7 +2128,7 @@ window.DocQuill = {
             if (el.dataset?.region === 'body' && !q.isEnabled()) {
                 q.enable();
                 revived++;
-            }
+                        }
         });
         return revived;
     },
@@ -2089,13 +2143,64 @@ window.DocQuill = {
             }
         });
     },
+
+    clickAndType: (regionEl, clientX, clientY) => {
+        console.log('[clickAndType] dipanggil', { clientX, clientY });
+        const q = quillsByRegion.get(regionEl);
+        if (!q || !q.isEnabled()) {
+            console.log('[clickAndType] BAIL: quill gak ketemu/gak aktif');
+            return false;
+        }
+
+        const target = document.elementFromPoint(clientX, clientY);
+        if (target && target.closest('img, table, td, th, hr, button, a')) return false;
+
+        const rootRect = q.root.getBoundingClientRect();
+        const endIndex = Math.max(0, q.getLength() - 1);
+
+        const endBounds = q.getBounds(endIndex);
+        if (!endBounds) {
+            console.log('[clickAndType] BAIL: getBounds mengembalikan null');
+            return false;
+        }
+
+        const endBottomPage = endBounds.bottom;
+        const endLeftPage = endBounds.left;
+        const lineHeight = endBounds.height || 24;
+
+        let linesNeeded = 0;
+        let spacesNeeded = 0;
+
+        if (clientY < endBottomPage - lineHeight + 2) {
+            console.log('[clickAndType] BAIL: klik masih di baris yang sama', {clientY, endBottomPage, lineHeight});
+            return false;
+        }
+
+        if (clientY <= endBottomPage + 2) {
+            spacesNeeded = Math.max(0, Math.round((clientX - endLeftPage) / 7));
+        } else {
+            linesNeeded = Math.max(1, Math.round((clientY - endBottomPage) / lineHeight));
+            spacesNeeded = Math.max(0, Math.round((clientX - rootRect.left) / 7));
+        }
+
+
+        const insertText = '\n'.repeat(linesNeeded) + ' '.repeat(spacesNeeded);
+        const finalIndex = endIndex + insertText.length;
+
+        if (insertText.length > 0) {
+            q.insertText(endIndex, insertText, 'user');
+        }
+
+        console.log('[clickAndType] EKSEKUSI', { linesNeeded, spacesNeeded, finalIndex });
+
+        setTimeout(() => {
+            try { window.getSelection()?.removeAllRanges(); } catch (err) { /* noop */ }
+            q.focus();
+            q.setSelection(finalIndex, 0, 'user');
+            console.log('[clickAndType] Caret akhir di index', finalIndex, '/', q.getLength());
+        }, 0);
+
+        notifyDirty();
+        return true;
+    },
 };
-
-
-
-
-
-
-
-
-
