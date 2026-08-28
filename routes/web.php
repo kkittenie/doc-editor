@@ -46,4 +46,3 @@ Route::middleware('guest')->group(function () {
 
 Route::get('/login', fn() => redirect()->route('signin'));
 Route::get('/register', fn() => redirect()->route('signup'));
-Route::get('/logout', fn() => redirect()->route('signin'));
