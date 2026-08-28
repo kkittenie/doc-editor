@@ -73,6 +73,7 @@ const ALLOWED_FORMATS = [
     'script', 'list', 'align', 'indent',
     'blockquote', 'link', 'image', 'hr',
     'font', 'size', 'color', 'background', 'lineheight', 'liststyle',
+    'table',
 ];
 
 // ---- Upload gambar ke server ----
@@ -1255,6 +1256,8 @@ const refreshToolbarStates = () => {
             btn.classList.toggle('active', fmt.list === 'ordered' && !fmt.liststyle);
         } else if (cmd === 'alphalist') {
             btn.classList.toggle('active', fmt.list === 'ordered' && fmt.liststyle === 'alpha');
+        } else if (cmd === 'table') {
+            btn.classList.toggle('active', !!fmt.table);
         }
     });
 
@@ -1270,6 +1273,59 @@ const refreshToolbarStates = () => {
     if (sizeSel) sizeSel.value = fmt.size || '14px';
     const lineHeightSel = document.getElementById('tb-lineheight');
     if (lineHeightSel) lineHeightSel.value = fmt.lineheight || '1.5';
+};
+
+// =========================================
+// TOOL TABEL (Quill 2 punya modul table bawaan)
+// =========================================
+
+const getTableModule = () => {
+    const q = getActiveQuill();
+    if (!q) return null;
+    return q.getModule('table') || null;
+};
+
+// Benar-benar di dalam sel tabel? (berguna untuk enable/disable aksi)
+const isInsideTable = () => {
+    const q = getActiveQuill();
+    if (!q) return false;
+    const sel = q.getSelection();
+    if (!sel) return false;
+    return !!q.getFormat(sel.index, sel.length || 1).table;
+};
+
+const runTableAction = (action) => {
+    const q = getActiveQuill();
+    if (!q) return;
+    const table = q.getModule('table');
+    if (!table) return;
+
+    switch (action) {
+        case 'insert-row': table.insertRowBelow(); break;
+        case 'insert-column': table.insertColumnRight(); break;
+        case 'delete-row': table.deleteRow(); break;
+        case 'delete-column': table.deleteColumn(); break;
+        case 'delete-table': table.deleteTable(); break;
+        default: return;
+    }
+
+    notifyDirty();
+    refreshToolbarStates();
+};
+
+const insertTableAtSelection = (rows, cols) => {
+    const q = getActiveQuill();
+    if (!q) return;
+    const table = q.getModule('table');
+    if (!table) return;
+
+    // Bila sudah di dalam tabel, tabel baru tidak boleh ditumpuk
+    const sel = q.getSelection(true);
+    if (sel && q.getFormat(sel.index, sel.length || 1).table) return;
+
+    table.insertTable(Math.max(1, rows), Math.max(1, cols));
+    notifyDirty();
+    refreshToolbarStates();
 };
 
 const ensureHiddenImageInput = () => {
@@ -1547,6 +1603,94 @@ const bindToolbar = () => {
             refreshToolbarStates();
         });
     });
+
+    // =========================================
+    // TOOL TABEL: dropdown grid picker + aksi baris/kolom
+    // =========================================
+    const tableDd = document.getElementById('tb-table-dd');
+    if (tableDd) {
+        const menu = tableDd.querySelector('.toolbar-dropdown-menu');
+        const grid = tableDd.querySelector('.table-grid-picker');
+        const label = tableDd.querySelector('.table-grid-label');
+
+        // Bangun grid picker 10 x 8 (baris x kolom) sekali saja
+        if (grid && grid.children.length === 0) {
+            const GRID_COLS = 10;
+            const GRID_ROWS = 8;
+            for (let r = 1; r <= GRID_ROWS; r += 1) {
+                for (let c = 1; c <= GRID_COLS; c += 1) {
+                    const cell = document.createElement('button');
+                    cell.type = 'button';
+                    cell.className = 'table-grid-cell';
+                    cell.dataset.rows = r;
+                    cell.dataset.cols = c;
+                    cell.setAttribute('aria-label', `Tabel ${r} x ${c}`);
+                    grid.appendChild(cell);
+                }
+            }
+
+            const paintHover = (target) => {
+                const rows = parseInt(target?.dataset.rows, 10) || 0;
+                const cols = parseInt(target?.dataset.cols, 10) || 0;
+                grid.querySelectorAll('.table-grid-cell').forEach((cell) => {
+                    const on = parseInt(cell.dataset.rows, 10) <= rows &&
+                        parseInt(cell.dataset.cols, 10) <= cols;
+                    cell.classList.toggle('hovered', on);
+                });
+                if (label) {
+                    label.textContent = rows > 0
+                        ? `${rows} baris x ${cols} kolom`
+                        : 'Sisipkan tabel';
+                }
+            };
+
+            grid.addEventListener('mouseover', (e) => {
+                const cell = e.target.closest('.table-grid-cell');
+                if (cell) paintHover(cell);
+            });
+            grid.addEventListener('mouseleave', () => paintHover(null));
+
+            grid.addEventListener('click', (e) => {
+                const cell = e.target.closest('.table-grid-cell');
+                if (!cell) return;
+                insertTableAtSelection(parseInt(cell.dataset.rows, 10), parseInt(cell.dataset.cols, 10));
+                closeTableMenu();
+            });
+        }
+
+        const closeTableMenu = () => {
+            menu?.classList.remove('open');
+        };
+
+        // Toggle dropdown — tombol utama punya data-cmd="table" yang no-op
+        // di applyCmd, jadi aman dipasangi listener terpisah di sini.
+        const mainBtn = tableDd.querySelector('[data-cmd="table"]');
+        mainBtn?.addEventListener('click', () => {
+            menu?.classList.toggle('open');
+            // Disable aksi baris/kolom bila caret tidak di dalam tabel
+            const inside = isInsideTable();
+            menu?.querySelectorAll('[data-table-action]').forEach((btn) => {
+                btn.classList.toggle('disabled', !inside);
+            });
+        });
+
+        // Tutup dropdown saat klik di luar
+        document.addEventListener('click', (e) => {
+            if (!tableDd.contains(e.target)) closeTableMenu();
+        });
+
+        // Aksi baris/kolom/hapus tabel
+        menu?.querySelectorAll('[data-table-action]').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                if (btn.classList.contains('disabled')) {
+                    e.preventDefault();
+                    return;
+                }
+                runTableAction(btn.dataset.tableAction);
+                closeTableMenu();
+            });
+        });
+    }
 };
 
 
@@ -1609,7 +1753,7 @@ const attachQuillToRegion = (regionEl) => {
         const q = new Quill(host, {
             theme: 'snow',
             placeholder: '',
-            modules: { toolbar: false },
+            modules: { toolbar: false, table: true },
             formats: ALLOWED_FORMATS,
         });
 
