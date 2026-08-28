@@ -952,6 +952,11 @@
                 html
             })),
 
+            // Penanda halaman sampul (cover) bawaan template: N halaman
+            // pertama dikunci dari paginasi BALIK, supaya isi kontrak tidak
+            // ditarik naik ke dalam sampul (dulu bikin urutan pasal berantakan).
+            coverPages: @js($document -> body_content['coverPages'] ?? 0),
+
             pageSeq: (
                 @js(
                     $document -> body_content['pages']
@@ -1067,6 +1072,8 @@
                 });
 
                 editorEl.innerHTML = html;
+
+                this.markLockedSheets();
 
                 this.setupSignatureEvents();
 
@@ -1300,6 +1307,19 @@
                 return html;
             },
 
+            // Tandai N halaman pertama sebagai sampul template (data-flow-lock).
+            // editor.js memakai atribut ini untuk melarang paginasi BALIK
+            // menyeret isi halaman berikutnya ke dalam sampul.
+            markLockedSheets() {
+                const root = document.getElementById('document-editor');
+                if (!root) return;
+                const n = Number(this.coverPages) || 0;
+                root.querySelectorAll('.doc-sheet').forEach((sheet, i) => {
+                    if (i < n) sheet.setAttribute('data-flow-lock', 'cover');
+                    else sheet.removeAttribute('data-flow-lock');
+                });
+            },
+
             // ------------- UNDO/REDO TINGKAT DOKUMEN -------------
             // Snapshot = salinan penuh state (halaman + header + footer).
             // Ini memungkinkan tombol Undo memulihkan halaman yang dihapus.
@@ -1340,6 +1360,8 @@
                 editorEl.innerHTML = this.pages
                     .map((p, i) => this.buildSheet(p, i))
                     .join('');
+
+                this.markLockedSheets();
 
                 editorEl.querySelectorAll('.doc-sheet-header, .doc-sheet-body, .doc-sheet-footer')
                     .forEach((rg) => window.DocQuill.attachRegion(rg));

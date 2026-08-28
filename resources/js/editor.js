@@ -1681,9 +1681,11 @@ const attachQuillToRegion = (regionEl) => {
 let autoPaginationApi = null;
 
 const PAGE_FLOW_TOL = 4;        // toleransi ukur (px)
-const PAGE_FLOW_MAX_STEPS = 24; // pengaman anti-loop
+const PAGE_FLOW_MAX_STEPS = 24; // pengaman anti-loop per kali jalan
+const PAGE_FLOW_MAX_REQUEUES = 200; // pengaman antre-ulang (dokumen panjang)
 
 const pageFlowTimers = new WeakMap();
+const pageFlowRequeues = new WeakMap(); // bodyEl -> jumlah antre-ulang aktif
 const pageFlowQueue = Promise.resolve();
 
 const __nextFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
@@ -1843,7 +1845,24 @@ async function __flowPass(quill, bodyEl) {
     const targetQ = quillsByRegion.get(targetBody);
     if (!targetQ || !targetQ.isEnabled()) return false;
 
-    const range = __blockRangeOf(quill, kids[idx]);
+    const firstRange = __blockRangeOf(quill, kids[idx]);
+    if (!firstRange) return false;
+
+    // Pindahan massal: kertas tujuan masih KOSONG dan sisa blok bebas dari
+    // gambar melayang -> seret SEMUA blok yang meluap sekaligus. Satu pass
+    // mengisi satu halaman penuh, sehingga paginasi dokumen template yang
+    // panjang tuntas dalam hitungan pass, bukan blok-per-blok.
+    const remaining = kids.slice(idx);
+    const bulk = targetQ.getLength() <= 1
+        && remaining.length > 0
+        && !remaining.some(__isFloatingKid);
+
+    const range = bulk
+        ? {
+            start: firstRange.start,
+            len: Math.max(firstRange.len, quill.getLength() - firstRange.start),
+        }
+        : firstRange;
     if (!range) return false;
 
     const DeltaCtor = __flowDeltaCtor(quill);
@@ -1887,6 +1906,11 @@ async function __flowPass(quill, bodyEl) {
 function __pullBackPass(quill, bodyEl) {
     const sheet = bodyEl.closest('.doc-sheet');
     if (!sheet) return false;
+
+    // Halaman sampul (cover) bawaan template tidak boleh menyeret isi
+    // kontrak dari halaman berikutnya -- batas halaman template dijaga
+    // supaya urutan pasal tetap rapi dan sampul tidak berisi artikel.
+    if (sheet.dataset?.flowLock) return false;
 
     // Kertas ini masih meluap -> urusan arah maju, bukan balik.
     if (__contentOverflowPx(quill, bodyEl) > PAGE_FLOW_TOL) return false;
@@ -1944,16 +1968,23 @@ function __pullBackPass(quill, bodyEl) {
 
     nextQ.deleteText(range.start, range.len, 'silent');
 
+    // Sambungkan di AKHIR kertas ini (retain sampai ujung dokumen dulu).
+    // PENTING: updateContents() dengan delta insert polos menyisipkan pada
+    // indeks 0 (paling depan), sehingga blok hasil tarikan MELOMPAT ke atas
+    // konten yang lebih dulu -- inilah penyebab urutan pasal menjadi acak.
     const chg = new DeltaCtor();
+    chg.retain(Math.max(0, quill.getLength()));
     for (const op of removed.ops) {
         chg.push(op.insert == null
             ? { retain: __opLength(op) }
             : JSON.parse(JSON.stringify(op)));
     }
     quill.updateContents(chg, 'silent');
+
+    // Caret pengguna di kertas ini tidak bergeser: konten ditambah di ekor.
     if (selBefore) {
         quill.setSelection(Math.min(
-            selBefore.index + __deltaLength(chg),
+            selBefore.index,
             Math.max(0, quill.getLength() - 1)
         ), 'silent');
     }
@@ -1966,6 +1997,7 @@ function __runFlow(quill, bodyEl) {
     if (!autoPaginationApi) return; // bridge belum siap
     const job = pageFlowChain
         .then(async () => {
+            let movedAny = false;
             for (let step = 0; step < PAGE_FLOW_MAX_STEPS; step++) {
                 if (__sessionActive()) break;
                 if (!document.body.contains(bodyEl)) break;
@@ -1975,9 +2007,28 @@ function __runFlow(quill, bodyEl) {
                     moved = await __pullBackPass(quill, bodyEl);
                 }
                 if (!moved) break;
+                movedAny = true;
                 await __nextFrame();
-                await __waitMs(10);
             }
+
+            // Masih meluap setelah jatah langkah habis (dokumen template bisa
+            // berisi ratusan blok): antre ulang kertas yang sama di ekor
+            // rantai supaya paginasi TUNTAS. Dulu run berhenti setelah 24
+            // blok tanpa dijadwalkan ulang, menyisakan halaman yang tetap
+            // penuh -> teks terpotong/menumpuk di satu kertas.
+            const stillOverflowing = document.body.contains(bodyEl)
+                && !__sessionActive()
+                && __contentOverflowPx(quill, bodyEl) > PAGE_FLOW_TOL;
+
+            if (stillOverflowing && movedAny) {
+                const n = (pageFlowRequeues.get(bodyEl) || 0) + 1;
+                if (n <= PAGE_FLOW_MAX_REQUEUES) {
+                    pageFlowRequeues.set(bodyEl, n);
+                    __runFlow(quill, bodyEl);
+                    return;
+                }
+            }
+            pageFlowRequeues.delete(bodyEl);
         })
         .catch((err) => console.warn('[DocQuill] Paginasi otomatis dilewati:', err));
     pageFlowChain = job;
@@ -2056,7 +2107,7 @@ window.initBodyEditor = function (rootSelector, onSync = null) {
 // =========================================
 
 window.DocQuill = {
-    __version: 'hf-9-layout',
+    __version: 'hf-10-flow',
 
     attachRegion: attachQuillToRegion,
 

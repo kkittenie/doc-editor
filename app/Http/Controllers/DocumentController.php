@@ -104,10 +104,13 @@ class DocumentController extends Controller
         // Untuk cover: ikon masuk section header, identitas/pihak + paraf +
         // stample/materai masuk section footer (server yang menentukan,
         // nilai dari form diabaikan).
+        $coverPages = 0;
+
         if ($templateKey && in_array($templateKey, $this->coverTemplateKeys(), true)) {
             $headerContent = $this->buildCoverHeaderHtml();
             $footerContent = $this->buildCoverFooterHtml();
             $pages = [$this->buildCoverPageHtml($title), $bodyHtml];
+            $coverPages = 1; // halaman pertama = sampul: dikunci dari paginasi balik
         } else {
             $pages = [$bodyHtml];
         }
@@ -122,6 +125,7 @@ class DocumentController extends Controller
             ],
             'body_content' => [
                 'pages' => $pages,
+                'coverPages' => $coverPages,
             ],
             'footer_data' => [
                 'content' => $footerContent,
@@ -325,51 +329,474 @@ class DocumentController extends Controller
                     ],
             ],
             ],
-            'kemitraan' => [
-                'title' => 'Perjanjian Kerjasama Jual Kembali Jasa Layanan Akses Internet',
-                'header_data' => ['nomorSurat' => 'PKS/001/III/2026'],
+            'kontrak-colocation' => [
+                'title' => 'Perjanjian Layanan Colocation',
+                'header_data' => [
+                    'kopInstansi' => '[Ketik nama perusahaan PIHAK PERTAMA]',
+                    'kopAlamat' => '[Ketik alamat perusahaan di sini]',
+                    'kopKontrak' => 'Telp: [Nomor telepon] | Email: [Email perusahaan]',
+                    'nomorSurat' => 'COL/001/VIII/2026',
+                    'perihalSurat' => 'Perjanjian Layanan Colocation',
+                    'sifatSurat' => 'Penting',
+                ],
+                'body_content' => [
+                    'preamble' => "Pada hari ini, [Hari], tanggal [Tanggal] bulan [Bulan] tahun [Tahun], telah dibuat dan ditandatangani Perjanjian Layanan Colocation oleh dan antara:",
+
+                    'paraPihak' => [
+                        "1. Nama Perusahaan : [Nama perusahaan PIHAK PERTAMA]\nAlamat : [Alamat lengkap]\nDiwakili oleh : [Nama pejabat]\nJabatan : [Jabatan]\n\nSelanjutnya disebut sebagai “PIHAK PERTAMA”.",
+
+                        "2. Nama Perusahaan : [Nama perusahaan PIHAK KEDUA]\nAlamat : [Alamat lengkap]\nDiwakili oleh : [Nama pejabat]\nJabatan : [Jabatan]\n\nSelanjutnya disebut sebagai “PIHAK KEDUA”.",
+                    ],
+
+                    'menimbang' => "a. bahwa PIHAK PERTAMA menyediakan fasilitas pusat data dan layanan colocation yang dapat digunakan untuk penempatan perangkat milik pelanggan;\nb. bahwa PIHAK KEDUA bermaksud menggunakan fasilitas dan layanan colocation yang disediakan oleh PIHAK PERTAMA;\nc. bahwa berdasarkan kesepakatan Para Pihak, perlu dibuat Perjanjian Layanan Colocation sebagai dasar pelaksanaan hak dan kewajiban Para Pihak.",
+
+                    'mengingat' => "1. Kitab Undang-Undang Hukum Perdata (KUHPerdata);\n2. Undang-Undang yang mengatur mengenai Informasi dan Transaksi Elektronik beserta perubahannya;\n3. Ketentuan peraturan perundang-undangan yang berlaku;\n4. Kesepakatan Para Pihak sebagaimana dituangkan dalam Perjanjian ini.",
+
+                    'isi' => [
+                        [
+                            'judul' => 'RUANG LINGKUP LAYANAN',
+                            'text' => "PIHAK PERTAMA menyediakan layanan colocation kepada PIHAK KEDUA berupa penyediaan ruang atau rack, daya listrik, konektivitas jaringan, fasilitas pendingin, keamanan fasilitas, serta fasilitas pendukung lainnya sesuai dengan paket layanan yang disepakati Para Pihak."
+                        ],
+                        [
+                            'judul' => 'PENEMPATAN PERANGKAT',
+                            'text' => "PIHAK KEDUA dapat menempatkan server, perangkat jaringan, perangkat penyimpanan, dan perangkat pendukung lainnya pada fasilitas PIHAK PERTAMA sesuai dengan kapasitas dan spesifikasi yang telah disetujui. Seluruh perangkat yang ditempatkan tetap menjadi tanggung jawab PIHAK KEDUA."
+                        ],
+                        [
+                            'judul' => 'FASILITAS DAN KONEKTIVITAS',
+                            'text' => "PIHAK PERTAMA menyediakan fasilitas sebagaimana tercantum dalam layanan yang dipilih oleh PIHAK KEDUA, termasuk daya listrik, pendingin ruangan, konektivitas jaringan, keamanan fisik, serta fasilitas pendukung lainnya sesuai standar operasional yang berlaku."
+                        ],
+                        [
+                            'judul' => 'AKSES KE FASILITAS',
+                            'text' => "Akses PIHAK KEDUA ke area fasilitas pusat data dilakukan sesuai prosedur keamanan dan ketentuan akses yang ditetapkan oleh PIHAK PERTAMA. PIHAK KEDUA wajib memastikan setiap personel yang diberikan akses mematuhi seluruh ketentuan keamanan fasilitas."
+                        ],
+                        [
+                            'judul' => 'PEMELIHARAAN PERANGKAT',
+                            'text' => "Pemeliharaan, perbaikan, konfigurasi, penggantian, dan pengelolaan perangkat milik PIHAK KEDUA menjadi tanggung jawab PIHAK KEDUA, kecuali apabila layanan pemeliharaan tersebut secara khusus disepakati sebagai bagian dari layanan PIHAK PERTAMA."
+                        ],
+                        [
+                            'judul' => 'BIAYA DAN PEMBAYARAN',
+                            'text' => "PIHAK KEDUA wajib membayar biaya layanan colocation kepada PIHAK PERTAMA sesuai dengan nilai, periode penagihan, dan mekanisme pembayaran yang telah disepakati. Biaya tambahan yang timbul akibat penggunaan layanan di luar paket dapat dikenakan sesuai ketentuan yang berlaku."
+                        ],
+                        [
+                            'judul' => 'KEAMANAN DAN KERAHASIAAN',
+                            'text' => "Para Pihak wajib menjaga keamanan dan kerahasiaan informasi yang diperoleh selama pelaksanaan Perjanjian. PIHAK KEDUA bertanggung jawab atas keamanan data dan informasi yang tersimpan pada perangkat miliknya."
+                        ],
+                        [
+                            'judul' => 'GANGGUAN LAYANAN',
+                            'text' => "Apabila terjadi gangguan terhadap fasilitas atau layanan, PIHAK PERTAMA akan melakukan penanganan sesuai prosedur dan tingkat layanan yang berlaku. Gangguan yang disebabkan oleh perangkat, konfigurasi, tindakan, atau kelalaian PIHAK KEDUA menjadi tanggung jawab PIHAK KEDUA."
+                        ],
+                        [
+                            'judul' => 'LARANGAN',
+                            'text' => "PIHAK KEDUA dilarang menggunakan fasilitas untuk kegiatan yang bertentangan dengan hukum, mengganggu keamanan jaringan, mengakibatkan kerusakan terhadap fasilitas, atau mengganggu layanan pelanggan lainnya."
+                        ],
+                        [
+                            'judul' => 'JANGKA WAKTU',
+                            'text' => "Perjanjian ini berlaku selama [jangka waktu] terhitung sejak tanggal [tanggal mulai] sampai dengan [tanggal berakhir] dan dapat diperpanjang berdasarkan kesepakatan tertulis Para Pihak."
+                        ],
+                        [
+                            'judul' => 'PENGAKHIRAN PERJANJIAN',
+                            'text' => "Perjanjian dapat diakhiri berdasarkan kesepakatan Para Pihak atau apabila salah satu pihak melakukan pelanggaran material terhadap ketentuan Perjanjian dan tidak melakukan perbaikan dalam jangka waktu yang telah diberikan."
+                        ],
+                        [
+                            'judul' => 'PENYELESAIAN PERSELISIHAN',
+                            'text' => "Setiap perselisihan yang timbul akan diselesaikan terlebih dahulu melalui musyawarah untuk mencapai mufakat. Apabila tidak tercapai kesepakatan, Para Pihak dapat menempuh penyelesaian sesuai ketentuan hukum yang berlaku."
+                        ],
+                        [
+                            'judul' => 'LAIN-LAIN',
+                            'text' => "Hal-hal yang belum diatur dalam Perjanjian ini akan dituangkan dalam perubahan, tambahan, atau dokumen lain yang disepakati dan ditandatangani oleh Para Pihak."
+                        ],
+                        [
+                            'judul' => 'PENUTUP',
+                            'text' => "Perjanjian ini dibuat dengan itikad baik dan berlaku sebagai dasar pelaksanaan layanan colocation antara Para Pihak."
+                        ],
+                    ],
+
+                    'tutup' => "Demikian Perjanjian Layanan Colocation ini dibuat dan ditandatangani oleh Para Pihak dalam keadaan sadar, tanpa adanya paksaan dari pihak manapun.",
+
+                    'lampiran' => [
+                        [
+                            'judul' => 'LAMPIRAN — SPESIFIKASI LAYANAN COLOCATION',
+                            'text' => "1. Lokasi Data Center : [Lokasi]\n2. Nomor Rack : [Nomor rack]\n3. Kapasitas Rack : [Kapasitas]\n4. Daya Listrik : [Daya]\n5. Koneksi Internet : [Bandwidth]\n6. Alamat IP : [Jumlah/alokasi IP]\n7. Perangkat : [Daftar perangkat]\n8. SLA : [Ketentuan SLA]\n9. Biaya Layanan : [Nilai biaya]\n10. Periode Layanan : [Periode]"
+                        ],
+                    ],
+                ],
             ],
-            'colocation' => [
-                'title' => 'Perjanjian Berlangganan Jasa Colocation',
-                'header_data' => ['nomorSurat' => 'COLO/001/VII/2026'],
-            ],
-            'managed-service' => [
-                'title' => 'Perjanjian Berlangganan Jasa Managed Service',
-                'header_data' => ['nomorSurat' => 'MS/001/IV/2026'],
-            ],
-            'soho' => [
-                'title' => 'Perjanjian Berlangganan Jasa SOHO',
-                'header_data' => ['nomorSurat' => 'SOHO/001/IX/2025'],
-            ],
+
             'kontrak-payung' => [
-                'title' => 'Perjanjian Kerja Sama (Kontrak Payung) Berlangganan Jasa Metro Fiber Optik',
-                'header_data' => ['nomorSurat' => 'METRO/001/VI/2026'],
+                'title' => 'Perjanjian Kerja Sama Payung',
+                'header_data' => [
+                    'kopInstansi' => '[Ketik nama perusahaan PIHAK PERTAMA]',
+                    'kopAlamat' => '[Ketik alamat perusahaan di sini]',
+                    'kopKontrak' => 'Telp: [Nomor telepon] | Email: [Email perusahaan]',
+                    'nomorSurat' => 'PK/001/VIII/2026',
+                    'perihalSurat' => 'Perjanjian Kerja Sama Payung',
+                    'sifatSurat' => 'Penting',
+                ],
+                'body_content' => [
+                    'preamble' => "Pada hari ini, [Hari], tanggal [Tanggal] bulan [Bulan] tahun [Tahun], Para Pihak sepakat untuk membuat dan menandatangani Perjanjian Kerja Sama Payung sebagai dasar pelaksanaan kerja sama:",
+
+                    'paraPihak' => [
+                        "1. Nama Perusahaan : [Nama perusahaan PIHAK PERTAMA]\nAlamat : [Alamat lengkap]\nDiwakili oleh : [Nama pejabat]\nJabatan : [Jabatan]\n\nSelanjutnya disebut sebagai “PIHAK PERTAMA”.",
+
+                        "2. Nama Perusahaan : [Nama perusahaan PIHAK KEDUA]\nAlamat : [Alamat lengkap]\nDiwakili oleh : [Nama pejabat]\nJabatan : [Jabatan]\n\nSelanjutnya disebut sebagai “PIHAK KEDUA”.",
+                    ],
+
+                    'menimbang' => "a. bahwa Para Pihak memiliki kemampuan dan sumber daya yang dapat dikembangkan melalui kerja sama;\nb. bahwa Para Pihak bermaksud membangun hubungan kerja sama yang dapat digunakan sebagai dasar pelaksanaan berbagai pekerjaan, pengadaan, layanan, atau kegiatan lainnya;\nc. bahwa untuk memberikan kerangka umum bagi pelaksanaan kerja sama tersebut, Para Pihak sepakat membuat Perjanjian Kerja Sama Payung.",
+
+                    'mengingat' => "1. Kitab Undang-Undang Hukum Perdata (KUHPerdata);\n2. Ketentuan peraturan perundang-undangan yang berlaku;\n3. Anggaran Dasar dan ketentuan internal masing-masing pihak;\n4. Kesepakatan Para Pihak.",
+
+                    'isi' => [
+                        [
+                            'judul' => 'MAKSUD DAN TUJUAN',
+                            'text' => "Perjanjian ini dimaksudkan sebagai dasar umum hubungan kerja sama antara Para Pihak dalam melaksanakan pekerjaan, layanan, pengadaan barang atau jasa, pengembangan kegiatan, maupun bentuk kerja sama lainnya yang disepakati."
+                        ],
+                        [
+                            'judul' => 'RUANG LINGKUP KERJA SAMA',
+                            'text' => "Ruang lingkup kerja sama meliputi penyediaan barang dan/atau jasa, layanan teknologi informasi, konsultasi, pengembangan sistem, pengadaan perangkat, pemeliharaan, dukungan teknis, serta kegiatan lainnya sesuai kebutuhan dan kesepakatan Para Pihak."
+                        ],
+                        [
+                            'judul' => 'PELAKSANAAN PEKERJAAN',
+                            'text' => "Setiap pekerjaan atau kegiatan yang dilaksanakan berdasarkan Perjanjian ini dapat dituangkan lebih lanjut dalam dokumen pelaksanaan seperti Work Order, Surat Pesanan, Statement of Work, Purchase Order, atau dokumen lain yang disepakati."
+                        ],
+                        [
+                            'judul' => 'DOKUMEN TURUNAN',
+                            'text' => "Dokumen pelaksanaan sebagaimana dimaksud dalam Perjanjian ini merupakan bagian yang tidak terpisahkan dari Perjanjian sepanjang tidak bertentangan dengan ketentuan Perjanjian Kerja Sama Payung."
+                        ],
+                        [
+                            'judul' => 'HAK DAN KEWAJIBAN PARA PIHAK',
+                            'text' => "Para Pihak wajib melaksanakan kewajiban masing-masing sesuai dengan ruang lingkup pekerjaan yang disepakati serta berhak memperoleh hak dan manfaat sesuai dengan ketentuan dalam Perjanjian dan dokumen pelaksanaannya."
+                        ],
+                        [
+                            'judul' => 'BIAYA DAN PEMBAYARAN',
+                            'text' => "Nilai pekerjaan, harga barang dan/atau jasa, mekanisme pembayaran, pajak, serta biaya lainnya akan ditentukan dalam dokumen pelaksanaan masing-masing pekerjaan."
+                        ],
+                        [
+                            'judul' => 'KERAHASIAAN',
+                            'text' => "Para Pihak wajib menjaga kerahasiaan seluruh informasi, data, dokumen, spesifikasi, harga, dan informasi lainnya yang diperoleh dalam pelaksanaan kerja sama, kecuali diwajibkan berdasarkan hukum."
+                        ],
+                        [
+                            'judul' => 'JANGKA WAKTU',
+                            'text' => "Perjanjian ini berlaku selama [jangka waktu] sejak tanggal ditandatangani dan dapat diperpanjang berdasarkan kesepakatan tertulis Para Pihak."
+                        ],
+                        [
+                            'judul' => 'PENGAKHIRAN',
+                            'text' => "Perjanjian dapat diakhiri berdasarkan kesepakatan Para Pihak atau berdasarkan alasan lain yang diperbolehkan berdasarkan Perjanjian dan ketentuan peraturan perundang-undangan."
+                        ],
+                        [
+                            'judul' => 'KEADAAN KAHAR',
+                            'text' => "Para Pihak tidak bertanggung jawab atas keterlambatan atau kegagalan pelaksanaan kewajiban yang disebabkan oleh keadaan di luar kemampuan dan kendali wajar Para Pihak, sepanjang dapat dibuktikan dan diberitahukan kepada pihak lainnya."
+                        ],
+                        [
+                            'judul' => 'PENYELESAIAN PERSELISIHAN',
+                            'text' => "Setiap perselisihan akan diselesaikan terlebih dahulu melalui musyawarah. Apabila tidak tercapai penyelesaian, Para Pihak dapat menempuh mekanisme penyelesaian sesuai ketentuan hukum yang berlaku."
+                        ],
+                        [
+                            'judul' => 'PERUBAHAN PERJANJIAN',
+                            'text' => "Setiap perubahan atau penambahan terhadap Perjanjian ini hanya sah apabila dibuat secara tertulis dan disetujui serta ditandatangani oleh Para Pihak."
+                        ],
+                        [
+                            'judul' => 'PENUTUP',
+                            'text' => "Perjanjian ini menjadi dasar umum hubungan kerja sama dan tidak dengan sendirinya mewajibkan salah satu pihak untuk memberikan atau menerima pekerjaan tertentu sebelum adanya dokumen pelaksanaan yang disepakati."
+                        ],
+                    ],
+
+                    'tutup' => "Demikian Perjanjian Kerja Sama Payung ini dibuat dan ditandatangani dengan itikad baik untuk dipergunakan sebagaimana mestinya.",
+
+                    'lampiran' => [
+                        [
+                            'judul' => 'LAMPIRAN — RUANG LINGKUP KERJA SAMA',
+                            'text' => "1. Bidang Kerja Sama : [Bidang]\n2. Jenis Barang/Jasa : [Jenis barang/jasa]\n3. Wilayah Kerja : [Wilayah]\n4. Mekanisme Pelaksanaan : [Mekanisme]\n5. Ketentuan Khusus : [Ketentuan tambahan]"
+                        ],
+                    ],
+                ],
+            ],
+
+            'kontrak-kemitraan' => [
+                'title' => 'Perjanjian Kemitraan',
+                'header_data' => [
+                    'kopInstansi' => '[Ketik nama perusahaan PIHAK PERTAMA]',
+                    'kopAlamat' => '[Ketik alamat perusahaan di sini]',
+                    'kopKontrak' => 'Telp: [Nomor telepon] | Email: [Email perusahaan]',
+                    'nomorSurat' => 'KEM/001/VIII/2026',
+                    'perihalSurat' => 'Perjanjian Kemitraan',
+                    'sifatSurat' => 'Penting',
+                ],
+                'body_content' => [
+                    'preamble' => "Pada hari ini, [Hari], tanggal [Tanggal] bulan [Bulan] tahun [Tahun], telah dibuat dan ditandatangani Perjanjian Kemitraan oleh dan antara:",
+
+                    'paraPihak' => [
+                        "1. Nama Perusahaan : [Nama perusahaan PIHAK PERTAMA]\nAlamat : [Alamat lengkap]\nDiwakili oleh : [Nama pejabat]\nJabatan : [Jabatan]\n\nSelanjutnya disebut sebagai “PIHAK PERTAMA”.",
+
+                        "2. Nama Mitra : [Nama PIHAK KEDUA]\nAlamat : [Alamat lengkap]\nNomor Identitas/NIB : [Nomor identitas/NIB]\nDiwakili oleh : [Nama]\nJabatan : [Jabatan]\n\nSelanjutnya disebut sebagai “PIHAK KEDUA”.",
+                    ],
+
+                    'menimbang' => "a. bahwa PIHAK PERTAMA memiliki kegiatan usaha dan/atau layanan yang dapat dikembangkan melalui kerja sama kemitraan;\nb. bahwa PIHAK KEDUA memiliki kemampuan, sumber daya, jaringan, atau keahlian yang diperlukan untuk mendukung kegiatan tersebut;\nc. bahwa Para Pihak sepakat untuk membangun hubungan kemitraan berdasarkan prinsip saling menguntungkan, transparan, dan beritikad baik.",
+
+                    'mengingat' => "1. Kitab Undang-Undang Hukum Perdata (KUHPerdata);\n2. Ketentuan peraturan perundang-undangan yang berlaku;\n3. Ketentuan usaha dan kebijakan masing-masing pihak;\n4. Kesepakatan Para Pihak.",
+
+                    'isi' => [
+                        [
+                            'judul' => 'MAKSUD DAN TUJUAN KEMITRAAN',
+                            'text' => "Perjanjian ini bertujuan mengatur hubungan kemitraan antara Para Pihak dalam rangka pengembangan usaha, pemasaran, penyediaan layanan, distribusi produk, dukungan operasional, atau kegiatan lain yang disepakati."
+                        ],
+                        [
+                            'judul' => 'RUANG LINGKUP KEMITRAAN',
+                            'text' => "Ruang lingkup kemitraan meliputi kegiatan [uraikan jenis kemitraan], termasuk pemasaran, penjualan, penyediaan layanan, dukungan pelanggan, pengembangan jaringan, dan kegiatan lain yang disepakati secara tertulis."
+                        ],
+                        [
+                            'judul' => 'HAK PIHAK PERTAMA',
+                            'text' => "PIHAK PERTAMA berhak menerima laporan pelaksanaan kegiatan kemitraan, melakukan evaluasi, menetapkan standar layanan atau produk, serta memperoleh hak lainnya sesuai dengan Perjanjian."
+                        ],
+                        [
+                            'judul' => 'KEWAJIBAN PIHAK PERTAMA',
+                            'text' => "PIHAK PERTAMA berkewajiban memberikan informasi, dukungan, materi, atau fasilitas yang diperlukan PIHAK KEDUA sesuai dengan ruang lingkup kemitraan yang disepakati."
+                        ],
+                        [
+                            'judul' => 'HAK PIHAK KEDUA',
+                            'text' => "PIHAK KEDUA berhak memperoleh dukungan dan informasi yang diperlukan untuk menjalankan kegiatan kemitraan serta memperoleh imbalan atau manfaat sesuai dengan ketentuan yang telah disepakati."
+                        ],
+                        [
+                            'judul' => 'KEWAJIBAN PIHAK KEDUA',
+                            'text' => "PIHAK KEDUA wajib menjalankan kegiatan kemitraan sesuai standar, prosedur, kebijakan, dan ketentuan yang diberikan PIHAK PERTAMA serta menjaga nama baik dan reputasi PIHAK PERTAMA."
+                        ],
+                        [
+                            'judul' => 'TARGET DAN KINERJA',
+                            'text' => "Target, indikator kinerja, wilayah pemasaran, jumlah pelanggan, volume transaksi, atau indikator lainnya dapat ditetapkan berdasarkan kesepakatan Para Pihak dan dapat dievaluasi secara berkala."
+                        ],
+                        [
+                            'judul' => 'IMBALAN DAN PEMBAGIAN HASIL',
+                            'text' => "Besaran komisi, fee, pembagian hasil, insentif, atau bentuk imbalan lainnya ditentukan berdasarkan kesepakatan Para Pihak sebagaimana tercantum dalam lampiran atau dokumen pelaksanaan."
+                        ],
+                        [
+                            'judul' => 'KERAHASIAAN DAN DATA',
+                            'text' => "Para Pihak wajib menjaga kerahasiaan informasi usaha, pelanggan, harga, strategi, data, dokumen, serta informasi lainnya yang diperoleh dalam pelaksanaan kemitraan."
+                        ],
+                        [
+                            'judul' => 'PENGGUNAAN MEREK DAN IDENTITAS',
+                            'text' => "PIHAK KEDUA hanya dapat menggunakan nama, merek, logo, materi promosi, dan identitas PIHAK PERTAMA sesuai izin dan pedoman yang diberikan oleh PIHAK PERTAMA."
+                        ],
+                        [
+                            'judul' => 'JANGKA WAKTU',
+                            'text' => "Perjanjian ini berlaku selama [jangka waktu] sejak tanggal ditandatangani dan dapat diperpanjang berdasarkan kesepakatan tertulis Para Pihak."
+                        ],
+                        [
+                            'judul' => 'PENGAKHIRAN KEMITRAAN',
+                            'text' => "Kemitraan dapat diakhiri berdasarkan kesepakatan Para Pihak atau apabila terdapat pelanggaran terhadap ketentuan Perjanjian yang tidak diperbaiki dalam jangka waktu yang ditentukan."
+                        ],
+                        [
+                            'judul' => 'PENYELESAIAN PERSELISIHAN',
+                            'text' => "Setiap perselisihan akan diselesaikan terlebih dahulu melalui musyawarah. Apabila tidak tercapai kesepakatan, Para Pihak dapat menempuh penyelesaian sesuai ketentuan hukum yang berlaku."
+                        ],
+                        [
+                            'judul' => 'PENUTUP',
+                            'text' => "Perjanjian ini dibuat berdasarkan prinsip saling menguntungkan, itikad baik, transparansi, dan kepatuhan terhadap ketentuan yang berlaku."
+                        ],
+                    ],
+
+                    'tutup' => "Demikian Perjanjian Kemitraan ini dibuat dan ditandatangani oleh Para Pihak dalam keadaan sadar dan tanpa adanya paksaan dari pihak manapun.",
+
+                    'lampiran' => [
+                        [
+                            'judul' => 'LAMPIRAN — KETENTUAN KEMITRAAN',
+                            'text' => "1. Jenis Kemitraan : [Jenis]\n2. Produk/Layanan : [Produk/Layanan]\n3. Wilayah : [Wilayah]\n4. Target : [Target]\n5. Komisi/Imbalan : [Nilai]\n6. Mekanisme Pembayaran : [Mekanisme]\n7. Masa Kemitraan : [Periode]"
+                        ],
+                    ],
+                ],
+            ],
+
+            'kontrak-managed-service' => [
+                'title' => 'Perjanjian Managed Service',
+                'header_data' => [
+                    'kopInstansi' => '[Ketik nama perusahaan PIHAK PERTAMA]',
+                    'kopAlamat' => '[Ketik alamat perusahaan di sini]',
+                    'kopKontrak' => 'Telp: [Nomor telepon] | Email: [Email perusahaan]',
+                    'nomorSurat' => 'MS/001/VIII/2026',
+                    'perihalSurat' => 'Perjanjian Managed Service',
+                    'sifatSurat' => 'Penting',
+                ],
+                'body_content' => [
+                    'preamble' => "Pada hari ini, [Hari], tanggal [Tanggal] bulan [Bulan] tahun [Tahun], telah dibuat dan ditandatangani Perjanjian Managed Service oleh dan antara:",
+
+                    'paraPihak' => [
+                        "1. Nama Perusahaan : [Nama perusahaan PIHAK PERTAMA]\nAlamat : [Alamat lengkap]\nDiwakili oleh : [Nama pejabat]\nJabatan : [Jabatan]\n\nSelanjutnya disebut sebagai “PIHAK PERTAMA”.",
+
+                        "2. Nama Perusahaan : [Nama perusahaan PIHAK KEDUA]\nAlamat : [Alamat lengkap]\nDiwakili oleh : [Nama pejabat]\nJabatan : [Jabatan]\n\nSelanjutnya disebut sebagai “PIHAK KEDUA”.",
+                    ],
+
+                    'menimbang' => "a. bahwa PIHAK PERTAMA membutuhkan layanan pengelolaan, pemantauan, pemeliharaan, dan dukungan terhadap sistem dan/atau infrastruktur teknologi informasi;\nb. bahwa PIHAK KEDUA memiliki kompetensi dan sumber daya untuk menyediakan layanan managed service;\nc. bahwa Para Pihak sepakat mengatur pelaksanaan layanan tersebut dalam Perjanjian Managed Service.",
+
+                    'mengingat' => "1. Kitab Undang-Undang Hukum Perdata (KUHPerdata);\n2. Ketentuan peraturan perundang-undangan yang berlaku;\n3. Standar dan prosedur layanan teknologi informasi yang disepakati;\n4. Kesepakatan Para Pihak.",
+
+                    'isi' => [
+                        [
+                            'judul' => 'RUANG LINGKUP LAYANAN',
+                            'text' => "PIHAK KEDUA menyediakan layanan managed service yang meliputi monitoring, maintenance, troubleshooting, support, pengelolaan sistem, pengelolaan jaringan, pengelolaan server, keamanan sistem, backup, serta layanan teknologi informasi lainnya sesuai ruang lingkup yang disepakati."
+                        ],
+                        [
+                            'judul' => 'SERVICE LEVEL AGREEMENT',
+                            'text' => "PIHAK KEDUA wajib memberikan layanan sesuai tingkat layanan atau Service Level Agreement (SLA) yang mencakup waktu respons, waktu penanganan, tingkat ketersediaan layanan, prioritas gangguan, dan parameter layanan lainnya."
+                        ],
+                        [
+                            'judul' => 'MONITORING DAN PEMELIHARAAN',
+                            'text' => "PIHAK KEDUA melakukan pemantauan dan pemeliharaan terhadap sistem dan/atau infrastruktur yang menjadi objek layanan secara berkala untuk menjaga kinerja, keamanan, dan ketersediaan layanan."
+                        ],
+                        [
+                            'judul' => 'PENANGANAN GANGGUAN',
+                            'text' => "Setiap gangguan yang dilaporkan PIHAK PERTAMA akan ditangani oleh PIHAK KEDUA berdasarkan tingkat prioritas dan SLA yang telah disepakati."
+                        ],
+                        [
+                            'judul' => 'PERUBAHAN DAN PEKERJAAN TAMBAHAN',
+                            'text' => "Permintaan pekerjaan yang berada di luar ruang lingkup layanan dapat diperlakukan sebagai pekerjaan tambahan dan dilaksanakan berdasarkan persetujuan Para Pihak serta ketentuan biaya yang disepakati."
+                        ],
+                        [
+                            'judul' => 'AKSES SISTEM',
+                            'text' => "PIHAK PERTAMA memberikan akses yang diperlukan kepada PIHAK KEDUA sepanjang diperlukan untuk pelaksanaan layanan. PIHAK KEDUA wajib menggunakan akses tersebut hanya untuk kepentingan pelaksanaan Perjanjian."
+                        ],
+                        [
+                            'judul' => 'KEAMANAN INFORMASI',
+                            'text' => "PIHAK KEDUA wajib menjaga keamanan informasi, kredensial akses, konfigurasi sistem, data, dan informasi milik PIHAK PERTAMA serta menerapkan tindakan pengamanan yang wajar sesuai kebutuhan layanan."
+                        ],
+                        [
+                            'judul' => 'BACKUP DAN PEMULIHAN DATA',
+                            'text' => "Apabila termasuk dalam ruang lingkup layanan, PIHAK KEDUA melakukan backup dan pemulihan data sesuai kebijakan, jadwal, kapasitas, serta mekanisme yang telah disepakati Para Pihak."
+                        ],
+                        [
+                            'judul' => 'LAPORAN LAYANAN',
+                            'text' => "PIHAK KEDUA memberikan laporan layanan secara berkala yang dapat mencakup kondisi sistem, gangguan, tindakan pemeliharaan, hasil monitoring, penggunaan sumber daya, dan rekomendasi perbaikan."
+                        ],
+                        [
+                            'judul' => 'BIAYA DAN PEMBAYARAN',
+                            'text' => "PIHAK PERTAMA wajib membayar biaya managed service sesuai nilai dan periode pembayaran yang telah disepakati. Pekerjaan tambahan akan dikenakan biaya berdasarkan persetujuan Para Pihak."
+                        ],
+                        [
+                            'judul' => 'JANGKA WAKTU',
+                            'text' => "Perjanjian berlaku selama [jangka waktu] sejak tanggal [tanggal mulai] sampai dengan [tanggal berakhir] dan dapat diperpanjang berdasarkan kesepakatan tertulis."
+                        ],
+                        [
+                            'judul' => 'KERAHASIAAN',
+                            'text' => "Para Pihak wajib menjaga kerahasiaan seluruh informasi dan data yang diperoleh selama pelaksanaan layanan dan tidak menggunakannya di luar kepentingan Perjanjian tanpa persetujuan pihak lainnya."
+                        ],
+                        [
+                            'judul' => 'PENGAKHIRAN',
+                            'text' => "Perjanjian dapat diakhiri berdasarkan kesepakatan Para Pihak atau apabila salah satu pihak melakukan pelanggaran material terhadap ketentuan Perjanjian."
+                        ],
+                        [
+                            'judul' => 'PENYELESAIAN PERSELISIHAN',
+                            'text' => "Perselisihan akan diselesaikan terlebih dahulu melalui musyawarah. Apabila tidak tercapai kesepakatan, penyelesaian dilakukan sesuai mekanisme hukum yang berlaku."
+                        ],
+                        [
+                            'judul' => 'PENUTUP',
+                            'text' => "Perjanjian ini menjadi dasar pelaksanaan layanan managed service antara Para Pihak dan dilaksanakan dengan itikad baik."
+                        ],
+                    ],
+
+                    'tutup' => "Demikian Perjanjian Managed Service ini dibuat dan ditandatangani oleh Para Pihak untuk dipergunakan sebagaimana mestinya.",
+
+                    'lampiran' => [
+                        [
+                            'judul' => 'LAMPIRAN — SERVICE LEVEL AGREEMENT',
+                            'text' => "1. Sistem/Perangkat : [Daftar sistem/perangkat]\n2. Jam Layanan : [Jam layanan]\n3. Response Time : [Waktu respons]\n4. Resolution Time : [Waktu penyelesaian]\n5. Availability : [Persentase]\n6. Prioritas Gangguan : [P1/P2/P3/P4]\n7. Jadwal Maintenance : [Jadwal]\n8. Biaya Layanan : [Nilai biaya]"
+                        ],
+                    ],
+                ],
+            ],
+
+            'kontrak-soho' => [
+                'title' => 'Perjanjian Layanan SOHO',
+                'header_data' => [
+                    'kopInstansi' => '[Ketik nama perusahaan PIHAK PERTAMA]',
+                    'kopAlamat' => '[Ketik alamat perusahaan di sini]',
+                    'kopKontrak' => 'Telp: [Nomor telepon] | Email: [Email perusahaan]',
+                    'nomorSurat' => 'SOHO/001/VIII/2026',
+                    'perihalSurat' => 'Perjanjian Layanan SOHO',
+                    'sifatSurat' => 'Penting',
+                ],
+                'body_content' => [
+                    'preamble' => "Pada hari ini, [Hari], tanggal [Tanggal] bulan [Bulan] tahun [Tahun], telah dibuat dan ditandatangani Perjanjian Layanan SOHO oleh dan antara:",
+
+                    'paraPihak' => [
+                        "1. Nama Perusahaan : [Nama perusahaan PIHAK PERTAMA]\nAlamat : [Alamat lengkap]\nDiwakili oleh : [Nama pejabat]\nJabatan : [Jabatan]\n\nSelanjutnya disebut sebagai “PIHAK PERTAMA”.",
+
+                        "2. Nama Pelanggan/Perusahaan : [Nama pelanggan/perusahaan PIHAK KEDUA]\nAlamat : [Alamat lengkap]\nNomor Identitas/NIB : [Nomor identitas/NIB]\nDiwakili oleh : [Nama]\nJabatan : [Jabatan]\n\nSelanjutnya disebut sebagai “PIHAK KEDUA”.",
+                    ],
+
+                    'menimbang' => "a. bahwa PIHAK PERTAMA menyediakan layanan teknologi informasi dan/atau konektivitas untuk kebutuhan Small Office/Home Office (SOHO);\nb. bahwa PIHAK KEDUA membutuhkan layanan tersebut untuk mendukung kegiatan pekerjaan, usaha, dan/atau kebutuhan operasional;\nc. bahwa Para Pihak sepakat mengatur ketentuan layanan SOHO dalam Perjanjian ini.",
+
+                    'mengingat' => "1. Kitab Undang-Undang Hukum Perdata (KUHPerdata);\n2. Ketentuan peraturan perundang-undangan yang berlaku;\n3. Ketentuan layanan dan kebijakan PIHAK PERTAMA;\n4. Kesepakatan Para Pihak.",
+
+                    'isi' => [
+                        [
+                            'judul' => 'RUANG LINGKUP LAYANAN',
+                            'text' => "PIHAK PERTAMA menyediakan layanan SOHO kepada PIHAK KEDUA yang dapat meliputi koneksi internet, perangkat jaringan, alamat IP, instalasi, konfigurasi, pemeliharaan, dukungan teknis, dan layanan tambahan sesuai paket yang dipilih."
+                        ],
+                        [
+                            'judul' => 'INSTALASI DAN AKTIVASI',
+                            'text' => "PIHAK PERTAMA melakukan instalasi dan aktivasi layanan pada lokasi yang telah disepakati. PIHAK KEDUA wajib menyediakan akses lokasi dan kondisi teknis yang diperlukan untuk pelaksanaan instalasi."
+                        ],
+                        [
+                            'judul' => 'PERANGKAT LAYANAN',
+                            'text' => "Perangkat yang disediakan dalam layanan dapat berupa modem, router, access point, perangkat jaringan, atau perangkat pendukung lainnya sesuai paket layanan. Kepemilikan perangkat mengikuti ketentuan yang disepakati Para Pihak."
+                        ],
+                        [
+                            'judul' => 'PENGGUNAAN LAYANAN',
+                            'text' => "PIHAK KEDUA wajib menggunakan layanan secara wajar dan sesuai dengan ketentuan hukum serta tidak diperkenankan menggunakan layanan untuk kegiatan yang dapat mengganggu jaringan, keamanan sistem, atau pelanggan lainnya."
+                        ],
+                        [
+                            'judul' => 'PEMELIHARAAN DAN GANGGUAN',
+                            'text' => "PIHAK PERTAMA menyediakan dukungan teknis dan melakukan penanganan gangguan sesuai standar layanan yang berlaku. Gangguan yang timbul akibat kerusakan atau perubahan pada instalasi yang dilakukan PIHAK KEDUA dapat menjadi tanggung jawab PIHAK KEDUA."
+                        ],
+                        [
+                            'judul' => 'BIAYA LAYANAN',
+                            'text' => "PIHAK KEDUA wajib membayar biaya berlangganan sesuai paket layanan yang dipilih. Biaya instalasi, perangkat tambahan, perubahan layanan, atau pekerjaan di luar paket dapat dikenakan sesuai ketentuan yang berlaku."
+                        ],
+                        [
+                            'judul' => 'PERUBAHAN PAKET',
+                            'text' => "PIHAK KEDUA dapat mengajukan perubahan paket layanan sesuai ketersediaan layanan. Perubahan tersebut dapat menyebabkan perubahan biaya dan ketentuan layanan."
+                        ],
+                        [
+                            'judul' => 'KEAMANAN AKUN',
+                            'text' => "PIHAK KEDUA bertanggung jawab menjaga keamanan akun, kata sandi, perangkat, serta kredensial yang digunakan untuk mengakses layanan."
+                        ],
+                        [
+                            'judul' => 'JANGKA WAKTU',
+                            'text' => "Perjanjian berlaku selama [jangka waktu] sejak layanan diaktifkan dan dapat diperpanjang sesuai ketentuan yang berlaku."
+                        ],
+                        [
+                            'judul' => 'PENGHENTIAN LAYANAN',
+                            'text' => "Layanan dapat dihentikan berdasarkan permintaan PIHAK KEDUA, berakhirnya masa layanan, tidak dipenuhinya kewajiban pembayaran, atau alasan lain sesuai dengan ketentuan Perjanjian."
+                        ],
+                        [
+                            'judul' => 'KERAHASIAAN',
+                            'text' => "Para Pihak wajib menjaga kerahasiaan informasi yang diperoleh selama pelaksanaan layanan dan tidak menggunakannya untuk kepentingan di luar Perjanjian tanpa persetujuan pihak lainnya."
+                        ],
+                        [
+                            'judul' => 'PENYELESAIAN PERSELISIHAN',
+                            'text' => "Setiap perselisihan akan diselesaikan terlebih dahulu melalui musyawarah untuk mencapai mufakat. Apabila tidak tercapai kesepakatan, penyelesaian dilakukan berdasarkan ketentuan hukum yang berlaku."
+                        ],
+                        [
+                            'judul' => 'LAIN-LAIN',
+                            'text' => "Ketentuan teknis, paket layanan, harga, spesifikasi perangkat, dan ketentuan tambahan dapat dituangkan dalam dokumen atau lampiran yang menjadi bagian tidak terpisahkan dari Perjanjian."
+                        ],
+                        [
+                            'judul' => 'PENUTUP',
+                            'text' => "Perjanjian ini dibuat sebagai dasar penyediaan dan penggunaan layanan SOHO antara Para Pihak."
+                        ],
+                    ],
+
+                    'tutup' => "Demikian Perjanjian Layanan SOHO ini dibuat dan ditandatangani oleh Para Pihak dengan itikad baik dan tanpa adanya paksaan dari pihak manapun.",
+
+                    'lampiran' => [
+                        [
+                            'judul' => 'LAMPIRAN — DETAIL PAKET SOHO',
+                            'text' => "1. Nama Paket : [Nama paket]\n2. Kecepatan Layanan : [Kecepatan]\n3. Biaya Bulanan : [Biaya]\n4. Biaya Instalasi : [Biaya]\n5. Perangkat : [Daftar perangkat]\n6. Alamat Instalasi : [Alamat]\n7. Alamat IP : [Ketentuan IP]\n8. Masa Berlangganan : [Periode]\n9. SLA : [Ketentuan SLA]"
+                        ],
+                    ],
+                ],
             ],
         ];
 
-        if (!isset($templates[$key])) {
-            return null;
-        }
+        return $templates[$key] ?? null;
 
-        $template = $templates[$key];
-
-        // body_html template yang beneran hasil convert docx cuma dimuat pas
-        // key-nya cocok -- biar gak baca 5 file tiap kali fungsi ini dipanggil
-        // buat key lain.
-        $htmlFiles = [
-            'kemitraan'       => 'kemitraan.html',
-            'colocation'      => 'colocation.html',
-            'managed-service' => 'managed-service.html',
-            'soho'            => 'soho.html',
-            'kontrak-payung'  => 'kontrak-payung.html',
-        ];
-
-        if (isset($htmlFiles[$key])) {
-            $path = resource_path('document-templates/'.$htmlFiles[$key]);
-            $template['body_html'] = file_exists($path) ? file_get_contents($path) : '';
-        }
-
-        return $template;
     }
 
     /**
@@ -645,6 +1072,13 @@ class DocumentController extends Controller
         // melintasi batas halaman, bukan per halaman.
         if (!empty($data['body_content']['pages']) && is_array($data['body_content']['pages'])) {
             $data['body_content']['pages'] = $this->normalizePasalNumbering($data['body_content']['pages']);
+        }
+
+        // Pertahankan penanda halaman sampul (cover): payload simpanan editor
+        // hanya membawa 'pages', tanpa flag ini sampul kehilangan kunci
+        // paginasi balik setiap kali dokumen disimpan.
+        if (isset($data['body_content']) && is_array($data['body_content'])) {
+            $data['body_content']['coverPages'] = (int) ($document->body_content['coverPages'] ?? 0);
         }
 
         $document->update($data);
