@@ -464,35 +464,40 @@ class DocumentController extends Controller
     private function normalizePasalNumbering(array $pages): array
     {
         $counter = 0;
-        $out = [];
 
-        foreach ($pages as $html) {
-            $parts = preg_split('/(\r?\n)/', (string) $html, -1, PREG_SPLIT_DELIM_CAPTURE);
-            $pageOut = '';
+        // Match elemen yang isinya HANYA judul pasal (boleh dibungkus tag
+        // inline spt <strong>/<em>), contoh:
+        //   <p><strong>PASAL 1</strong></p>
+        //   <h1 class="unnumbered" id="pasal-1">PASAL 2 — JUDUL</h1>
+        // Baris/cetak HTML boleh banyak elemen dalam satu baris (bentukan
+        // editor), makanya diproses per elemen, bukan per baris.
+        // Inline ref spt "<p>... lihat pasal 4 ayat 1 ...</p>" atau
+        // "Pasal 17 KUHPerdata mengatur..." TIDAK match, karena teks di dalam
+        // elemen tidak diawali kata "pasal" (atau tanpa pemisah judul).
+        $pattern = '/(<(?:p|h[1-6])\b[^>]*>)\s*('
+            . '(?:<(?!\/(?:p|h[1-6])\b)[^>]+>\s*)*'
+            . 'pasal\s+\d+'
+            . '(?:\s*[\x{2013}\x{2014}.;,:-][^<]*)?'
+            . '\s*(?:<(?!\/(?:p|h[1-6])\b)[^>]+>\s*)*'
+            . ')<\/(?:p|h[1-6])>/iu';
 
-            for ($i = 0; $i < count($parts); $i += 2) {
-                $line = $parts[$i];
-                $sep  = $parts[$i + 1] ?? '';
+        foreach ($pages as $key => $html) {
+            $pages[$key] = preg_replace_callback(
+                $pattern,
+                function ($m) use (&$counter) {
+                    $open  = $m[1];
+                    $inner = $m[2];
+                    $close = substr($m[0], strlen($open) + strlen($inner));
 
-                // Buang tag HTML utk uji: apakah baris ini hanya sebuah judul "PASAL n"?
-                $stripped = trim(preg_replace('/<[^>]*>/', '', $line));
-
-                // Harus benar2 judul pasal: diawali "pasal" + angka, dan tidak ada
-                // teks lanjutan di luar kemungkinan judul (mis. "— JUDUL").
-                if (preg_match('/^pasal\s+\d+(\s*[—-]\s*.+)?$/iu', $stripped)) {
                     $counter++;
-                    $line = preg_replace_callback('/pasal\s+\d+/iu', function () use ($counter) {
-                        return 'PASAL ' . $counter;
-                    }, $line, 1);
-                }
 
-                $pageOut .= $line . $sep;
-            }
-
-            $out[] = $pageOut;
+                    return $open . preg_replace('/pasal\s+\d+/iu', 'PASAL ' . $counter, $inner, 1) . $close;
+                },
+                (string) $html
+            );
         }
 
-        return $out;
+        return $pages;
     }
 
     /**
@@ -699,7 +704,11 @@ class DocumentController extends Controller
         abort_unless($document->user_id === Auth::id(), 403);
 
         $signaturePath = $this->resolvePublicPath($document->signature_data['signatureUrl'] ?? null);
-        $pages = $document->body_content['pages'] ?? [$document->body_content['content'] ?? ''];
+        // Renumber di saat ekspor juga, supaya dokumen lama (tersimpan sebelum
+        // ada normalisasi) tetap dicetak dengan PASAL 1, 2, 3, ... yang urut.
+        $pages = $this->normalizePasalNumbering(
+            $document->body_content['pages'] ?? [$document->body_content['content'] ?? '']
+        );
 
         $headerHtml = $this->resolveImagePathsForPdf($document->header_data['content'] ?? '');
         $footerHtml = $this->resolveImagePathsForPdf($document->footer_data['content'] ?? '');
