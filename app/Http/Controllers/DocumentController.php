@@ -92,7 +92,7 @@ class DocumentController extends Controller
         
         if ($template) {
             $bodyHtml = $template['body_html']
-                ?? $this->buildTemplateBodyHtml($template['body_content'] ?? []);
+                ?? $this->buildTemplateBodyHtml($template['body_content'] ?? [], $templateKey === 'kontrak-kemitraan');
         }
 
         // Pastikan judul "PASAL n" selalu berurutan sesuai urutan pasalnya,
@@ -514,95 +514,197 @@ class DocumentController extends Controller
             'kontrak-kemitraan' => [
                 'title' => 'Perjanjian Kemitraan',
                 'header_data' => [
-                    'kopInstansi' => '[Ketik nama perusahaan PIHAK PERTAMA]',
-                    'kopAlamat' => '[Ketik alamat perusahaan di sini]',
-                    'kopKontrak' => 'Telp: [Nomor telepon] | Email: [Email perusahaan]',
-                    'nomorSurat' => 'KEM/001/VIII/2026',
-                    'perihalSurat' => 'Perjanjian Kemitraan',
+                    'kopInstansi' => '[Nama Perusahaan PIHAK PERTAMA]',
+                    'kopAlamat' => '[Alamat perusahaan PIHAK PERTAMA]',
+                    'kopKontrak' => 'Telp: [Nomor Telepon] | Email: [Email Perusahaan]',
+                    'nomorSurat' => '[Nomor Perjanjian]',
+                    'perihalSurat' => 'Perjanjian Kerjasama Jual Kembali Jasa Layanan Akses Internet',
                     'sifatSurat' => 'Penting',
                 ],
+
                 'body_content' => [
-                    'preamble' => "Pada hari ini, [Hari], tanggal [Tanggal] bulan [Bulan] tahun [Tahun], telah dibuat dan ditandatangani Perjanjian Kemitraan oleh dan antara:",
+
+                    'preamble' => "Perjanjian Kerjasama tentang Jual Kembali Jasa Layanan Akses Internet (selanjutnya disebut “Perjanjian”), dibuat pada [Tanggal Perjanjian], bertempat di [Kota/Kabupaten], oleh dan antara:",
 
                     'paraPihak' => [
-                        "1. Nama Perusahaan : [Nama perusahaan PIHAK PERTAMA]\nAlamat : [Alamat lengkap]\nDiwakili oleh : [Nama pejabat]\nJabatan : [Jabatan]\n\nSelanjutnya disebut sebagai “PIHAK PERTAMA”.",
+                        "1. [Nama Perusahaan PIHAK PERTAMA], suatu [Bentuk Badan Usaha], yang didirikan berdasarkan Hukum Negara Republik Indonesia, berkedudukan di [Alamat dan Kode Pos]. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “[Nama Perusahaan PIHAK PERTAMA]”, Nomor [Nomor Akta], [Tanggal Akta], dibuat dihadapan [Nama Notaris], Notaris di [Kota/Kabupaten]. Dalam hal ini diwakili oleh [Nama Pejabat PIHAK PERTAMA], selaku [Jabatan], sah bertindak untuk dan atas nama [Nama Perusahaan PIHAK PERTAMA], selanjutnya disebut sebagai “PIHAK PERTAMA”.",
 
-                        "2. Nama Mitra : [Nama PIHAK KEDUA]\nAlamat : [Alamat lengkap]\nNomor Identitas/NIB : [Nomor identitas/NIB]\nDiwakili oleh : [Nama]\nJabatan : [Jabatan]\n\nSelanjutnya disebut sebagai “PIHAK KEDUA”.",
+                        "d e n g a n",
+
+                        "2. [Nama PIHAK KEDUA], suatu [Perorangan/Badan Usaha/Badan Hukum], beralamat di [Alamat Lengkap dengan Kecamatan dan Kota/Kabupaten]. Dalam hal ini bertindak atas nama sendiri, selanjutnya dalam Perjanjian ini disebut sebagai “PIHAK KEDUA”.",
+
+                        "PIHAK PERTAMA dan PIHAK KEDUA secara sendiri-sendiri disebut “PIHAK” dan secara bersama-sama disebut sebagai “PARA PIHAK”.",
+
+                        "PARA PIHAK dengan ini menerangkan terlebih dahulu hal-hal sebagai berikut:",
+
+                        "1. Bahwa PIHAK PERTAMA merupakan penyelenggara jasa yang memiliki izin penyelenggaraan Layanan Akses Internet dari Kementerian Komunikasi dan Informatika Republik Indonesia Nomor: [Nomor Izin] tertanggal [Tanggal Izin] Tentang Perubahan Nomor: [Nomor Perubahan] Tahun [Tahun Izin] Izin Penyelenggaraan Jasa Akses Internet (Internet Service Provider) [Nama Perusahaan PIHAK PERTAMA].",
+
+                        "2. Bahwa PIHAK KEDUA merupakan suatu [Perseorangan/Badan Usaha/Badan Hukum].",
+
+                        "3. Bahwa PIHAK PERTAMA sepakat untuk menjual jasa Layanan Akses Internet kepada PIHAK KEDUA, dan untuk selanjutnya PIHAK KEDUA sepakat untuk menjual kembali Jasa Layanan Akses Internet kepada Pelanggan/end user.",
+
+                        "Berdasarkan hal-hal tersebut di atas, maka PARA PIHAK sepakat untuk membuat Perjanjian Kerjasama Jual Kembali Jasa Layanan Akses Internet dengan syarat-syarat dan ketentuan-ketentuan sebagai berikut:",
                     ],
-
-                    'menimbang' => "a. bahwa PIHAK PERTAMA memiliki kegiatan usaha dan/atau layanan yang dapat dikembangkan melalui kerja sama kemitraan;\nb. bahwa PIHAK KEDUA memiliki kemampuan, sumber daya, jaringan, atau keahlian yang diperlukan untuk mendukung kegiatan tersebut;\nc. bahwa Para Pihak sepakat untuk membangun hubungan kemitraan berdasarkan prinsip saling menguntungkan, transparan, dan beritikad baik.",
-
-                    'mengingat' => "1. Kitab Undang-Undang Hukum Perdata (KUHPerdata);\n2. Ketentuan peraturan perundang-undangan yang berlaku;\n3. Ketentuan usaha dan kebijakan masing-masing pihak;\n4. Kesepakatan Para Pihak.",
 
                     'isi' => [
+
                         [
-                            'judul' => 'MAKSUD DAN TUJUAN KEMITRAAN',
-                            'text' => "Perjanjian ini bertujuan mengatur hubungan kemitraan antara Para Pihak dalam rangka pengembangan usaha, pemasaran, penyediaan layanan, distribusi produk, dukungan operasional, atau kegiatan lain yang disepakati."
+                            'judul' => 'DEFINISI',
+                            'text' => "Dalam Perjanjian ini yang dimaksud dengan:\n\n1. Perjanjian adalah Perjanjian Kerja Sama Jual Kembali Jasa Layanan Akses Internet beserta seluruh lampiran, perubahan, addendum, dan dokumen lain yang merupakan satu kesatuan yang tidak terpisahkan dengan Perjanjian ini.\n\n2. Layanan adalah jasa akses internet yang diselenggarakan oleh PIHAK PERTAMA berdasarkan izin penyelenggaraan yang berlaku, termasuk seluruh fasilitas, jaringan, sistem, aplikasi, perangkat, dan layanan pendukung yang berkaitan.\n\n3. PIHAK KEDUA (Reseller) adalah pihak yang memperoleh hak dari PIHAK PERTAMA untuk memasarkan, menjual kembali, dan mengelola Layanan kepada Pelanggan sesuai dengan ketentuan Perjanjian ini.\n\n4. Pelanggan adalah orang perseorangan, badan usaha, badan hukum, instansi pemerintah, atau pihak lainnya yang memperoleh Layanan melalui PIHAK KEDUA.\n\n5. Biaya adalah seluruh kewajiban pembayaran yang menjadi tanggung jawab PIHAK KEDUA kepada PIHAK PERTAMA berdasarkan Perjanjian ini, termasuk namun tidak terbatas pada biaya instalasi, biaya layanan, biaya administrasi, denda, penalti, dan biaya lainnya yang disepakati.\n\n6. Perangkat adalah seluruh perangkat keras, perangkat lunak, jaringan, sistem pendukung, maupun perlengkapan lainnya yang digunakan dalam penyelenggaraan Layanan, baik yang dimiliki maupun yang dipinjamkan oleh PIHAK PERTAMA.\n\n7. Data Pelanggan adalah seluruh informasi mengenai identitas, administrasi, teknis, maupun data lain yang berkaitan dengan Pelanggan yang diperoleh dalam pelaksanaan Perjanjian ini.\n\n8. Data Pemakaian adalah seluruh data mengenai penggunaan Layanan oleh Pelanggan, termasuk namun tidak terbatas pada data trafik, log akses, penggunaan bandwidth, statistik penggunaan, dan data teknis lainnya.\n\n9. Hari Kerja adalah hari Senin sampai dengan Jumat, selain hari libur nasional dan hari yang ditetapkan Pemerintah sebagai hari libur.\n\n10. Keadaan Memaksa (Force Majeure) adalah setiap keadaan di luar kemampuan dan kendali PARA PIHAK yang secara langsung mengakibatkan sebagian atau seluruh kewajiban dalam Perjanjian ini tidak dapat dilaksanakan, sebagaimana diatur lebih lanjut dalam Pasal mengenai Force Majeure.\n\n11. Dokumen Layanan adalah seluruh formulir, Service Order Form (SOF), formulir perubahan layanan, berita acara aktivasi, berita acara serah terima, maupun dokumen operasional lainnya yang diterbitkan oleh PIHAK PERTAMA sebagai bagian dari pelaksanaan Perjanjian ini.\n\n12. Penalti adalah kewajiban pembayaran yang dikenakan kepada PIHAK KEDUA akibat pelanggaran terhadap ketentuan Perjanjian, termasuk namun tidak terbatas pada terminasi dini, pembatalan layanan, downgrade, relokasi, maupun pelanggaran lainnya sebagaimana diatur dalam Perjanjian ini.\n\n13. Aplikasi Reseller adalah sistem aplikasi yang disediakan oleh PIHAK PERTAMA untuk keperluan registrasi pelanggan, pelaporan penjualan, monitoring layanan, administrasi, maupun fungsi operasional lainnya."
                         ],
+
                         [
-                            'judul' => 'RUANG LINGKUP KEMITRAAN',
-                            'text' => "Ruang lingkup kemitraan meliputi kegiatan [uraikan jenis kemitraan], termasuk pemasaran, penjualan, penyediaan layanan, dukungan pelanggan, pengembangan jaringan, dan kegiatan lain yang disepakati secara tertulis."
+                            'judul' => 'RUANG LINGKUP',
+                            'text' => "1. Ruang lingkup dalam Perjanjian ini adalah kerjasama Jual Kembali Jasa Layanan Akses Internet milik PIHAK PERTAMA oleh PIHAK KEDUA;\n\n2. Lokasi/wilayah serta Konfigurasi Teknis Jasa Layanan Akses Internet yang akan dijual kembali oleh PIHAK KEDUA kepada Pelanggan sebagaimana tercantum pada Lampiran I Perjanjian ini;\n\n3. Paket Jasa Layanan Akses Internet yang akan dijual kembali oleh PIHAK KEDUA kepada Pelanggan sebagaimana dimaksud dalam ayat (1) dan (2) tercantum pada Lampiran II Perjanjian ini."
                         ],
-                        [
-                            'judul' => 'HAK PIHAK PERTAMA',
-                            'text' => "PIHAK PERTAMA berhak menerima laporan pelaksanaan kegiatan kemitraan, melakukan evaluasi, menetapkan standar layanan atau produk, serta memperoleh hak lainnya sesuai dengan Perjanjian."
-                        ],
-                        [
-                            'judul' => 'KEWAJIBAN PIHAK PERTAMA',
-                            'text' => "PIHAK PERTAMA berkewajiban memberikan informasi, dukungan, materi, atau fasilitas yang diperlukan PIHAK KEDUA sesuai dengan ruang lingkup kemitraan yang disepakati."
-                        ],
-                        [
-                            'judul' => 'HAK PIHAK KEDUA',
-                            'text' => "PIHAK KEDUA berhak memperoleh dukungan dan informasi yang diperlukan untuk menjalankan kegiatan kemitraan serta memperoleh imbalan atau manfaat sesuai dengan ketentuan yang telah disepakati."
-                        ],
-                        [
-                            'judul' => 'KEWAJIBAN PIHAK KEDUA',
-                            'text' => "PIHAK KEDUA wajib menjalankan kegiatan kemitraan sesuai standar, prosedur, kebijakan, dan ketentuan yang diberikan PIHAK PERTAMA serta menjaga nama baik dan reputasi PIHAK PERTAMA."
-                        ],
-                        [
-                            'judul' => 'TARGET DAN KINERJA',
-                            'text' => "Target, indikator kinerja, wilayah pemasaran, jumlah pelanggan, volume transaksi, atau indikator lainnya dapat ditetapkan berdasarkan kesepakatan Para Pihak dan dapat dievaluasi secara berkala."
-                        ],
-                        [
-                            'judul' => 'IMBALAN DAN PEMBAGIAN HASIL',
-                            'text' => "Besaran komisi, fee, pembagian hasil, insentif, atau bentuk imbalan lainnya ditentukan berdasarkan kesepakatan Para Pihak sebagaimana tercantum dalam lampiran atau dokumen pelaksanaan."
-                        ],
-                        [
-                            'judul' => 'KERAHASIAAN DAN DATA',
-                            'text' => "Para Pihak wajib menjaga kerahasiaan informasi usaha, pelanggan, harga, strategi, data, dokumen, serta informasi lainnya yang diperoleh dalam pelaksanaan kemitraan."
-                        ],
-                        [
-                            'judul' => 'PENGGUNAAN MEREK DAN IDENTITAS',
-                            'text' => "PIHAK KEDUA hanya dapat menggunakan nama, merek, logo, materi promosi, dan identitas PIHAK PERTAMA sesuai izin dan pedoman yang diberikan oleh PIHAK PERTAMA."
-                        ],
+
                         [
                             'judul' => 'JANGKA WAKTU',
-                            'text' => "Perjanjian ini berlaku selama [jangka waktu] sejak tanggal ditandatangani dan dapat diperpanjang berdasarkan kesepakatan tertulis Para Pihak."
+                            'text' => "1. Perjanjian ini berlaku sejak tanggal ditandatangani oleh PARA PIHAK dan tetap berlaku untuk jangka waktu [Jangka Waktu], sebagaimana tercantum dalam Lampiran I, kecuali diakhiri lebih dahulu sesuai ketentuan dalam Perjanjian ini.\n\n2. Setelah jangka waktu sebagaimana dimaksud pada ayat (1) berakhir, Perjanjian ini secara otomatis diperpanjang untuk jangka waktu [Jangka Waktu Perpanjangan] berikutnya dengan syarat:\n\na. tidak terdapat wanprestasi yang belum diselesaikan oleh salah satu pihak; dan\n\nb. tidak ada pemberitahuan tertulis mengenai pengakhiran Perjanjian dari Pihak Kedua paling lambat [Jumlah Hari] Hari Kalender sebelum tanggal berakhirnya Perjanjian."
                         ],
+
                         [
-                            'judul' => 'PENGAKHIRAN KEMITRAAN',
-                            'text' => "Kemitraan dapat diakhiri berdasarkan kesepakatan Para Pihak atau apabila terdapat pelanggaran terhadap ketentuan Perjanjian yang tidak diperbaiki dalam jangka waktu yang ditentukan."
+                            'judul' => 'HAK DAN KEWAJIBAN PARA PIHAK',
+                            'text' => "1. Hak PIHAK PERTAMA\n\nPIHAK PERTAMA berhak:\n\na. menerima pembayaran dari PIHAK KEDUA sesuai dengan ketentuan Perjanjian;\n\nb. melakukan verifikasi, audit, dan pengawasan terhadap pelaksanaan kerja sama, termasuk data pelanggan, data penjualan, penggunaan jaringan, dan kepatuhan PIHAK KEDUA terhadap Perjanjian;\n\nc. melakukan isolir, pembatasan, penghentian sementara, atau pemutusan layanan sesuai ketentuan Perjanjian apabila PIHAK KEDUA melakukan wanprestasi atau pelanggaran;\n\nd. mengubah, mengembangkan, menambah, atau mengurangi jenis layanan, teknologi, sistem, aplikasi, maupun kebijakan operasional sepanjang tidak menghilangkan hak-hak PIHAK KEDUA yang telah timbul sebelum perubahan tersebut berlaku;\n\ne. menolak permohonan aktivasi, relokasi, perubahan layanan, atau penambahan pelanggan yang tidak memenuhi ketentuan teknis, administratif, atau ketentuan hukum yang berlaku;\n\nf. menggunakan data operasional yang diperoleh dari pelaksanaan Perjanjian untuk kepentingan operasional, pemenuhan kewajiban hukum, audit, peningkatan kualitas layanan, dan pengembangan usaha dengan tetap memperhatikan ketentuan peraturan perundang-undangan.\n\n2. Kewajiban PIHAK PERTAMA\n\nPIHAK PERTAMA berkewajiban:\n\na. menyediakan Layanan sesuai spesifikasi layanan yang disepakati;\n\nb. memberikan dukungan teknis, aktivasi layanan, pemeliharaan jaringan, dan penanganan gangguan sesuai ketentuan SLA;\n\nc. menyediakan sistem administrasi dan pelaporan yang diperlukan untuk pelaksanaan kerja sama;\n\nd. menjaga kerahasiaan data PIHAK KEDUA dan Pelanggan sesuai ketentuan Perjanjian dan peraturan perundang-undangan;\n\ne. memberikan informasi kepada PIHAK KEDUA mengenai perubahan kebijakan yang berdampak langsung terhadap pelaksanaan kerja sama.\n\n3. Hak PIHAK KEDUA\n\nPIHAK KEDUA berhak:\n\na. memperoleh Layanan sesuai spesifikasi layanan yang disepakati;\n\nb. memperoleh dukungan teknis, pelatihan, dan pendampingan operasional sesuai kebutuhan pelaksanaan kerja sama;\n\nc. memasarkan dan menjual kembali Layanan kepada Pelanggan sesuai ketentuan Perjanjian;\n\nd. memperoleh akses terhadap sistem administrasi, pelaporan, dan layanan pendukung yang disediakan oleh PIHAK PERTAMA.\n\n4. Kewajiban PIHAK KEDUA\n\nPIHAK KEDUA berkewajiban:\n\na. memasarkan dan menjual Layanan sesuai ketentuan Perjanjian, standar operasional, dan kebijakan PIHAK PERTAMA;\n\nb. membayar seluruh kewajiban finansial kepada PIHAK PERTAMA tepat waktu;\n\nc. menjaga kualitas pelayanan kepada Pelanggan dan menjadi pihak yang bertanggung jawab atas hubungan komersial dengan Pelanggan;\n\nd. melaporkan seluruh data pelanggan, penjualan, perubahan layanan, dan informasi lain pada sistem PIHAK PERTAMA yang dipersyaratkan secara lengkap, benar, dan tepat waktu;\n\ne. menjaga keamanan jaringan, perangkat, akun, kata sandi, dan akses yang diberikan oleh PIHAK PERTAMA;\n\nf. tidak menyalahgunakan jaringan, menyembunyikan data pelanggan, melakukan manipulasi data, menggunakan jaringan untuk kegiatan yang melanggar hukum, atau melakukan tindakan lain yang dapat merugikan PIHAK PERTAMA;\n\ng. mematuhi seluruh ketentuan teknis, operasional, keamanan informasi, serta peraturan perundang-undangan yang berlaku.\n\n5. Ketentuan Umum\n\na. Masing-masing PIHAK wajib melaksanakan hak dan kewajibannya dengan itikad baik, profesional, dan sesuai dengan prinsip kehati-hatian.\n\nb. Hak dan kewajiban yang diatur dalam Pasal ini tidak mengurangi hak dan kewajiban lain yang diatur dalam Perjanjian ini maupun peraturan perundang-undangan yang berlaku."
                         ],
+
                         [
-                            'judul' => 'PENYELESAIAN PERSELISIHAN',
-                            'text' => "Setiap perselisihan akan diselesaikan terlebih dahulu melalui musyawarah. Apabila tidak tercapai kesepakatan, Para Pihak dapat menempuh penyelesaian sesuai ketentuan hukum yang berlaku."
+                            'judul' => 'BIAYA DAN CARA PEMBAYARAN',
+                            'text' => "1. Biaya yang wajib dibayarkan oleh PIHAK KEDUA kepada PIHAK PERTAMA meliputi biaya Layanan Akses Internet dan biaya administrasi bulanan;\n\n2. Biaya Layanan dan Instalasi jasa Layanan Akses Internet sebagaimana diuraikan dalam Lampiran I;\n\n3. Biaya administrasi bulanan sebesar [Persentase] sesuai dengan pendapatan kotor PIHAK KEDUA;\n\n4. Biaya sebagaimana dimaksud dalam ayat (3) sudah termasuk Biaya Hak Penyelenggaraan (BHP), Universal Service Obligation (USO), Pajak Pertambahan Nilai Dalam Negeri (PPnDn) dan Pajak Penghasilan (PPh) sesuai ketentuan perundang-undangan yang berlaku;\n\n5. Biaya jasa Layanan Akses Internet dan biaya administrasi sebagaimana tersebut dalam ayat (2) dan ayat (3) wajib dibayarkan oleh PIHAK KEDUA kepada PIHAK PERTAMA setiap bulan. Tagihan wajib dibayarkan maksimal [Jumlah Hari] Hari Kerja sejak tanggal tagihan (invoice) dikirimkan;\n\n6. Seluruh pembayaran dilakukan melalui transfer ke rekening yang ditetapkan oleh PIHAK PERTAMA."
                         ],
+
                         [
-                            'judul' => 'PENUTUP',
-                            'text' => "Perjanjian ini dibuat berdasarkan prinsip saling menguntungkan, itikad baik, transparansi, dan kepatuhan terhadap ketentuan yang berlaku."
+                            'judul' => 'TANGGUNGJAWAB PENAGIHAN',
+                            'text' => "1. Penagihan biaya Layanan Akses Internet dari Pelanggan dilakukan oleh PIHAK KEDUA;\n\n2. PIHAK KEDUA bertanggungjawab atas upaya-upaya penagihan kepada Pelanggan;\n\n3. Penagihan kepada Pelanggan menjadi dasar bagi PARA PIHAK untuk melakukan perhitungan untuk biaya administrasi."
+                        ],
+
+                        [
+                            'judul' => 'PENGADUAN PELANGGAN',
+                            'text' => "1. PIHAK KEDUA wajib untuk menyediakan form pengaduan Pelanggan;\n\n2. Mekanisme dan Standar Operasional Prosedur (S.O.P) untuk pengaduan Pelanggan tercantum dalam Lampiran III."
+                        ],
+
+                        [
+                            'judul' => 'ISOLIR',
+                            'text' => "1. Apabila PIHAK KEDUA melalaikan kewajiban sebagaimana dimaksud dalam Pasal 5 ayat (5), maka PIHAK PERTAMA akan memberikan Surat Peringatan kepada PIHAK KEDUA sebanyak 3 (tiga) kali dengan jangka waktu masing-masing Surat Peringatan selama 7 (tujuh) hari kerja. Apabila sampai Surat Peringatan ke-2, PIHAK KEDUA belum melakukan pembayaran, maka PIHAK PERTAMA berhak melakukan Isolir terhadap Layanan Akses Internet;\n\n2. PIHAK PERTAMA akan membuka Isolir dalam waktu selambat-lambatnya 3 (tiga) Hari Kerja setelah PIHAK KEDUA membayar seluruh kewajibannya;\n\n3. Apabila dalam jangka waktu 7 (tujuh) Hari Kerja sejak terjadinya Isolir sebagaimana yang dimaksud dalam ayat (1) Pasal ini, PIHAK KEDUA belum memenuhi kewajibannya, maka PIHAK PERTAMA akan melakukan Pemutusan Layanan Permanen;\n\n4. Dalam hal terjadi Pemutusan Layanan Permanen sebagaimana dimaksud dalam ayat (3), maka PIHAK KEDUA tetap wajib membayar segala kewajibannya yang belum terlaksana kepada PIHAK PERTAMA selambat-lambatnya 7 (tujuh) Hari Kerja sejak Pemutusan Layanan Permanen dilakukan oleh PIHAK PERTAMA."
+                        ],
+
+                        [
+                            'judul' => 'DATA, KERAHASIAAN, DAN PERLINDUNGAN DATA',
+                            'text' => "1. PARA PIHAK wajib menjaga kerahasiaan seluruh data, informasi, dokumen, sistem, maupun informasi lain yang diperoleh sehubungan dengan pelaksanaan Perjanjian ini dan tidak mengungkapkannya kepada pihak lain tanpa persetujuan tertulis dari pihak yang berhak, kecuali diwajibkan berdasarkan ketentuan peraturan perundang-undangan atau perintah instansi yang berwenang.\n\n2. Seluruh data operasional jaringan, data penggunaan layanan, konfigurasi sistem, dokumentasi teknis, serta data lain yang dihasilkan atau tersimpan dalam sistem milik PIHAK PERTAMA merupakan milik PIHAK PERTAMA.\n\n3. PIHAK PERTAMA berhak menggunakan, mengolah, menyimpan, dan mengakses data sebagaimana dimaksud pada ayat (2) untuk kepentingan operasional, pemeliharaan jaringan, peningkatan kualitas layanan, audit, keamanan sistem, pemenuhan kewajiban hukum, serta tujuan lain yang berkaitan dengan penyelenggaraan Layanan, dengan tetap memperhatikan ketentuan peraturan perundang-undangan.\n\n4. PIHAK KEDUA tidak diperkenankan mengakses, menyalin, mengubah, memindahtangankan, memperjualbelikan, atau menggunakan data maupun informasi milik PIHAK PERTAMA di luar pelaksanaan Perjanjian tanpa persetujuan tertulis dari PIHAK PERTAMA.\n\n5. Kewajiban menjaga kerahasiaan sebagaimana dimaksud dalam Pasal ini tetap berlaku selama Perjanjian berlangsung dan selama 5 (lima) tahun setelah Perjanjian berakhir atau jangka waktu lain yang diwajibkan berdasarkan ketentuan peraturan perundang-undangan."
+                        ],
+
+                        [
+                            'judul' => 'PERANGKAT DAN INFRASTRUKTUR',
+                            'text' => "1. Seluruh perangkat, jaringan, infrastruktur, aplikasi, sistem, dan fasilitas pendukung yang disediakan oleh PIHAK PERTAMA untuk penyelenggaraan Layanan tetap menjadi milik PIHAK PERTAMA, kecuali disepakati lain secara tertulis.\n\n2. PIHAK KEDUA wajib menggunakan, menjaga, dan memelihara seluruh perangkat yang dikuasainya sesuai dengan petunjuk penggunaan serta tidak mengalihkan, memindahtangankan, menyewakan, menjaminkan, memodifikasi, atau menggunakannya untuk kepentingan selain pelaksanaan Perjanjian tanpa persetujuan tertulis dari PIHAK PERTAMA.\n\n3. PIHAK KEDUA bertanggung jawab atas kehilangan, kerusakan, atau penyalahgunaan perangkat yang berada dalam penguasaannya, kecuali apabila disebabkan oleh cacat bawaan perangkat atau kesalahan PIHAK PERTAMA.\n\n4. PIHAK PERTAMA berhak melakukan pemeriksaan, pemeliharaan, penggantian, peningkatan, relokasi, atau penarikan perangkat apabila diperlukan untuk kepentingan operasional, keamanan jaringan, pemeliharaan, atau berakhirnya Perjanjian.\n\n5. Dalam hal Perjanjian berakhir karena sebab apa pun, PIHAK KEDUA wajib mengembalikan seluruh perangkat milik PIHAK PERTAMA dalam kondisi baik sesuai pemakaian yang wajar paling lambat 14 (empat belas) Hari Kalender sejak tanggal berakhirnya Perjanjian, kecuali disepakati lain secara tertulis.\n\n6. Apabila PIHAK KEDUA tidak mengembalikan perangkat sebagaimana dimaksud pada ayat (5), PIHAK PERTAMA berhak melakukan penagihan atas nilai penggantian perangkat dan/atau menempuh upaya hukum sesuai dengan ketentuan peraturan perundang-undangan dan Perjanjian ini.\n\n7. Ketentuan mengenai spesifikasi perangkat, instalasi, pemeliharaan, penggantian, dan pengembalian perangkat diatur lebih lanjut dalam Lampiran yang merupakan bagian tidak terpisahkan dari Perjanjian ini."
+                        ],
+
+                        [
+                            'judul' => 'MEREK DAN HAK KEKAYAAN INTELEKTUAL',
+                            'text' => "1. Seluruh hak atas merek, logo, nama dagang, hak cipta, perangkat lunak, desain, dokumentasi, sistem, aplikasi, jaringan, serta Hak Kekayaan Intelektual lainnya yang digunakan dalam penyelenggaraan Layanan merupakan milik PIHAK PERTAMA atau pihak lain yang memberikan hak penggunaannya kepada PIHAK PERTAMA.\n\n2. PIHAK PERTAMA memberikan kepada PIHAK KEDUA hak yang terbatas, tidak eksklusif, tidak dapat dialihkan, dan tidak dapat disublisensikan untuk menggunakan merek, logo, dan materi promosi milik PIHAK PERTAMA semata-mata dalam rangka pelaksanaan Perjanjian ini.\n\n3. PIHAK KEDUA wajib menggunakan merek, logo, dan identitas perusahaan milik PIHAK PERTAMA sesuai dengan pedoman, standar, dan ketentuan yang ditetapkan oleh PIHAK PERTAMA serta tidak melakukan perubahan, penghapusan, atau penggunaan yang dapat merugikan nama baik PIHAK PERTAMA.\n\n4. PIHAK KEDUA dilarang mendaftarkan, menggunakan, meniru, atau mengklaim kepemilikan atas merek, logo, nama dagang, nama domain, desain, atau Hak Kekayaan Intelektual lainnya yang mempunyai persamaan atau kemiripan dengan milik PIHAK PERTAMA tanpa persetujuan tertulis dari PIHAK PERTAMA.\n\n5. Berakhirnya Perjanjian ini mengakibatkan seluruh hak penggunaan merek, logo, dan Hak Kekayaan Intelektual yang diberikan kepada PIHAK KEDUA berakhir secara otomatis. PIHAK KEDUA wajib segera menghentikan seluruh penggunaan serta menghapus atau mengembalikan seluruh materi yang memuat identitas PIHAK PERTAMA, kecuali diwajibkan lain oleh ketentuan peraturan perundang-undangan.\n\n6. Pelanggaran terhadap ketentuan dalam Pasal ini memberikan hak kepada PIHAK PERTAMA untuk mencabut hak penggunaan merek, menghentikan kerja sama, menuntut ganti rugi, dan/atau menempuh upaya hukum sesuai dengan ketentuan Perjanjian dan peraturan perundang-undangan yang berlaku."
+                        ],
+
+                        [
+                            'judul' => 'WANPRESTASI DAN SANKSI',
+                            'text' => "1. PIHAK KEDUA dinyatakan melakukan wanprestasi apabila:\n\na. tidak memenuhi kewajibannya berdasarkan Perjanjian;\n\nb. terlambat melakukan pembayaran sesuai dengan ketentuan Perjanjian;\n\nc. memberikan data atau informasi yang tidak benar;\n\nd. melanggar ketentuan mengenai penggunaan Layanan, perangkat, data, atau Hak Kekayaan Intelektual;\n\ne. menggunakan Layanan untuk kegiatan yang melanggar hukum; atau\n\nf. melakukan tindakan lain yang mengakibatkan kerugian bagi PIHAK PERTAMA.\n\n2. Dalam hal PIHAK KEDUA melakukan wanprestasi, PIHAK PERTAMA berhak memberikan sanksi secara bertahap sesuai dengan tingkat pelanggaran berupa:\n\na. teguran tertulis;\n\nb. penangguhan aktivasi atau layanan tertentu;\n\nc. pembatasan atau isolir Layanan;\n\nd. pengenaan denda atau penalti;\n\ne. pemutusan sebagian atau seluruh Layanan; dan/atau\n\nf. pengakhiran Perjanjian.\n\n3. PIHAK PERTAMA berhak menjatuhkan salah satu atau beberapa sanksi sebagaimana dimaksud pada ayat (2) tanpa harus menerapkannya secara berurutan, apabila menurut penilaian PIHAK PERTAMA pelanggaran yang dilakukan bersifat material atau berpotensi menimbulkan kerugian bagi PIHAK PERTAMA, Pelanggan, atau pihak lain.\n\n4. Dalam hal PIHAK KEDUA mengakhiri Perjanjian sebelum berakhirnya jangka waktu yang disepakati atau menyebabkan Perjanjian diakhiri karena wanprestasi PIHAK KEDUA, maka PIHAK KEDUA wajib membayar penalti sesuai dengan ketentuan yang tercantum dalam Lampiran atau addendum yang merupakan bagian tidak terpisahkan dari Perjanjian ini.\n\n5. Pengenaan sanksi, denda, atau penalti tidak menghapus kewajiban PIHAK KEDUA untuk:\n\na. melunasi seluruh kewajiban pembayaran;\n\nb. mengembalikan perangkat milik PIHAK PERTAMA;\n\nc. mengganti kerugian yang timbul akibat pelanggaran; dan\n\nd. memenuhi kewajiban lain berdasarkan Perjanjian.\n\n6. PIHAK PERTAMA berhak menagih seluruh kerugian yang timbul akibat wanprestasi PIHAK KEDUA, termasuk biaya penagihan, biaya pemulihan jaringan, biaya hukum, dan kerugian lain yang dapat dibuktikan sesuai dengan ketentuan peraturan perundang-undangan.\n\n7. Apabila PIHAK KEDUA tidak memperbaiki wanprestasi dalam jangka waktu yang ditetapkan oleh PIHAK PERTAMA atau melakukan pelanggaran yang bersifat material, PIHAK PERTAMA berhak mengakhiri Perjanjian secara sepihak melalui pemberitahuan tertulis tanpa mengurangi hak PIHAK PERTAMA untuk menuntut pemenuhan kewajiban, ganti rugi, maupun upaya hukum lainnya sesuai dengan ketentuan Perjanjian dan peraturan perundang-undangan yang berlaku."
+                        ],
+
+                        [
+                            'judul' => 'PENGAKHIRAN PERJANJIAN',
+                            'text' => "1. Perjanjian ini berakhir apabila:\n\na. jangka waktu Perjanjian berakhir dan tidak diperpanjang;\n\nb. PARA PIHAK sepakat secara tertulis untuk mengakhiri Perjanjian;\n\nc. diakhiri oleh salah satu pihak sesuai dengan ketentuan Perjanjian ini; atau\n\nd. terjadi keadaan lain yang berdasarkan ketentuan peraturan perundang-undangan mengakibatkan Perjanjian tidak dapat dilaksanakan.\n\n2. PIHAK PERTAMA berhak mengakhiri Perjanjian secara sepihak dengan pemberitahuan tertulis apabila PIHAK KEDUA:\n\na. melakukan wanprestasi yang tidak diperbaiki dalam jangka waktu yang ditentukan;\n\nb. melakukan pelanggaran yang bersifat material;\n\nc. dinyatakan pailit, dibubarkan, atau menghentikan kegiatan usahanya;\n\nd. menggunakan Layanan untuk kegiatan yang melanggar hukum atau merugikan PIHAK PERTAMA; atau\n\ne. tidak lagi memenuhi persyaratan sebagai mitra berdasarkan ketentuan yang ditetapkan oleh PIHAK PERTAMA.\n\n3. Pengakhiran Perjanjian tidak menghapus hak dan kewajiban PARA PIHAK yang telah timbul sebelum tanggal efektif pengakhiran, termasuk kewajiban pembayaran, denda, penalti, ganti rugi, pengembalian perangkat, serta kewajiban lainnya berdasarkan Perjanjian.\n\n4. Sejak tanggal efektif pengakhiran Perjanjian:\n\na. PIHAK KEDUA wajib menghentikan penggunaan merek, logo, sistem, aplikasi, dan fasilitas milik PIHAK PERTAMA;\n\nb. PIHAK KEDUA wajib mengembalikan seluruh perangkat, dokumen, data, dan aset milik PIHAK PERTAMA yang berada dalam penguasaannya; dan\n\nc. PIHAK PERTAMA berhak menghentikan akses PIHAK KEDUA terhadap sistem dan Layanan.\n\n5. PARA PIHAK sepakat dan setuju untuk mengesampingkan berlakunya Pasal 1266 KUHPerdata, sehingga Pemutusan Perjanjian ini dapat dilakukan oleh PARA PIHAK tanpa terlebih dahulu menunggu Putusan Pengadilan."
+                        ],
+
+                        [
+                            'judul' => 'PERTANGGUNGJAWABAN TERHADAP PIHAK KETIGA',
+                            'text' => "1. Dalam hal terjadi Pemutusan Layanan Permanen sebagaimana dimaksud dalam Pasal 13 ayat (2), PIHAK PERTAMA tidak bertanggung jawab atas hubungan hukum, hak, kewajiban, kerugian, maupun tuntutan antara PIHAK KEDUA dan Pelanggan.\n\n2. Untuk menjaga keberlangsungan Layanan Akses Internet kepada Pelanggan, PIHAK PERTAMA berhak menawarkan layanan secara langsung kepada Pelanggan atau memfasilitasi pengalihan layanan kepada Penyelenggara Jasa Layanan Akses Internet lainnya, sepanjang memungkinkan secara teknis dan sesuai dengan ketentuan yang berlaku.\n\n3. PIHAK KEDUA menjamin bahwa Pelanggan telah memperoleh informasi mengenai kemungkinan pengalihan layanan sebagaimana dimaksud pada ayat (2), serta membebaskan dan melepaskan PIHAK PERTAMA dari setiap tuntutan, gugatan, atau klaim yang timbul sehubungan dengan berakhirnya Perjanjian ini atau berakhirnya hubungan hukum antara PIHAK KEDUA dan Pelanggan.\n\n4. Pelaksanaan ketentuan dalam Pasal ini tidak menghapus kewajiban PARA PIHAK yang masih harus diselesaikan berdasarkan Perjanjian ini."
+                        ],
+
+                        [
+                            'judul' => 'EVALUASI PELAKSANAAN PEKERJAAN',
+                            'text' => "1. PARA PIHAK sepakat melakukan evaluasi atas pelaksanaan Perjanjian ini setiap 6 (enam) bulan sejak Perjanjian mulai berlaku.\n\n2. Evaluasi dilakukan melalui Forum Konsultasi yang dihadiri oleh wakil PARA PIHAK yang berwenang.\n\na. evaluasi meliputi antara lain:\n\nb. pelaksanaan operasional layanan;\n\nc. pemasaran dan penjualan;\n\nd. pengaduan Pelanggan;\n\ne. kendala teknis; dan\n\nf. hal lain yang disepakati PARA PIHAK.\n\n3. Hasil evaluasi dituangkan dalam berita acara atau dokumen tertulis yang menjadi dasar bagi PARA PIHAK untuk melakukan perbaikan pelaksanaan Perjanjian atau perubahan Perjanjian berdasarkan kesepakatan PARA PIHAK.\n\n4. Dalam hal hasil evaluasi menunjukkan adanya kondisi yang dapat menjadi dasar pengakhiran Perjanjian, pelaksanaannya tetap mengacu pada ketentuan mengenai pemutusan Perjanjian sebagaimana diatur dalam Perjanjian ini."
+                        ],
+
+                        [
+                            'judul' => 'KEADAAN MEMAKSA (FORCE MAJEURE)',
+                            'text' => "1. Keadaan Memaksa (Force Majeure) adalah setiap peristiwa di luar kendali dan kemampuan wajar PARA PIHAK yang secara langsung mengakibatkan sebagian atau seluruh kewajiban dalam Perjanjian ini tidak dapat dilaksanakan, termasuk namun tidak terbatas pada bencana alam, kebakaran, perang, kerusuhan, wabah penyakit, pemogokan, gangguan jaringan berskala besar, kegagalan sistem di luar kendali PARA PIHAK, kebijakan Pemerintah, atau peristiwa lain yang sejenis.\n\n2. PIHAK yang mengalami Keadaan Memaksa wajib memberitahukan secara tertulis kepada pihak lainnya paling lambat 14 (empat belas) Hari Kalender sejak diketahui atau seharusnya diketahui terjadinya Keadaan Memaksa, disertai penjelasan mengenai dampak terhadap pelaksanaan Perjanjian.\n\n3. Selama Keadaan Memaksa berlangsung, kewajiban PARA PIHAK yang terdampak ditangguhkan sepanjang tidak dapat dilaksanakan akibat Keadaan Memaksa. Penangguhan tersebut tidak menghapus kewajiban yang telah timbul sebelum terjadinya Keadaan Memaksa.\n\n4. PARA PIHAK wajib melakukan upaya yang wajar untuk mengurangi dampak Keadaan Memaksa dan melanjutkan pelaksanaan Perjanjian segera setelah keadaan tersebut berakhir.\n\n5. Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender secara berturut-turut dan PARA PIHAK tidak mencapai kesepakatan mengenai kelanjutan Perjanjian, masing-masing pihak berhak mengakhiri Perjanjian dengan pemberitahuan tertulis tanpa dikenakan penalti, dengan tetap menyelesaikan seluruh hak dan kewajiban yang telah timbul sebelum tanggal efektif pengakhiran."
+                        ],
+
+                        [
+                            'judul' => 'KOMUNIKASI/PEMBERITAHUAN',
+                            'text' => "1. Segala pemberitahuan yang diisyaratkan atau diperkenankan menurut perjanjian kerjasama ini harus dibuat secara tertulis dan dapat dikirimkan melalui email, surat tercatat atau dikirimkan secara langsung melalui kurir kepada alamat-alamat di bawah ini:\n\na. Jika kepada PIHAK PERTAMA:\nNama : [Nama PIHAK PERTAMA]\nAlamat : [Alamat PIHAK PERTAMA]\nTelepon : [Nomor Telepon PIHAK PERTAMA]\nU.p : [Nama Penanggung Jawab]\nEmail : [Email PIHAK PERTAMA]\n\nb. Jika kepada PIHAK KEDUA:\nNama : [Nama PIHAK KEDUA]\nAlamat : [Alamat PIHAK KEDUA]\nTelepon : [Nomor Telepon PIHAK KEDUA]\nU.p : [Nama Penanggung Jawab]\nEmail : [Email PIHAK KEDUA]\n\n2. Jika salah satu pihak mengganti atau mengubah alamatnya atau hal-hal terkait lainnya sehubungan dengan alamat ini, maka pihak tersebut harus memberitahukan penggantian dan perubahan tersebut kepada pihak lainnya."
+                        ],
+
+                        [
+                            'judul' => 'PENYELESAIAN SENGKETA DAN KETENTUAN PENUTUP',
+                            'text' => "1. Setiap perselisihan yang timbul sehubungan dengan pelaksanaan atau penafsiran Perjanjian ini akan diselesaikan terlebih dahulu secara musyawarah untuk mufakat dalam waktu paling lama 30 (tiga puluh) Hari Kalender sejak salah satu pihak menyampaikan pemberitahuan tertulis mengenai adanya perselisihan.\n\n2. Apabila musyawarah sebagaimana dimaksud pada ayat (1) tidak mencapai kesepakatan, PARA PIHAK sepakat untuk menyelesaikan perselisihan melalui Pengadilan Negeri [Kota/Kabupaten] di wilayah hukum kedudukan PIHAK PERTAMA, tanpa mengurangi hak PIHAK PERTAMA untuk mengajukan gugatan atau tuntutan lain sesuai dengan ketentuan peraturan perundang-undangan.\n\n3. Selama proses penyelesaian perselisihan berlangsung, PARA PIHAK tetap wajib melaksanakan bagian Perjanjian yang tidak menjadi objek perselisihan.\n\n4. Setiap perubahan, penambahan, atau pengurangan terhadap Perjanjian ini hanya sah apabila dibuat addendum/amandemen secara tertulis dan ditandatangani oleh PARA PIHAK atau wakilnya yang sah, serta menjadi bagian yang tidak terpisahkan dari Perjanjian ini.\n\n5. Apabila terdapat ketentuan dalam Perjanjian ini yang dinyatakan tidak sah, tidak berlaku, atau tidak dapat dilaksanakan berdasarkan putusan pengadilan atau ketentuan peraturan perundang-undangan, ketentuan lainnya tetap berlaku dan mengikat PARA PIHAK.\n\n6. PARA PIHAK menyatakan bahwa:\n\na. telah membaca, memahami, dan menyetujui seluruh isi Perjanjian ini;\n\nb. memiliki kewenangan yang sah untuk menandatangani dan melaksanakan Perjanjian ini;\n\nc. Perjanjian ini dibuat tanpa adanya paksaan, kekhilafan, atau penipuan dari pihak mana pun.\n\n7. Perjanjian ini dibuat dalam 2 (dua) rangkap asli yang masing-masing mempunyai kekuatan hukum yang sama, dan mulai berlaku sejak tanggal ditandatangani oleh PARA PIHAK."
                         ],
                     ],
 
-                    'tutup' => "Demikian Perjanjian Kemitraan ini dibuat dan ditandatangani oleh Para Pihak dalam keadaan sadar dan tanpa adanya paksaan dari pihak manapun.",
+                    'tutup' => "PIHAK PERTAMA\n[Nama Perusahaan PIHAK PERTAMA]\n\n\n\n[Nama Penandatangan PIHAK PERTAMA]\n[Jabatan]\n\n\nPIHAK KEDUA\n[Nama PIHAK KEDUA]\n\n\n\n[Nama Penandatangan PIHAK KEDUA]\n[Jabatan]",
 
                     'lampiran' => [
                         [
-                            'judul' => 'LAMPIRAN — KETENTUAN KEMITRAAN',
-                            'text' => "1. Jenis Kemitraan : [Jenis]\n2. Produk/Layanan : [Produk/Layanan]\n3. Wilayah : [Wilayah]\n4. Target : [Target]\n5. Komisi/Imbalan : [Nilai]\n6. Mekanisme Pembayaran : [Mekanisme]\n7. Masa Kemitraan : [Periode]"
+                            'judul' => 'LAMPIRAN I PERJANJIAN — DESKRIPSI LAYANAN DAN KONFIGURASI',
+                            'text' => "NOMOR: [Nomor Perjanjian]",
+                            'html' => '<table style="width:100%; border-collapse:collapse;">'
+                                . '<tbody>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Nama Pelanggan</td><td style="border:1px solid #000; padding:4px 6px;">[Nama PIHAK KEDUA]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Tanggal Awal Berlangganan</td><td style="border:1px solid #000; padding:4px 6px;">[Tanggal Awal]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Tanggal Akhir Berlangganan</td><td style="border:1px solid #000; padding:4px 6px;">[Tanggal Akhir]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">NPWP</td><td style="border:1px solid #000; padding:4px 6px;">[NPWP]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Lokasi / Wilayah Layanan</td><td style="border:1px solid #000; padding:4px 6px;">[Lokasi / Wilayah Layanan]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Layanan</td><td style="border:1px solid #000; padding:4px 6px;">[Jenis Layanan]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Biaya Instalasi</td><td style="border:1px solid #000; padding:4px 6px;">[Biaya Instalasi]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Biaya Layanan</td><td style="border:1px solid #000; padding:4px 6px;">[Biaya Layanan]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Biaya Registrasi</td><td style="border:1px solid #000; padding:4px 6px;">[Biaya Registrasi]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Konfigurasi</td><td style="border:1px solid #000; padding:4px 6px;">PIHAK PERTAMA melakukan konfigurasi sampai dengan Backbone.<br>Pihak Kedua melakukan konfigurasi ke Pelanggan.</td></tr>'
+                                . '</tbody>'
+                                . '</table>'
+                        ],
+
+                        [
+                            'judul' => 'LAMPIRAN II PERJANJIAN — PAKET LAYANAN',
+                            'text' => "NOMOR: [Nomor Perjanjian]\n\nPaket layanan meliputi persyaratan sebagai berikut:\n\n1. Nama Brand : [Nama Brand]\n2. Harga setiap paket minimal : [Harga / Paket]\n3. Biaya instalasi disesuaikan dengan kebutuhan pelanggan.\n4. Paket Layanan yang dibuat harus diinformasikan ke Pihak Pertama untuk persetujuan dan jika ada perubahan maka maksimal menginformasikan perubahan tersebut [Jumlah Hari] hari kalender."
+                        ],
+
+                        [
+                            'judul' => 'LAMPIRAN III PERJANJIAN — PENGADUAN PELANGGAN',
+                            'text' => "NOMOR: [Nomor Perjanjian]\n\nPenanganan gangguan selama operasional dilayani sebagai berikut:\n\n[Nama Perusahaan PIHAK PERTAMA] mengoperasikan call center melalui chat, telepon, dan surat elektronik (e-mail) selama 24 jam per hari, 7 hari untuk setiap minggu.\n\nUntuk koordinasi, perijinan dan pencatatan, seluruh pemberitahuan yang membutuhkan tindakan-tindakan oleh [Nama Perusahaan PIHAK PERTAMA], akan dilakukan dalam bentuk pemberitahuan tertulis dalam bentuk surat yang ditandatangani dan dikirimkan ke alamat [Nama Perusahaan PIHAK PERTAMA] atau melalui call center.\n\n[Nama Perusahaan PIHAK PERTAMA] memberikan tanggapan, deteksi dan perbaikan dengan ketentuan sebagai berikut:",
+                            'html' => [
+                                '<table style="width:100%; border-collapse:collapse;">'
+                                . '<tbody>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Kegiatan</td><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Tolak Ukur Layanan</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px;">Penerimaan pengaduan gangguan</td><td style="border:1px solid #000; padding:4px 6px;">[Waktu]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px;">Konfirmasi penyebab Gangguan (RFO)</td><td style="border:1px solid #000; padding:4px 6px;">[Ketentuan Waktu]</td></tr>'
+                                . '</tbody>'
+                                . '</table>',
+
+                                '<p>Matriks Eskalasi:</p>'
+                                . '<table style="width:100%; border-collapse:collapse;">'
+                                . '<tbody>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">No</td><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Fault time</td><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Escalation Level</td><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Point of Contact</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px;">1</td><td style="border:1px solid #000; padding:4px 6px;">[Fault Time]</td><td style="border:1px solid #000; padding:4px 6px;">Level 1</td><td style="border:1px solid #000; padding:4px 6px;">Helpdesk<br>Phone: [Nomor]<br>Email: [Email]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px;">2</td><td style="border:1px solid #000; padding:4px 6px;">[Fault Time]</td><td style="border:1px solid #000; padding:4px 6px;">Level 2</td><td style="border:1px solid #000; padding:4px 6px;">NOC<br>Phone: [Nomor]<br>Email: [Email]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px;">3</td><td style="border:1px solid #000; padding:4px 6px;">[Fault Time]</td><td style="border:1px solid #000; padding:4px 6px;">Level 3</td><td style="border:1px solid #000; padding:4px 6px;">Direktur<br>Phone: [Nomor]<br>Email: [Email]</td></tr>'
+                                . '</tbody>'
+                                . '</table>',
+                            ],
+                        ],
+
+                        [
+                            'judul' => 'LAMPIRAN IV PERJANJIAN — PERANGKAT',
+                            'text' => "NOMOR: [Nomor Perjanjian]",
+                            'html' => '<table style="width:100%; border-collapse:collapse;">'
+                                . '<tbody>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">No.</td><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Deskripsi</td><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Jumlah</td><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Keterangan</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px;">1</td><td style="border:1px solid #000; padding:4px 6px;">[Deskripsi Perangkat]</td><td style="border:1px solid #000; padding:4px 6px;">[Jumlah]</td><td style="border:1px solid #000; padding:4px 6px;">[Keterangan]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px;">2</td><td style="border:1px solid #000; padding:4px 6px;">[Deskripsi Perangkat]</td><td style="border:1px solid #000; padding:4px 6px;">[Jumlah]</td><td style="border:1px solid #000; padding:4px 6px;">[Keterangan]</td></tr>'
+                                . '</tbody>'
+                                . '</table>'
                         ],
                     ],
                 ],
             ],
+
 
             'kontrak-managed-service' => [
                 'title' => 'Perjanjian Managed Service',
@@ -886,7 +988,7 @@ class DocumentController extends Controller
      * tetap apa adanya.
      *
      * Terima array halaman -> kembalikan array halaman yang sudah
-     * di-renumber secara berurutan.
+onta     * di-renumber secara berurutan.
      */
     private function normalizePasalNumbering(array $pages): array
     {
@@ -939,7 +1041,7 @@ class DocumentController extends Controller
      *                  (fallback ke legacy 'isiPasal1'..'isiPasalN')
      *  - 'tutup'     : kalimat penutup
      */
-    private function buildTemplateBodyHtml(array $body): string
+    private function buildTemplateBodyHtml(array $body, bool $centerPasalHeadings = false): string
     {
         $parts = [];
 
@@ -983,8 +1085,15 @@ class DocumentController extends Controller
         $number = 1;
         foreach ($pasals as $pasal) {
             $judul = strtoupper(trim($pasal['judul'] ?? ''));
-            $heading = 'PASAL '.$number.($judul !== '' ? ' — '.$judul : '');
-            $parts[] = '<p><strong>'.$heading.'</strong></p>';
+            if ($centerPasalHeadings) {
+                $parts[] = '<p style="text-align:center;"><strong>PASAL '.$number.'</strong></p>';
+                if ($judul !== '') {
+                    $parts[] = '<p style="text-align:center;"><strong>'.$judul.'</strong></p>';
+                }
+            } else {
+                $heading = 'PASAL '.$number.($judul !== '' ? ' — '.$judul : '');
+                $parts[] = '<p><strong>'.$heading.'</strong></p>';
+            }
             $parts[] = $this->contractPara($pasal['text'] ?? '');
             $number++;
         }
@@ -1006,7 +1115,25 @@ class DocumentController extends Controller
                     $judul = 'LAMPIRAN';
                 }
                 $parts[] = '<p><strong>'.$judul.'</strong></p>';
-                $parts[] = $this->contractPara($item['text'] ?? '');
+
+                // Blok teks biasa (diparagraph-kan otomatis).
+                if (!empty($item['text'])) {
+                    $parts[] = $this->contractPara($item['text']);
+                }
+
+                // Blok HTML mentah (mis. tabel pada lampiran template
+                // kontrak-kemitraan) — dirender apa adanya tanpa escape.
+                if (!empty($item['html'])) {
+                    $htmlBlocks = is_array($item['html']) ? $item['html'] : [$item['html']];
+                    foreach ($htmlBlocks as $htmlBlock) {
+                        $parts[] = $htmlBlock;
+                    }
+                }
+
+                // Lampiran kosong (judul saja) — kompatibel dengan perilaku lama.
+                if (empty($item['text']) && empty($item['html'])) {
+                    $parts[] = $this->contractPara('');
+                }
             }
         }
 
