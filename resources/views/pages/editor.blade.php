@@ -1690,10 +1690,36 @@
 
                     const bodyZone = e.target.closest('.doc-sheet-body');
                     if (bodyZone && !this.editSection) {
-                        const handled = window.DocQuill.clickAndType?.(bodyZone, e.clientX, e.clientY);
-                        if (handled) {
-                            e.preventDefault();
-                            try { window.getSelection()?.removeAllRanges(); } catch (err) { /* noop */ }
+                        // BUGFIX blok teks double-click: bila titik klik ada di
+                        // ATAS teks yang sudah ada, biarkan browser menyeleksi
+                        // kata secara native (fitur blok kata). clickAndType
+                        // (sisip baris/spasi + pindah caret) HANYA untuk titik
+                        // klik di area KOSONG kertas. Dulu SEMUA dblclick di body
+                        // menjalankan clickAndType -> seleksi kata selalu
+                        // terhapus (removeAllRanges) dan caret melompat ke ekor
+                        // teks secara tidak wajar.
+                        let overText = false;
+                        try {
+                            const cr = document.caretRangeFromPoint
+                                ? document.caretRangeFromPoint(e.clientX, e.clientY)
+                                : null;
+                            const cp = !cr && document.caretPositionFromPoint
+                                ? document.caretPositionFromPoint(e.clientX, e.clientY)
+                                : null;
+                            const node = cr ? cr.startContainer : (cp ? cp.offsetNode : null);
+                            overText = !!(
+                                node &&
+                                node.nodeType === Node.TEXT_NODE &&
+                                bodyZone.contains(node)
+                            );
+                        } catch (err) { /* noop */ }
+
+                        if (!overText) {
+                            const handled = window.DocQuill.clickAndType?.(bodyZone, e.clientX, e.clientY);
+                            if (handled) {
+                                e.preventDefault();
+                                try { window.getSelection()?.removeAllRanges(); } catch (err) { /* noop */ }
+                            }
                         }
                     }
                 });

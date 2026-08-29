@@ -1,9 +1,9 @@
-// =========================================
+
 // QUILL EDITOR — pengganti TinyMCE
 // Satu instance Quill per region kertas
 // (.doc-sheet-header / body / footer),
 // dengan SATU toolbar bersama di atas.
-// =========================================
+
 
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
@@ -93,10 +93,10 @@ const uploadImageFile = (file) =>
             });
     });
 
-// =========================================
+
 // REGISTRY EDITOR (shim agar seluruh sistem
 // gambar lama tetap bekerja tanpa TinyMCE)
-// =========================================
+
 
 // Semua root editor yang memasang image tools
 let registeredImageToolEditors = [];
@@ -143,10 +143,10 @@ const findEditorContaining = (node) => {
     return null;
 };
 
-// =========================================
+
 // IMAGE LAYOUT TOOLS
 // (bubble ⚓ + titik resize + posisi depan/belakang teks)
-// =========================================
+
 
 let activeImage = null;
 let activeEditor = null;
@@ -610,13 +610,13 @@ const showImageTools = (editor, img) => {
     watchTimer = requestAnimationFrame(loop);
 };
 
-// =========================================
+
 // DRAG ANGKAT & JATUHKAN UNTUK GAMBAR BIASA
 // Tekan gambar + geser -> gambar "terangkat" mengikuti kursor.
 // Lepas di atas kertas -> berhenti PERSIS di titik pelepasan
 //                         (otomatis jadi gambar floating).
 // Lepas di luar kertas -> kembali ke tempat & gaya semula.
-// =========================================
+
 
 const mulaiFlowDrag = () => {
     const img = flowDragSourceImg;
@@ -728,11 +728,11 @@ const selesaiFlowDrag = (e) => {
     positionImageTools();
 };
 
-// =========================================
+
 // TITIK SISIP DI MANA SAJA (ala Microsoft Word):
 // klik di mana pun pada kertas -> caret pindah ke
 // baris terdekat yang bisa diketik.
-// =========================================
+
 
 // Kelompokkan karakter tiap text-node menjadi baris-baris visual,
 // lalu cari baris dengan jarak terdekat ke titik klik.
@@ -852,13 +852,9 @@ const indexInSlot = (q, el, x, y) => {
     const len = typeof blot?.length === 'function' ? blot.length() : 1;
     return x < r.left + r.width / 2 ? base : base + Math.max(0, len - 1);
 };
-// Fallback geometris: petakan titik klik -> indeks Quill dengan menyapu
-// semua slot blok. Menangani klik DI BAWAH teks (ruang kosong kertas =
-// akhir dokumen), DI ATAS teks (awal dokumen), dan di sela-sela blok.
+
 const quillIndexFromPoint = (q, editorEl, x, y) => {
     const slots = Array.from(editorEl.querySelectorAll(SLOT_SELECTOR))
-        // ambil slot TERDALAM saja (blockquote>p -> p; li berisi ul -> li dalam),
-        // tapi paragraf bergambar inline TETAP dihitung sebagai slot teks
         .filter((el) => !el.querySelector('p, h1, h2, h3, h4, h5, h6, li, blockquote, pre'))
         .filter((el) => {
             const r = el.getBoundingClientRect();
@@ -889,13 +885,8 @@ const quillIndexFromPoint = (q, editorEl, x, y) => {
     return best ? indexInSlot(q, best, x, y) : Math.max(0, q.getLength() - 1);
 };
 
-// Tempatkan caret Quill tepat (atau terdekat yang bisa diketik) dari titik
-// klik layar. Selalu lewat API Quill (focus + setSelection) supaya fokus,
-// seleksi internal Quill, toolbar bersama, dan status "berubah" sinkron.
+
 const placeCaretAtPoint = (x, y) => {
-    // 1) Temukan region kertas di bawah titik klik. Target event bisa saja
-    //    BUKAN bagian editor (padding kertas, celah antar zona, sela blok),
-    //    makanya pakai elementsFromPoint, bukan cuma e.target.
     let region = null;
     let sheet = null;
     try {
@@ -909,9 +900,7 @@ const placeCaretAtPoint = (x, y) => {
         }
     } catch (_) { /* noop */ }
 
-    // 2) Pilih instance Quill AKTIF untuk region tersebut.
-    //    Zona terkunci (header/footer di luar sesi edit) otomatis gagal di sini,
-    //    sehingga perilaku double-click ala Word tetap berjalan.
+
     const pickEnabled = (reg) => {
         if (!reg) return null;
         const q = quillsByRegion.get(reg);
@@ -921,8 +910,7 @@ const placeCaretAtPoint = (x, y) => {
     let q = pickEnabled(region);
 
     if (!q && sheet) {
-        // Titik klik jatuh di celah/padding kertas -> pakai body kertas ini
-        // (region body terdekat secara vertikal terhadap titik klik).
+
         let bestReg = null;
         let bestDy = Infinity;
         sheet.querySelectorAll('.doc-sheet-body[data-region="body"]').forEach((reg) => {
@@ -940,9 +928,18 @@ const placeCaretAtPoint = (x, y) => {
 
     if (!q) return false;
 
-    // 3a) Jawaban presisi browser — HANYA bila ia menunjuk NODE TEKS nyata
-    //     di dalam editor target. Jawaban "elemen kontainer" (sering muncul
-    //     saat mengklik area kosong) dibuang karena biasanya salah total.
+    const index = quillIndexAtPoint(q, x, y);
+    if (index == null) return false;
+
+    // Pasang caret lewat Quill (bukan DOM mentah) agar semuanya konsisten
+    q.focus();
+    q.setSelection(index, 0);
+    return true;
+};
+
+// Indeks Quill pada titik layar untuk SATU instance Quill — TANPA
+// memindahkan caret. Dipakai placeCaretAtPoint dan seleksi double-click.
+const quillIndexAtPoint = (q, x, y) => {
     let index = null;
     const native = caretRangeAtPoint(x, y);
     if (
@@ -954,22 +951,15 @@ const placeCaretAtPoint = (x, y) => {
         index = domPosToQuillIndex(q, native.startContainer, native.startOffset);
     }
 
-    // 3b) Fallback geometris: area kosong, paragraf kosong, bawah kertas, hr
+    // Fallback geometris: area kosong, paragraf kosong, bawah kertas, hr
     if (index == null) {
         index = quillIndexFromPoint(q, q.root, x, y);
     }
-    if (index == null) return false;
-
-    // 4) Pasang caret lewat Quill (bukan DOM mentah) agar semuanya konsisten
-    index = Math.max(0, Math.min(index, Math.max(0, q.getLength() - 1)));
-    q.focus();
-    q.setSelection(index, 0);
-    return true;
+    if (index == null) return null;
+    return Math.max(0, Math.min(index, Math.max(0, q.getLength() - 1)));
 };
 
-// =========================================
 // LISTENER GLOBAL (dipasang sekali)
-// =========================================
 
 if (!window.__imageToolsBound) {
     window.__imageToolsBound = true;
@@ -1026,8 +1016,6 @@ if (!window.__imageToolsBound) {
     });
 
     // TITIK SISIP DI MANA SAJA: SEMUA klik kiri di kertas dihitung lewat
-    // resolver ini (capture phase), sehingga caret SELALU mengikuti titik klik —
-    // termasuk saat mengeklik baris kedua/ketiga dan area kosong sekitarnya.
     document.addEventListener(
         'mousedown',
         (e) => {
@@ -1049,12 +1037,94 @@ if (!window.__imageToolsBound) {
                 if (!zq || !zq.isEnabled()) return;
             }
 
+
+            if (e.detail >= 2) return;
+
             // Hitung & pasang caret tepat di titik klik (fallback: posisi terdekat)
             if (placeCaretAtPoint(e.clientX, e.clientY)) {
                 e.preventDefault(); // kita yang memasang caret
             }
         },
         true // capture: jalan paling awal, tidak bisa diganggu handler lain
+    );
+
+    // DOUBLE-CLICK = blok kata; TRIPLE-CLICK = blok baris/paragraf.
+    // Dikerjakan MANUAL lewat API Quill agar deterministik — tidak lagi
+    // bergantung pada seleksi native browser yang bisa terganggu oleh
+    // preventDefault pada klik pertama maupun fitur clickAndType.
+    // Header/footer dibiarkan lewat supaya double-click tetap membuka
+    // sesi edit zona (ditangani editor.blade.php).
+    const __wordChar = (ch) => /[\w\u00C0-\u024F\u1E00-\u1EFF]/.test(ch || '');
+
+    document.addEventListener(
+        'dblclick',
+        (e) => {
+            if (e.button !== 0) return;
+            if (document.querySelector('.zone-editing')) return; // sesi zona aktif
+
+            const region = e.target?.closest?.('.doc-sheet-body');
+            if (!region) return; // header/footer: biarkan handler sesi zona
+            const q = quillsByRegion.get(region);
+            if (!q || !q.isEnabled()) return;
+
+            // Hanya titik di ATAS teks. Titik di area kosong kertas ->
+            // biarkan fitur clickAndType (double-click area kosong) bekerja.
+            const native = caretRangeAtPoint(e.clientX, e.clientY);
+            const overText = !!(
+                native &&
+                native.startContainer &&
+                native.startContainer.nodeType === Node.TEXT_NODE &&
+                q.root.contains(native.startContainer)
+            );
+            if (!overText) return;
+
+            // Blokir handler lain (termasuk clickAndType di blade) yang
+            // bisa menghapus seleksi yang akan kita buat.
+            e.preventDefault();
+            e.stopPropagation();
+
+            const index = quillIndexAtPoint(q, e.clientX, e.clientY);
+            if (index == null) return;
+            const text = q.getText();
+
+            // TRIPLE-CLICK: blok satu baris/paragraf (tanpa newline penutup)
+            if (e.detail >= 3) {
+                const start = text.lastIndexOf('\n', index - 1) + 1;
+                let end = text.indexOf('\n', index);
+                if (end < 0) end = text.length;
+                q.setSelection(start, Math.max(0, end - start), 'user');
+                refreshToolbarStates();
+                return;
+            }
+
+            // DOUBLE-CLICK: blok satu kata.
+            // Jika titik klik jatuh tepat di batas kata (offset setelah
+            // karakter terakhir), geser mundur satu agar kata terpilih.
+            let idx = index;
+            if (!__wordChar(text[idx]) && idx > 0 && __wordChar(text[idx - 1])) {
+                idx--;
+            }
+
+            let s = idx;
+            let t = idx;
+            if (__wordChar(text[idx])) {
+                // kata: huruf/angka
+                while (s > 0 && __wordChar(text[s - 1])) s--;
+                while (t < text.length && __wordChar(text[t])) t++;
+            } else if (/\s/.test(text[idx] || '')) {
+                // whitespace: blok run whitespace (meniru perilaku Word)
+                while (s > 0 && /\s/.test(text[s - 1]) && !__wordChar(text[s - 1])) s--;
+                while (t < text.length && /\s/.test(text[t]) && !__wordChar(text[t])) t++;
+            } else {
+                // tanda baca: blok run karakter yang sama
+                const ch = text[idx] || '';
+                while (s > 0 && text[s - 1] === ch) s--;
+                while (t < text.length && text[t] === ch) t++;
+            }
+            if (t > s) q.setSelection(s, t - s, 'user');
+            refreshToolbarStates();
+        },
+        true
     );
 
     document.addEventListener('mousemove', (e) => {
@@ -1172,9 +1242,6 @@ if (!window.__imageToolsBound) {
 
         if (isResizingImage) {
             notifyDirty();
-            // Pulihkan seleksi teks yang dikunci saat resize dimulai.
-            // Tanpa ini, user-select:none menempel selamanya dan mematikan
-            // caret/ketikan di seluruh dokumen secara diam-diam.
             document.body.style.userSelect = '';
         }
         isResizingImage = false;
@@ -1215,9 +1282,7 @@ if (!window.__imageToolsBound) {
     });
 }
 
-// =========================================
 // TOOLBAR QUILL (satu toolbar bersama untuk semua region)
-// =========================================
 
 let activeQuill = null;
 const quillsByRegion = new Map();
@@ -1226,8 +1291,6 @@ let hiddenImageInput = null;
 
 const getActiveQuill = () => {
     if (activeQuill && activeQuill.isEnabled()) return activeQuill;
-    // Fallback: instance pertama yang MASIH AKTIF —
-    // jangan pernah memilih zona terkunci (format() di editor mati = no-op diam)
     for (const q of quillsByRegion.values()) {
         if (q.isEnabled()) return q;
     }
@@ -1275,9 +1338,9 @@ const refreshToolbarStates = () => {
     if (lineHeightSel) lineHeightSel.value = fmt.lineheight || '1.5';
 };
 
-// =========================================
+
 // TOOL TABEL (Quill 2 punya modul table bawaan)
-// =========================================
+
 
 const getTableModule = () => {
     const q = getActiveQuill();
@@ -1371,9 +1434,6 @@ const applyCmd = (cmd) => {
 
     switch (cmd) {
         case 'undo': {
-            // Coba UNDO tingkat dokumen dulu (memulihkan halaman yang dihapus
-            // atau dibatalkan dari snapshot struktur). Kalau tidak ada snapshot,
-            // jatuh ke undo teks Quill seperti biasa.
             const bridge = window.__docUndoBridge;
             if (bridge && typeof bridge.undo === 'function' && bridge.undo()) {
                 break;
@@ -1397,8 +1457,6 @@ const applyCmd = (cmd) => {
             break;
         case 'superscript':
         case 'subscript': {
-            // Nama format Quill yang benar adalah 'script' ('super' | 'sub'),
-            // bukan 'superscript'/'subscript'.
             const scriptKey = cmd === 'superscript' ? 'super' : 'sub';
             q.format('script', q.getFormat(sel).script === scriptKey ? false : scriptKey);
             break;
@@ -1604,9 +1662,7 @@ const bindToolbar = () => {
         });
     });
 
-    // =========================================
     // TOOL TABEL: dropdown grid picker + aksi baris/kolom
-    // =========================================
     const tableDd = document.getElementById('tb-table-dd');
     if (tableDd) {
         const menu = tableDd.querySelector('.toolbar-dropdown-menu');
@@ -1804,8 +1860,6 @@ const attachQuillToRegion = (regionEl) => {
         quillsByRegion.set(regionEl, q);
         return q;
     } catch (err) {
-        // Kegagalan Quil TIDAK BOLEH membuat kertas hilang:
-        // pulihkan konten asli + jadikan region biasa bisa diketik
         console.error('[DocQuill] Gagal memasang editor pada region:', err);
         regionEl.dataset.quillReady = '';
         regionEl.innerHTML = existingHtml || '<p><br></p>';
@@ -1815,12 +1869,6 @@ const attachQuillToRegion = (regionEl) => {
     }
 };
 
-// =========================================
-// PAGINASI OTOMATIS ANTAR KERTAS
-// Kertas punya tinggi tetap (297mm). Isi yang meluap dipindah
-// otomatis ke kertas berikutnya; kalau ruang menyempit kembali,
-// blok paling atas dari kertas berikutnya ditarik ke atas.
-// =========================================
 
 let autoPaginationApi = null;
 
@@ -1927,12 +1975,6 @@ function __firstOverflowIndex(quill, boxEl) {
 }
 
 // ---------- MESIN UTAMA: pindah blok antar kertas ----------
-//
-// Kontrak:
-//  - autoPaginationApi.createPageAfter(uid) : Promise<htmlBodyElement>
-//    (disediakan bridge Alpine di editor.blade.php; sheet baru langsung
-//    terpasang Quill pada region body-nya sebelum Promise resolve)
-//  - Hanya blok DOM biasa yang digeser; gambar melayang tidak disentuh.
 
 let pageFlowChain = Promise.resolve();
 
@@ -1992,10 +2034,6 @@ async function __flowPass(quill, bodyEl) {
     const firstRange = __blockRangeOf(quill, kids[idx]);
     if (!firstRange) return false;
 
-    // Pindahan massal: kertas tujuan masih KOSONG dan sisa blok bebas dari
-    // gambar melayang -> seret SEMUA blok yang meluap sekaligus. Satu pass
-    // mengisi satu halaman penuh, sehingga paginasi dokumen template yang
-    // panjang tuntas dalam hitungan pass, bukan blok-per-blok.
     const remaining = kids.slice(idx);
     const bulk = targetQ.getLength() <= 1
         && remaining.length > 0
@@ -2026,12 +2064,19 @@ async function __flowPass(quill, bodyEl) {
             : JSON.parse(JSON.stringify(op)));
     }
     targetQ.updateContents(chg, 'silent');
-    targetQ.setSelection(Math.max(0, Math.min(targetQ.getLength() - 1, __deltaLength(chg))), 'silent');
 
-    // Geser caret bila posisinya terdorong oleh konten yang pindah.
-    if (selBefore && selBefore.index > range.start) {
-        const ni = Math.max(range.start, selBefore.index - range.len);
-        quill.setSelection(Math.min(ni, Math.max(0, quill.getLength() - 1)), 'silent');
+    // BUGFIX caret: caret mengikuti kontennya HANYA bila caret/seleksi
+    // berada DI DALAM blok yang mengalir (index >= range.start, termasuk
+    // di awal blok -- kasus umum: baru menekan Enter lalu baris barunya
+    // ikut pindah halaman). Di luar itu JANGAN sentuh seleksi sama sekali:
+    // Quill sudah mentransformasi caret otomatis, dan pemangsaan
+    // setSelection paksa justru merusak seleksi double-click serta
+    // menggeser caret saat pengguna sedang mengetik. Panjang seleksi
+    // tetap dipertahankan agar blok kata tidak collapse.
+    if (selBefore && selBefore.index >= range.start
+        && selBefore.index < range.start + range.len) {
+        const off = Math.max(0, selBefore.index - range.start);
+        targetQ.setSelection(off, selBefore.length || 0, 'silent');
     }
 
     // Lanjutkan aliran: kertas berikutnya sekarang bisa meluap juga,
@@ -2042,18 +2087,11 @@ async function __flowPass(quill, bodyEl) {
     return true;
 }
 
-/**
- * Arah balik: saat kertas ini longgar dan kertas berikutnya berisi,
- * tarik blok PALING ATAS kertas berikutnya ke akhir kertas ini.
- * Memakai margin ketat agar tidak saling silang dengan arah maju.
- */
 function __pullBackPass(quill, bodyEl) {
     const sheet = bodyEl.closest('.doc-sheet');
     if (!sheet) return false;
 
-    // Halaman sampul (cover) bawaan template tidak boleh menyeret isi
-    // kontrak dari halaman berikutnya -- batas halaman template dijaga
-    // supaya urutan pasal tetap rapi dan sampul tidak berisi artikel.
+
     if (sheet.dataset?.flowLock) return false;
 
     // Kertas ini masih meluap -> urusan arah maju, bukan balik.
@@ -2107,15 +2145,15 @@ function __pullBackPass(quill, bodyEl) {
     const removed = nextQ.getContents(range.start, range.len);
     if (!DeltaCtor || !removed || !(removed.ops || []).length) return false;
 
-    // Amankan caret pengguna pada kertas ini (posisinya akan bergeser maju).
-    const selBefore = quill.getSelection();
+    // Amankan caret pengguna: HANYA caret/seleksi yang berada DI DALAM blok
+    // yang ditarik yang ikut naik ke kertas ini. Seleksi lain JANGAN disentuh
+    // -- Quill sudah mentransformasi otomatis, dan setSelection paksa justru
+    // merusak seleksi double-click / menggeser caret saat mengetik.
+    const nextSelBefore = nextQ.getSelection();
 
     nextQ.deleteText(range.start, range.len, 'silent');
 
-    // Sambungkan di AKHIR kertas ini (retain sampai ujung dokumen dulu).
-    // PENTING: updateContents() dengan delta insert polos menyisipkan pada
-    // indeks 0 (paling depan), sehingga blok hasil tarikan MELOMPAT ke atas
-    // konten yang lebih dulu -- inilah penyebab urutan pasal menjadi acak.
+    const lenBefore = quill.getLength();
     const chg = new DeltaCtor();
     chg.retain(Math.max(0, quill.getLength()));
     for (const op of removed.ops) {
@@ -2125,12 +2163,15 @@ function __pullBackPass(quill, bodyEl) {
     }
     quill.updateContents(chg, 'silent');
 
-    // Caret pengguna di kertas ini tidak bergeser: konten ditambah di ekor.
-    if (selBefore) {
-        quill.setSelection(Math.min(
-            selBefore.index,
+    // Caret/seleksi di dalam blok yang ditarik -> ikut pindah ke ekor kertas
+    // ini, dengan offset dan panjang seleksi yang sama.
+    if (nextSelBefore && nextSelBefore.index >= range.start
+        && nextSelBefore.index < range.start + range.len) {
+        const ni = Math.max(0, Math.min(
+            lenBefore + (nextSelBefore.index - range.start),
             Math.max(0, quill.getLength() - 1)
-        ), 'silent');
+        ));
+        quill.setSelection(ni, nextSelBefore.length || 0, 'silent');
     }
 
     notifyDirty();
@@ -2155,11 +2196,6 @@ function __runFlow(quill, bodyEl) {
                 await __nextFrame();
             }
 
-            // Masih meluap setelah jatah langkah habis (dokumen template bisa
-            // berisi ratusan blok): antre ulang kertas yang sama di ekor
-            // rantai supaya paginasi TUNTAS. Dulu run berhenti setelah 24
-            // blok tanpa dijadwalkan ulang, menyisakan halaman yang tetap
-            // penuh -> teks terpotong/menumpuk di satu kertas.
             const stillOverflowing = document.body.contains(bodyEl)
                 && !__sessionActive()
                 && __contentOverflowPx(quill, bodyEl) > PAGE_FLOW_TOL;
@@ -2201,7 +2237,6 @@ function bindPageOverflowWatch(quill, regionEl) {
 }
 
 
-// =========================================
 
 window.initBodyEditor = function (rootSelector, onSync = null) {
     try {
@@ -2246,9 +2281,9 @@ window.initBodyEditor = function (rootSelector, onSync = null) {
     }
 };
 
-// =========================================
+
 // API PUBLIK UNTUK BLADE
-// =========================================
+
 
 window.DocQuill = {
     __version: 'hf-10-flow',
@@ -2328,8 +2363,6 @@ window.DocQuill = {
         return revived;
     },
 
-    // Pasang API pembuat kertas (bridge Alpine) + bangun watcher untuk
-    // semua body yang sudah terlanjur terpasang sebelum API ini datang.
     enableAutoPagination: (api) => {
         autoPaginationApi = api || null;
         quillsByRegion.forEach((qq, el) => {
