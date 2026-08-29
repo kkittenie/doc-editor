@@ -1040,9 +1040,23 @@ if (!window.__imageToolsBound) {
 
             if (e.detail >= 2) return;
 
-            // Hitung & pasang caret tepat di titik klik (fallback: posisi terdekat)
+            // Klik di atas teks: pasang caret TANPA preventDefault supaya
+            // browser tetap bisa memulai drag-seleksi dari caret itu
+            // (klik + seret = blok teks; setelah double-click = blok per kata).
+            // Hanya klik di LUAR teks (area kosong kertas) yang dicegah --
+            // di sana kita yang menentukan posisi caret secara geometris.
+            const nativeRange = caretRangeAtPoint(e.clientX, e.clientY);
+            const overText = !!(
+                nativeRange &&
+                nativeRange.startContainer &&
+                nativeRange.startContainer.nodeType === Node.TEXT_NODE &&
+                sheet.contains(nativeRange.startContainer)
+            );
+
             if (placeCaretAtPoint(e.clientX, e.clientY)) {
-                e.preventDefault(); // kita yang memasang caret
+                if (!overText) {
+                    e.preventDefault(); // area kosong: kita yang pasang caret
+                }
             }
         },
         true // capture: jalan paling awal, tidak bisa diganggu handler lain
@@ -1078,9 +1092,10 @@ if (!window.__imageToolsBound) {
             );
             if (!overText) return;
 
-            // Blokir handler lain (termasuk clickAndType di blade) yang
-            // bisa menghapus seleksi yang akan kita buat.
-            e.preventDefault();
+            // stopPropagation: blokir handler lain (termasuk clickAndType di
+            // blade) yang bisa menghapus seleksi. TANPA preventDefault --
+            // default action dblclick perlu tetap hidup agar browser
+            // meng-arm mode "select per kata" untuk drag setelahnya.
             e.stopPropagation();
 
             const index = quillIndexAtPoint(q, e.clientX, e.clientY);
