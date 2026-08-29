@@ -1040,11 +1040,7 @@ if (!window.__imageToolsBound) {
 
             if (e.detail >= 2) return;
 
-            // Klik di atas teks: pasang caret TANPA preventDefault supaya
-            // browser tetap bisa memulai drag-seleksi dari caret itu
-            // (klik + seret = blok teks; setelah double-click = blok per kata).
-            // Hanya klik di LUAR teks (area kosong kertas) yang dicegah --
-            // di sana kita yang menentukan posisi caret secara geometris.
+
             const nativeRange = caretRangeAtPoint(e.clientX, e.clientY);
             const overText = !!(
                 nativeRange &&
@@ -1062,12 +1058,6 @@ if (!window.__imageToolsBound) {
         true // capture: jalan paling awal, tidak bisa diganggu handler lain
     );
 
-    // DOUBLE-CLICK = blok kata; TRIPLE-CLICK = blok baris/paragraf.
-    // Dikerjakan MANUAL lewat API Quill agar deterministik — tidak lagi
-    // bergantung pada seleksi native browser yang bisa terganggu oleh
-    // preventDefault pada klik pertama maupun fitur clickAndType.
-    // Header/footer dibiarkan lewat supaya double-click tetap membuka
-    // sesi edit zona (ditangani editor.blade.php).
     const __wordChar = (ch) => /[\w\u00C0-\u024F\u1E00-\u1EFF]/.test(ch || '');
 
     document.addEventListener(
@@ -1092,10 +1082,7 @@ if (!window.__imageToolsBound) {
             );
             if (!overText) return;
 
-            // stopPropagation: blokir handler lain (termasuk clickAndType di
-            // blade) yang bisa menghapus seleksi. TANPA preventDefault --
-            // default action dblclick perlu tetap hidup agar browser
-            // meng-arm mode "select per kata" untuk drag setelahnya.
+
             e.stopPropagation();
 
             const index = quillIndexAtPoint(q, e.clientX, e.clientY);
@@ -1112,9 +1099,6 @@ if (!window.__imageToolsBound) {
                 return;
             }
 
-            // DOUBLE-CLICK: blok satu kata.
-            // Jika titik klik jatuh tepat di batas kata (offset setelah
-            // karakter terakhir), geser mundur satu agar kata terpilih.
             let idx = index;
             if (!__wordChar(text[idx]) && idx > 0 && __wordChar(text[idx - 1])) {
                 idx--;
