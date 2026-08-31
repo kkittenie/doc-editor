@@ -1,12 +1,8 @@
-
-// QUILL EDITOR — pengganti TinyMCE
-// Satu instance Quill per region kertas
-// (.doc-sheet-header / body / footer),
-// dengan SATU toolbar bersama di atas.
-
-
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
+import QuillTableBetter from 'quill-table-better';
+import 'quill-table-better/dist/quill-table-better.css';
+Quill.register({ 'modules/table-better': QuillTableBetter }, true);
 
 // ---- Font family: pakai inline style (bukan class), seperti TinyMCE ----
 const FontAttributor = Quill.import('attributors/style/font');
@@ -1344,7 +1340,7 @@ const refreshToolbarStates = () => {
 const getTableModule = () => {
     const q = getActiveQuill();
     if (!q) return null;
-    return q.getModule('table') || null;
+    return q.getModule('table-better') || null;
 };
 
 // Benar-benar di dalam sel tabel? (berguna untuk enable/disable aksi)
@@ -1359,7 +1355,7 @@ const isInsideTable = () => {
 const runTableAction = (action) => {
     const q = getActiveQuill();
     if (!q) return;
-    const table = q.getModule('table');
+        const table = q.getModule('table-better');
     if (!table) return;
 
     switch (action) {
@@ -1378,7 +1374,7 @@ const runTableAction = (action) => {
 const insertTableAtSelection = (rows, cols) => {
     const q = getActiveQuill();
     if (!q) return;
-    const table = q.getModule('table');
+        const table = q.getModule('table-better');
     if (!table) return;
 
     // Bila sudah di dalam tabel, tabel baru tidak boleh ditumpuk
@@ -1781,13 +1777,186 @@ const syncMirrorsFrom = (sourceQ) => {
             if (m.q === sourceQ) return;
             const sel = m.q.getSelection();
             if (sel) m.lastCaret = sel.index;
-            m.q.clipboard.dangerouslyPasteHTML(html);
+            pasteHtmlSafely(m.q, html);
             const maxIndex = Math.max(0, m.q.getLength() - 1);
             m.q.setSelection(Math.min(m.lastCaret, maxIndex), 'silent');
         });
     } finally {
         mirroringInProgress = false;
     }
+};
+
+/**
+ * Pre-process HTML tables sebelum masuk ke clipboard converter quill-table-better.
+ *
+ * Masalah:
+ *   1. quill-table-better clipboard matchers (matchTableCell) TIDAK membaca
+ *      atribut style pada <td>/<th>, sehingga border, padding, text-align
+ *      hilang.
+ *   2. colspan / rowspan tidak ditangani — sel yang di-span akan menghilang
+ *      dari grid tabel, merusak layout.
+ *   3. <colgroup> / <col> tidak dikenali dan dapat menyebabkan error parsing.
+ *
+ * Solusi:
+ *   - Hapus <colgroup>, <col>, <caption>, <thead>/<tbody> wrappers.
+ *   - Flatten colspan & rowspan menjadi grid persegi (isi sel kosong).
+ *   - Pertahankan inline style pada tiap sel (data-cell-style) supaya matcher
+ *     kustom di bawah dapat mengekstrak text-align.
+ *   - Tambahkan class contract-table-bordered / -unstyled pada <table>;
+ *     quill-table-better menyimpan ini sebagai atribut data-class, yang
+ *     kemudian ditargetkan oleh CSS untuk override border.
+ */
+const preprocessContractTables = (html) => {
+    if (!html || !html.includes('<table')) return html;
+
+    const container = document.createElement('div');
+    try {
+        container.innerHTML = html.trim();
+    } catch (e) {
+        return html;
+    }
+
+    const tables = container.querySelectorAll('table');
+    if (!tables.length) return html;
+
+    tables.forEach((table) => {
+        // Hapus elemen yang tidak didukung quill-table-better
+        table.querySelectorAll('colgroup, col, caption').forEach((el) => el.remove());
+
+        // Bongkar wrapper thead/tbody/tfoot — pindahkan <tr> ke dalam <table> langsung
+        table.querySelectorAll('thead, tbody, tfoot').forEach((wrapper) => {
+            const fragment = document.createDocumentFragment();
+            while (wrapper.firstChild) {
+                fragment.appendChild(wrapper.firstChild);
+            }
+            table.insertBefore(fragment, wrapper);
+            wrapper.remove();
+        });
+
+        // Tentukan apakah tabel memiliki border (untuk CSS override)
+        const allCells = Array.from(table.querySelectorAll('td, th'));
+        const isUnbordered = allCells.some((cell) => {
+            return /border:\s*none/i.test(cell.getAttribute('style') || '');
+        });
+        table.classList.add(
+            isUnbordered ? 'contract-table-unstyled' : 'contract-table-bordered'
+        );
+
+        const rows = Array.from(table.querySelectorAll('tr'));
+        if (!rows.length) return;
+
+        // Bangun grid untuk menangani colspan & rowspan
+        const grid = [];          // grid[ri][ci] = { html, style, tag } | null
+        const occupied = {};       // occupied[ri] = Set of occupied column indices (dari rowspan di atas)
+
+        rows.forEach((row, ri) => {
+            grid[ri] = [];
+            if (!occupied[ri]) occupied[ri] = new Set();
+
+            const cells = Array.from(row.querySelectorAll('td, th'));
+            let ci = 0;
+
+            cells.forEach((cell) => {
+                // Lewati posisi yang sudah dipakai oleh rowspan dari baris di atas
+                while (occupied[ri].has(ci)) {
+                    grid[ri][ci] = null;
+                    ci++;
+                }
+
+                const colspan = Math.max(1, parseInt(cell.getAttribute('colspan') || '1', 10));
+                const rowspan = Math.max(1, parseInt(cell.getAttribute('rowspan') || '1', 10));
+                const style = cell.getAttribute('style') || '';
+                const tag = cell.tagName;
+                const content = cell.innerHTML;
+
+                // Sel utama yang berisi konten
+                grid[ri][ci] = { html: content, style, tag };
+
+                // Isi gap dari colspan dengan sel kosong
+                for (let c = 1; c < colspan; c++) {
+                    grid[ri][ci + c] = { html: '', style, tag };
+                }
+
+                // Tandai posisi rowspan untuk baris di bawah
+                for (let r = 1; r < rowspan; r++) {
+                    const targetRi = ri + r;
+                    if (!occupied[targetRi]) occupied[targetRi] = new Set();
+                    for (let c = 0; c < colspan; c++) {
+                        occupied[targetRi].add(ci + c);
+                    }
+                }
+
+                ci += colspan;
+            });
+        });
+
+        // Cari jumlah kolom maksimum (grid sudah di-flatten, jadi panjang
+        // maksimum baris = jumlah kolom grid tabel).
+        let maxCols = 0;
+        grid.forEach((rowData) => {
+            maxCols = Math.max(maxCols, rowData.length);
+        });
+        if (maxCols < 1) maxCols = 1;
+
+        // Lebar kolom eksplisit (grid kolom yang deterministik). Tanpa ini,
+        // browser meng-auto-size kolom per fragmen tabel — saat tabel
+        // terpotong halaman, fragmen berikutnya mendapat lebar kolom berbeda
+        // dan isi jadi tidak segaris. table-layout:fixed + width per sel
+        // menjaga grid identik di semua fragmen/halaman.
+        const colWidth = 100 / maxCols;
+
+        // Bangun ulang setiap baris dengan sel yang sudah di-flatten
+        rows.forEach((row, ri) => {
+            while (row.firstChild) {
+                row.removeChild(row.firstChild);
+            }
+
+            const rowData = grid[ri] || [];
+
+            for (let ci = 0; ci < maxCols; ci++) {
+                const cellData = rowData[ci];
+                const cell = document.createElement(cellData ? cellData.tag : 'td');
+                cell.classList.add('contract-table-cell');
+
+                if (cellData && cellData.style) {
+                    cell.setAttribute('style', cellData.style);
+                }
+
+                // Paksa lebar kolom eksplisit (override/auto-append ke style)
+                cell.style.width = colWidth.toFixed(2) + '%';
+
+                // Sel kosong diberi <br>: tanpa konten, quill-table-better
+                // membuang seluruh style sel (termasuk width) saat konversi
+                // clipboard — menyebabkan kolom tidak konsisten.
+                cell.innerHTML = (cellData && cellData.html && cellData.html.trim())
+                    ? cellData.html
+                    : '<br>';
+                row.appendChild(cell);
+            }
+        });
+
+        // Layout kolom deterministik pada <table> itu sendiri
+        let tblStyle = table.getAttribute('style') || '';
+        if (!/table-layout\s*:/i.test(tblStyle)) {
+            tblStyle += (tblStyle && !/;\s*$/.test(tblStyle) ? ';' : '') + ' table-layout:fixed;';
+        }
+        // Tabel wajib full-width: quill-table-better hanya mempertahankan
+        // style table-level jika ada di HTML sumber — dokumen lama sering
+        // tidak memilikinya sehingga tabel menyusut mengikuti isi.
+        if (!/(^|;)\s*width\s*:/i.test(tblStyle)) {
+            tblStyle += ' width:100%;';
+        }
+        table.setAttribute('style', tblStyle.trim());
+    });
+
+    return container.innerHTML;
+};
+
+const pasteHtmlSafely = (q, html) => {
+    if (!html || !html.trim()) return;
+    const processedHtml = preprocessContractTables(html);
+    const delta = q.clipboard.convert({ html: processedHtml, text: '\n' });
+    q.updateContents(delta, Quill.sources.SILENT);
 };
 
 const attachQuillToRegion = (regionEl) => {
@@ -1808,12 +1977,52 @@ const attachQuillToRegion = (regionEl) => {
         const q = new Quill(host, {
             theme: 'snow',
             placeholder: '',
-            modules: { toolbar: false, table: true },
+            modules: {
+                toolbar: false,
+                table: false,
+                'table-better': {},
+                keyboard: { bindings: QuillTableBetter.keyboardBindings },
+            },
             formats: ALLOWED_FORMATS,
         });
 
+        // quill-table-better's matchTableCell does NOT preserve sel inline style
+        // (text-align, font-weight, dll).  Matcher ini jalan SETELAH matchers
+        // quill-table-better karena didaftarkan setelah instance Quill dibuat.
+        q.clipboard.addMatcher('td, th', (node, delta) => {
+            const style = node.getAttribute('style') || '';
+            const alignMatch = style.match(/text-align:\s*([^;]+)/i);
+            if (alignMatch && delta.ops && delta.ops.length) {
+                const align = alignMatch[1].trim();
+                delta.ops.forEach((op) => {
+                    if (op.attributes) {
+                        if (op.attributes.align === undefined) {
+                            op.attributes.align = align;
+                        }
+                    } else {
+                        op.attributes = { align };
+                    }
+                });
+            }
+            // Pertahankan font-weight:bold untuk <th> header cells
+            if (node.tagName === 'TH' && /font-weight:\s*bold/i.test(style)) {
+                if (delta.ops && delta.ops.length) {
+                    delta.ops.forEach((op) => {
+                        if (op.attributes) {
+                            if (op.attributes.bold === undefined) {
+                                op.attributes.bold = true;
+                            }
+                        } else {
+                            op.attributes = { bold: true };
+                        }
+                    });
+                }
+            }
+            return delta;
+        });
+
         if (existingHtml.trim()) {
-            q.clipboard.dangerouslyPasteHTML(existingHtml);
+            pasteHtmlSafely(q, existingHtml);
 
             q.root.querySelectorAll('img').forEach((im) => {
                 const st = im.getAttribute('style') || '';
@@ -1843,8 +2052,6 @@ const attachQuillToRegion = (regionEl) => {
             }
         });
 
-        // Paginasi otomatis: semua editor ISI (body) dipantau supaya konten
-        // yang meluap dipindah ke kertas berikutnya secara otomatis.
         if (regionEl.dataset?.region === 'body') {
             bindPageOverflowWatch(q, regionEl);
         }
@@ -2314,7 +2521,7 @@ window.DocQuill = {
                 list.slice(1).forEach((m) => {
                     const sel = m.q.getSelection();
                     if (sel) m.lastCaret = sel.index;
-                    m.q.clipboard.dangerouslyPasteHTML(html);
+                    pasteHtmlSafely(m.q, html);
                     const maxIndex = Math.max(0, m.q.getLength() - 1);
                     m.q.setSelection(Math.min(m.lastCaret, maxIndex), 'silent');
                 });
