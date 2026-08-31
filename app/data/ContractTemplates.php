@@ -1048,6 +1048,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => '1.',
                   ),
                   's' => 1,
+                  'v' => 'r',
                 ),
                 1 => 
                 array (
@@ -1056,6 +1057,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'Segala pemberitahuan yang diisyaratkan atau diperkenankan menurut perjanjian kerjasama ini harus dibuat secara tertulis dan dapat dikirimkan melalui email, surat tercatat atau dikirimkan secara langsung melalui kurir kepada alamat-alamat dibawah ini:',
                   ),
                   's' => 5,
+                  'v' => NULL,
                 ),
               ),
               1 => 
@@ -1066,6 +1068,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -1074,6 +1077,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'a.',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 2 => 
                 array (
@@ -1082,6 +1086,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'Jika kepada PIHAK PERTAMA:',
                   ),
                   's' => 4,
+                  'v' => NULL,
                 ),
               ),
               2 => 
@@ -1092,6 +1097,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -1099,6 +1105,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 2 => 
                 array (
@@ -1106,6 +1113,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -1114,6 +1122,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'Nama',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -1122,6 +1131,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => ':',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 5 => 
                 array (
@@ -1130,6 +1140,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'PT Bina Informatika Solusi',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               3 => 
@@ -1140,6 +1151,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -1147,6 +1159,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 2 => 
                 array (
@@ -1154,6 +1167,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -1162,6 +1176,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'Alamat',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -1170,6 +1185,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => ':',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 5 => 
                 array (
@@ -1178,6 +1194,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'Jl. Prakarsa Muda No. 258 Pekiringan Kec. Kesambi Kota Cirebon',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               4 => 
@@ -1188,6 +1205,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -1195,6 +1213,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'r',
                 ),
                 2 => 
                 array (
@@ -1202,6 +1221,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -1210,6 +1230,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'Telepon',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -1218,6 +1239,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => ':',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 5 => 
                 array (
@@ -1226,6 +1248,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => '0231-247618',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               5 => 
@@ -1236,6 +1259,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -1243,6 +1267,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 2 => 
                 array (
@@ -1250,6 +1275,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -1258,6 +1284,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'U.p',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -1266,6 +1293,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => ':',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 5 => 
                 array (
@@ -1274,6 +1302,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'Ageng Bagja Priyadi, S.T., M.Kom',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               6 => 
@@ -1284,6 +1313,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -1291,6 +1321,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 2 => 
                 array (
@@ -1298,6 +1329,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -1306,6 +1338,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'Email',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -1314,6 +1347,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => ':',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 5 => 
                 array (
@@ -1322,6 +1356,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'admin@fibertrust.id',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               7 => 
@@ -1332,6 +1367,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -1340,6 +1376,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'b.',
                   ),
                   's' => 1,
+                  'v' => 'r',
                 ),
                 2 => 
                 array (
@@ -1348,6 +1385,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'Jika kepada PIHAK KEDUA:',
                   ),
                   's' => 4,
+                  'v' => NULL,
                 ),
               ),
               8 => 
@@ -1358,6 +1396,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -1365,6 +1404,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 2 => 
                 array (
@@ -1372,6 +1412,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -1380,6 +1421,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'Nama',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -1388,6 +1430,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => ':',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 5 => 
                 array (
@@ -1396,6 +1439,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'Adi Darmawan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               9 => 
@@ -1406,6 +1450,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -1413,6 +1458,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 2 => 
                 array (
@@ -1420,6 +1466,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -1428,6 +1475,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'Alamat',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -1436,6 +1484,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => ':',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 5 => 
                 array (
@@ -1444,6 +1493,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'Perumahan Zada Regency 1 Blok E No.5, Rt/Rw 03/09, Desa Bulakan, Kec. Sukoharjo, Kab. Sukoharjo',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               10 => 
@@ -1454,6 +1504,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -1461,6 +1512,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 2 => 
                 array (
@@ -1468,6 +1520,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -1476,6 +1529,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'Telepon',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -1484,6 +1538,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => ':',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 5 => 
                 array (
@@ -1492,6 +1547,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => '0822-2562-2897',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               11 => 
@@ -1502,6 +1558,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -1509,6 +1566,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 2 => 
                 array (
@@ -1516,6 +1574,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -1524,6 +1583,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'U.p',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -1532,6 +1592,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => ':',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 5 => 
                 array (
@@ -1540,6 +1601,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'ADI DARMAWAN',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               12 => 
@@ -1550,6 +1612,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -1557,6 +1620,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 2 => 
                 array (
@@ -1564,6 +1628,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -1572,6 +1637,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'Email',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -1580,6 +1646,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => ':',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 5 => 
                 array (
@@ -1588,6 +1655,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'adidarmawanspd@gmail.com',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               13 => 
@@ -1599,6 +1667,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => '2.',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -1607,6 +1676,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                     0 => 'Jika salah satu pihak mengganti atau mengubah alamatnya atau hal-hal terkait lainnya sehubungan dengan alamat ini, maka pihak tersebut harus memberitahukan penggantian dan perubahan tersebut kepada pihak lainnya.',
                   ),
                   's' => 5,
+                  'v' => NULL,
                 ),
               ),
             ),
@@ -1714,6 +1784,7 @@ Adi Darmawan',
                 3 => 'Direktur',
               ),
               's' => 1,
+              'v' => NULL,
             ),
             1 => 
             array (
@@ -1723,6 +1794,7 @@ Adi Darmawan',
                 1 => 'Adi Darmawan',
               ),
               's' => 1,
+              'v' => NULL,
             ),
           ),
         ),
@@ -1764,6 +1836,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Nama Pelanggan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -1772,6 +1845,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Adi Darmawan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               1 => 
@@ -1783,6 +1857,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Tanggal Awal Berlangganan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -1790,6 +1865,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               2 => 
@@ -1801,6 +1877,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Tanggal Akhir Berlangganan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -1808,6 +1885,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               3 => 
@@ -1819,6 +1897,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'NPWP',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -1827,6 +1906,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => '3314.1726.0693.0004',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               4 => 
@@ -1838,6 +1918,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Lokasi / Wilayah Layanan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -1846,6 +1927,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Perumahan Zada Regency 1 Blok E No.5, Rt/Rw 03/09, Desa Bulakan, Kec. Sukoharjo, Kab. Sukoharjo',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               5 => 
@@ -1857,6 +1939,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Layanan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -1865,6 +1948,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Dedicated Internet 1 (satu) Gbps',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               6 => 
@@ -1876,6 +1960,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Biaya Instalasi',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -1885,6 +1970,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     1 => 'Sudah termasuk PPN',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               7 => 
@@ -1896,6 +1982,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Biaya Layanan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -1905,6 +1992,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     1 => 'Sudah termasuk PPN',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               8 => 
@@ -1916,6 +2004,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Biaya Registrasi',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -1925,6 +2014,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     1 => 'Sudah termasuk PPN',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               9 => 
@@ -1936,6 +2026,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Konfigurasi',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -1945,6 +2036,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     1 => 'Pihak Kedua melakukan konfigurasi ke Pelanggan.',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
             ),
@@ -2059,6 +2151,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Kegiatan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -2067,6 +2160,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Tolak Ukur Layanan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               1 => 
@@ -2078,6 +2172,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Penerimaan pengaduan gangguan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -2086,6 +2181,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => '15 Menit',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               2 => 
@@ -2097,6 +2193,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Konfirmasi penyebab Gangguan (RFO)',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -2105,6 +2202,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Disampaikan dalam jangka waktu 24 jam setelah perbaikan dinyatakan selesai',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
             ),
@@ -2131,6 +2229,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'No',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -2139,6 +2238,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Fault time',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 2 => 
                 array (
@@ -2147,6 +2247,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Escalation Level',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -2155,6 +2256,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Point of Contact',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               1 => 
@@ -2166,6 +2268,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => '1',
                   ),
                   's' => 1,
+                  'v' => 'r',
                 ),
                 1 => 
                 array (
@@ -2174,6 +2277,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => '< 120 Menit',
                   ),
                   's' => 1,
+                  'v' => 'r',
                 ),
                 2 => 
                 array (
@@ -2182,6 +2286,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Level 1',
                   ),
                   's' => 1,
+                  'v' => 'r',
                 ),
                 3 => 
                 array (
@@ -2190,6 +2295,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Helpdesk',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               2 => 
@@ -2200,6 +2306,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -2207,6 +2314,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 2 => 
                 array (
@@ -2214,6 +2322,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 3 => 
                 array (
@@ -2222,6 +2331,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Phone: 0231-247618',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               3 => 
@@ -2232,6 +2342,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -2239,6 +2350,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 2 => 
                 array (
@@ -2246,6 +2358,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 3 => 
                 array (
@@ -2254,6 +2367,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Email: cs@fibertrust.id',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               4 => 
@@ -2265,6 +2379,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => '2',
                   ),
                   's' => 1,
+                  'v' => 'r',
                 ),
                 1 => 
                 array (
@@ -2273,6 +2388,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => '121 Menit – 240 Menit',
                   ),
                   's' => 1,
+                  'v' => 'r',
                 ),
                 2 => 
                 array (
@@ -2281,6 +2397,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Level 2',
                   ),
                   's' => 1,
+                  'v' => 'r',
                 ),
                 3 => 
                 array (
@@ -2289,6 +2406,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'NOC',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               5 => 
@@ -2299,6 +2417,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -2306,6 +2425,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 2 => 
                 array (
@@ -2313,6 +2433,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 3 => 
                 array (
@@ -2321,6 +2442,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Phone: 0896-6049-5927',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               6 => 
@@ -2331,6 +2453,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -2338,6 +2461,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 2 => 
                 array (
@@ -2345,6 +2469,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 3 => 
                 array (
@@ -2353,6 +2478,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Email: oman@fibertrust.id',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               7 => 
@@ -2364,6 +2490,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => '3',
                   ),
                   's' => 1,
+                  'v' => 'r',
                 ),
                 1 => 
                 array (
@@ -2372,6 +2499,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => '241 Menit – 480 Menit',
                   ),
                   's' => 1,
+                  'v' => 'r',
                 ),
                 2 => 
                 array (
@@ -2380,6 +2508,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Level 3',
                   ),
                   's' => 1,
+                  'v' => 'r',
                 ),
                 3 => 
                 array (
@@ -2388,6 +2517,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Direktur',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               8 => 
@@ -2398,6 +2528,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -2405,6 +2536,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 2 => 
                 array (
@@ -2412,6 +2544,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 3 => 
                 array (
@@ -2420,6 +2553,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Phone: 0852-2203-0317',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               9 => 
@@ -2430,6 +2564,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 1 => 
                 array (
@@ -2437,6 +2572,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 2 => 
                 array (
@@ -2444,6 +2580,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
                 3 => 
                 array (
@@ -2452,6 +2589,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                     0 => 'Email: ageng@fibertrust.id',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
             ),
@@ -2492,6 +2630,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'No.',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -2500,6 +2639,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Deskripsi',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 2 => 
                 array (
@@ -2508,6 +2648,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Jumlah',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -2516,6 +2657,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Keterangan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               1 => 
@@ -2527,6 +2669,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => '1.',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -2535,6 +2678,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'SFP 1.25GTX1310nm 40KM DDMSC',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 2 => 
                 array (
@@ -2543,6 +2687,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => '1 Pcs',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -2551,6 +2696,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Dipinjamkan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               2 => 
@@ -2562,6 +2708,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => '2.',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -2570,6 +2717,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'SFP 1.25G TX1550nm 40KM DDM SC',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 2 => 
                 array (
@@ -2578,6 +2726,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => '1 Pcs',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -2586,6 +2735,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                     0 => 'Dipinjamkan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
             ),
@@ -3336,6 +3486,7 @@ Direktur',
                 1 => 'PT Bina Informatika Solusi',
               ),
               's' => 1,
+              'v' => NULL,
             ),
             1 => 
             array (
@@ -3345,6 +3496,7 @@ Direktur',
                 1 => 'PT Solusindo Bintang Pratama',
               ),
               's' => 1,
+              'v' => NULL,
             ),
           ),
           1 => 
@@ -3357,6 +3509,7 @@ Direktur',
                 1 => 'Direktur',
               ),
               's' => 1,
+              'v' => NULL,
             ),
             1 => 
             array (
@@ -3366,6 +3519,7 @@ Direktur',
                 1 => 'Direktur',
               ),
               's' => 1,
+              'v' => NULL,
             ),
           ),
         ),
@@ -3433,7 +3587,23 @@ Gedung Wisma Bumiputera, Lantai 7 Suite #701B,
 
 Jl. Asia Afrika No.141-149, Kb. Pisang, Kec. Sumur Bandung, Kota  Bandung, Jawa Barat 40112
 
-Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Informatika Solusi		Bank Rakyat Indonesia (BRI)	No. Rekening: 010701003038305 	Atas Nama   : PT Bina Informatika SolusiRekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Informatika Solusi		Bank Rakyat Indonesia (BRI)	No. Rekening: 010701003038305 	Atas Nama   : PT Bina Informatika SolusiPelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjalan dan tanggal jatuh tempo  setiap tanggal 7 bulan berjalan melalui sistem transfer ke nomor rekening:',
+Rekening Rupiah
+Bank Mandiri
+No. Rekening: 1340001209104
+Atas Nama	: PT Bina Informatika Solusi
+Bank Rakyat Indonesia (BRI)
+No. Rekening: 010701003038305
+Atas Nama   : PT Bina Informatika Solusi
+
+Rekening Rupiah
+Bank Mandiri
+No. Rekening: 1340001209104
+Atas Nama	: PT Bina Informatika Solusi
+Bank Rakyat Indonesia (BRI)
+No. Rekening: 010701003038305
+Atas Nama   : PT Bina Informatika Solusi
+
+Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjalan dan tanggal jatuh tempo  setiap tanggal 7 bulan berjalan melalui sistem transfer ke nomor rekening:',
       'blocks' => 
       array (
         0 => 
@@ -3451,6 +3621,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'No.',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -3459,6 +3630,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Layanan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 2 => 
                 array (
@@ -3467,6 +3639,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Biaya Layanan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -3475,6 +3648,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Biaya Instalasi',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -3483,6 +3657,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Jangka Waktu Berlangganan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               1 => 
@@ -3494,6 +3669,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => '1.',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -3504,6 +3680,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     2 => '(Free Xconnect Inner Dacen SBP >< TIS di Lantai 8)',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 2 => 
                 array (
@@ -3512,6 +3689,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Rp6.000.000 (Perbulan)',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -3520,6 +3698,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Rp1.000.000',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -3528,6 +3707,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => '25 Juli 2026 – 24 Juli 2027',
                   ),
                   's' => 1,
+                  'v' => 'r',
                 ),
               ),
               2 => 
@@ -3539,6 +3719,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => '2.',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -3547,6 +3728,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Add Electricity 6 Ampere',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 2 => 
                 array (
@@ -3555,6 +3737,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Rp2.550.000 (Perbulan)',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -3563,6 +3746,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Rp2.500.000',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -3570,6 +3754,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
               ),
               3 => 
@@ -3581,6 +3766,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => '3.',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -3589,6 +3775,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Xconnect 1 Pair SBP >< Asianet di Lt.9',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 2 => 
                 array (
@@ -3597,6 +3784,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Rp3.000.000 (Pertahun)',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -3605,6 +3793,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Rp3.000.000',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -3612,6 +3801,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
               ),
               4 => 
@@ -3623,6 +3813,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => '4.',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -3631,6 +3822,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Xconnect 1 Pair SBP >< CIFO di Lt. 8',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 2 => 
                 array (
@@ -3639,6 +3831,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Rp3.000.000 (Pertahun)',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -3647,6 +3840,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Rp3.000.000',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -3654,6 +3848,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
               ),
               5 => 
@@ -3665,6 +3860,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => '5.',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -3673,6 +3869,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Xconnect 1 Pair SBP >< TIS di Lt. 10',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 2 => 
                 array (
@@ -3681,6 +3878,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Rp3.000.000 (Pertahun)',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -3689,6 +3887,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                     0 => 'Rp3.000.000',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -3696,6 +3895,7 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
                   array (
                   ),
                   's' => 1,
+                  'v' => 'c',
                 ),
               ),
             ),
@@ -3813,7 +4013,23 @@ Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Infor
         ),
         28 => 
         array (
-          'p' => 'Rekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Informatika Solusi		Bank Rakyat Indonesia (BRI)	No. Rekening: 010701003038305 	Atas Nama   : PT Bina Informatika SolusiRekening RupiahBank MandiriNo. Rekening: 1340001209104	Atas Nama	: PT Bina Informatika Solusi		Bank Rakyat Indonesia (BRI)	No. Rekening: 010701003038305 	Atas Nama   : PT Bina Informatika SolusiPelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjalan dan tanggal jatuh tempo  setiap tanggal 7 bulan berjalan melalui sistem transfer ke nomor rekening:',
+          'p' => 'Rekening Rupiah
+Bank Mandiri
+No. Rekening: 1340001209104
+Atas Nama	: PT Bina Informatika Solusi
+Bank Rakyat Indonesia (BRI)
+No. Rekening: 010701003038305
+Atas Nama   : PT Bina Informatika Solusi
+
+Rekening Rupiah
+Bank Mandiri
+No. Rekening: 1340001209104
+Atas Nama	: PT Bina Informatika Solusi
+Bank Rakyat Indonesia (BRI)
+No. Rekening: 010701003038305
+Atas Nama   : PT Bina Informatika Solusi
+
+Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjalan dan tanggal jatuh tempo  setiap tanggal 7 bulan berjalan melalui sistem transfer ke nomor rekening:',
         ),
       ),
     ),
@@ -3971,6 +4187,7 @@ Apabila 30 (Tiga puluh) hari sebelum jangka waktu dalam pasal  4 ayat 1 ini bera
                     0 => '100% x Biaya Bulanan x Bulan yang belum terpenuhi',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
             ),
@@ -4456,6 +4673,7 @@ Direktur Utama',
                 1 => 'PT Bina Informatika Solusindo',
               ),
               's' => 1,
+              'v' => NULL,
             ),
             1 => 
             array (
@@ -4465,6 +4683,7 @@ Direktur Utama',
                 1 => 'PT Dinar Wahana Gemilang',
               ),
               's' => 1,
+              'v' => NULL,
             ),
           ),
           1 => 
@@ -4477,6 +4696,7 @@ Direktur Utama',
                 1 => 'Direktur',
               ),
               's' => 1,
+              'v' => NULL,
             ),
             1 => 
             array (
@@ -4486,6 +4706,7 @@ Direktur Utama',
                 1 => 'Direktur Utama',
               ),
               's' => 1,
+              'v' => NULL,
             ),
           ),
         ),
@@ -4517,6 +4738,7 @@ Direktur Utama',
                     0 => 'Nomor Perjanjian Berlangganan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -4525,6 +4747,7 @@ Direktur Utama',
                     0 => '335/FBC/J.MS/IV/2026',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               1 => 
@@ -4536,6 +4759,7 @@ Direktur Utama',
                     0 => 'Tanggal Awal Berlangganan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -4544,6 +4768,7 @@ Direktur Utama',
                     0 => '1 April 2026',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               2 => 
@@ -4555,6 +4780,7 @@ Direktur Utama',
                     0 => 'Tanggal Akhir Berlangganan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -4563,6 +4789,7 @@ Direktur Utama',
                     0 => '31 Maret 2027',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               3 => 
@@ -4574,6 +4801,7 @@ Direktur Utama',
                     0 => 'Nama dan Alamat Pelanggan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -4583,6 +4811,7 @@ Direktur Utama',
                     1 => 'Jl. Cetarip Barat (Cetarip raya) No. 15/200 Rt 05 Rw 10, Kopo, Kota Bandung',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               4 => 
@@ -4594,6 +4823,7 @@ Direktur Utama',
                     0 => 'NPWP',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -4602,6 +4832,7 @@ Direktur Utama',
                     0 => '95.536.317.1-422.000',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               5 => 
@@ -4614,6 +4845,7 @@ Direktur Utama',
                     1 => 'Penanggungjawab',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -4622,6 +4854,7 @@ Direktur Utama',
                     0 => '0889-9999-0707',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               6 => 
@@ -4634,6 +4867,7 @@ Direktur Utama',
                     1 => 'Penanggungjawab',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -4642,6 +4876,7 @@ Direktur Utama',
                     0 => '0811-2236-799',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               7 => 
@@ -4653,6 +4888,7 @@ Direktur Utama',
                     0 => 'Nama Penanggungjawab Administrasi/Keuangan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -4661,6 +4897,7 @@ Direktur Utama',
                     0 => 'Wenni Kartina Pelita',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               8 => 
@@ -4672,6 +4909,7 @@ Direktur Utama',
                     0 => 'Nama Penanggungjawab Teknisi',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -4680,6 +4918,7 @@ Direktur Utama',
                     0 => 'Firman Syahruman',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               9 => 
@@ -4691,6 +4930,7 @@ Direktur Utama',
                     0 => 'Jenis Layanan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -4699,6 +4939,7 @@ Direktur Utama',
                     0 => 'Meta Content 3 (tiga) Gbps',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               10 => 
@@ -4710,6 +4951,7 @@ Direktur Utama',
                     0 => 'Biaya Layanan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -4719,6 +4961,7 @@ Direktur Utama',
                     1 => 'Belum termasuk PPN',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               11 => 
@@ -4730,6 +4973,7 @@ Direktur Utama',
                     0 => 'Biaya Instalasi',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -4738,6 +4982,7 @@ Direktur Utama',
                     0 => '-',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
             ),
@@ -4805,6 +5050,7 @@ Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, ma
                     1 => 'Total minutes per month',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
             ),
@@ -4831,6 +5077,7 @@ Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, ma
                     0 => '[Agreed Service Level – Actual Service Level] x Monthly Cost.',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
             ),
@@ -4990,6 +5237,7 @@ PIHAK PERTAMA akan melakukan penghentian sementara Layanan apabila PIHAK KEDUA t
                     0 => '50% x Biaya Bulanan x Bulan yang belum terpenuhi',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
             ),
@@ -5425,6 +5673,7 @@ Manager Area Bandung',
                 1 => 'PT Bina Informatika Solusi',
               ),
               's' => 1,
+              'v' => NULL,
             ),
             1 => 
             array (
@@ -5434,6 +5683,7 @@ Manager Area Bandung',
                 1 => 'PT Triputra Textile Industry',
               ),
               's' => 1,
+              'v' => NULL,
             ),
           ),
           1 => 
@@ -5446,6 +5696,7 @@ Manager Area Bandung',
                 1 => 'Direktur',
               ),
               's' => 1,
+              'v' => NULL,
             ),
             1 => 
             array (
@@ -5455,6 +5706,7 @@ Manager Area Bandung',
                 1 => 'Manager Area Bandung',
               ),
               's' => 1,
+              'v' => NULL,
             ),
           ),
         ),
@@ -5486,6 +5738,7 @@ Manager Area Bandung',
                     0 => 'Nomor Perjanjian Berlangganan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -5494,6 +5747,7 @@ Manager Area Bandung',
                     0 => '152/FBT/J.S/IX/2025',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               1 => 
@@ -5505,6 +5759,7 @@ Manager Area Bandung',
                     0 => 'Tanggal Awal Berlangganan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -5513,6 +5768,7 @@ Manager Area Bandung',
                     0 => '1 September 2025',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               2 => 
@@ -5524,6 +5780,7 @@ Manager Area Bandung',
                     0 => 'Tanggal Akhir Berlangganan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -5532,6 +5789,7 @@ Manager Area Bandung',
                     0 => '31 Agustus 2026',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               3 => 
@@ -5543,6 +5801,7 @@ Manager Area Bandung',
                     0 => 'Nama dan Alamat Pelanggan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -5552,6 +5811,7 @@ Manager Area Bandung',
                     1 => 'Jalan Raya Laswi No. 8, Kec. Majalaya, Kab. Bandung',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               4 => 
@@ -5563,6 +5823,7 @@ Manager Area Bandung',
                     0 => 'NPWP',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -5571,6 +5832,7 @@ Manager Area Bandung',
                     0 => '02.735.813.4-444.000',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               5 => 
@@ -5583,6 +5845,7 @@ Manager Area Bandung',
                     1 => 'Penanggungjawab',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -5591,6 +5854,7 @@ Manager Area Bandung',
                     0 => '022-5955078',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               6 => 
@@ -5603,6 +5867,7 @@ Manager Area Bandung',
                     1 => 'Penanggungjawab',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -5611,6 +5876,7 @@ Manager Area Bandung',
                     0 => '0831-2089-9561',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               7 => 
@@ -5622,6 +5888,7 @@ Manager Area Bandung',
                     0 => 'Nama Penanggungjawab Administrasi/Keuangan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -5630,6 +5897,7 @@ Manager Area Bandung',
                     0 => 'Delly Yulia',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               8 => 
@@ -5641,6 +5909,7 @@ Manager Area Bandung',
                     0 => 'Nama Penanggungjawab Teknisi',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -5649,6 +5918,7 @@ Manager Area Bandung',
                     0 => 'Sugiharto',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               9 => 
@@ -5660,6 +5930,7 @@ Manager Area Bandung',
                     0 => 'Jenis Layanan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -5671,6 +5942,7 @@ Manager Area Bandung',
                     3 => '(Rp1.800.000)',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               10 => 
@@ -5682,6 +5954,7 @@ Manager Area Bandung',
                     0 => 'Biaya Layanan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -5691,6 +5964,7 @@ Manager Area Bandung',
                     1 => 'Belum termasuk PPN',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               11 => 
@@ -5702,6 +5976,7 @@ Manager Area Bandung',
                     0 => 'Biaya Instalasi',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -5711,6 +5986,7 @@ Manager Area Bandung',
                     1 => 'Belum termasuk PPN',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
             ),
@@ -5934,6 +6210,7 @@ Perpanjangan atau pengakhiran pada satu Lampiran Berlangganan Jasa tidak mempeng
                     0 => '100% x Biaya Bulanan x Bulan yang belum terpenuhi',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
             ),
@@ -6429,6 +6706,7 @@ Direktur',
                 1 => 'PT Bina Informatika Solusi',
               ),
               's' => 1,
+              'v' => NULL,
             ),
             1 => 
             array (
@@ -6438,6 +6716,7 @@ Direktur',
                 1 => 'PT Dinar Wahana Gemilang',
               ),
               's' => 1,
+              'v' => NULL,
             ),
           ),
           1 => 
@@ -6450,6 +6729,7 @@ Direktur',
                 1 => 'Direktur',
               ),
               's' => 1,
+              'v' => NULL,
             ),
             1 => 
             array (
@@ -6459,6 +6739,7 @@ Direktur',
                 1 => 'Direktur',
               ),
               's' => 1,
+              'v' => NULL,
             ),
           ),
         ),
@@ -6510,6 +6791,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => 'Nama dan Alamat Pelanggan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -6517,6 +6799,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               1 => 
@@ -6528,6 +6811,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => 'NPWP',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -6535,6 +6819,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               2 => 
@@ -6547,6 +6832,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     1 => 'Penanggungjawab',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -6554,6 +6840,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               3 => 
@@ -6566,6 +6853,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     1 => 'Penanggungjawab',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -6573,6 +6861,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               4 => 
@@ -6584,6 +6873,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => 'Nama Penanggungjawab Administrasi/Keuangan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -6591,6 +6881,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               5 => 
@@ -6602,6 +6893,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => 'Nama Penanggungjawab Teknisi',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -6609,6 +6901,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
             ),
@@ -6635,6 +6928,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => 'No',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -6643,6 +6937,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => 'Lokasi Layanan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 2 => 
                 array (
@@ -6651,6 +6946,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => 'Rute Metro',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -6659,6 +6955,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => 'Bandwidth',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -6667,6 +6964,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => 'Biaya Bulanan',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 5 => 
                 array (
@@ -6675,6 +6973,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => 'Biaya Instalasi',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 6 => 
                 array (
@@ -6683,6 +6982,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => 'Masa Berlaku',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               1 => 
@@ -6694,6 +6994,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => '1',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -6702,6 +7003,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => 'Bandung',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 2 => 
                 array (
@@ -6710,6 +7012,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => 'APJII Cyber Jakarta <> APJII Jabar 8 BBU Bandung',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -6718,6 +7021,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => '1 (satu) Gbps',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -6726,6 +7030,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => 'Rp5.000.000',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 5 => 
                 array (
@@ -6734,6 +7039,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => 'Rp2.000.000',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 6 => 
                 array (
@@ -6742,6 +7048,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => '1 Desember 2025 – 30 November 2026',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               2 => 
@@ -6753,6 +7060,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => '2',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -6760,6 +7068,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 2 => 
                 array (
@@ -6767,6 +7076,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 3 => 
                 array (
@@ -6774,6 +7084,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 4 => 
                 array (
@@ -6781,6 +7092,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 5 => 
                 array (
@@ -6788,6 +7100,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 6 => 
                 array (
@@ -6795,6 +7108,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                   array (
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
             ),
@@ -6834,6 +7148,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     1 => 'Total minutes per month',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
             ),
@@ -6860,6 +7175,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     0 => '[Agreed Service Level – Actual Service Level] x Monthly Cost.',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
             ),
@@ -6891,6 +7207,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     1 => 'PT Bina Informatika Solusi',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -6900,6 +7217,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     1 => 'PT Dinar Wahana Gemilang',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
               1 => 
@@ -6912,6 +7230,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     1 => 'Direktur',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
                 1 => 
                 array (
@@ -6921,6 +7240,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     1 => 'Direktur',
                   ),
                   's' => 1,
+                  'v' => NULL,
                 ),
               ),
             ),

@@ -111,6 +111,13 @@ test('setiap template memuat tabel sesuai dokumen asli pada posisi yang benar', 
     expect($tbl['bordered'])->toBeTrue();
     expect(json_encode($tbl, JSON_UNESCAPED_UNICODE))->toContain('Colocation Full Rack 42 U');
 
+    // vertical merge: sel "Jangka Waktu Berlangganan" restart di baris data
+    // pertama dan berlanjut (CONT) di 4 baris berikutnya
+    expect($tbl['rows'][1][4]['v'] ?? null)->toBe('r');
+    foreach ([2, 3, 4, 5] as $vr) {
+        expect($tbl['rows'][$vr][4]['v'] ?? null)->toBe('c');
+    }
+
     // Tabel tanda tangan tanpa border (seperti dokumen asli)
     $sig = $tpl['body_content']['tutupBlocks'][0]['table'];
     expect($sig['bordered'])->toBeFalse();
@@ -243,4 +250,14 @@ test('render HTML memunculkan tabel asli dengan border & posisi yang benar', fun
 
     // sel tanda tangan mempertahankan baris paragraf (<br>)
     expect($html)->toContain('PIHAK PERTAMA<br>');
+
+    // vertical merge dirender sebagai rowspan (bukan kolom kosong tambahan):
+    // tabel deskripsi layanan colocation = 5 kolom, sel jangka waktu rowspan=5
+    $tpl  = ContractTemplates::find('kontrak-colocation');
+    $html = contractBuildBodyHtml($tpl, true);
+    $pos  = strpos($html, 'Jangka Waktu Berlangganan');
+    expect($pos)->toBeInt();
+    expect(strpos($html, 'rowspan="5"', (int) $pos))->toBeInt();
+    // tidak ada lagi sel kosong ekstra pada baris data (kolom hantu hilang)
+    expect(substr_count($html, '<td></td>'))->toBe(0);
 });

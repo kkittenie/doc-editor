@@ -474,20 +474,93 @@ onta     * di-renumber secara berurutan.
 
         $borderStyle  = $bordered ? 'border:1px solid #000;' : 'border:none;';
         $cellBaseStyle = $borderStyle.' padding:4px 6px; vertical-align:top;';
+        // Tabel data memenuhi lebar dokumen; tabel tanda tangan lebar otomatis
+        // seperti pada dokumen asli.
+        $tableStyle = 'border-collapse:collapse; '.($bordered ? 'width:100%;' : 'width:auto;').' margin:0.5rem 0;';
 
-        $html = '<table style="border-collapse:collapse; width:100%; margin:0.5rem 0;">';
+        // ---- render dengan grid-aware merge (colspan + vertical merge) ----
+        // $pending[gridCol] = sisa baris yang masih tertutup merge dari atas.
+        // Sel continuation (v='c') dilewati; sel restart ('r') mendapat rowspan.
+        $pending = [];
+        $byRow   = [];
+        $totalRows = count($rows);
 
-        foreach ($rows as $ri => $row) {
-            $html .= '<tr>';
+        foreach ($rows as $r => $row) {
+            $col    = 0;
+            $rowOut = [];
 
             foreach ($row as $cell) {
-                $lines   = $cell['c'] ?? [];
-                $span    = max(1, (int) ($cell['s'] ?? 1));
-                $spanAttr = $span > 1 ? ' colspan="'.$span.'"' : '';
+                $span = max(1, (int) ($cell['s'] ?? 1));
+                $v    = $cell['v'] ?? null;
+
+                if ($v === 'c') {
+                    // continuation dari sel merge di atas — tidak dirender
+                    $col += $span;
+                    continue;
+                }
+
+                while (!empty($pending[$col])) { $col++; }
+
+                // hitung rowspan: hitung baris di bawah yang masih memuat
+                // sel continuation pada kolom yang sama
+                $rowspan = 1;
+                if ($v === 'r') {
+                    for ($rr = $r + 1; $rr < $totalRows; $rr++) {
+                        $continued = false;
+                        $c2 = 0;
+                        foreach ($rows[$rr] as $cell2) {
+                            $s2 = max(1, (int) ($cell2['s'] ?? 1));
+                            if (($cell2['v'] ?? null) === 'c'
+                                && $c2 < $col + $span && $c2 + $s2 > $col) {
+                                $continued = true;
+                                break;
+                            }
+                            $c2 += $s2;
+                        }
+                        if (!$continued) { break; }
+                        $rowspan++;
+                    }
+                }
+
+                $rowOut[] = [
+                    'cell'    => $cell,
+                    'span'    => $span,
+                    'rowspan' => ($rowspan > 1) ? $rowspan : null,
+                ];
+
+                if ($v === 'r' && $rowspan > 1) {
+                    for ($i = 0; $i < $span; $i++) {
+                        $pending[$col + $i] = $rowspan - 1;
+                    }
+                }
+
+                $col += $span;
+            }
+
+            // akhir baris: kurangi sisa baris merge
+            foreach ($pending as $c => $n) {
+                if ($n <= 1) { unset($pending[$c]); } else { $pending[$c] = $n - 1; }
+            }
+
+            $byRow[$r] = $rowOut;
+        }
+
+        $html = '<table style="'.$tableStyle.'">';
+
+        foreach ($rows as $r => $row) {
+            $html .= '<tr>';
+
+            foreach ($byRow[$r] ?? [] as $pc) {
+                $cell  = $pc['cell'];
+                $lines = $cell['c'] ?? [];
+                $span  = $pc['span'];
+
+                $spanAttr  = $span > 1 ? ' colspan="'.$span.'"' : '';
+                $spanAttr .= !empty($pc['rowspan']) ? ' rowspan="'.$pc['rowspan'].'"' : '';
 
                 $content = implode('<br>', array_map(static fn ($l) => e((string) $l), $lines));
 
-                $isHeadCell = $head && $ri === 0;
+                $isHeadCell = $head && $r === 0;
                 $tag   = $isHeadCell ? 'th' : 'td';
                 $style = $cellBaseStyle.($isHeadCell ? ' font-weight:bold; text-align:center;' : '');
 
