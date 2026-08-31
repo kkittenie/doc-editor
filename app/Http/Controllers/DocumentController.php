@@ -92,7 +92,7 @@ class DocumentController extends Controller
         
         if ($template) {
             $bodyHtml = $template['body_html']
-                ?? $this->buildTemplateBodyHtml($template['body_content'] ?? [], $templateKey === 'kontrak-kemitraan');
+                ?? $this->buildTemplateBodyHtml($template['body_content'] ?? [], in_array($templateKey, ['kontrak-kemitraan', 'kontrak-colocation']));
         }
 
         // Pastikan judul "PASAL n" selalu berurutan sesuai urutan pasalnya,
@@ -329,94 +329,722 @@ class DocumentController extends Controller
                     ],
             ],
             ],
+
             'kontrak-colocation' => [
                 'title' => 'Perjanjian Layanan Colocation',
                 'header_data' => [
-                    'kopInstansi' => '[Ketik nama perusahaan PIHAK PERTAMA]',
-                    'kopAlamat' => '[Ketik alamat perusahaan di sini]',
-                    'kopKontrak' => 'Telp: [Nomor telepon] | Email: [Email perusahaan]',
-                    'nomorSurat' => 'COL/001/VIII/2026',
+                    'kopInstansi' => '[Nama Perusahaan PIHAK PERTAMA]',
+                    'kopAlamat' => '[Alamat perusahaan PIHAK PERTAMA]',
+                    'kopKontrak' => 'Telp: [Nomor Telepon] | Email: [Email Perusahaan]',
+                    'nomorSurat' => '[Nomor Perjanjian]',
                     'perihalSurat' => 'Perjanjian Layanan Colocation',
                     'sifatSurat' => 'Penting',
                 ],
+
                 'body_content' => [
-                    'preamble' => "Pada hari ini, [Hari], tanggal [Tanggal] bulan [Bulan] tahun [Tahun], telah dibuat dan ditandatangani Perjanjian Layanan Colocation oleh dan antara:",
+
+                    'preamble' => "Perjanjian Layanan Colocation (selanjutnya disebut “Perjanjian”), dibuat pada [Tanggal Perjanjian], bertempat di [Kota/Kabupaten], oleh dan antara:",
 
                     'paraPihak' => [
-                        "1. Nama Perusahaan : [Nama perusahaan PIHAK PERTAMA]\nAlamat : [Alamat lengkap]\nDiwakili oleh : [Nama pejabat]\nJabatan : [Jabatan]\n\nSelanjutnya disebut sebagai “PIHAK PERTAMA”.",
+                        "1. [Nama Perusahaan PIHAK PERTAMA], suatu [Bentuk Badan Usaha], yang didirikan berdasarkan Hukum Negara Republik Indonesia, berkedudukan di [Alamat dan Kode Pos]. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “[Nama Perusahaan PIHAK PERTAMA]”, Nomor [Nomor Akta], [Tanggal Akta], dibuat dihadapan [Nama Notaris], Notaris di [Kota/Kabupaten]. Dalam hal ini diwakili oleh [Nama Pejabat PIHAK PERTAMA], selaku [Jabatan], sah bertindak untuk dan atas nama [Nama Perusahaan PIHAK PERTAMA], selanjutnya disebut sebagai “PIHAK PERTAMA”.",
 
-                        "2. Nama Perusahaan : [Nama perusahaan PIHAK KEDUA]\nAlamat : [Alamat lengkap]\nDiwakili oleh : [Nama pejabat]\nJabatan : [Jabatan]\n\nSelanjutnya disebut sebagai “PIHAK KEDUA”.",
+                        "d e n g a n",
+
+                        "2. [Nama Perusahaan PIHAK KEDUA], suatu [Bentuk Badan Usaha], yang didirikan berdasarkan Hukum Negara Republik Indonesia, berkedudukan di [Alamat dan Kode Pos]. Berdasarkan [Akta Pendirian/Perubahan] Nomor [Nomor Akta], [Tanggal Akta], dibuat dihadapan [Nama Notaris], Notaris di [Kota/Kabupaten]. Dalam hal ini diwakili oleh [Nama Pejabat PIHAK KEDUA], selaku [Jabatan], sah bertindak untuk dan atas nama [Nama Perusahaan PIHAK KEDUA], selanjutnya disebut sebagai “PIHAK KEDUA”.",
+
+                        "PIHAK PERTAMA dan PIHAK KEDUA secara sendiri-sendiri disebut “PIHAK” dan secara bersama-sama disebut “PARA PIHAK”.",
+
+                        "PARA PIHAK terlebih dahulu menerangkan hal-hal sebagai berikut:",
+
+                        "1. Bahwa PIHAK PERTAMA merupakan penyedia fasilitas colocation dan/atau pengelola Data Center yang memiliki fasilitas, infrastruktur, sistem kelistrikan, sistem pendingin, keamanan, jaringan, serta sarana pendukung lainnya untuk penempatan perangkat elektronik dan/atau perangkat jaringan milik pelanggan.",
+
+                        "2. Bahwa PIHAK KEDUA membutuhkan fasilitas penempatan perangkat pada Data Center PIHAK PERTAMA untuk mendukung kebutuhan operasional sistem, jaringan, aplikasi, server, penyimpanan data, dan/atau kebutuhan teknologi informasi lainnya.",
+
+                        "3. Bahwa PIHAK PERTAMA sepakat menyediakan fasilitas Colocation kepada PIHAK KEDUA dan PIHAK KEDUA sepakat menggunakan fasilitas tersebut sesuai dengan syarat dan ketentuan dalam Perjanjian ini.",
+
+                        "4. Bahwa berdasarkan hal-hal tersebut di atas, PARA PIHAK sepakat untuk mengikatkan diri dalam Perjanjian Layanan Colocation dengan syarat-syarat dan ketentuan-ketentuan sebagai berikut:",
                     ],
-
-                    'menimbang' => "a. bahwa PIHAK PERTAMA menyediakan fasilitas pusat data dan layanan colocation yang dapat digunakan untuk penempatan perangkat milik pelanggan;\nb. bahwa PIHAK KEDUA bermaksud menggunakan fasilitas dan layanan colocation yang disediakan oleh PIHAK PERTAMA;\nc. bahwa berdasarkan kesepakatan Para Pihak, perlu dibuat Perjanjian Layanan Colocation sebagai dasar pelaksanaan hak dan kewajiban Para Pihak.",
-
-                    'mengingat' => "1. Kitab Undang-Undang Hukum Perdata (KUHPerdata);\n2. Undang-Undang yang mengatur mengenai Informasi dan Transaksi Elektronik beserta perubahannya;\n3. Ketentuan peraturan perundang-undangan yang berlaku;\n4. Kesepakatan Para Pihak sebagaimana dituangkan dalam Perjanjian ini.",
 
                     'isi' => [
+
+                        [
+                            'judul' => 'DEFINISI',
+                            'text' => "Dalam Perjanjian ini yang dimaksud dengan:
+
+            1. Perjanjian adalah Perjanjian Layanan Colocation beserta seluruh lampiran, perubahan, addendum, Service Order Form (SOF), berita acara, dan dokumen lainnya yang merupakan satu kesatuan dan bagian yang tidak terpisahkan dari Perjanjian ini.
+
+            2. Colocation adalah layanan penyediaan tempat dan fasilitas Data Center oleh PIHAK PERTAMA untuk penempatan, pengoperasian, dan pemeliharaan perangkat milik atau yang dikuasai oleh PIHAK KEDUA sesuai dengan kapasitas dan spesifikasi layanan yang disepakati.
+
+            3. Data Center adalah fasilitas yang dikelola oleh PIHAK PERTAMA yang digunakan untuk menempatkan perangkat teknologi informasi dan komunikasi serta dilengkapi dengan infrastruktur pendukung seperti rack, listrik, pendingin, jaringan, keamanan, monitoring, dan fasilitas pendukung lainnya.
+
+            4. Rack adalah tempat atau ruang khusus yang disediakan oleh PIHAK PERTAMA untuk penempatan perangkat milik PIHAK KEDUA sesuai dengan ukuran dan kapasitas yang disepakati.
+
+            5. Perangkat adalah server, router, switch, firewall, storage, perangkat telekomunikasi, perangkat jaringan, kabel, dan perangkat elektronik lainnya yang ditempatkan oleh PIHAK KEDUA pada fasilitas Colocation.
+
+            6. Ruang Colocation adalah area pada Data Center yang diperuntukkan bagi penempatan Perangkat PIHAK KEDUA.
+
+            7. Layanan adalah seluruh fasilitas dan layanan Colocation yang diberikan oleh PIHAK PERTAMA kepada PIHAK KEDUA berdasarkan Perjanjian ini, termasuk namun tidak terbatas pada ruang Rack, sumber daya listrik, pendingin, konektivitas, keamanan, monitoring, dan layanan pendukung lainnya.
+
+            8. Bandwidth adalah kapasitas koneksi jaringan yang disediakan oleh PIHAK PERTAMA kepada PIHAK KEDUA sesuai dengan paket dan spesifikasi yang disepakati.
+
+            9. Cross Connect adalah koneksi fisik atau jaringan yang menghubungkan Perangkat PIHAK KEDUA dengan perangkat, jaringan, Rack, operator, atau penyedia layanan lainnya yang berada di fasilitas Data Center.
+
+            10. SLA (Service Level Agreement) adalah tingkat kualitas dan ketersediaan Layanan yang menjadi standar pelayanan PIHAK PERTAMA sebagaimana ditentukan dalam Perjanjian dan/atau Lampiran.
+
+            11. Maintenance adalah kegiatan pemeliharaan, perbaikan, penggantian, peningkatan, atau pekerjaan teknis lainnya terhadap fasilitas dan infrastruktur Data Center.
+
+            12. Akses adalah hak PIHAK KEDUA dan/atau personel yang ditunjuk untuk memasuki area Data Center sesuai prosedur keamanan dan ketentuan yang berlaku.
+
+            13. Hari Kerja adalah hari Senin sampai dengan Jumat, selain hari libur nasional dan hari yang ditetapkan Pemerintah sebagai hari libur.
+
+            14. Keadaan Memaksa (Force Majeure) adalah keadaan di luar kemampuan dan kendali PARA PIHAK yang secara langsung mengakibatkan sebagian atau seluruh kewajiban dalam Perjanjian ini tidak dapat dilaksanakan.
+
+            15. Biaya adalah seluruh kewajiban pembayaran PIHAK KEDUA kepada PIHAK PERTAMA berdasarkan Perjanjian ini, termasuk biaya Colocation, listrik, bandwidth, cross connect, instalasi, maintenance, administrasi, denda, penalti, dan biaya lainnya yang disepakati.
+
+            16. Informasi Rahasia adalah seluruh data, informasi, dokumen, konfigurasi, sistem, spesifikasi teknis, keamanan, dan informasi bisnis yang diperoleh salah satu PIHAK dalam pelaksanaan Perjanjian ini.",
+                        ],
+
                         [
                             'judul' => 'RUANG LINGKUP LAYANAN',
-                            'text' => "PIHAK PERTAMA menyediakan layanan colocation kepada PIHAK KEDUA berupa penyediaan ruang atau rack, daya listrik, konektivitas jaringan, fasilitas pendingin, keamanan fasilitas, serta fasilitas pendukung lainnya sesuai dengan paket layanan yang disepakati Para Pihak."
+                            'text' => "1. Ruang lingkup Perjanjian ini meliputi penyediaan fasilitas Colocation oleh PIHAK PERTAMA kepada PIHAK KEDUA untuk penempatan dan pengoperasian Perangkat PIHAK KEDUA pada Data Center.
+
+            2. Layanan Colocation sebagaimana dimaksud pada ayat (1) dapat meliputi:
+
+            a. penyediaan Rack atau ruang penempatan perangkat;
+
+            b. penyediaan sumber daya listrik;
+
+            c. penyediaan sistem pendingin;
+
+            d. penyediaan konektivitas jaringan;
+
+            e. penyediaan bandwidth sesuai paket layanan;
+
+            f. penyediaan fasilitas keamanan Data Center;
+
+            g. monitoring infrastruktur;
+
+            h. akses terbatas ke area Colocation;
+
+            i. layanan Cross Connect;
+
+            j. layanan remote hands apabila disepakati; dan
+
+            k. fasilitas pendukung lainnya sebagaimana tercantum dalam Lampiran.
+
+            3. Spesifikasi, jumlah Rack, kapasitas listrik, bandwidth, lokasi Data Center, jenis konektivitas, dan fasilitas lainnya tercantum dalam Lampiran I yang merupakan bagian tidak terpisahkan dari Perjanjian ini.
+
+            4. Penambahan, pengurangan, atau perubahan Layanan hanya dapat dilakukan berdasarkan permohonan PIHAK KEDUA dan persetujuan PIHAK PERTAMA sesuai ketentuan yang berlaku.",
                         ],
-                        [
-                            'judul' => 'PENEMPATAN PERANGKAT',
-                            'text' => "PIHAK KEDUA dapat menempatkan server, perangkat jaringan, perangkat penyimpanan, dan perangkat pendukung lainnya pada fasilitas PIHAK PERTAMA sesuai dengan kapasitas dan spesifikasi yang telah disetujui. Seluruh perangkat yang ditempatkan tetap menjadi tanggung jawab PIHAK KEDUA."
-                        ],
-                        [
-                            'judul' => 'FASILITAS DAN KONEKTIVITAS',
-                            'text' => "PIHAK PERTAMA menyediakan fasilitas sebagaimana tercantum dalam layanan yang dipilih oleh PIHAK KEDUA, termasuk daya listrik, pendingin ruangan, konektivitas jaringan, keamanan fisik, serta fasilitas pendukung lainnya sesuai standar operasional yang berlaku."
-                        ],
-                        [
-                            'judul' => 'AKSES KE FASILITAS',
-                            'text' => "Akses PIHAK KEDUA ke area fasilitas pusat data dilakukan sesuai prosedur keamanan dan ketentuan akses yang ditetapkan oleh PIHAK PERTAMA. PIHAK KEDUA wajib memastikan setiap personel yang diberikan akses mematuhi seluruh ketentuan keamanan fasilitas."
-                        ],
-                        [
-                            'judul' => 'PEMELIHARAAN PERANGKAT',
-                            'text' => "Pemeliharaan, perbaikan, konfigurasi, penggantian, dan pengelolaan perangkat milik PIHAK KEDUA menjadi tanggung jawab PIHAK KEDUA, kecuali apabila layanan pemeliharaan tersebut secara khusus disepakati sebagai bagian dari layanan PIHAK PERTAMA."
-                        ],
-                        [
-                            'judul' => 'BIAYA DAN PEMBAYARAN',
-                            'text' => "PIHAK KEDUA wajib membayar biaya layanan colocation kepada PIHAK PERTAMA sesuai dengan nilai, periode penagihan, dan mekanisme pembayaran yang telah disepakati. Biaya tambahan yang timbul akibat penggunaan layanan di luar paket dapat dikenakan sesuai ketentuan yang berlaku."
-                        ],
-                        [
-                            'judul' => 'KEAMANAN DAN KERAHASIAAN',
-                            'text' => "Para Pihak wajib menjaga keamanan dan kerahasiaan informasi yang diperoleh selama pelaksanaan Perjanjian. PIHAK KEDUA bertanggung jawab atas keamanan data dan informasi yang tersimpan pada perangkat miliknya."
-                        ],
-                        [
-                            'judul' => 'GANGGUAN LAYANAN',
-                            'text' => "Apabila terjadi gangguan terhadap fasilitas atau layanan, PIHAK PERTAMA akan melakukan penanganan sesuai prosedur dan tingkat layanan yang berlaku. Gangguan yang disebabkan oleh perangkat, konfigurasi, tindakan, atau kelalaian PIHAK KEDUA menjadi tanggung jawab PIHAK KEDUA."
-                        ],
-                        [
-                            'judul' => 'LARANGAN',
-                            'text' => "PIHAK KEDUA dilarang menggunakan fasilitas untuk kegiatan yang bertentangan dengan hukum, mengganggu keamanan jaringan, mengakibatkan kerusakan terhadap fasilitas, atau mengganggu layanan pelanggan lainnya."
-                        ],
+
                         [
                             'judul' => 'JANGKA WAKTU',
-                            'text' => "Perjanjian ini berlaku selama [jangka waktu] terhitung sejak tanggal [tanggal mulai] sampai dengan [tanggal berakhir] dan dapat diperpanjang berdasarkan kesepakatan tertulis Para Pihak."
+                            'text' => "1. Perjanjian ini berlaku sejak tanggal [Tanggal Mulai] sampai dengan [Tanggal Berakhir] untuk jangka waktu [Jangka Waktu].
+
+            2. Perjanjian dapat diperpanjang berdasarkan kesepakatan tertulis PARA PIHAK.
+
+            3. PIHAK KEDUA wajib menyampaikan permohonan perpanjangan paling lambat [Jumlah Hari] Hari Kalender sebelum tanggal berakhirnya Perjanjian.
+
+            4. Dalam hal tidak terdapat pemberitahuan pengakhiran dari salah satu PIHAK, Perjanjian dapat diperpanjang secara otomatis untuk jangka waktu [Jangka Waktu Perpanjangan] berdasarkan kesepakatan dan ketentuan yang berlaku.
+
+            5. Berakhirnya jangka waktu Perjanjian tidak menghapus kewajiban pembayaran, pengembalian perangkat, penyelesaian kerusakan, dan kewajiban lain yang telah timbul sebelum tanggal berakhirnya Perjanjian.",
                         ],
+
+                        [
+                            'judul' => 'HAK DAN KEWAJIBAN PARA PIHAK',
+                            'text' => "1. Hak PIHAK PERTAMA
+
+            PIHAK PERTAMA berhak:
+
+            a. menerima pembayaran dari PIHAK KEDUA sesuai ketentuan Perjanjian;
+
+            b. melakukan pemeriksaan terhadap Perangkat dan instalasi yang ditempatkan di Data Center untuk kepentingan keamanan, keselamatan, dan operasional;
+
+            c. menolak pemasangan Perangkat yang tidak memenuhi standar teknis, keamanan, kapasitas listrik, ukuran Rack, atau ketentuan Data Center;
+
+            d. melakukan pembatasan atau penghentian sementara Layanan apabila terdapat kondisi yang dapat mengganggu keamanan, keselamatan, atau operasional Data Center;
+
+            e. melakukan Maintenance terhadap fasilitas Data Center sesuai prosedur yang berlaku;
+
+            f. mengatur prosedur Akses ke Data Center;
+
+            g. melakukan relokasi Rack atau Perangkat apabila diperlukan untuk kepentingan operasional, keamanan, pengembangan fasilitas, atau kondisi darurat dengan pemberitahuan kepada PIHAK KEDUA sejauh memungkinkan; dan
+
+            h. menerima pembayaran atas layanan tambahan yang diminta oleh PIHAK KEDUA.
+
+            2. Kewajiban PIHAK PERTAMA
+
+            PIHAK PERTAMA berkewajiban:
+
+            a. menyediakan fasilitas Colocation sesuai spesifikasi yang disepakati;
+
+            b. menjaga operasional fasilitas Data Center sesuai SLA;
+
+            c. menyediakan sumber daya listrik dan pendingin sesuai kapasitas layanan;
+
+            d. menjaga keamanan fisik fasilitas Data Center sesuai standar operasional yang berlaku;
+
+            e. menyediakan dukungan teknis sesuai jenis layanan yang disepakati;
+
+            f. melakukan monitoring terhadap fasilitas yang menjadi tanggung jawab PIHAK PERTAMA;
+
+            g. memberitahukan kepada PIHAK KEDUA mengenai Maintenance terjadwal yang berpotensi memengaruhi Layanan; dan
+
+            h. menjaga kerahasiaan Informasi Rahasia milik PIHAK KEDUA.
+
+            3. Hak PIHAK KEDUA
+
+            PIHAK KEDUA berhak:
+
+            a. menggunakan fasilitas Colocation sesuai kapasitas dan spesifikasi yang disepakati;
+
+            b. menempatkan Perangkat pada Rack yang telah disediakan;
+
+            c. memperoleh sumber daya listrik, pendingin, dan konektivitas sesuai Layanan;
+
+            d. memperoleh Akses ke area Data Center sesuai prosedur;
+
+            e. memperoleh dukungan teknis sesuai jenis layanan;
+
+            f. memperoleh informasi mengenai gangguan dan Maintenance yang berdampak terhadap Layanan; dan
+
+            g. meminta penambahan atau perubahan Layanan sesuai prosedur.
+
+            4. Kewajiban PIHAK KEDUA
+
+            PIHAK KEDUA berkewajiban:
+
+            a. membayar seluruh tagihan tepat waktu;
+
+            b. memastikan seluruh Perangkat yang ditempatkan di Data Center dalam kondisi baik dan memenuhi standar teknis;
+
+            c. memastikan Perangkat tidak menyebabkan gangguan terhadap perangkat, jaringan, sistem listrik, pendingin, atau fasilitas Data Center;
+
+            d. mematuhi seluruh prosedur keamanan dan Akses Data Center;
+
+            e. menjaga keamanan akun, kredensial, kartu Akses, kunci, dan sarana Akses lainnya;
+
+            f. tidak membawa atau menempatkan bahan, perangkat, atau benda yang berbahaya dan dapat mengganggu keamanan Data Center;
+
+            g. tidak melakukan perubahan terhadap instalasi listrik, jaringan, Rack, sistem pendingin, atau infrastruktur Data Center tanpa persetujuan tertulis dari PIHAK PERTAMA;
+
+            h. bertanggung jawab terhadap keamanan dan konfigurasi Perangkat miliknya;
+
+            i. memastikan seluruh perangkat lunak dan sistem yang digunakan memiliki lisensi atau hak penggunaan yang sah;
+
+            j. menunjuk personel yang berwenang untuk melakukan pekerjaan di Data Center;
+
+            k. menjaga kebersihan dan kerapian area Rack;
+
+            l. mematuhi ketentuan peraturan perundang-undangan yang berlaku; dan
+
+            m. bertanggung jawab atas kerugian yang timbul akibat kelalaian atau tindakan PIHAK KEDUA maupun personelnya.",
+                        ],
+
+                        [
+                            'judul' => 'PERANGKAT DAN INSTALASI',
+                            'text' => "1. Seluruh Perangkat yang ditempatkan pada fasilitas Colocation merupakan milik atau berada dalam penguasaan PIHAK KEDUA dan bukan merupakan milik PIHAK PERTAMA.
+
+            2. PIHAK KEDUA bertanggung jawab atas pengadaan, pengiriman, pemasangan, konfigurasi, pemeliharaan, dan pengoperasian Perangkat miliknya, kecuali layanan tersebut secara khusus menjadi tanggung jawab PIHAK PERTAMA berdasarkan Perjanjian.
+
+            3. Setiap pemasangan Perangkat wajib memperoleh persetujuan dan mengikuti prosedur teknis PIHAK PERTAMA.
+
+            4. PIHAK KEDUA dilarang melakukan instalasi yang dapat menyebabkan beban listrik, panas, interferensi, gangguan jaringan, atau risiko keselamatan terhadap fasilitas Data Center.
+
+            5. PIHAK PERTAMA berhak meminta PIHAK KEDUA melakukan pemindahan, penggantian, atau penghentian Perangkat apabila Perangkat tersebut terbukti mengganggu operasional atau keamanan Data Center.
+
+            6. PIHAK KEDUA bertanggung jawab atas kerusakan yang disebabkan oleh Perangkat atau instalasi miliknya.
+
+            7. PIHAK PERTAMA tidak bertanggung jawab atas kerusakan atau kehilangan data yang tersimpan pada Perangkat PIHAK KEDUA, kecuali dapat dibuktikan terjadi akibat kelalaian PIHAK PERTAMA.
+
+            8. Ketentuan mengenai spesifikasi Perangkat, jumlah Rack, konsumsi listrik, ukuran Perangkat, dan konfigurasi teknis diatur dalam Lampiran.",
+                        ],
+
+                        [
+                            'judul' => 'AKSES DAN KEAMANAN DATA CENTER',
+                            'text' => "1. Akses ke Data Center hanya diberikan kepada personel PIHAK KEDUA yang telah didaftarkan dan mendapatkan persetujuan PIHAK PERTAMA.
+
+            2. Setiap personel PIHAK KEDUA wajib mematuhi seluruh prosedur keamanan, registrasi, identifikasi, pendampingan, dan ketentuan Akses yang berlaku.
+
+            3. PIHAK KEDUA wajib memberikan daftar personel yang memiliki kewenangan untuk melakukan pekerjaan di Data Center.
+
+            4. PIHAK PERTAMA berhak menolak atau membatasi Akses apabila personel PIHAK KEDUA tidak memenuhi prosedur keamanan.
+
+            5. PIHAK KEDUA dilarang memberikan kartu Akses, kunci, password, atau sarana Akses lainnya kepada pihak yang tidak berwenang.
+
+            6. Setiap kehilangan kartu Akses, kunci, atau perangkat keamanan lainnya wajib segera dilaporkan kepada PIHAK PERTAMA.
+
+            7. PIHAK KEDUA bertanggung jawab atas tindakan personelnya selama berada di lingkungan Data Center.
+
+            8. PIHAK PERTAMA berhak menerapkan sistem pengawasan dan pencatatan Akses untuk kepentingan keamanan fasilitas.",
+                        ],
+
+                        [
+                            'judul' => 'KONEKTIVITAS DAN BANDWIDTH',
+                            'text' => "1. PIHAK PERTAMA menyediakan konektivitas dan/atau Bandwidth sesuai spesifikasi Layanan yang tercantum dalam Lampiran.
+
+            2. Penambahan Bandwidth, Cross Connect, IP Address, atau konektivitas lainnya dapat dikenakan biaya tambahan.
+
+            3. PIHAK KEDUA bertanggung jawab atas konfigurasi Perangkat jaringan miliknya kecuali layanan konfigurasi tersebut secara khusus disepakati menjadi tanggung jawab PIHAK PERTAMA.
+
+            4. PIHAK KEDUA dilarang menggunakan konektivitas untuk kegiatan yang melanggar hukum atau yang dapat mengganggu jaringan PIHAK PERTAMA maupun pelanggan lainnya.
+
+            5. PIHAK PERTAMA berhak melakukan pembatasan sementara terhadap konektivitas apabila ditemukan aktivitas yang mengancam keamanan jaringan, melanggar hukum, atau berpotensi mengganggu jaringan.
+
+            6. Setiap perubahan konfigurasi jaringan yang dilakukan PIHAK KEDUA wajib mengikuti prosedur teknis PIHAK PERTAMA apabila perubahan tersebut dapat berdampak terhadap jaringan Data Center.",
+                        ],
+
+                        [
+                            'judul' => 'BIAYA DAN CARA PEMBAYARAN',
+                            'text' => "1. Biaya Layanan Colocation meliputi biaya Rack, listrik, bandwidth, konektivitas, instalasi, dan layanan lainnya sebagaimana tercantum dalam Lampiran.
+
+            2. Biaya dapat terdiri dari biaya berulang bulanan (recurring) dan biaya satu kali (one time charge).
+
+            3. Layanan tambahan seperti Cross Connect, Remote Hands, penambahan daya listrik, penambahan Bandwidth, relokasi Perangkat, dan layanan lainnya dapat dikenakan biaya tambahan.
+
+            4. PIHAK PERTAMA akan menerbitkan invoice kepada PIHAK KEDUA sesuai periode penagihan yang disepakati.
+
+            5. Invoice wajib dibayarkan oleh PIHAK KEDUA paling lambat [Jumlah Hari] Hari Kerja sejak tanggal invoice diterbitkan.
+
+            6. Seluruh pembayaran dilakukan melalui transfer ke rekening yang ditetapkan oleh PIHAK PERTAMA.
+
+            7. Keterlambatan pembayaran dapat dikenakan denda atau biaya keterlambatan sebesar [Persentase] atau sesuai ketentuan yang tercantum dalam Lampiran.
+
+            8. Pajak yang timbul atas pelaksanaan Perjanjian ini dilaksanakan sesuai ketentuan peraturan perundang-undangan yang berlaku.",
+                        ],
+
+                        [
+                            'judul' => 'SERVICE LEVEL AGREEMENT (SLA)',
+                            'text' => "1. PIHAK PERTAMA memberikan tingkat layanan sesuai SLA yang tercantum dalam Lampiran Perjanjian.
+
+            2. SLA dapat meliputi antara lain:
+
+            a. ketersediaan fasilitas Data Center;
+
+            b. ketersediaan sumber daya listrik;
+
+            c. ketersediaan sistem pendingin;
+
+            d. ketersediaan konektivitas;
+
+            e. waktu respons terhadap gangguan; dan
+
+            f. waktu penanganan gangguan.
+
+            3. SLA tidak berlaku terhadap gangguan yang disebabkan oleh:
+
+            a. Perangkat PIHAK KEDUA;
+
+            b. konfigurasi PIHAK KEDUA;
+
+            c. tindakan atau kelalaian PIHAK KEDUA;
+
+            d. Maintenance terjadwal;
+
+            e. Force Majeure;
+
+            f. gangguan dari pihak ketiga di luar kendali PIHAK PERTAMA; atau
+
+            g. kondisi lainnya sebagaimana ditentukan dalam SLA.
+
+            4. PIHAK PERTAMA wajib melakukan upaya yang wajar untuk menangani gangguan yang menjadi tanggung jawabnya sesuai SLA.",
+                        ],
+
+                        [
+                            'judul' => 'MAINTENANCE DAN GANGGUAN',
+                            'text' => "1. PIHAK PERTAMA berhak melakukan Maintenance terjadwal maupun tidak terjadwal untuk menjaga keamanan dan keandalan Data Center.
+
+            2. Untuk Maintenance terjadwal yang berpotensi memengaruhi Layanan, PIHAK PERTAMA akan memberikan pemberitahuan kepada PIHAK KEDUA sesuai prosedur yang berlaku.
+
+            3. Dalam keadaan darurat, PIHAK PERTAMA dapat melakukan tindakan Maintenance tanpa pemberitahuan terlebih dahulu apabila diperlukan untuk mencegah kerusakan yang lebih besar atau menjaga keselamatan dan keamanan Data Center.
+
+            4. PIHAK KEDUA wajib memberikan akses teknis yang diperlukan apabila gangguan berasal dari Perangkat atau konfigurasi milik PIHAK KEDUA.
+
+            5. PIHAK PERTAMA tidak bertanggung jawab atas gangguan yang disebabkan oleh Perangkat, konfigurasi, aplikasi, atau tindakan PIHAK KEDUA.
+
+            6. Setiap gangguan akan ditangani sesuai prosedur penanganan gangguan dan SLA yang berlaku.",
+                        ],
+
+                        [
+                            'judul' => 'DATA DAN KERAHASIAAN',
+                            'text' => "1. PARA PIHAK wajib menjaga kerahasiaan seluruh informasi yang diperoleh sehubungan dengan pelaksanaan Perjanjian ini.
+
+            2. PIHAK PERTAMA tidak diperkenankan mengakses isi data yang tersimpan pada Perangkat PIHAK KEDUA kecuali diperlukan untuk pelaksanaan Layanan, penanganan gangguan, keamanan, pemenuhan kewajiban hukum, atau berdasarkan persetujuan PIHAK KEDUA.
+
+            3. PIHAK KEDUA bertanggung jawab atas keamanan data, aplikasi, sistem operasi, database, dan informasi yang tersimpan pada Perangkat miliknya.
+
+            4. PIHAK KEDUA wajib melakukan pengamanan yang wajar terhadap sistem dan Perangkat untuk mencegah akses yang tidak sah.
+
+            5. PARA PIHAK wajib menjaga kerahasiaan Informasi Rahasia selama Perjanjian berlangsung dan selama 5 (lima) tahun setelah Perjanjian berakhir atau selama jangka waktu lain yang diwajibkan oleh peraturan perundang-undangan.
+
+            6. Kewajiban kerahasiaan tidak berlaku terhadap informasi yang wajib diberikan berdasarkan perintah pengadilan atau ketentuan peraturan perundang-undangan.",
+                        ],
+
+                        [
+                            'judul' => 'WANPRESTASI DAN SANKSI',
+                            'text' => "1. Salah satu PIHAK dinyatakan melakukan wanprestasi apabila tidak memenuhi kewajiban material berdasarkan Perjanjian.
+
+            2. PIHAK KEDUA dianggap melakukan wanprestasi apabila:
+
+            a. tidak membayar tagihan sesuai jatuh tempo;
+
+            b. menggunakan fasilitas untuk kegiatan yang melanggar hukum;
+
+            c. memberikan akses kepada pihak yang tidak berwenang;
+
+            d. melakukan perubahan terhadap fasilitas Data Center tanpa izin;
+
+            e. menempatkan Perangkat yang membahayakan keamanan atau operasional Data Center;
+
+            f. melakukan tindakan yang menyebabkan gangguan terhadap pelanggan lain; atau
+
+            g. melanggar ketentuan material lainnya dalam Perjanjian.
+
+            3. Dalam hal terjadi wanprestasi, PIHAK PERTAMA berhak memberikan:
+
+            a. teguran tertulis;
+
+            b. pembatasan layanan;
+
+            c. penghentian sementara layanan;
+
+            d. pengenaan denda atau penalti;
+
+            e. penarikan atau pemindahan Perangkat sesuai prosedur; dan/atau
+
+            f. pengakhiran Perjanjian.
+
+            4. Dalam hal wanprestasi berkaitan dengan pembayaran, PIHAK PERTAMA dapat melakukan pembatasan atau penghentian Layanan sesuai mekanisme yang ditentukan dalam Perjanjian.
+
+            5. Pengenaan sanksi tidak menghapus kewajiban PIHAK KEDUA untuk melunasi seluruh kewajiban pembayaran dan mengganti kerugian yang timbul akibat pelanggaran.
+
+            6. Dalam hal pelanggaran menimbulkan risiko terhadap keamanan atau keselamatan Data Center, PIHAK PERTAMA berhak mengambil tindakan segera yang diperlukan untuk mencegah kerugian yang lebih besar.",
+                        ],
+
                         [
                             'judul' => 'PENGAKHIRAN PERJANJIAN',
-                            'text' => "Perjanjian dapat diakhiri berdasarkan kesepakatan Para Pihak atau apabila salah satu pihak melakukan pelanggaran material terhadap ketentuan Perjanjian dan tidak melakukan perbaikan dalam jangka waktu yang telah diberikan."
+                            'text' => "1. Perjanjian berakhir apabila:
+
+            a. jangka waktu Perjanjian berakhir dan tidak diperpanjang;
+
+            b. PARA PIHAK sepakat secara tertulis untuk mengakhiri Perjanjian;
+
+            c. salah satu PIHAK melakukan wanprestasi material yang tidak diperbaiki dalam jangka waktu yang ditentukan;
+
+            d. salah satu PIHAK dinyatakan pailit atau dibubarkan;
+
+            e. Layanan tidak dapat lagi disediakan berdasarkan ketentuan hukum atau kebijakan Pemerintah; atau
+
+            f. terjadi keadaan lain yang menyebabkan Perjanjian tidak dapat dilaksanakan.
+
+            2. Dalam hal Perjanjian berakhir, PIHAK KEDUA wajib:
+
+            a. menghentikan penggunaan fasilitas Colocation;
+
+            b. melakukan pembongkaran dan pengambilan seluruh Perangkat;
+
+            c. menyelesaikan seluruh kewajiban pembayaran;
+
+            d. mengembalikan kartu Akses, kunci, atau fasilitas milik PIHAK PERTAMA;
+
+            e. mengembalikan area Rack dalam kondisi baik; dan
+
+            f. memenuhi kewajiban lain yang masih terutang.
+
+            3. Pengambilan Perangkat wajib dilakukan paling lambat [Jumlah Hari] Hari Kalender sejak tanggal efektif pengakhiran.
+
+            4. Apabila PIHAK KEDUA tidak mengambil Perangkat dalam jangka waktu tersebut, PIHAK PERTAMA berhak melakukan tindakan penyimpanan, pemindahan, atau tindakan lain sesuai ketentuan Perjanjian dan peraturan perundang-undangan.
+
+            5. PARA PIHAK sepakat untuk mengesampingkan berlakunya Pasal 1266 KUHPerdata sepanjang diperbolehkan berdasarkan ketentuan peraturan perundang-undangan.",
                         ],
+
                         [
-                            'judul' => 'PENYELESAIAN PERSELISIHAN',
-                            'text' => "Setiap perselisihan yang timbul akan diselesaikan terlebih dahulu melalui musyawarah untuk mencapai mufakat. Apabila tidak tercapai kesepakatan, Para Pihak dapat menempuh penyelesaian sesuai ketentuan hukum yang berlaku."
+                            'judul' => 'TANGGUNG JAWAB DAN BATASAN TANGGUNG JAWAB',
+                            'text' => "1. Masing-masing PIHAK bertanggung jawab atas kerugian yang timbul akibat kesalahan atau kelalaiannya dalam melaksanakan Perjanjian.
+
+            2. PIHAK KEDUA bertanggung jawab atas Perangkat, data, aplikasi, konfigurasi, dan sistem yang dimilikinya.
+
+            3. PIHAK PERTAMA bertanggung jawab atas fasilitas dan infrastruktur yang secara tegas menjadi tanggung jawab PIHAK PERTAMA berdasarkan Perjanjian.
+
+            4. PIHAK PERTAMA tidak bertanggung jawab atas kehilangan atau kerusakan data, aplikasi, atau sistem PIHAK KEDUA yang disebabkan oleh Perangkat, konfigurasi, kesalahan pengguna, serangan keamanan yang tidak dapat dicegah secara wajar, atau sebab lain yang berada di luar kendali PIHAK PERTAMA.
+
+            5. Ketentuan mengenai batas maksimum tanggung jawab, apabila ada, diatur lebih lanjut dalam Lampiran atau addendum.
+
+            6. Masing-masing PIHAK wajib melakukan upaya yang wajar untuk mengurangi kerugian yang timbul akibat suatu gangguan atau kejadian.",
                         ],
+
                         [
-                            'judul' => 'LAIN-LAIN',
-                            'text' => "Hal-hal yang belum diatur dalam Perjanjian ini akan dituangkan dalam perubahan, tambahan, atau dokumen lain yang disepakati dan ditandatangani oleh Para Pihak."
+                            'judul' => 'KEADAAN MEMAKSA (FORCE MAJEURE)',
+                            'text' => "1. Keadaan Memaksa adalah peristiwa di luar kemampuan dan kendali wajar PARA PIHAK yang secara langsung menyebabkan sebagian atau seluruh kewajiban tidak dapat dilaksanakan.
+
+            2. Keadaan Memaksa meliputi namun tidak terbatas pada:
+
+            a. bencana alam;
+
+            b. kebakaran;
+
+            c. banjir;
+
+            d. gempa bumi;
+
+            e. perang;
+
+            f. kerusuhan;
+
+            g. wabah penyakit;
+
+            h. gangguan jaringan berskala besar;
+
+            i. gangguan listrik berskala luas;
+
+            j. kebijakan Pemerintah;
+
+            k. gangguan fasilitas umum; atau
+
+            l. kejadian lain yang sejenis.
+
+            3. PIHAK yang mengalami Force Majeure wajib memberitahukan secara tertulis kepada PIHAK lainnya paling lambat 14 (empat belas) Hari Kalender sejak terjadinya atau diketahuinya keadaan tersebut.
+
+            4. Selama Force Majeure berlangsung, kewajiban yang secara langsung terdampak dapat ditangguhkan sepanjang tidak dapat dilaksanakan akibat keadaan tersebut.
+
+            5. PARA PIHAK wajib melakukan upaya yang wajar untuk mengurangi dampak Force Majeure.
+
+            6. Apabila Force Majeure berlangsung lebih dari 90 (sembilan puluh) Hari Kalender dan tidak terdapat kesepakatan mengenai kelanjutan Perjanjian, masing-masing PIHAK berhak mengakhiri Perjanjian dengan pemberitahuan tertulis.",
                         ],
+
                         [
-                            'judul' => 'PENUTUP',
-                            'text' => "Perjanjian ini dibuat dengan itikad baik dan berlaku sebagai dasar pelaksanaan layanan colocation antara Para Pihak."
+                            'judul' => 'KOMUNIKASI / PEMBERITAHUAN',
+                            'text' => "1. Setiap pemberitahuan berdasarkan Perjanjian ini harus dibuat secara tertulis dan dapat disampaikan melalui email, surat tercatat, kurir, atau sarana komunikasi resmi lainnya yang disepakati.
+
+            2. Jika kepada PIHAK PERTAMA:
+
+            Nama : [Nama PIHAK PERTAMA]
+            Alamat : [Alamat PIHAK PERTAMA]
+            Telepon : [Nomor Telepon PIHAK PERTAMA]
+            U.p : [Nama Penanggung Jawab]
+            Email : [Email PIHAK PERTAMA]
+
+            3. Jika kepada PIHAK KEDUA:
+
+            Nama : [Nama PIHAK KEDUA]
+            Alamat : [Alamat PIHAK KEDUA]
+            Telepon : [Nomor Telepon PIHAK KEDUA]
+            U.p : [Nama Penanggung Jawab]
+            Email : [Email PIHAK KEDUA]
+
+            4. Setiap perubahan alamat, nomor telepon, email, atau penanggung jawab wajib diberitahukan secara tertulis kepada PIHAK lainnya.",
+                        ],
+
+                        [
+                            'judul' => 'PENYELESAIAN SENGKETA DAN KETENTUAN PENUTUP',
+                            'text' => "1. Setiap perselisihan yang timbul sehubungan dengan pelaksanaan atau penafsiran Perjanjian ini akan diselesaikan terlebih dahulu secara musyawarah untuk mufakat.
+
+            2. Musyawarah sebagaimana dimaksud pada ayat (1) dilakukan dalam waktu paling lama 30 (tiga puluh) Hari Kalender sejak salah satu PIHAK menyampaikan pemberitahuan tertulis mengenai adanya perselisihan.
+
+            3. Apabila musyawarah tidak mencapai kesepakatan, PARA PIHAK sepakat untuk menyelesaikan perselisihan melalui Pengadilan Negeri [Kota/Kabupaten] di wilayah hukum kedudukan PIHAK PERTAMA.
+
+            4. Selama proses penyelesaian sengketa berlangsung, PARA PIHAK tetap wajib melaksanakan bagian Perjanjian yang tidak menjadi objek sengketa.
+
+            5. Setiap perubahan, penambahan, atau pengurangan terhadap Perjanjian hanya sah apabila dibuat secara tertulis dalam bentuk addendum atau amandemen dan ditandatangani oleh PARA PIHAK.
+
+            6. Apabila terdapat ketentuan dalam Perjanjian yang dinyatakan tidak sah atau tidak dapat dilaksanakan, ketentuan lainnya tetap berlaku dan mengikat PARA PIHAK.
+
+            7. PARA PIHAK menyatakan bahwa:
+
+            a. telah membaca dan memahami seluruh isi Perjanjian;
+
+            b. memiliki kewenangan yang sah untuk menandatangani Perjanjian;
+
+            c. Perjanjian dibuat tanpa adanya paksaan, kekhilafan, atau penipuan dari pihak mana pun.
+
+            8. Perjanjian ini dibuat dalam 2 (dua) rangkap asli yang masing-masing mempunyai kekuatan hukum yang sama dan mulai berlaku sejak tanggal ditandatangani oleh PARA PIHAK.",
                         ],
                     ],
 
-                    'tutup' => "Demikian Perjanjian Layanan Colocation ini dibuat dan ditandatangani oleh Para Pihak dalam keadaan sadar, tanpa adanya paksaan dari pihak manapun.",
+                    'tutup' => "PIHAK PERTAMA
+            [Nama Perusahaan PIHAK PERTAMA]
+
+
+            [Nama Penandatangan PIHAK PERTAMA]
+            [Jabatan]
+
+
+            PIHAK KEDUA
+            [Nama Perusahaan PIHAK KEDUA]
+
+
+            [Nama Penandatangan PIHAK KEDUA]
+            [Jabatan]",
 
                     'lampiran' => [
                         [
-                            'judul' => 'LAMPIRAN — SPESIFIKASI LAYANAN COLOCATION',
-                            'text' => "1. Lokasi Data Center : [Lokasi]\n2. Nomor Rack : [Nomor rack]\n3. Kapasitas Rack : [Kapasitas]\n4. Daya Listrik : [Daya]\n5. Koneksi Internet : [Bandwidth]\n6. Alamat IP : [Jumlah/alokasi IP]\n7. Perangkat : [Daftar perangkat]\n8. SLA : [Ketentuan SLA]\n9. Biaya Layanan : [Nilai biaya]\n10. Periode Layanan : [Periode]"
+                            'judul' => 'LAMPIRAN I PERJANJIAN — SPESIFIKASI LAYANAN COLOCATION',
+                            'text' => "NOMOR: [Nomor Perjanjian]",
+                            'html' => '<table style="width:100%; border-collapse:collapse;">'
+                                . '<tbody>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Nama Pelanggan</td><td style="border:1px solid #000; padding:4px 6px;">[Nama PIHAK KEDUA]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Lokasi Data Center</td><td style="border:1px solid #000; padding:4px 6px;">[Lokasi Data Center]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Nomor Rack</td><td style="border:1px solid #000; padding:4px 6px;">[Nomor Rack]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Ukuran Rack</td><td style="border:1px solid #000; padding:4px 6px;">[Ukuran Rack / U]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Kapasitas Daya</td><td style="border:1px solid #000; padding:4px 6px;">[Kapasitas Daya]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Sumber Listrik</td><td style="border:1px solid #000; padding:4px 6px;">[A/B Feed]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Bandwidth</td><td style="border:1px solid #000; padding:4px 6px;">[Bandwidth]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">IP Address</td><td style="border:1px solid #000; padding:4px 6px;">[Jumlah / Blok IP]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Cross Connect</td><td style="border:1px solid #000; padding:4px 6px;">[Ada / Tidak]</td></tr>'
+                                . '<tr><td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Remote Hands</td><td style="border:1px solid #000; padding:4px 6px;">[Ada / Tidak]</td></tr>'
+                                . '</tbody>'
+                                . '</table>'
+                        ],
+
+                        [
+                            'judul' => 'LAMPIRAN II PERJANJIAN — DAFTAR PERANGKAT',
+                            'text' => "NOMOR: [Nomor Perjanjian]",
+                            'html' => '<table style="width:100%; border-collapse:collapse;">'
+                                . '<tbody>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">No.</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Nama Perangkat</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Merk / Tipe</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Serial Number</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Jumlah</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Keterangan</td>'
+                                . '</tr>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">1</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Nama Perangkat]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Merk / Tipe]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Serial Number]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Jumlah]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Keterangan]</td>'
+                                . '</tr>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">2</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Nama Perangkat]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Merk / Tipe]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Serial Number]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Jumlah]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Keterangan]</td>'
+                                . '</tr>'
+                                . '</tbody>'
+                                . '</table>'
+                        ],
+
+                        [
+                            'judul' => 'LAMPIRAN III PERJANJIAN — BIAYA LAYANAN',
+                            'text' => "NOMOR: [Nomor Perjanjian]",
+                            'html' => '<table style="width:100%; border-collapse:collapse;">'
+                                . '<tbody>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">No.</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Jenis Layanan</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Satuan</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Biaya</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Keterangan</td>'
+                                . '</tr>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">1</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">Colocation Rack</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Unit]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Biaya]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Keterangan]</td>'
+                                . '</tr>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">2</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">Bandwidth</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Mbps]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Biaya]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Keterangan]</td>'
+                                . '</tr>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">3</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">Cross Connect</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Port]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Biaya]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Keterangan]</td>'
+                                . '</tr>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">4</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">Remote Hands</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Jam]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Biaya]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Keterangan]</td>'
+                                . '</tr>'
+                                . '</tbody>'
+                                . '</table>'
+                        ],
+
+                        [
+                            'judul' => 'LAMPIRAN IV PERJANJIAN — SERVICE LEVEL AGREEMENT (SLA)',
+                            'text' => "NOMOR: [Nomor Perjanjian]\n\nStandar layanan yang diberikan oleh PIHAK PERTAMA kepada PIHAK KEDUA adalah sebagai berikut:",
+                            'html' => [
+                                '<table style="width:100%; border-collapse:collapse;">'
+                                . '<tbody>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">No.</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Parameter</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Target SLA</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Keterangan</td>'
+                                . '</tr>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">1</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">Availability Data Center</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Persentase]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Keterangan]</td>'
+                                . '</tr>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">2</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">Availability Power</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Persentase]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Keterangan]</td>'
+                                . '</tr>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">3</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">Network Availability</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Persentase]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Keterangan]</td>'
+                                . '</tr>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">4</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">Response Time Gangguan</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Waktu]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Keterangan]</td>'
+                                . '</tr>'
+                                . '</tbody>'
+                                . '</table>',
+
+                                '<p style="margin-top:12px;"><strong>Ketentuan Maintenance:</strong></p>'
+                                . '<p>Maintenance terjadwal akan diinformasikan kepada PIHAK KEDUA sesuai dengan prosedur dan jangka waktu pemberitahuan yang berlaku.</p>',
+
+                                '<p style="margin-top:12px;"><strong>Matriks Eskalasi:</strong></p>'
+                                . '<table style="width:100%; border-collapse:collapse;">'
+                                . '<tbody>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">No</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Fault Time</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Escalation Level</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px; font-weight:bold;">Point of Contact</td>'
+                                . '</tr>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">1</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Fault Time]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">Level 1</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">Helpdesk<br>Phone: [Nomor]<br>Email: [Email]</td>'
+                                . '</tr>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">2</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Fault Time]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">Level 2</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">NOC<br>Phone: [Nomor]<br>Email: [Email]</td>'
+                                . '</tr>'
+                                . '<tr>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">3</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">[Fault Time]</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">Level 3</td>'
+                                . '<td style="border:1px solid #000; padding:4px 6px;">Manager / Direktur<br>Phone: [Nomor]<br>Email: [Email]</td>'
+                                . '</tr>'
+                                . '</tbody>'
+                                . '</table>',
+                            ],
                         ],
                     ],
                 ],
@@ -1058,6 +1686,20 @@ onta     * di-renumber secara berurutan.
             }
         }
 
+        // 2b) Blok definisi istilah (mis. template colocation) — dirender
+        //     sebelum pasal-pasal dan TIDAK ikut penomoran PASAL.
+        if (!empty($body['definisi'])) {
+            $parts[] = '<p><strong>DEFINISI DAN INTERPRETASI</strong></p>';
+            $parts[] = $this->contractPara($body['definisi']);
+        }
+
+        // 2c) Tabel spesifikasi (HTML mentah, mis. template colocation).
+        if (!empty($body['spesifikasi'])) {
+            $parts[] = '<p><strong>SPESIFIKASI</strong></p>';
+            $spec = $body['spesifikasi'];
+            $parts[] = is_array($spec) ? implode("\n", $spec) : $spec;
+        }
+
         // 3) Konsideran Menimbang
         if (!empty($body['menimbang'])) {
             $parts[] = '<p><strong>MENIMBANG:</strong></p>';
@@ -1111,10 +1753,9 @@ onta     * di-renumber secara berurutan.
             }
             foreach ($lampiran as $item) {
                 $judul = strtoupper(trim($item['judul'] ?? ''));
-                if ($judul === '') {
-                    $judul = 'LAMPIRAN';
+                if ($judul !== '') {
+                    $parts[] = '<p><strong>'.$judul.'</strong></p>';
                 }
-                $parts[] = '<p><strong>'.$judul.'</strong></p>';
 
                 // Blok teks biasa (diparagraph-kan otomatis).
                 if (!empty($item['text'])) {
