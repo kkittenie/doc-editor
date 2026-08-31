@@ -38,7 +38,7 @@
             </a>
 
             <!-- Active Document Title Bar (centerpiece of the document editor header) -->
-            <div class="hidden sm:flex items-center gap-3 ml-2 lg:ml-4 grow max-w-xl">
+            <!-- <div class="hidden sm:flex items-center gap-3 ml-2 lg:ml-4 grow max-w-xl">
                 <div
                     class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-parchment-300 bg-white shadow-theme-xs dark:bg-slate-warm-800 dark:border-slate-warm-700 grow">
                     <svg class="text-bronze-600 dark:text-bronze-400 shrink-0" width="16" height="16"
@@ -50,9 +50,9 @@
                         class="text-xs font-semibold text-ink-900 bg-transparent border-none focus:outline-none dark:text-parchment-100 truncate grow"
                         placeholder="Judul Dokumen..." />
                     <span class="text-[10px] font-mono text-slate-warm-400 shrink-0 hidden md:inline"
-                        x-text="savedTime"></span>
-                </div>
-            </div>
+                        x-text="savedTime"></span> -->
+                <!-- </div>
+            </div> -->
 
             <!-- Quick Document Search Bar (desktop) -->
             <!-- <div class="hidden xl:block ml-auto">
