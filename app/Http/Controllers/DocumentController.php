@@ -366,12 +366,18 @@ onta     * di-renumber secara berurutan.
                 $heading = 'PASAL '.$number.($judul !== '' ? ' — '.$judul : '');
                 $parts[] = '<p><strong>'.$heading.'</strong></p>';
             }
-            $parts[] = $this->contractPara($pasal['text'] ?? '');
+            if (!empty($pasal['blocks']) && is_array($pasal['blocks'])) {
+                $parts[] = $this->renderBlocks($pasal['blocks']);
+            } else {
+                $parts[] = $this->contractPara($pasal['text'] ?? '');
+            }
             $number++;
         }
 
         // 6) Penutup
-        if (!empty($body['tutup'])) {
+        if (!empty($body['tutupBlocks']) && is_array($body['tutupBlocks'])) {
+            $parts[] = $this->renderBlocks($body['tutupBlocks']);
+        } elseif (!empty($body['tutup'])) {
             $parts[] = $this->contractPara($body['tutup']);
         }
 
@@ -387,8 +393,13 @@ onta     * di-renumber secara berurutan.
                     $parts[] = '<p><strong>'.$judul.'</strong></p>';
                 }
 
+                // Blok terstruktur (paragraf + tabel asli dari .docx)
+                if (!empty($item['blocks']) && is_array($item['blocks'])) {
+                    $parts[] = $this->renderBlocks($item['blocks']);
+                }
+
                 // Blok teks biasa (diparagraph-kan otomatis).
-                if (!empty($item['text'])) {
+                if (empty($item['blocks']) && !empty($item['text'])) {
                     $parts[] = $this->contractPara($item['text']);
                 }
 
@@ -429,6 +440,66 @@ onta     * di-renumber secara berurutan.
         }
 
         return count($out) ? implode("\n", $out) : '<p></p>';
+    }
+
+    /**
+     * Render blok terstruktur body template kontrak: urutan paragraf & tabel
+     * asli dari dokumen .docx, dipertahankan pada posisi aslinya.
+     */
+    private function renderBlocks(array $blocks): string
+    {
+        $out = [];
+
+        foreach ($blocks as $block) {
+            if (isset($block['p'])) {
+                $out[] = $this->contractPara((string) $block['p']);
+            } elseif (isset($block['table']) && is_array($block['table'])) {
+                $out[] = $this->contractTableHtml($block['table']);
+            }
+        }
+
+        return implode("\n", $out);
+    }
+
+    /**
+     * Render satu tabel kontrak menjadi HTML. Tabel data memakai border
+     * hitam 1px (seperti dokumen asli), tabel tanda tangan tanpa border.
+     * Setiap sel mempertahankan baris-baris paragrafnya (<br>).
+     */
+    private function contractTableHtml(array $table): string
+    {
+        $bordered = $table['bordered'] ?? true;
+        $head     = (bool) ($table['head'] ?? false);
+        $rows     = $table['rows'] ?? [];
+
+        $borderStyle  = $bordered ? 'border:1px solid #000;' : 'border:none;';
+        $cellBaseStyle = $borderStyle.' padding:4px 6px; vertical-align:top;';
+
+        $html = '<table style="border-collapse:collapse; width:100%; margin:0.5rem 0;">';
+
+        foreach ($rows as $ri => $row) {
+            $html .= '<tr>';
+
+            foreach ($row as $cell) {
+                $lines   = $cell['c'] ?? [];
+                $span    = max(1, (int) ($cell['s'] ?? 1));
+                $spanAttr = $span > 1 ? ' colspan="'.$span.'"' : '';
+
+                $content = implode('<br>', array_map(static fn ($l) => e((string) $l), $lines));
+
+                $isHeadCell = $head && $ri === 0;
+                $tag   = $isHeadCell ? 'th' : 'td';
+                $style = $cellBaseStyle.($isHeadCell ? ' font-weight:bold; text-align:center;' : '');
+
+                $html .= '<'.$tag.$spanAttr.' style="'.$style.'">'.$content.'</'.$tag.'>';
+            }
+
+            $html .= '</tr>';
+        }
+
+        $html .= '</table>';
+
+        return $html;
     }
 
     /**
