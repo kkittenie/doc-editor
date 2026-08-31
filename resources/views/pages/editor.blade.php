@@ -1069,6 +1069,63 @@
             print-color-adjust: exact !important;
         }
     }
+    /* Contract table cell styling — specificity lebih tinggi (.ql-editor table td)
+       dibanding .ql-editor th quill-table-better (0,2,1 vs 0,1,1) agar tetap
+       menang walau CSS quill-table-better dimuat setelah tag <style> ini. */
+    .ql-editor table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+
+    /* Tabel kontrak: layout kolom tetap (fixed). Lebar % eksplisit per sel
+       (diset di server & preprocessor) membuat fragmen tabel yang terpotong
+       halaman tetap memiliki grid kolom yang segaris, seperti di Word. */
+    .ql-editor table[data-class*="contract-table"] {
+        table-layout: fixed;
+        /* Jaring pengaman: quill-table-better bisa menghilangkan style
+           table-level saat konversi — tanpa ini tabel menyusut & kolom
+           berantakan. */
+        width: 100% !important;
+    }
+
+    .ql-editor table td,
+    .ql-editor table th {
+        border: 1px solid #000;
+        padding: 4px 6px;
+        vertical-align: top;
+    }
+
+    /* Header <th> cell: latar belakang abu-abu lembut, rata-tengah, tebalkan */
+    .ql-editor table th {
+        background: rgba(0, 0, 0, 0.03);
+        font-weight: 600;
+        text-align: center;
+    }
+
+    /* Override: tabel border pakai warna proyek (#374151) */
+    .ql-editor table[data-class*="contract-table-bordered"] td,
+    .ql-editor table[data-class*="contract-table-bordered"] th {
+        border: 1px solid #374151;
+    }
+
+    /* Override: tabel tanpa border (mis. tabel tanda tangan) */
+    .ql-editor table[data-class*="contract-table-unstyled"] td,
+    .ql-editor table[data-class*="contract-table-unstyled"] th {
+        border: none;
+        background: transparent;
+    }
+
+    /* Print: pastikan border & background tetap terlihat */
+    @media print {
+        .ql-editor table td,
+        .ql-editor table th {
+            border: 1px solid #000 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+    }
+
 </style>
 @endpush
 

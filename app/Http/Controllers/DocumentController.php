@@ -484,6 +484,38 @@ onta     * di-renumber secara berurutan.
         $pending = [];
         $byRow   = [];
         $totalRows = count($rows);
+        // Lebar kolom eksplisit: dengan table-layout:fixed + width per sel,
+        // setiap fragmen tabel yang terpotong halaman tetap memiliki grid
+        // kolom yang identik (kolom segaris antar halaman, seperti di Word).
+        $colCount = 0;
+        foreach ($rows as $row) {
+            $w = 0;
+            foreach ($row as $cell) {
+                $w += max(1, (int) ($cell['s'] ?? 1));
+            }
+            $colCount = max($colCount, $w);
+        }
+        $colCount = max(1, $colCount);
+        $colWidth = 100 / $colCount;
+
+        // Baris pendek (jumlah sel < colCount): colspan sel terakhir
+        // diperluas agar baris tetap mengisi seluruh lebar tabel — tanpa
+        // ini, dengan table-layout:fixed baris pendek hanya mengisi
+        // sebagian lebar dan tepi kanan jadi bergerigi.
+        foreach ($rows as $ri => $row) {
+            $w = 0;
+            foreach ($row as $cell) {
+                $w += max(1, (int) ($cell['s'] ?? 1));
+            }
+            if ($w > 0 && $w < $colCount) {
+                $last = count($rows[$ri]) - 1;
+                $rows[$ri][$last]['s'] = max(1, (int) ($rows[$ri][$last]['s'] ?? 1)) + ($colCount - $w);
+            }
+        }
+
+        $tableClass = $bordered ? 'contract-table-bordered' : 'contract-table-unstyled';
+
+        $html = '<table class="'.$tableClass.'" style="border-collapse:collapse; table-layout:fixed; width:100%; margin:0.5rem 0;">';
 
         foreach ($rows as $r => $row) {
             $col    = 0;
@@ -562,7 +594,8 @@ onta     * di-renumber secara berurutan.
 
                 $isHeadCell = $head && $r === 0;
                 $tag   = $isHeadCell ? 'th' : 'td';
-                $style = $cellBaseStyle.($isHeadCell ? ' font-weight:bold; text-align:center;' : '');
+                $style = $cellBaseStyle.($isHeadCell ? ' font-weight:bold; text-align:center;' : '')
+                    .' width:'.round($span * $colWidth, 2).'%;';
 
                 $html .= '<'.$tag.$spanAttr.' style="'.$style.'">'.$content.'</'.$tag.'>';
             }
