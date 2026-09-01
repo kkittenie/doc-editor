@@ -2,7 +2,17 @@ import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import QuillTableBetter from 'quill-table-better';
 import 'quill-table-better/dist/quill-table-better.css';
-Quill.register({ 'modules/table-better': QuillTableBetter }, true);
+// Defensive wrapper for quill-table-better (fixes initWhiteList error)
+const SafeQuillTableBetter = function(quill, options) {
+    try {
+        return new QuillTableBetter(quill, options);
+    } catch (err) {
+        console.warn('[TableBetter] Initialization failed, using fallback:', err);
+        return null;
+    }
+};
+SafeQuillTableBetter.keyboardBindings = QuillTableBetter.keyboardBindings;
+Quill.register({ 'modules/table-better': SafeQuillTableBetter }, true);
 
 // ---- Font family: pakai inline style (bukan class), seperti TinyMCE ----
 const FontAttributor = Quill.import('attributors/style/font');
@@ -1334,7 +1344,7 @@ const refreshToolbarStates = () => {
 };
 
 
-// TOOL TABEL (Quill 2 punya modul table bawaan)
+// TOOL TABEL (modul quill-table-better)
 
 
 const getTableModule = () => {
@@ -1355,8 +1365,8 @@ const isInsideTable = () => {
 const runTableAction = (action) => {
     const q = getActiveQuill();
     if (!q) return;
-        const table = q.getModule('table-better');
-    if (!table) return;
+    const table = q.getModule('table-better');
+    if (!table) { console.warn('[TableBetter] table-better module not found'); return; }
 
     switch (action) {
         case 'insert-row': table.insertRowBelow(); break;
@@ -1374,7 +1384,7 @@ const runTableAction = (action) => {
 const insertTableAtSelection = (rows, cols) => {
     const q = getActiveQuill();
     if (!q) return;
-        const table = q.getModule('table-better');
+    const table = q.getModule('table-better');
     if (!table) return;
 
     // Bila sudah di dalam tabel, tabel baru tidak boleh ditumpuk
@@ -1612,17 +1622,17 @@ const bindToolbar = () => {
         });
     });
 
-        const lineHeightSel = document.getElementById('tb-lineheight');
-        lineHeightSel?.addEventListener('change', () => {
-            const q = getActiveQuill();
-            if (!q) return;
-            if (!q.getSelection(true)) return;
+    const lineHeightSel = document.getElementById('tb-lineheight');
+    lineHeightSel?.addEventListener('change', () => {
+        const q = getActiveQuill();
+        if (!q) return;
+        if (!q.getSelection(true)) return;
 
-            q.format('lineheight', lineHeightSel.value || false);
+        q.format('lineheight', lineHeightSel.value || false);
 
-            notifyDirty();
-            refreshToolbarStates();
-        });
+        notifyDirty();
+        refreshToolbarStates();
+    });
 
     const colorInput = document.getElementById('tb-color');
     colorInput?.addEventListener('input', () => {
@@ -1798,13 +1808,12 @@ const syncMirrorsFrom = (sourceQ) => {
  *   3. <colgroup> / <col> tidak dikenali dan dapat menyebabkan error parsing.
  *
  * Solusi:
- *   - Hapus <colgroup>, <col>, <caption>, <thead>/<tbody> wrappers.
- *   - Flatten colspan & rowspan menjadi grid persegi (isi sel kosong).
- *   - Pertahankan inline style pada tiap sel (data-cell-style) supaya matcher
- *     kustom di bawah dapat mengekstrak text-align.
+ *   - Pertahankan struktur tabel asli (colgroup, thead, tbody, colspan, rowspan).
+ *   - Hanya hapus <caption> (tidak didukung quill-table-better).
  *   - Tambahkan class contract-table-bordered / -unstyled pada <table>;
  *     quill-table-better menyimpan ini sebagai atribut data-class, yang
  *     kemudian ditargetkan oleh CSS untuk override border.
+ *   - Tambahkan class contract-table-cell pada setiap sel untuk styling.
  */
 const preprocessContractTables = (html) => {
     if (!html || !html.includes('<table')) return html;
@@ -1820,20 +1829,8 @@ const preprocessContractTables = (html) => {
     if (!tables.length) return html;
 
     tables.forEach((table) => {
-        // Hapus elemen yang tidak didukung quill-table-better
-        table.querySelectorAll('colgroup, col, caption').forEach((el) => el.remove());
+        table.querySelectorAll('caption').forEach((el) => el.remove());
 
-        // Bongkar wrapper thead/tbody/tfoot — pindahkan <tr> ke dalam <table> langsung
-        table.querySelectorAll('thead, tbody, tfoot').forEach((wrapper) => {
-            const fragment = document.createDocumentFragment();
-            while (wrapper.firstChild) {
-                fragment.appendChild(wrapper.firstChild);
-            }
-            table.insertBefore(fragment, wrapper);
-            wrapper.remove();
-        });
-
-        // Tentukan apakah tabel memiliki border (untuk CSS override)
         const allCells = Array.from(table.querySelectorAll('td, th'));
         const isUnbordered = allCells.some((cell) => {
             return /border:\s*none/i.test(cell.getAttribute('style') || '');
@@ -1842,111 +1839,12 @@ const preprocessContractTables = (html) => {
             isUnbordered ? 'contract-table-unstyled' : 'contract-table-bordered'
         );
 
-        const rows = Array.from(table.querySelectorAll('tr'));
-        if (!rows.length) return;
-
-        // Bangun grid untuk menangani colspan & rowspan
-        const grid = [];          // grid[ri][ci] = { html, style, tag } | null
-        const occupied = {};       // occupied[ri] = Set of occupied column indices (dari rowspan di atas)
-
-        rows.forEach((row, ri) => {
-            grid[ri] = [];
-            if (!occupied[ri]) occupied[ri] = new Set();
-
-            const cells = Array.from(row.querySelectorAll('td, th'));
-            let ci = 0;
-
-            cells.forEach((cell) => {
-                // Lewati posisi yang sudah dipakai oleh rowspan dari baris di atas
-                while (occupied[ri].has(ci)) {
-                    grid[ri][ci] = null;
-                    ci++;
-                }
-
-                const colspan = Math.max(1, parseInt(cell.getAttribute('colspan') || '1', 10));
-                const rowspan = Math.max(1, parseInt(cell.getAttribute('rowspan') || '1', 10));
-                const style = cell.getAttribute('style') || '';
-                const tag = cell.tagName;
-                const content = cell.innerHTML;
-
-                // Sel utama yang berisi konten
-                grid[ri][ci] = { html: content, style, tag };
-
-                // Isi gap dari colspan dengan sel kosong
-                for (let c = 1; c < colspan; c++) {
-                    grid[ri][ci + c] = { html: '', style, tag };
-                }
-
-                // Tandai posisi rowspan untuk baris di bawah
-                for (let r = 1; r < rowspan; r++) {
-                    const targetRi = ri + r;
-                    if (!occupied[targetRi]) occupied[targetRi] = new Set();
-                    for (let c = 0; c < colspan; c++) {
-                        occupied[targetRi].add(ci + c);
-                    }
-                }
-
-                ci += colspan;
-            });
-        });
-
-        // Cari jumlah kolom maksimum (grid sudah di-flatten, jadi panjang
-        // maksimum baris = jumlah kolom grid tabel).
-        let maxCols = 0;
-        grid.forEach((rowData) => {
-            maxCols = Math.max(maxCols, rowData.length);
-        });
-        if (maxCols < 1) maxCols = 1;
-
-        // Lebar kolom eksplisit (grid kolom yang deterministik). Tanpa ini,
-        // browser meng-auto-size kolom per fragmen tabel — saat tabel
-        // terpotong halaman, fragmen berikutnya mendapat lebar kolom berbeda
-        // dan isi jadi tidak segaris. table-layout:fixed + width per sel
-        // menjaga grid identik di semua fragmen/halaman.
-        const colWidth = 100 / maxCols;
-
-        // Bangun ulang setiap baris dengan sel yang sudah di-flatten
-        rows.forEach((row, ri) => {
-            while (row.firstChild) {
-                row.removeChild(row.firstChild);
-            }
-
-            const rowData = grid[ri] || [];
-
-            for (let ci = 0; ci < maxCols; ci++) {
-                const cellData = rowData[ci];
-                const cell = document.createElement(cellData ? cellData.tag : 'td');
-                cell.classList.add('contract-table-cell');
-
-                if (cellData && cellData.style) {
-                    cell.setAttribute('style', cellData.style);
-                }
-
-                // Paksa lebar kolom eksplisit (override/auto-append ke style)
-                cell.style.width = colWidth.toFixed(2) + '%';
-
-                // Sel kosong diberi <br>: tanpa konten, quill-table-better
-                // membuang seluruh style sel (termasuk width) saat konversi
-                // clipboard — menyebabkan kolom tidak konsisten.
-                cell.innerHTML = (cellData && cellData.html && cellData.html.trim())
-                    ? cellData.html
-                    : '<br>';
-                row.appendChild(cell);
+        allCells.forEach((cell) => {
+            cell.classList.add('contract-table-cell');
+            if (!cell.innerHTML.trim()) {
+                cell.innerHTML = '<br>';
             }
         });
-
-        // Layout kolom deterministik pada <table> itu sendiri
-        let tblStyle = table.getAttribute('style') || '';
-        if (!/table-layout\s*:/i.test(tblStyle)) {
-            tblStyle += (tblStyle && !/;\s*$/.test(tblStyle) ? ';' : '') + ' table-layout:fixed;';
-        }
-        // Tabel wajib full-width: quill-table-better hanya mempertahankan
-        // style table-level jika ada di HTML sumber — dokumen lama sering
-        // tidak memilikinya sehingga tabel menyusut mengikuti isi.
-        if (!/(^|;)\s*width\s*:/i.test(tblStyle)) {
-            tblStyle += ' width:100%;';
-        }
-        table.setAttribute('style', tblStyle.trim());
     });
 
     return container.innerHTML;
@@ -1974,17 +1872,27 @@ const attachQuillToRegion = (regionEl) => {
     try {
         regionEl.dataset.quillReady = '1';
 
-        const q = new Quill(host, {
-            theme: 'snow',
-            placeholder: '',
-            modules: {
-                toolbar: false,
-                table: false,
-                'table-better': {},
-                keyboard: { bindings: QuillTableBetter.keyboardBindings },
-            },
-            formats: ALLOWED_FORMATS,
-        });
+        let q;
+        try {
+            q = new Quill(host, {
+                theme: 'snow',
+                placeholder: '',
+                modules: {
+                    toolbar: false,
+                    table: false,
+                    // 'table-better': { container: host },
+                    keyboard: { bindings: QuillTableBetter.keyboardBindings },
+                },
+                formats: ALLOWED_FORMATS,
+            });
+        } catch (err) {
+            console.error('[DocQuill] Failed to initialize Quill:', err);
+            regionEl.dataset.quillReady = '';
+            regionEl.innerHTML = existingHtml || '<p><br></p>';
+            regionEl.setAttribute('contenteditable', 'true');
+            regionEl.classList.add('ql-editor');
+            return null;
+        }
 
         // quill-table-better's matchTableCell does NOT preserve sel inline style
         // (text-align, font-weight, dll).  Matcher ini jalan SETELAH matchers
@@ -2564,7 +2472,7 @@ window.DocQuill = {
             if (el.dataset?.region === 'body' && !q.isEnabled()) {
                 q.enable();
                 revived++;
-                        }
+            }
         });
         return revived;
     },

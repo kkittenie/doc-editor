@@ -1093,3 +1093,20 @@
 .simplebar-scrollbar.simplebar-visible:before {
   @apply opacity-100;
 }
+
+/* --- CONTRACT TABLE STYLES --- */
+.contract-table-bordered {
+  border-collapse: collapse !important;
+}
+.contract-table-bordered th,
+.contract-table-bordered td {
+  border: 1px solid #374151 !important;
+  padding: 6px 8px !important;
+}
+.contract-table-unstyled th,
+.contract-table-unstyled td {
+  border: none;
+}
+.contract-table-cell {
+  vertical-align: top !important;
+}

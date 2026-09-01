@@ -28,7 +28,7 @@
         "flatpickr": "^4.6.13",
         "jsvectormap": "^1.7.0",
         "prismjs": "^1.30.0",
-        "quill": "^2.0.3",
+        "quill": "2.0.1",
         "quill-table-better": "^1.2.3",
         "signature_pad": "^5.1.4",
         "sweetalert2": "^11.26.25",
