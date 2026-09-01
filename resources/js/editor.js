@@ -2,13 +2,31 @@ import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import QuillTableBetter, { ToolbarTable } from 'quill-table-better';
 import 'quill-table-better/dist/quill-table-better.css';
-// Defensive wrapper for quill-table-better (fixes initWhiteList error)
+// WAJIB: daftarkan format-format tabel plugin (table-cell, table-th, table-row,
+// table-col, dll.) + override modules/toolbar & modules/clipboard milik plugin.
+// Ini static method yang TIDAK dipanggil otomatis saat import. Tanpa ini,
+// expandConfig Quill melempar "Cannot register \"table-*\" specified in
+// \"formats\" config" dan Delta tabel menjadi tidak valid
+// ([Parchment] Maximum optimize iterations reached).
+QuillTableBetter.register();
+// Defensive wrapper for quill-table-better (fixes initWhiteList error).
+// PENTING: constructor function yang `return null` akan DIABAIKAN oleh `new`
+// (JS mengembalikan `this` kosong), sehingga pemanggil menerima objek hampa
+// tanpa method. Karena itu jalur gagal mengembalikan stub no-op eksplisit
+// agar getModule('table-better') tetap aman dipanggil tanpa TypeError.
+const noop = () => {};
+const tableBetterStub = {
+    insertTable: noop, insertRowAbove: noop, insertRowBelow: noop,
+    insertColumnLeft: noop, insertColumnRight: noop,
+    deleteRow: noop, deleteColumn: noop, deleteTable: noop,
+    mergeCells: noop, unmergeCells: noop,
+};
 const SafeQuillTableBetter = function(quill, options) {
     try {
         return new QuillTableBetter(quill, options);
     } catch (err) {
         console.warn('[TableBetter] Initialization failed, using fallback:', err);
-        return null;
+        return tableBetterStub;
     }
 };
 SafeQuillTableBetter.keyboardBindings = QuillTableBetter.keyboardBindings;
@@ -1794,9 +1812,10 @@ const syncMirrorsFrom = (sourceQ) => {
 
 /**
  * Normalisasi grid tabel menjadi grid persegi (unit-cell) yang deterministik:
- *  - colspan dipecah menjadi sel unit (konten hanya di sel pertama).
- *  - rowspan diteruskan sebagai sel KOSONG di baris berikutnya (bukan clone
- *    berisi konten — clone berisi konten menduplikasi teks berhamburan).
+ *  - colspan dipecah menjadi sel unit(konten hanya di sel pertama).
+ *  - rowspan dipertahankan: sel asal diberi atribut rowspan, sedangkan posisi
+ *    kelanjutannya (null) TIDAK dirender — sehingga kolom merge tetap
+ *    tampil menyatu (mis. kolom "Jangka Waktu Berlangganan" = judul + 1 cell).
  *  - Baris pendek di-padding sampai jumlah kolom grid.
  *  - Lebar % eksplisit & seragam per kolom + table-layout:fixed +
  *    width:100% pada <table> (quill-table-better membuang style table-
@@ -1881,21 +1900,27 @@ const normalizeTableGrid = (table) => {
         return ((colspan * 100) / maxCols).toFixed(2) + '%';
     };
 
-    // Bangun ulang setiap baris: sel unit ber-lebar sesuai <colgroup>, tanpa colspan/rowspan
+    // Bangun ulang setiap baris: lebar sel mengikuti <colgroup>; rowspan dipertahankan.
+    // Posisi sisa rowspan (grid null) dilewati, tidak dibuatkan sel kosong,
+    // sehingga cell merge tetap menyatu dan tidak tampil sel berpagar di bawahnya.
     rows.forEach((tr, ri) => {
         const rowData = grid[ri] || [];
         const frag = document.createDocumentFragment();
         for (let ci = 0; ci < maxCols; ci++) {
             const cd = rowData[ci];
+            // null = kelanjutan rowspan dari baris di atas: jangan render sel kosong.
+            // cell pertama (dengan rowspan) sudah mencakup kolom ini sampai baris bawah.
+            if (cd === null) continue;
             const cell = document.createElement(cd ? cd.tag : 'td');
             cell.classList.add('contract-table-cell');
             if (cd && cd.style) cell.setAttribute('style', cd.style);
             const colspan = (cd && cd.colspan) || 1;
             cell.style.width = getCellWidth(ci, colspan);
+            // Pertahankan rowspan agar kolom kanan tampil sebagai satu cell menyatu.
+            if (cd && cd.rowspan > 1) cell.setAttribute('rowspan', String(cd.rowspan));
             const html = (cd && cd.html) ? cd.html.trim() : '';
-            // Sel kosong (termasuk sisa rowspan) diberi <br>: quill-table-better
-            // membuang style sel tanpa konten, dan clone berisi konten akan
-            // menduplikasi teks ke seluruh baris kelanjutan rowspan.
+            // Sel kosong (baris pendek / colspan lanjutan) diberi <br>: quill-table-better
+            // membuang style sel tanpa konten.
             cell.innerHTML = html || '<br>';
             frag.appendChild(cell);
         }
@@ -1975,6 +2000,16 @@ const attachQuillToRegion = (regionEl) => {
     const host = document.createElement('div');
     regionEl.appendChild(host);
 
+    // Toolbar Quill BAWAAN yang disembunyikan & kosong.
+    // quill-table-better WAJIB ada modul toolbar (initWhiteList membaca
+    // getModule('toolbar').container); dengan `toolbar: false` modul itu
+    // tidak dibuat dan plugin crash saat init. Toolbar kustom aplikasi
+    // tetap di luar Quill (#body-toolbar-container), jadi div kosong ini
+    // tidak berpengaruh apa pun selain memuaskan plugin.
+    const hiddenToolbar = document.createElement('div');
+    hiddenToolbar.style.display = 'none';
+    regionEl.appendChild(hiddenToolbar);
+
     try {
         regionEl.dataset.quillReady = '1';
 
@@ -1984,7 +2019,7 @@ const attachQuillToRegion = (regionEl) => {
                 theme: 'snow',
                 placeholder: '',
                 modules: {
-                    toolbar: false,
+                    toolbar: hiddenToolbar,
                     table: false,
                     'table-better': {
                         language: 'en_US', 
@@ -2035,6 +2070,27 @@ const attachQuillToRegion = (regionEl) => {
                         }
                     });
                 }
+            }
+            // Pertahankan rowspan/colspan (mis. kolom "Jangka Waktu Berlangganan" =
+            // header + 1 cell rowspan="5"). matchTableCell bawaan plugin tidak
+            // menyalin atribut ini ke Delta, tanpa ini merge akan hilang permanen
+            // saat HTML masuk ke editor.
+            const rowspanAttr = node.getAttribute('rowspan');
+            const colspanAttr = node.getAttribute('colspan');
+            if (delta.ops && delta.ops.length
+                && ((rowspanAttr && rowspanAttr !== '1') || (colspanAttr && colspanAttr !== '1'))) {
+                delta.ops.forEach((op) => {
+                    if (!op.attributes) return;
+                    const cellFmt = op.attributes['table-cell'] || op.attributes['table-th'];
+                    if (cellFmt && typeof cellFmt === 'object') {
+                        if (rowspanAttr && rowspanAttr !== '1') {
+                            cellFmt.rowspan = parseInt(rowspanAttr, 10);
+                        }
+                        if (colspanAttr && colspanAttr !== '1') {
+                            cellFmt.colspan = parseInt(colspanAttr, 10);
+                        }
+                    }
+                });
             }
             return delta;
         });
