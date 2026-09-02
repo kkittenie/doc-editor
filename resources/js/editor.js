@@ -231,6 +231,7 @@ let flowDragOffsetX = 0, flowDragOffsetY = 0;
 let flowImgOriginalCssText = '';
 let flowImgOriginalParent = null;
 let flowImgOriginalNext = null;
+let flowImgOriginalRegion = null;
 let flowDragSourceImg = null;
 
 // State drag bebas untuk gambar floating (behind/front text)
@@ -699,9 +700,115 @@ const kembalikanKePosisiSemula = (img) => {
         return;
     }
 
-    // Induk lama sudah hilang -> taruh di awal region pertama
-    const firstRegion = document.querySelector('#document-editor .doc-sheet-body');
-    if (firstRegion) firstRegion.insertBefore(img, firstRegion.firstChild);
+    // Induk lama sudah hilang (bloknya dinormalisasi Quill saat gambar
+    // diangkat) -> taruh kembali di region ASAL gambar, bukan selalu di
+    // body pertama. Tanpa ini, gambar yang diangkat dari kop lalu dilepas
+    // di luar kertas akan lari ke body dan tidak bisa kembali ke kop.
+    const origRegion = (flowImgOriginalRegion && flowImgOriginalRegion.isConnected)
+        ? flowImgOriginalRegion
+        : document.querySelector('#document-editor .doc-sheet-body');
+    if (!origRegion) return;
+
+    // Gambar aliran teks hidup di dalam .ql-editor; kalau belum ada
+    // (region belum terpasang Quill), taruh langsung di region.
+    const mount = origRegion.querySelector('.ql-editor') || origRegion;
+    mount.insertBefore(img, mount.firstChild);
+};
+
+// Cari region kertas untuk titik layar (x, y):
+//  - titik tepat di dalam region -> region itu
+//  - titik di kertas tapi DI ANTARA region / di margin kertas ->
+//    region TERDEKAT secara geometris (margin atas -> kop, bawah ->
+//    footer), BUKAN selalu body. Dulu fallback-nya .doc-sheet-body,
+//    sehingga gambar yang dilepas sedikit di atas kop "pindah sendiri"
+//    ke dalam body.
+//  - titik di luar semua kertas -> null
+const regionTerdekat = (sheet, x, y) => {
+    let best = null;
+    let bestDist = Infinity;
+    sheet.querySelectorAll(FLOAT_REGION_SELECTOR).forEach((reg) => {
+        const r = reg.getBoundingClientRect();
+        const dx = Math.max(r.left - x, 0, x - r.right);
+        const dy = Math.max(r.top - y, 0, y - r.bottom);
+        const dist = dx * dx + dy * dy;
+        if (dist < bestDist) {
+            bestDist = dist;
+            best = reg;
+        }
+    });
+    return best;
+};
+
+const cariRegionTitik = (x, y, skipEl = null) => {
+    try {
+        const stack = document.elementsFromPoint(x, y) || [];
+        for (const el of stack) {
+            if (el === skipEl) continue;
+            if (!el.closest) continue;
+            const region = el.closest(FLOAT_REGION_SELECTOR);
+            if (region) return region;
+            const sheet = el.closest('.doc-sheet');
+            if (sheet) return regionTerdekat(sheet, x, y);
+        }
+    } catch (err) {
+        /* noop */
+    }
+    return null;
+};
+
+// Region target untuk MELEPAS GAMBAR: pakai TUBUH gambarnya, bukan titik
+// kursor. Dulu resolusi drop memakai posisi kursor — padahal saat menyeret
+// gambar ke arah kop, ujung atas gambarnya menyentuh garis kop lebih dulu
+// sementara kursor masih di area body -> gambar "otomatis" selalu menjadi
+// isi body. Sekarang region dengan TUMPANG TINDIH terbesar terhadap gambar
+// yang menang; kalau tidak bertumpuk sama sekali, jatuh ke resolusi
+// berbasis kursor (cariRegionTitik).
+const cariRegionUntukGambar = (img, e) => {
+    let best = null;
+    let bestArea = 0;
+    try {
+        const iRect = img.getBoundingClientRect();
+
+        // Ujung depan gambar menang atas kop/footer: cukup mendorong UJUNG
+        // ATAS gambar masuk area kop -> gambar menjadi isi kop, SEKALIPUN
+        // gambarnya tinggi (dulu pakai tumpang-tindih terbesar: kop pendek
+        // sehingga body selalu "menang" -> gambar melenting balik ke body
+        // setiap dilepas dan terasa tidak bisa di-drag).
+        const topCenter = { x: iRect.left + iRect.width / 2, y: iRect.top + 1 };
+        const bottomCenter = { x: iRect.left + iRect.width / 2, y: iRect.bottom - 1 };
+
+        for (const reg of document.querySelectorAll(FLOAT_REGION_SELECTOR)) {
+            if (!reg.isConnected) continue;
+            const role = reg.dataset?.region;
+            const probe = role === 'header' ? topCenter
+                : role === 'footer' ? bottomCenter : null;
+            if (!probe) continue;
+            const rRect = reg.getBoundingClientRect();
+            if (probe.x >= rRect.left && probe.x <= rRect.right &&
+                probe.y >= rRect.top && probe.y <= rRect.bottom) {
+                return reg;
+            }
+        }
+
+        // Sisanya: region dengan tumpang tindih terbesar (penempatan body)
+        document.querySelectorAll(FLOAT_REGION_SELECTOR).forEach((reg) => {
+            if (!reg.isConnected) return;
+            const rRect = reg.getBoundingClientRect();
+            const w = Math.min(iRect.right, rRect.right) -
+                Math.max(iRect.left, rRect.left);
+            const h = Math.min(iRect.bottom, rRect.bottom) -
+                Math.max(iRect.top, rRect.top);
+            if (w <= 0 || h <= 0) return;
+            const area = w * h;
+            if (area > bestArea) {
+                bestArea = area;
+                best = reg;
+            }
+        });
+    } catch (err) {
+        best = null;
+    }
+    return best || cariRegionTitik(e.clientX, e.clientY, img);
 };
 
 const selesaiFlowDrag = (e) => {
@@ -715,20 +822,9 @@ const selesaiFlowDrag = (e) => {
     const ghostW = img.offsetWidth;
     const ghostH = img.offsetHeight;
 
-    // Cari region kertas di bawah kursor
-    let region = null;
-    try {
-        const stack = document.elementsFromPoint(e.clientX, e.clientY) || [];
-        for (const el of stack) {
-            if (!el.closest) continue;
-            region = el.closest('.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer');
-            if (region) break;
-            const sheet = el.closest('.doc-sheet');
-            if (sheet) { region = sheet.querySelector('.doc-sheet-body'); break; }
-        }
-    } catch (err) {
-        region = null;
-    }
+    // Region target ditentukan oleh TUBUH gambarnya (tumpang tindih
+    // terbesar), bukan titik kursor — lihat cariRegionUntukGambar.
+    const region = cariRegionUntukGambar(img, e);
 
     // Lepas gaya "angkat" (ukuran sengaja dipertahankan)
     img.style.position = '';
@@ -772,6 +868,35 @@ const selesaiFlowDrag = (e) => {
 
     notifyDirty();
     positionImageTools();
+};
+
+// PINDAH REGION SAAT GAMBAR FLOATING DILEPAS
+// Drag floating hanya mengubah left/top DI DALAM region induknya, dan
+// drag angkat (flow drag) menolak gambar yang sudah position:absolute.
+// Akibatnya gambar floating terkunci selamanya di region asalnya: gambar
+// yang terlempar dari kop ke body tidak bisa dikembalikan ke kop.
+// Solusi: saat dilepas, cek region di bawah kursor — kalau berbeda,
+// pindahkan induk gambarnya lalu hitung ulang koordinatnya.
+const pindahkanFloatingKeRegion = (img, e) => {
+    const target = cariRegionUntukGambar(img, e);
+
+    if (!target || !target.isConnected) return;
+    if (target === img.closest(FLOAT_REGION_SELECTOR)) return;
+
+    // Posisi layar gambar saat dilepas -> koordinat relatif region baru
+    const iRect = img.getBoundingClientRect();
+    const tRect = target.getBoundingClientRect();
+    const [left, top] = clampPosToSheet(
+        target,
+        iRect.left - tRect.left,
+        iRect.top - tRect.top,
+        img.offsetWidth,
+        img.offsetHeight
+    );
+
+    img.style.left = left + 'px';
+    img.style.top = top + 'px';
+    target.appendChild(img);
 };
 
 
@@ -1041,6 +1166,24 @@ if (!window.__imageToolsBound) {
         if (isFloatingImage(img)) return;          // floating ditangani handler di atas
         if (!img.closest('.doc-sheet')) return;    // hanya gambar di dalam dokumen
 
+        // Zona kop/footer TERKUNCI (di luar sesi edit zona): jangan izinkan
+        // drag mengangkat gambar. Dulu geseran tak sengaja >=4px sudah
+        // merobek gambar keluar dari kop lalu menjatuhkannya ke body
+        // ("gambar pindah sendiri"). Gambar kop hanya bisa diangkat saat
+        // sesi edit zona aktif (double-click kop). Klik & resize tetap
+        // normal tanpa sesi.
+                                        const zone = img.closest('.doc-sheet-header, .doc-sheet-footer');
+                if (zone) {
+            const zq = quillsByRegion.get(zone);
+            if (!zq || !zq.isEnabled()) {
+                // Kop/footer TERKUNCI: jangan izinkan drag angkat (gambar
+                // bisa "lolos" ke body). Tapi tetap tunjukkan tools & resize
+                // — klik saja cukup untuk memilih gambar dan mengubah ukuran.
+                showImageTools(activeEditor || findEditorContaining(zone) || findEditorFor(img), img);
+                return;
+            }
+        }
+
         flowDragSourceImg = img;
         flowDragArmed = true;
         isDraggingFlowImage = false;
@@ -1049,6 +1192,7 @@ if (!window.__imageToolsBound) {
         flowImgOriginalCssText = img.getAttribute('style') || '';
         flowImgOriginalParent = img.parentElement;
         flowImgOriginalNext = img.nextSibling;
+        flowImgOriginalRegion = img.closest(FLOAT_REGION_SELECTOR);
     });
 
     // Blokir drag bawaan browser pada gambar dokumen —
@@ -1258,6 +1402,7 @@ if (!window.__imageToolsBound) {
     document.addEventListener('mouseup', (e) => {
         // Selesaikan drag floating
         if (floatingImg) {
+            const draggedImg = floatingImg;
             const wasDragged = isDraggingFloating;
             floatingImg.style.cursor = 'grab';
             floatingImg = null;
@@ -1267,6 +1412,9 @@ if (!window.__imageToolsBound) {
 
             if (wasDragged) {
                 document.body.style.userSelect = '';
+                // Lepas di atas region lain (body <-> kop/footer) ->
+                // pindahkan induk gambarnya, bukan sekadar geser left/top.
+                pindahkanFloatingKeRegion(draggedImg, e);
                 notifyDirty();
             }
         }
@@ -1930,8 +2078,41 @@ const syncMirrorsFrom = (sourceQ) => {
             const sel = m.q.getSelection();
             if (sel) m.lastCaret = sel.index;
             pasteHtmlSafely(m.q, html);
-            const maxIndex = Math.max(0, m.q.getLength() - 1);
-            m.q.setSelection(Math.min(m.lastCaret, maxIndex), 'silent');
+
+            // Sebar juga gambar floating anak langsung region (di luar
+            // model Quill) dari region sumber ke mirror. Dulu hanya isi
+            // ql-editor yang disalin, sehingga gambar yang diletakkan di
+            // kop hanya tampil di satu halaman saja.
+            // HANYA ditulis ulang bila benar-benar berubah — jangan
+            // bongkar-pasang elemen yang sedang di-drag/di-resize user
+            // di halaman mirror (elemen aktif bisa tercopot dari DOM).
+            try {
+                const sig = (im) =>
+                    (im.getAttribute('src') || '') + '|' +
+                    (im.getAttribute('style') || '');
+                const srcImgs = [...(entry.regionEl?.querySelectorAll(':scope > img') || [])];
+                const dstImgs = [...(m.regionEl?.querySelectorAll(':scope > img') || [])];
+                const same = srcImgs.length === dstImgs.length &&
+                    srcImgs.every((im, i) => sig(im) === sig(dstImgs[i]));
+                if (!same) {
+                    dstImgs.forEach((im) => im.remove());
+                    srcImgs.forEach((im) => m.regionEl.appendChild(im.cloneNode(true)));
+                }
+            } catch (err) {
+                /* noop */
+            }
+
+            // Pulihkan caret HANYA bila mirror memang sedang punya seleksi.
+            // Dulu selalu dipulihkan dari lastCaret basi setelah isi DOM
+            // ditimpa -> "addRange(): The given range isn't in document"
+            // dan state seleksi Quill jadi kacau.
+            if (!sel) return;
+            try {
+                const maxIndex = Math.max(0, m.q.getLength() - 1);
+                m.q.setSelection(Math.min(m.lastCaret, maxIndex), 'silent');
+            } catch (err) {
+                /* noop: caret basi tidak wajib dipulihkan */
+            }
         });
     } finally {
         mirroringInProgress = false;
@@ -2113,7 +2294,11 @@ const pasteHtmlSafely = (q, html) => {
     if (!html || !html.trim()) return;
     const processedHtml = preprocessContractTables(html);
     const delta = q.clipboard.convert({ html: processedHtml, text: '\n' });
-    q.updateContents(delta, Quill.sources.SILENT);
+    // GANTI seluruh isi editor. Dulu pakai updateContents(delta) yang
+    // MENYISIPKAN di indeks 0 TANPA menghapus isi lama -> setiap sync
+    // mirror kop/footer menambah SALINAN BARU isi kop (teks & gambar
+    // berlipat-lipat di semua halaman).
+    q.setContents(delta, Quill.sources.SILENT);
 };
 
 const attachQuillToRegion = (regionEl) => {
@@ -2224,6 +2409,13 @@ const attachQuillToRegion = (regionEl) => {
         });
 
         if (existingHtml.trim()) {
+            // PENTING: existingHtml adalah satu-satunya tempat gambar
+            // floating (anak langsung region) masih hidup — baris
+            // `regionEl.innerHTML = ''` di atas sudah menghapusnya dari
+            // DOM. Paste ke model Quill + loop normalisasi di bawahlah
+            // yang mengembalikannya ke posisi region saat load. JANGAN
+            // dibuang/di-strip di sini (pernah dicoba -> gambar floating
+            // hilang semua & tak bisa di-drag/resize setelah reload).
             pasteHtmlSafely(q, existingHtml);
 
             q.root.querySelectorAll('img').forEach((im) => {
@@ -2237,6 +2429,21 @@ const attachQuillToRegion = (regionEl) => {
                 regionEl.appendChild(im);
             });
         }
+
+        // Bersihkan salinan gambar floating yang identik (bekas bug dobel:
+        // dulu tiap simpan/muat menggandakan gambar di kop sehingga muncul
+        // bertumpuk di semua halaman). Simpan yang pertama, buang sisanya
+        // yang benar-benar identik (src + style persis sama).
+        const seenFloatImgs = new Set();
+        regionEl.querySelectorAll(':scope > img').forEach((im) => {
+            const key = (im.getAttribute('src') || '') + '|' +
+                (im.getAttribute('style') || '');
+            if (seenFloatImgs.has(key)) {
+                im.remove();
+                return;
+            }
+            seenFloatImgs.add(key);
+        });
 
         // Zona header/footer mulai dalam keadaan INERT (ala Word):
         // hanya aktif saat sesi edit via double-click.
@@ -2724,8 +2931,36 @@ window.DocQuill = {
                     const sel = m.q.getSelection();
                     if (sel) m.lastCaret = sel.index;
                     pasteHtmlSafely(m.q, html);
-                    const maxIndex = Math.max(0, m.q.getLength() - 1);
-                    m.q.setSelection(Math.min(m.lastCaret, maxIndex), 'silent');
+
+                    // Sebar gambar floating kop dari halaman pertama ke
+                    // mirror lain (lihat catatan di syncMirrorsFrom).
+                    // Hanya ditulis ulang bila berubah, agar interaksi
+                    // drag/resize yang sedang berjalan tidak terputus.
+                    try {
+                        const sig = (im) =>
+                            (im.getAttribute('src') || '') + '|' +
+                            (im.getAttribute('style') || '');
+                        const srcImgs = [...(list[0].regionEl?.querySelectorAll(':scope > img') || [])];
+                        const dstImgs = [...(m.regionEl?.querySelectorAll(':scope > img') || [])];
+                        const same = srcImgs.length === dstImgs.length &&
+                            srcImgs.every((im, i) => sig(im) === sig(dstImgs[i]));
+                        if (!same) {
+                            dstImgs.forEach((im) => im.remove());
+                            srcImgs.forEach((im) => m.regionEl.appendChild(im.cloneNode(true)));
+                        }
+                    } catch (err) {
+                        /* noop */
+                    }
+
+                    // Pulihkan caret hanya bila ada seleksi aktif (lihat
+                    // catatan di syncMirrorsFrom soal addRange basi).
+                    if (!sel) return;
+                    try {
+                        const maxIndex = Math.max(0, m.q.getLength() - 1);
+                        m.q.setSelection(Math.min(m.lastCaret, maxIndex), 'silent');
+                    } catch (err) {
+                        /* noop */
+                    }
                 });
             } finally {
                 mirroringInProgress = false;

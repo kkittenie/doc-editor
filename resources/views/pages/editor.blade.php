@@ -873,6 +873,23 @@
         flex-direction: column;
     }
 
+    /* Halaman SAMPUL (cover) — template ber-cover mendapat ruang
+       napas ekstra supaya isi kop/tubuh tidak menabrak tepi kertas
+       dan cover terkesan "lapang" (ala sampul dokumen resmi). */
+    .doc-sheet.doc-cover {
+        padding: 34mm 24mm;
+        background: linear-gradient(180deg, #ffffff 0%, #fdfdfb 60%, #fafaf7 100%);
+    }
+
+    /* Kop & footer sampul diberi jarak lebih lega. */
+    .doc-sheet.doc-cover .doc-sheet-header {
+        padding-bottom: 12px;
+    }
+
+    .doc-sheet.doc-cover .doc-sheet-footer {
+        padding-top: 16px;
+    }
+
     /* Region di dalam satu kertas: header, body, footer */
     .doc-sheet-header {
         position: relative;
@@ -1767,7 +1784,9 @@
             // Susun inner-HTML satu kertas (header + body + footer),
             // lengkap dengan tombol hapus (kecuali kertas pertama).
             buildSheet(page, index) {
-                let html = '<div class="doc-sheet" data-sheet-type="page" data-page-uid="' + page.uid + '">';
+                let classes = 'doc-sheet';
+                if (index < (this.coverPages || 0)) classes += ' doc-cover';
+                let html = '<div class="' + classes + '" data-sheet-type="page" data-page-uid="' + page.uid + '">';
 
                 // Tombol hapus halaman: semua kertas KECUALI yang pertama.
                 if (index > 0) {
