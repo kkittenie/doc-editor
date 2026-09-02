@@ -2,18 +2,9 @@ import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import QuillTableBetter, { ToolbarTable } from 'quill-table-better';
 import 'quill-table-better/dist/quill-table-better.css';
-// WAJIB: daftarkan format-format tabel plugin (table-cell, table-th, table-row,
-// table-col, dll.) + override modules/toolbar & modules/clipboard milik plugin.
-// Ini static method yang TIDAK dipanggil otomatis saat import. Tanpa ini,
-// expandConfig Quill melempar "Cannot register \"table-*\" specified in
-// \"formats\" config" dan Delta tabel menjadi tidak valid
-// ([Parchment] Maximum optimize iterations reached).
+
 QuillTableBetter.register();
-// Defensive wrapper for quill-table-better (fixes initWhiteList error).
-// PENTING: constructor function yang `return null` akan DIABAIKAN oleh `new`
-// (JS mengembalikan `this` kosong), sehingga pemanggil menerima objek hampa
-// tanpa method. Karena itu jalur gagal mengembalikan stub no-op eksplisit
-// agar getModule('table-better') tetap aman dipanggil tanpa TypeError.
+
 const noop = () => {};
 const tableBetterStub = {
     insertTable: noop, insertRowAbove: noop, insertRowBelow: noop,
@@ -59,6 +50,48 @@ const ListStyleAttributor = new Parchment.ClassAttributor('liststyle', 'ql-lists
 });
 Quill.register(ListStyleAttributor, true);
 
+// ---- Underline style: variasi garis bawah ----
+// Using class attributor for all underline styles to avoid conflicts with Quill's default underline
+const UnderlineStyleSolid = new Parchment.ClassAttributor('ul-solid', 'ul-solid', {
+    scope: Parchment.Scope.INLINE,
+});
+Quill.register(UnderlineStyleSolid, true);
+
+const UnderlineStyleDouble = new Parchment.ClassAttributor('ul-double', 'ul-double', {
+    scope: Parchment.Scope.INLINE,
+});
+Quill.register(UnderlineStyleDouble, true);
+
+const UnderlineStyleThick = new Parchment.ClassAttributor('ul-thick', 'ul-thick', {
+    scope: Parchment.Scope.INLINE,
+});
+Quill.register(UnderlineStyleThick, true);
+
+const UnderlineStyleDotted = new Parchment.ClassAttributor('ul-dotted', 'ul-dotted', {
+    scope: Parchment.Scope.INLINE,
+});
+Quill.register(UnderlineStyleDotted, true);
+
+const UnderlineStyleDashed = new Parchment.ClassAttributor('ul-dashed', 'ul-dashed', {
+    scope: Parchment.Scope.INLINE,
+});
+Quill.register(UnderlineStyleDashed, true);
+
+const UnderlineStyleDotDashed = new Parchment.ClassAttributor('ul-dotdashed', 'ul-dotdashed', {
+    scope: Parchment.Scope.INLINE,
+});
+Quill.register(UnderlineStyleDotDashed, true);
+
+const UnderlineStyleDotDotDashed = new Parchment.ClassAttributor('ul-dotdotdashed', 'ul-dotdotdashed', {
+    scope: Parchment.Scope.INLINE,
+});
+Quill.register(UnderlineStyleDotDotDashed, true);
+
+const UnderlineStyleWavy = new Parchment.ClassAttributor('ul-wavy', 'ul-wavy', {
+    scope: Parchment.Scope.INLINE,
+});
+Quill.register(UnderlineStyleWavy, true);
+
 const BaseImage = Quill.import('formats/image');
 
 class StyledImage extends BaseImage {
@@ -94,6 +127,7 @@ Quill.register(HrBlot);
 // Daftar format yang diizinkan (dipakai semua instance)
 const ALLOWED_FORMATS = [
     'header', 'bold', 'italic', 'underline', 'strike',
+    'ul-solid', 'ul-double', 'ul-thick', 'ul-dotted', 'ul-dashed', 'ul-dotdashed', 'ul-dotdotdashed', 'ul-wavy',
     'script', 'list', 'align', 'indent',
     'blockquote', 'link', 'image', 'hr',
     'font', 'size', 'color', 'background', 'lineheight', 'liststyle',
@@ -629,14 +663,6 @@ const showImageTools = (editor, img) => {
     };
     watchTimer = requestAnimationFrame(loop);
 };
-
-
-// DRAG ANGKAT & JATUHKAN UNTUK GAMBAR BIASA
-// Tekan gambar + geser -> gambar "terangkat" mengikuti kursor.
-// Lepas di atas kertas -> berhenti PERSIS di titik pelepasan
-//                         (otomatis jadi gambar floating).
-// Lepas di luar kertas -> kembali ke tempat & gaya semula.
-
 
 const mulaiFlowDrag = () => {
     const img = flowDragSourceImg;
@@ -1327,7 +1353,13 @@ const refreshToolbarStates = () => {
     document.querySelectorAll('#body-toolbar-container [data-cmd]').forEach((btn) => {
         const cmd = btn.dataset.cmd;
         if (TOOLBAR_TOGGLES.includes(cmd)) {
-            btn.classList.toggle('active', !!fmt[cmd]);
+            if (cmd === 'underline') {
+                // Underline is active when any underline style is applied
+                const hasUnderline = !!fmt.underline || !!fmt['ul-solid'] || !!fmt['ul-double'] || !!fmt['ul-thick'] || !!fmt['ul-dotted'] || !!fmt['ul-dashed'] || !!fmt['ul-dotdashed'] || !!fmt['ul-dotdotdashed'] || !!fmt['ul-wavy'];
+                btn.classList.toggle('active', hasUnderline);
+            } else {
+                btn.classList.toggle('active', !!fmt[cmd]);
+            }
         } else if (cmd === 'superscript') {
             btn.classList.toggle('active', fmt.script === 'super');
         } else if (cmd === 'subscript') {
@@ -1470,10 +1502,29 @@ const applyCmd = (cmd) => {
         }
         case 'bold':
         case 'italic':
-        case 'underline':
         case 'strike':
             q.format(cmd, !q.getFormat(sel)[cmd]);
             break;
+        case 'underline': {
+            // Toggle default underline (solid)
+            const currentUnderline = q.getFormat(sel).underline;
+            if (currentUnderline) {
+                // Remove all underline formatting
+                q.format('underline', false);
+                q.formatText(sel.index, sel.length, 'ul-solid', false);
+                q.formatText(sel.index, sel.length, 'ul-double', false);
+                q.formatText(sel.index, sel.length, 'ul-thick', false);
+                q.formatText(sel.index, sel.length, 'ul-dotted', false);
+                q.formatText(sel.index, sel.length, 'ul-dashed', false);
+                q.formatText(sel.index, sel.length, 'ul-dotdashed', false);
+                q.formatText(sel.index, sel.length, 'ul-dotdotdashed', false);
+                q.formatText(sel.index, sel.length, 'ul-wavy', false);
+            } else {
+                // Apply solid underline (default)
+                q.format('underline', true);
+            }
+            break;
+        }
         case 'superscript':
         case 'subscript': {
             const scriptKey = cmd === 'superscript' ? 'super' : 'sub';
@@ -1763,6 +1814,83 @@ const bindToolbar = () => {
                 }
                 runTableAction(btn.dataset.tableAction);
                 closeTableMenu();
+            });
+        });
+    }
+
+    // UNDERLINE DROPDOWN
+    const underlineDd = document.getElementById('tb-underline-dd');
+    if (underlineDd) {
+        const underlineMenu = underlineDd.querySelector('.underline-menu');
+        const underlineToggle = document.getElementById('tb-underline-toggle');
+
+        // Apply underline style
+        const applyUnderlineStyle = (style) => {
+            const q = getActiveQuill();
+            if (!q) return;
+            const sel = q.getSelection(true);
+            if (!sel) return;
+
+            // First remove any existing underline formatting
+            q.format('underline', false);
+
+            // Remove all underline style classes
+            q.formatText(sel.index, sel.length, 'ul-solid', false);
+            q.formatText(sel.index, sel.length, 'ul-double', false);
+            q.formatText(sel.index, sel.length, 'ul-thick', false);
+            q.formatText(sel.index, sel.length, 'ul-dotted', false);
+            q.formatText(sel.index, sel.length, 'ul-dashed', false);
+            q.formatText(sel.index, sel.length, 'ul-dotdashed', false);
+            q.formatText(sel.index, sel.length, 'ul-dotdotdashed', false);
+            q.formatText(sel.index, sel.length, 'ul-wavy', false);
+
+            // Apply underline
+            q.formatText(sel.index, sel.length, 'underline', true);
+
+            // Apply specific style class
+            const styleClassMap = {
+                'solid': 'ul-solid',
+                'double': 'ul-double',
+                'thick': 'ul-thick',
+                'dotted': 'ul-dotted',
+                'dashed': 'ul-dashed',
+                'dotdashed': 'ul-dotdashed',
+                'dotdotdashed': 'ul-dotdotdashed',
+                'wavy': 'ul-wavy',
+            };
+
+            const styleClass = styleClassMap[style];
+            if (styleClass) {
+                q.formatText(sel.index, sel.length, styleClass, true);
+            }
+
+            notifyDirty();
+            refreshToolbarStates();
+        };
+
+        // Toggle dropdown
+        underlineToggle?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            underlineMenu?.classList.toggle('open');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!underlineDd.contains(e.target)) {
+                underlineMenu?.classList.remove('open');
+            }
+        });
+
+        // Handle underline style selection
+        underlineMenu?.querySelectorAll('.underline-dd-item').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const style = btn.dataset.underlineStyle;
+                if (style) {
+                    applyUnderlineStyle(style);
+                }
+                underlineMenu?.classList.remove('open');
             });
         });
     }

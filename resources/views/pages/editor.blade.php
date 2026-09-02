@@ -124,7 +124,38 @@
 
         <button type="button" class="toolbar-button font-bold" data-cmd="bold" title="Tebal">B</button>
         <button type="button" class="toolbar-button italic" data-cmd="italic" title="Miring">I</button>
-        <button type="button" class="toolbar-button underline" data-cmd="underline" title="Garis bawah">U</button>
+        <div class="toolbar-dropdown" id="tb-underline-dd">
+            <button type="button" class="toolbar-button underline" data-cmd="underline" title="Garis bawah (default: solid)">U</button>
+            <button type="button" class="toolbar-button underline-dropdown-toggle" id="tb-underline-toggle" title="Pilih variasi underline">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M2 3.5L5 6.5L8 3.5"/></svg>
+            </button>
+            <div class="toolbar-dropdown-menu underline-menu">
+                <button type="button" class="underline-dd-item" data-underline-style="solid">
+                    <span class="underline-preview solid">Underline</span>
+                </button>
+                <button type="button" class="underline-dd-item" data-underline-style="double">
+                    <span class="underline-preview double">Double Underline</span>
+                </button>
+                <button type="button" class="underline-dd-item" data-underline-style="thick">
+                    <span class="underline-preview thick">Thick Underline</span>
+                </button>
+                <button type="button" class="underline-dd-item" data-underline-style="dotted">
+                    <span class="underline-preview dotted">Dotted Underline</span>
+                </button>
+                <button type="button" class="underline-dd-item" data-underline-style="dashed">
+                    <span class="underline-preview dashed">Dashed Underline</span>
+                </button>
+                <button type="button" class="underline-dd-item" data-underline-style="dotdashed">
+                    <span class="underline-preview dotdashed">Dot-Dashed Underline</span>
+                </button>
+                <button type="button" class="underline-dd-item" data-underline-style="dotdotdashed">
+                    <span class="underline-preview dotdotdashed">Dot-Dot-Dashed Underline</span>
+                </button>
+                <button type="button" class="underline-dd-item" data-underline-style="wavy">
+                    <span class="underline-preview wavy">Wave Underline</span>
+                </button>
+            </div>
+        </div>
         <button type="button" class="toolbar-button line-through" data-cmd="strike" title="Coret">S</button>
 
         <span class="toolbar-divider"></span>
@@ -135,17 +166,49 @@
 
         <span class="toolbar-divider"></span>
 
-        <button type="button" class="toolbar-button" data-align="left" title="Rata kiri"><b>⯇</b></button>
-        <button type="button" class="toolbar-button" data-align="center" title="Rata tengah"><b>≡</b></button>
-        <button type="button" class="toolbar-button" data-align="right" title="Rata kanan"><b>⯈</b></button>
-        <button type="button" class="toolbar-button" data-align="justify" title="Rata kiri-kanan"><b>☰</b></button>
+        <button type="button" class="toolbar-button" data-align="left" title="Rata kiri"><b><svg
+                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-text-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                        d="M2 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5" />
+                </svg></b></button>
+        <button type="button" class="toolbar-button" data-align="center" title="Rata tengah"><b><svg
+                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-text-center" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                        d="M4 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5m2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5" />
+                </svg></b></button>
+        <button type="button" class="toolbar-button" data-align="right" title="Rata kanan"><b><svg
+                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-text-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                        d="M6 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-4-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5m4-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-4-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5" />
+                </svg></b></button>
+        <button type="button" class="toolbar-button" data-align="justify" title="Rata kiri-kanan"><b><svg
+                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-justify"
+                    viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                        d="M2 12.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5" />
+                </svg></b></button>
 
         <span class="toolbar-divider"></span>
 
         <button type="button" class="toolbar-button" data-cmd="outdent" title="Kurangi indentasi"><b>⇤</b></button>
         <button type="button" class="toolbar-button" data-cmd="indent" title="Tambah indentasi"><b>⇥</b></button>
-        <button type="button" class="toolbar-button" data-cmd="bullist" title="Daftar poin"><b>•</b></button>
-        <button type="button" class="toolbar-button" data-cmd="numlist" title="Daftar nomor"><b>1.</b></button>
+        <button type="button" class="toolbar-button" data-cmd="bullist" title="Daftar poin"><b><svg
+                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-ul"
+                    viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                        d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m-3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2" />
+                </svg></b></button>
+        <button type="button" class="toolbar-button" data-cmd="numlist" title="Daftar nomor"><b><svg
+                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-ol"
+                    viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                        d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5" />
+                    <path
+                        d="M1.713 11.865v-.474H2c.217 0 .363-.137.363-.317 0-.185-.158-.31-.361-.31-.223 0-.367.152-.373.31h-.59c.016-.467.373-.787.986-.787.588-.002.954.291.957.703a.595.595 0 0 1-.492.594v.033a.615.615 0 0 1 .569.631c.003.533-.502.8-1.051.8-.656 0-1-.37-1.008-.794h.582c.008.178.186.306.422.309.254 0 .424-.145.422-.35-.002-.195-.155-.348-.414-.348h-.3zm-.004-4.699h-.604v-.035c0-.408.295-.844.958-.844.583 0 .96.326.96.756 0 .389-.257.617-.476.848l-.537.572v.03h1.054V9H1.143v-.395l.957-.99c.138-.142.293-.304.293-.508 0-.18-.147-.32-.342-.32a.33.33 0 0 0-.342.338zM2.564 5h-.635V2.924h-.031l-.598.42v-.567l.629-.443h.635z" />
+                </svg></b></button>
         <button type="button" class="toolbar-button" data-cmd="alphalist" title="Daftar huruf"><b>a.</b></button>
 
         <span class="toolbar-divider"></span>
@@ -156,7 +219,13 @@
         <span class="toolbar-divider"></span>
 
         <button type="button" class="toolbar-button" data-cmd="link" title="Sisipkan link"><b>🔗</b></button>
-        <button type="button" class="toolbar-button" data-cmd="image" title="Sisipkan gambar"><b>🖼</b></button>
+        <button type="button" class="toolbar-button" data-cmd="image" title="Sisipkan gambar"><b><svg
+                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-images"
+                    viewBox="0 0 16 16">
+                    <path d="M4.502 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3" />
+                    <path
+                        d="M14.002 13a2 2 0 0 1-2 2h-10a2 2 0 0 1-2-2V5A2 2 0 0 1 2 3a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-1.998 2M14 2H4a1 1 0 0 0-1 1h9.002a2 2 0 0 1 2 2v7A1 1 0 0 0 15 11V3a1 1 0 0 0-1-1M2.002 4a1 1 0 0 0-1 1v8l2.646-2.354a.5.5 0 0 1 .63-.062l2.66 1.773 3.71-3.71a.5.5 0 0 1 .577-.094l1.777 1.947V5a1 1 0 0 0-1-1z" />
+                </svg></b></button>
         <button type="button" class="toolbar-button" data-cmd="hr" title="Garis pembatas kop"><b>⎯</b></button>
         <button type="button" class="toolbar-button" data-cmd="removeformat" title="Hapus format"><b>⌫</b></button>
 
@@ -166,8 +235,10 @@
         <div class="toolbar-dropdown" id="tb-table-dd">
             <button type="button" class="toolbar-button toolbar-dropdown-toggle" data-cmd="table"
                 title="Sisipkan / kelola tabel">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-table" viewBox="0 0 16 16">
-                    <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm15 2h-4v3h4zm0 4h-4v3h4zm0 4h-4v3h3a1 1 0 0 0 1-1zm-5 3v-3H6v3zm-5 0v-3H1v2a1 1 0 0 0 1 1zm-4-4h4V8H1zm0-4h4V4H1zm5-3v3h4V4zm4 4H6v3h4z"/>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-table"
+                    viewBox="0 0 16 16">
+                    <path
+                        d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm15 2h-4v3h4zm0 4h-4v3h4zm0 4h-4v3h3a1 1 0 0 0 1-1zm-5 3v-3H6v3zm-5 0v-3H1v2a1 1 0 0 0 1 1zm-4-4h4V8H1zm0-4h4V4H1zm5-3v3h4V4zm4 4H6v3h4z" />
                 </svg>
             </button>
 
@@ -177,11 +248,16 @@
 
                 <div class="table-dd-divider"></div>
 
-                <button type="button" class="table-dd-action" data-table-action="insert-row">+ Sisip baris di bawah</button>
-                <button type="button" class="table-dd-action" data-table-action="insert-column">+ Sisip kolom di kanan</button>
-                <button type="button" class="table-dd-action table-dd-danger" data-table-action="delete-row">− Hapus baris</button>
-                <button type="button" class="table-dd-action table-dd-danger" data-table-action="delete-column">− Hapus kolom</button>
-                <button type="button" class="table-dd-action table-dd-danger" data-table-action="delete-table">✕ Hapus tabel</button>
+                <button type="button" class="table-dd-action" data-table-action="insert-row">+ Sisip baris di
+                    bawah</button>
+                <button type="button" class="table-dd-action" data-table-action="insert-column">+ Sisip kolom di
+                    kanan</button>
+                <button type="button" class="table-dd-action table-dd-danger" data-table-action="delete-row">− Hapus
+                    baris</button>
+                <button type="button" class="table-dd-action table-dd-danger" data-table-action="delete-column">− Hapus
+                    kolom</button>
+                <button type="button" class="table-dd-action table-dd-danger" data-table-action="delete-table">✕ Hapus
+                    tabel</button>
             </div>
         </div>
     </div>
@@ -231,7 +307,7 @@
                     class="text-xl text-slate-warm-400 hover:text-slate-warm-700">
                     ×
                 </button>
-    
+
             </div>
 
             {{-- TIDAK ADA SIGNATURE --}}
@@ -560,6 +636,190 @@
         color: #fca5a5;
     }
 
+    /* ─── UNDERLINE DROPDOWN ─── */
+    #tb-underline-dd {
+        display: inline-flex;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    #tb-underline-dd .toolbar-button:first-child {
+        border-radius: 8px 0 0 8px;
+        border-right: none;
+    }
+
+    #tb-underline-dd .underline-dropdown-toggle {
+        display: inline-flex;
+        width: 20px;
+        height: 34px;
+        min-width: 20px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0 8px 8px 0;
+        border: 1px solid #e7e5e4;
+        border-left: none;
+        font-size: 14px;
+        color: #44403c;
+        cursor: pointer;
+        transition: background-color 0.15s, box-shadow 0.15s, color 0.15s;
+    }
+
+    #tb-underline-dd .underline-dropdown-toggle:hover {
+        background: rgb(240 236 227);
+    }
+
+    .dark #tb-underline-dd .underline-dropdown-toggle {
+        border-color: #44403c;
+        color: #a8a29e;
+    }
+
+    .dark #tb-underline-dd .underline-dropdown-toggle:hover {
+        background: rgb(41 37 36);
+    }
+
+    .underline-menu {
+        min-width: 200px;
+        padding: 6px;
+    }
+
+    .underline-dd-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 8px 10px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        text-align: left;
+        font-size: 13px;
+        color: #292524;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .underline-dd-item:hover {
+        background: rgb(240 236 227);
+    }
+
+    .dark .underline-dd-item {
+        color: rgb(231 229 228);
+    }
+
+    .dark .underline-dd-item:hover {
+        background: rgb(41 37 36);
+    }
+
+    .underline-preview {
+        flex: 1;
+        padding-bottom: 2px;
+    }
+
+    .underline-preview.solid {
+        text-decoration: underline;
+        text-decoration-style: solid;
+    }
+
+    .underline-preview.double {
+        text-decoration: underline;
+        text-decoration-style: double;
+    }
+
+    .underline-preview.thick {
+        text-decoration: underline;
+        text-decoration-style: solid;
+        text-decoration-thickness: 2px;
+    }
+
+    .underline-preview.dotted {
+        text-decoration: underline;
+        text-decoration-style: dotted;
+    }
+
+    .underline-preview.dashed {
+        text-decoration: underline;
+        text-decoration-style: dashed;
+    }
+
+    .underline-preview.dotdashed {
+        text-decoration: underline;
+        text-decoration-style: dashed;
+        text-decoration-color: currentColor;
+        border-bottom: 1px dotted currentColor;
+        padding-bottom: 1px;
+    }
+
+    .underline-preview.dotdotdashed {
+        text-decoration: underline;
+        text-decoration-style: wavy;
+        text-decoration-thickness: 1px;
+    }
+
+    .underline-preview.wavy {
+        text-decoration: underline;
+        text-decoration-style: wavy;
+    }
+
+    /* Underline styles for editor content */
+    .ql-editor u[style*="text-decoration-style: solid"],
+    .ql-editor .ul-solid {
+        text-decoration: underline !important;
+        text-decoration-style: solid !important;
+    }
+
+    .ql-editor u[style*="text-decoration-style: double"],
+    .ql-editor .ul-double {
+        text-decoration: underline !important;
+        text-decoration-style: double !important;
+    }
+
+    .ql-editor .ul-thick {
+        text-decoration: underline !important;
+        text-decoration-style: solid !important;
+        text-decoration-thickness: 2px !important;
+    }
+
+    .ql-editor u[style*="text-decoration-style: dotted"],
+    .ql-editor .ul-dotted {
+        text-decoration: underline !important;
+        text-decoration-style: dotted !important;
+    }
+
+    .ql-editor u[style*="text-decoration-style: dashed"],
+    .ql-editor .ul-dashed {
+        text-decoration: underline !important;
+        text-decoration-style: dashed !important;
+    }
+
+    .ql-editor .ul-dotdashed {
+        text-decoration: underline !important;
+        text-decoration-style: dashed !important;
+        text-decoration-thickness: 1px !important;
+        background-image: repeating-linear-gradient(
+            to right,
+            currentColor 0px,
+            currentColor 2px,
+            transparent 2px,
+            transparent 4px
+        );
+        background-position: 0 100%;
+        background-repeat: repeat-x;
+        background-size: 4px 1px;
+        padding-bottom: 1px;
+    }
+
+    .ql-editor .ul-dotdotdashed {
+        text-decoration: underline !important;
+        text-decoration-style: dotted !important;
+        text-decoration-thickness: 1px !important;
+    }
+
+    .ql-editor u[style*="text-decoration-style: wavy"],
+    .ql-editor .ul-wavy {
+        text-decoration: underline !important;
+        text-decoration-style: wavy !important;
+    }
+
     /* ─── TABEL DI DALAM EDITOR ─── */
     .ql-editor table {
         border-collapse: collapse;
@@ -595,7 +855,8 @@
     .doc-sheet {
         position: relative;
         width: 210mm;
-        height: 297mm;               /* KERTAS TETAP: tidak memanjang lagi */
+        height: 297mm;
+        /* KERTAS TETAP: tidak memanjang lagi */
         min-height: 297mm;
         margin: 0 auto;
         box-sizing: border-box;
@@ -622,7 +883,8 @@
     .doc-sheet-body {
         flex: 1;
         min-height: 0;
-        overflow: hidden;            /* konten yang meluap DIKELUARKAN otomatis
+        overflow: hidden;
+        /* konten yang meluap DIKELUARKAN otomatis
                                         ke kertas berikutnya oleh paginasi */
     }
 
@@ -654,9 +916,11 @@
         transition: background 0.15s ease, color 0.15s ease;
         opacity: 0;
     }
+
     .doc-sheet:hover .page-remove-btn {
         opacity: 1;
     }
+
     .page-remove-btn:hover {
         background: #dc2626;
         color: #fff;
@@ -1069,6 +1333,7 @@
             print-color-adjust: exact !important;
         }
     }
+
     /* Contract table cell styling — specificity lebih tinggi (.ql-editor table td)
        dibanding .ql-editor th quill-table-better (0,2,1 vs 0,1,1) agar tetap
        menang walau CSS quill-table-better dimuat setelah tag <style> ini. */
@@ -1118,6 +1383,7 @@
 
     /* Print: pastikan border & background tetap terlihat */
     @media print {
+
         .ql-editor table td,
         .ql-editor table th {
             border: 1px solid #000 !important;
@@ -1125,7 +1391,6 @@
             print-color-adjust: exact !important;
         }
     }
-
 </style>
 @endpush
 
@@ -1169,12 +1434,9 @@
             saveStatus: 'saved',
             changed: false,
 
-            // Riwayat UNDO/REDO tingkat dokumen (struktur halaman).
-            // Dipakai supaya tombol Undo bisa memulihkan halaman yang dihapus.
             undoStack: [],
             redoStack: [],
 
-            // PAGES (hanya data, dirender sebagai sheet di dalam satu editor)
             pages: (
                 @js(
                     $document -> body_content['pages']
@@ -1185,9 +1447,6 @@
                 html
             })),
 
-            // Penanda halaman sampul (cover) bawaan template: N halaman
-            // pertama dikunci dari paginasi BALIK, supaya isi kontrak tidak
-            // ditarik naik ke dalam sampul (dulu bikin urutan pasal berantakan).
             coverPages: @js($document -> body_content['coverPages'] ?? 0),
 
             pageSeq: (
@@ -1254,11 +1513,6 @@
                     }
                 });
 
-                // Backspace pada halaman (selain halaman pertama) yang ISINYA KOSONG
-                // = hapus halaman tersebut (tekan backspace lagi setelah isi habis).
-                // Pakai phase CAPTURE supaya cek isi terjadi SEBELUM Quill menghapus
-                // karakter pada tombol ini -> hapus isi butuh 1 tekkan, penghapusan
-                // halaman butuh 1 tekkan berikutnya (isi sudah kosong duluan).
                 document.addEventListener('keydown', (e) => {
                     if (e.key !== 'Backspace') return;
 
@@ -1623,12 +1877,6 @@
                 return true;
             },
 
-            // =========================================
-            // PAGINASI OTOMATIS (bridge Alpine <-> DocQuill)
-            // Dipanggil editor.js saat satu kertas sudah penuh:
-            // buat kertas baru tepat SETELAH kertas `uid`.
-            // Return elemen .doc-sheet-body milik kertas baru.
-            // =========================================
             async createPageAfter(uid) {
 
                 const pos = this.pages.findIndex((p) => p.uid === uid);
@@ -1649,11 +1897,6 @@
                     : null;
                 if (!root || !target) return null;
 
-                // Penting: kertas di sini TIDAK dirender dengan x-for — halaman
-                // dibuat secara IMPERATIF (pola sama dengan addPage()). Jadi hanya
-                // memutasi this.pages tidak akan memunculkan DOM baru. Kita harus
-                // membangun elemen <div class="doc-sheet"> baru secara eksplisit dan
-                // menyelipkannya TEPAT SETELAH kertas `uid`.
                 const sheet = document.createElement('div');
                 sheet.className = 'doc-sheet';
                 sheet.setAttribute('data-sheet-type', 'page');
@@ -1923,9 +2166,6 @@
                 this.markAsChanged();
             },
 
-            // =========================================
-            // SAVE DOCUMENT
-            // =========================================
 
             async saveDocument() {
 
@@ -2001,9 +2241,6 @@
                 }
             },
 
-            // =========================================
-            // SAVE AS NEW DOCUMENT
-            // =========================================
 
             async saveAsNewDocument(newTitle) {
 
@@ -2047,9 +2284,6 @@
                 return res.data.id;
             },
 
-            // =========================================
-            // DRAG SIGNATURE
-            // =========================================
 
             startDragSignature(event, sigEl) {
 
@@ -2127,10 +2361,6 @@
             e.returnValue = '';
         }
     });
-
-    // =========================================
-    // 3. HANDLE LINK NAVIGATION
-    // =========================================
 
     document.addEventListener('DOMContentLoaded', function () {
 
