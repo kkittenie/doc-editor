@@ -1217,9 +1217,6 @@
         opacity: 1;
     }
 
-    /* Redupkan area lain selama sesi edit aktif.
-       MURNI VISUAL — tidak memblokir interaksi:
-       satu klik pada isi dokumen langsung mengakhiri sesi. */
     .editing-header .doc-sheet-body,
     .editing-header .doc-sheet-footer,
     .editing-footer .doc-sheet-body,
@@ -1360,9 +1357,6 @@
         margin: 0.5rem 0;
     }
 
-    /* Tabel kontrak: layout kolom tetap (fixed). Lebar % eksplisit per sel
-       (diset di server & preprocessor) membuat fragmen tabel yang terpotong
-       halaman tetap memiliki grid kolom yang segaris, seperti di Word. */
     .ql-editor table[data-class*="contract-table"] {
         table-layout: fixed;
         /* Jaring pengaman: quill-table-better bisa menghilangkan style
@@ -1506,10 +1500,6 @@
                     redo: () => this.redoDocument(),
                 };
 
-                // Delegasi klik tombol hapus halaman (muncul di semua kertas,
-                // kecuali kertas pertama). Didelegasikan ke container supaya
-                // tombol yang dibuat lewat buildSheet/addPage/createPageAfter
-                // tetap berfungsi tanpa perlu listener per tombol.
                 const editorRootEl = document.getElementById('document-editor');
                 editorRootEl?.addEventListener('click', (e) => {
                     const btn = e.target.closest('.page-remove-btn');
@@ -1813,9 +1803,6 @@
                 return html;
             },
 
-            // Tandai N halaman pertama sebagai sampul template (data-flow-lock).
-            // editor.js memakai atribut ini untuk melarang paginasi BALIK
-            // menyeret isi halaman berikutnya ke dalam sampul.
             markLockedSheets() {
                 const root = document.getElementById('document-editor');
                 if (!root) return;
@@ -1826,10 +1813,6 @@
                 });
             },
 
-            // ------------- UNDO/REDO TINGKAT DOKUMEN -------------
-            // Snapshot = salinan penuh state (halaman + header + footer).
-            // Ini memungkinkan tombol Undo memulihkan halaman yang dihapus.
-
             snapshot() {
                 return JSON.stringify({
                     pages: this.pages.map((p) => ({ uid: p.uid, html: p.html })),
@@ -1838,8 +1821,6 @@
                 });
             },
 
-            // Simpan state SAAT INI ke tumpukan undo (dipanggil SEBELUM
-            // perubahan struktur halaman: tambah / hapus / pindah).
             pushHistory() {
                 this.undoStack.push(this.snapshot());
                 if (this.undoStack.length > 60) this.undoStack.shift();
@@ -1853,9 +1834,6 @@
                 this.rebuildSheets();
             },
 
-            // Bangun ulang seluruh DOM kertas dari this.pages + header/footer.
-            // Aman dipanggil kapan saja (pasca undo/redo struktural): lepaskan
-            // instance Quill lama, lalu pasang ulang untuk setiap region baru.
             rebuildSheets() {
                 const editorEl = document.getElementById('document-editor');
                 if (!editorEl) return;
@@ -1877,9 +1855,6 @@
                 this.markAsChanged();
             },
 
-            // Undo tingkat dokumen. Mengembalikan true kalau ada snapshot
-            // struktur yang mau dipulihkan (supaya editor.js TIDAK meneruskan
-            // ke undo teks Quill); false kalau tidak ada -> biar Quill handle.
             undoDocument() {
                 if (!this.undoStack.length) return false;
                 this.redoStack.push(this.snapshot());
