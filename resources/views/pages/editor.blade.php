@@ -1985,14 +1985,6 @@
 
                     const bodyZone = e.target.closest('.doc-sheet-body');
                     if (bodyZone && !this.editSection) {
-                        // BUGFIX blok teks double-click: bila titik klik ada di
-                        // ATAS teks yang sudah ada, biarkan browser menyeleksi
-                        // kata secara native (fitur blok kata). clickAndType
-                        // (sisip baris/spasi + pindah caret) HANYA untuk titik
-                        // klik di area KOSONG kertas. Dulu SEMUA dblclick di body
-                        // menjalankan clickAndType -> seleksi kata selalu
-                        // terhapus (removeAllRanges) dan caret melompat ke ekor
-                        // teks secara tidak wajar.
                         let overText = false;
                         try {
                             const cr = document.caretRangeFromPoint

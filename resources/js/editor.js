@@ -756,24 +756,13 @@ const cariRegionTitik = (x, y, skipEl = null) => {
     return null;
 };
 
-// Region target untuk MELEPAS GAMBAR: pakai TUBUH gambarnya, bukan titik
-// kursor. Dulu resolusi drop memakai posisi kursor — padahal saat menyeret
-// gambar ke arah kop, ujung atas gambarnya menyentuh garis kop lebih dulu
-// sementara kursor masih di area body -> gambar "otomatis" selalu menjadi
-// isi body. Sekarang region dengan TUMPANG TINDIH terbesar terhadap gambar
-// yang menang; kalau tidak bertumpuk sama sekali, jatuh ke resolusi
-// berbasis kursor (cariRegionTitik).
+
 const cariRegionUntukGambar = (img, e) => {
     let best = null;
     let bestArea = 0;
     try {
         const iRect = img.getBoundingClientRect();
 
-        // Ujung depan gambar menang atas kop/footer: cukup mendorong UJUNG
-        // ATAS gambar masuk area kop -> gambar menjadi isi kop, SEKALIPUN
-        // gambarnya tinggi (dulu pakai tumpang-tindih terbesar: kop pendek
-        // sehingga body selalu "menang" -> gambar melenting balik ke body
-        // setiap dilepas dan terasa tidak bisa di-drag).
         const topCenter = { x: iRect.left + iRect.width / 2, y: iRect.top + 1 };
         const bottomCenter = { x: iRect.left + iRect.width / 2, y: iRect.bottom - 1 };
 
@@ -837,7 +826,7 @@ const selesaiFlowDrag = (e) => {
     if (region && region.isConnected) {
         // Berhenti PERSIS di titik pelepasan: jadikan gambar floating
         const rRect = region.getBoundingClientRect();
-        // Bebas menempel di mana saja dalam kertas (tepi, sudut, kop, footer)
+        // Posisi gambar relatif terhadap region target
         const [left, top] = clampPosToSheet(
             region,
             ghostLeft - rRect.left,
@@ -870,15 +859,8 @@ const selesaiFlowDrag = (e) => {
     positionImageTools();
 };
 
-// PINDAH REGION SAAT GAMBAR FLOATING DILEPAS
-// Drag floating hanya mengubah left/top DI DALAM region induknya, dan
-// drag angkat (flow drag) menolak gambar yang sudah position:absolute.
-// Akibatnya gambar floating terkunci selamanya di region asalnya: gambar
-// yang terlempar dari kop ke body tidak bisa dikembalikan ke kop.
-// Solusi: saat dilepas, cek region di bawah kursor — kalau berbeda,
-// pindahkan induk gambarnya lalu hitung ulang koordinatnya.
 const pindahkanFloatingKeRegion = (img, e) => {
-    const target = cariRegionUntukGambar(img, e);
+    const target = cariRegionTitik(e.clientX, e.clientY, img);
 
     if (!target || !target.isConnected) return;
     if (target === img.closest(FLOAT_REGION_SELECTOR)) return;
@@ -899,14 +881,6 @@ const pindahkanFloatingKeRegion = (img, e) => {
     target.appendChild(img);
 };
 
-
-// TITIK SISIP DI MANA SAJA (ala Microsoft Word):
-// klik di mana pun pada kertas -> caret pindah ke
-// baris terdekat yang bisa diketik.
-
-
-// Kelompokkan karakter tiap text-node menjadi baris-baris visual,
-// lalu cari baris dengan jarak terdekat ke titik klik.
 const nearestLine = (rootEl, x, y) => {
     const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT);
     let best = null;
@@ -1144,10 +1118,12 @@ if (!window.__imageToolsBound) {
 
         const region = img.closest(FLOAT_REGION_SELECTOR) || img.closest('.doc-sheet');
         if (!region) return;
-
+        
         // preventDefault: cegah seleksi teks & drag bawaan browser.
-        // Klik singkat tetap menghasilkan event click -> perilaku normal.
         e.preventDefault();
+        
+        // Tampilkan tools (drag surface + resize handles) untuk gambar floating
+        showImageTools(activeEditor || findEditorContaining(region) || findEditorFor(img), img);
         floatingImg = img;
         floatingRegion = region;
         floatingDragArmed = true;
@@ -1163,22 +1139,14 @@ if (!window.__imageToolsBound) {
         if (e.target?.nodeName !== 'IMG') return;
         if (e.button !== 0) return;
         const img = e.target;
-        if (isFloatingImage(img)) return;          // floating ditangani handler di atas
-        if (!img.closest('.doc-sheet')) return;    // hanya gambar di dalam dokumen
+        if (isFloatingImage(img)) return;          
+        if (!img.closest('.doc-sheet')) return;    
 
-        // Zona kop/footer TERKUNCI (di luar sesi edit zona): jangan izinkan
-        // drag mengangkat gambar. Dulu geseran tak sengaja >=4px sudah
-        // merobek gambar keluar dari kop lalu menjatuhkannya ke body
-        // ("gambar pindah sendiri"). Gambar kop hanya bisa diangkat saat
-        // sesi edit zona aktif (double-click kop). Klik & resize tetap
-        // normal tanpa sesi.
                                         const zone = img.closest('.doc-sheet-header, .doc-sheet-footer');
                 if (zone) {
             const zq = quillsByRegion.get(zone);
             if (!zq || !zq.isEnabled()) {
-                // Kop/footer TERKUNCI: jangan izinkan drag angkat (gambar
-                // bisa "lolos" ke body). Tapi tetap tunjukkan tools & resize
-                // — klik saja cukup untuk memilih gambar dan mengubah ukuran.
+    
                 showImageTools(activeEditor || findEditorContaining(zone) || findEditorFor(img), img);
                 return;
             }
@@ -1386,6 +1354,7 @@ if (!window.__imageToolsBound) {
         e.preventDefault();
 
         // Bebas digeser ke seluruh area kertas (tanpa batas kotak region)
+        // Transfer ke region lain ditangani saat mouseup berdasarkan posisi kursor
         const [nextLeft, nextTop] = clampPosToSheet(
             floatingRegion,
             floatBaseLeft + (e.clientX - floatStartX),
@@ -2078,14 +2047,6 @@ const syncMirrorsFrom = (sourceQ) => {
             const sel = m.q.getSelection();
             if (sel) m.lastCaret = sel.index;
             pasteHtmlSafely(m.q, html);
-
-            // Sebar juga gambar floating anak langsung region (di luar
-            // model Quill) dari region sumber ke mirror. Dulu hanya isi
-            // ql-editor yang disalin, sehingga gambar yang diletakkan di
-            // kop hanya tampil di satu halaman saja.
-            // HANYA ditulis ulang bila benar-benar berubah — jangan
-            // bongkar-pasang elemen yang sedang di-drag/di-resize user
-            // di halaman mirror (elemen aktif bisa tercopot dari DOM).
             try {
                 const sig = (im) =>
                     (im.getAttribute('src') || '') + '|' +
@@ -2102,10 +2063,7 @@ const syncMirrorsFrom = (sourceQ) => {
                 /* noop */
             }
 
-            // Pulihkan caret HANYA bila mirror memang sedang punya seleksi.
-            // Dulu selalu dipulihkan dari lastCaret basi setelah isi DOM
-            // ditimpa -> "addRange(): The given range isn't in document"
-            // dan state seleksi Quill jadi kacau.
+
             if (!sel) return;
             try {
                 const maxIndex = Math.max(0, m.q.getLength() - 1);
@@ -2119,24 +2077,9 @@ const syncMirrorsFrom = (sourceQ) => {
     }
 };
 
-/**
- * Normalisasi grid tabel menjadi grid persegi (unit-cell) yang deterministik:
- *  - colspan dipecah menjadi sel unit(konten hanya di sel pertama).
- *  - rowspan dipertahankan: sel asal diberi atribut rowspan, sedangkan posisi
- *    kelanjutannya (null) TIDAK dirender — sehingga kolom merge tetap
- *    tampil menyatu (mis. kolom "Jangka Waktu Berlangganan" = judul + 1 cell).
- *  - Baris pendek di-padding sampai jumlah kolom grid.
- *  - Lebar % eksplisit & seragam per kolom + table-layout:fixed +
- *    width:100% pada <table> (quill-table-better membuang style table-
- *    level dan style sel kosong saat konversi clipboard bila tidak ada).
- */
 const normalizeTableGrid = (table) => {
     const rows = Array.from(table.rows);
     if (!rows.length) return;
-
-    // Ekstrak lebar kolom dari <colgroup> jika ada (prioritas utama).
-    // Tanpa ini, tabel dengan lebar kolom spesifik (mis. 49%/50% atau
-    // 5%/17%/12%/9%/20%/19%/14%) akan dirata-kan menjadi sama lebar.
     const colgroup = table.querySelector('colgroup');
     const colWidths = [];
     if (colgroup) {
@@ -2147,7 +2090,7 @@ const normalizeTableGrid = (table) => {
         });
     }
 
-    // Bangun grid: grid[ri][ci] = { html, style, tag, colspan } | null (null = sisa rowspan)
+    
     const grid = [];
     const occupied = {};
     rows.forEach((tr, ri) => {
@@ -2209,16 +2152,12 @@ const normalizeTableGrid = (table) => {
         return ((colspan * 100) / maxCols).toFixed(2) + '%';
     };
 
-    // Bangun ulang setiap baris: lebar sel mengikuti <colgroup>; rowspan dipertahankan.
-    // Posisi sisa rowspan (grid null) dilewati, tidak dibuatkan sel kosong,
-    // sehingga cell merge tetap menyatu dan tidak tampil sel berpagar di bawahnya.
     rows.forEach((tr, ri) => {
         const rowData = grid[ri] || [];
         const frag = document.createDocumentFragment();
         for (let ci = 0; ci < maxCols; ci++) {
             const cd = rowData[ci];
-            // null = kelanjutan rowspan dari baris di atas: jangan render sel kosong.
-            // cell pertama (dengan rowspan) sudah mencakup kolom ini sampai baris bawah.
+
             if (cd === null) continue;
             const cell = document.createElement(cd ? cd.tag : 'td');
             cell.classList.add('contract-table-cell');
@@ -2237,11 +2176,8 @@ const normalizeTableGrid = (table) => {
         tr.appendChild(frag);
     });
 
-    // Hapus <colgroup> — lebar kolom sudah diinline ke setiap sel,
-    // dan quill-table-better akan membuat <colgroup> sendiri dari delta.
     if (colgroup) colgroup.remove();
 
-    // Layout kolom deterministik + full-width pada <table>
     let tblStyle = table.getAttribute('style') || '';
     if (!/table-layout\s*:/i.test(tblStyle)) {
         tblStyle += (tblStyle && !/;\s*$/.test(tblStyle) ? ';' : '') + ' table-layout:fixed;';
@@ -2294,10 +2230,6 @@ const pasteHtmlSafely = (q, html) => {
     if (!html || !html.trim()) return;
     const processedHtml = preprocessContractTables(html);
     const delta = q.clipboard.convert({ html: processedHtml, text: '\n' });
-    // GANTI seluruh isi editor. Dulu pakai updateContents(delta) yang
-    // MENYISIPKAN di indeks 0 TANPA menghapus isi lama -> setiap sync
-    // mirror kop/footer menambah SALINAN BARU isi kop (teks & gambar
-    // berlipat-lipat di semua halaman).
     q.setContents(delta, Quill.sources.SILENT);
 };
 
@@ -2313,12 +2245,6 @@ const attachQuillToRegion = (regionEl) => {
     const host = document.createElement('div');
     regionEl.appendChild(host);
 
-    // Toolbar Quill BAWAAN yang disembunyikan & kosong.
-    // quill-table-better WAJIB ada modul toolbar (initWhiteList membaca
-    // getModule('toolbar').container); dengan `toolbar: false` modul itu
-    // tidak dibuat dan plugin crash saat init. Toolbar kustom aplikasi
-    // tetap di luar Quill (#body-toolbar-container), jadi div kosong ini
-    // tidak berpengaruh apa pun selain memuaskan plugin.
     const hiddenToolbar = document.createElement('div');
     hiddenToolbar.style.display = 'none';
     regionEl.appendChild(hiddenToolbar);
@@ -2352,9 +2278,6 @@ const attachQuillToRegion = (regionEl) => {
             return null;
         }
 
-        // quill-table-better's matchTableCell does NOT preserve sel inline style
-        // (text-align, font-weight, dll).  Matcher ini jalan SETELAH matchers
-        // quill-table-better karena didaftarkan setelah instance Quill dibuat.
         q.clipboard.addMatcher('td, th', (node, delta) => {
             const style = node.getAttribute('style') || '';
             const alignMatch = style.match(/text-align:\s*([^;]+)/i);
@@ -2384,10 +2307,7 @@ const attachQuillToRegion = (regionEl) => {
                     });
                 }
             }
-            // Pertahankan rowspan/colspan (mis. kolom "Jangka Waktu Berlangganan" =
-            // header + 1 cell rowspan="5"). matchTableCell bawaan plugin tidak
-            // menyalin atribut ini ke Delta, tanpa ini merge akan hilang permanen
-            // saat HTML masuk ke editor.
+    
             const rowspanAttr = node.getAttribute('rowspan');
             const colspanAttr = node.getAttribute('colspan');
             if (delta.ops && delta.ops.length
@@ -2409,13 +2329,7 @@ const attachQuillToRegion = (regionEl) => {
         });
 
         if (existingHtml.trim()) {
-            // PENTING: existingHtml adalah satu-satunya tempat gambar
-            // floating (anak langsung region) masih hidup — baris
-            // `regionEl.innerHTML = ''` di atas sudah menghapusnya dari
-            // DOM. Paste ke model Quill + loop normalisasi di bawahlah
-            // yang mengembalikannya ke posisi region saat load. JANGAN
-            // dibuang/di-strip di sini (pernah dicoba -> gambar floating
-            // hilang semua & tak bisa di-drag/resize setelah reload).
+    
             pasteHtmlSafely(q, existingHtml);
 
             q.root.querySelectorAll('img').forEach((im) => {
@@ -2430,10 +2344,6 @@ const attachQuillToRegion = (regionEl) => {
             });
         }
 
-        // Bersihkan salinan gambar floating yang identik (bekas bug dobel:
-        // dulu tiap simpan/muat menggandakan gambar di kop sehingga muncul
-        // bertumpuk di semua halaman). Simpan yang pertama, buang sisanya
-        // yang benar-benar identik (src + style persis sama).
         const seenFloatImgs = new Set();
         regionEl.querySelectorAll(':scope > img').forEach((im) => {
             const key = (im.getAttribute('src') || '') + '|' +
@@ -2445,8 +2355,6 @@ const attachQuillToRegion = (regionEl) => {
             seenFloatImgs.add(key);
         });
 
-        // Zona header/footer mulai dalam keadaan INERT (ala Word):
-        // hanya aktif saat sesi edit via double-click.
         const zoneRole = regionEl.dataset?.region;
         if (zoneRole === 'header' || zoneRole === 'footer') {
             q.enable(false);
@@ -2507,8 +2415,7 @@ function __flowDeltaCtor(quill) {
     return null;
 }
 
-// Pecah Delta menjadi blok per baris; op '\n' penutup membawa
-// atribut blok (header/list dsb) agar bisa direkonstruksi utuh.
+
 function __splitDeltaIntoBlocks(delta) {
     const blocks = [];
     let cur = [];
@@ -2571,8 +2478,6 @@ function __contentOverflowPx(quill, boxEl) {
     } catch (err) { return 0; }
 }
 
-// Anak (elemen blok) pertama yang melewati batas bawah kertas.
-// Mengembalikan -1 kalau struktur tak bisa dipetakan aman.
 function __firstOverflowIndex(quill, boxEl) {
     const root = quill.root;
     if (!root || !root.children || !root.children.length) return -1;
@@ -2582,14 +2487,14 @@ function __firstOverflowIndex(quill, boxEl) {
     const effBottom = boxRect.top + padT + boxEl.clientHeight - PAGE_FLOW_TOL;
     const baseTop = kids[0].getBoundingClientRect().top;
     for (let i = 0; i < kids.length; i++) {
-        if (__isFloatingKid(kids[i])) return -1; // gambar melayang: jangan disentuh
+        if (__isFloatingKid(kids[i])) return -1; 
         const bottom = kids[i].getBoundingClientRect().bottom;
         if (bottom - PAGE_FLOW_TOL > effBottom) return i;
     }
-    return kids.length; // semua muat (harusnya tak terjadi saat dipanggil)
+    return kids.length; 
 }
 
-// ---------- MESIN UTAMA: pindah blok antar kertas ----------
+
 
 let pageFlowChain = Promise.resolve();
 
@@ -2617,8 +2522,6 @@ async function __resolveTargetBody(sheet, apiCreate) {
         const nb = nextSheet.querySelector('.doc-sheet-body[data-region="body"]');
         if (nb && quillsByRegion.has(nb)) return nb;
     }
-    // Belum ada kertas di belakangnya -> minta Alpine membuat satu,
-    // lalu tunggu sampai region-nya benar-benar terpasang Quill.
     const uid = sheet.dataset?.pageUid;
     if (!uid || typeof apiCreate !== 'function') return null;
     const created = await apiCreate(uid);
@@ -2680,22 +2583,12 @@ async function __flowPass(quill, bodyEl) {
     }
     targetQ.updateContents(chg, 'silent');
 
-    // BUGFIX caret: caret mengikuti kontennya HANYA bila caret/seleksi
-    // berada DI DALAM blok yang mengalir (index >= range.start, termasuk
-    // di awal blok -- kasus umum: baru menekan Enter lalu baris barunya
-    // ikut pindah halaman). Di luar itu JANGAN sentuh seleksi sama sekali:
-    // Quill sudah mentransformasi caret otomatis, dan pemangsaan
-    // setSelection paksa justru merusak seleksi double-click serta
-    // menggeser caret saat pengguna sedang mengetik. Panjang seleksi
-    // tetap dipertahankan agar blok kata tidak collapse.
     if (selBefore && selBefore.index >= range.start
         && selBefore.index < range.start + range.len) {
         const off = Math.max(0, selBefore.index - range.start);
         targetQ.setSelection(off, selBefore.length || 0, 'silent');
     }
 
-    // Lanjutkan aliran: kertas berikutnya sekarang bisa meluap juga,
-    // jadwalkan pemeriksaannya agar konten merambat sampai muat semua.
     if (autoPaginationApi) __runFlow(targetQ, targetBody);
 
     notifyDirty();
@@ -2709,10 +2602,8 @@ function __pullBackPass(quill, bodyEl) {
 
     if (sheet.dataset?.flowLock) return false;
 
-    // Kertas ini masih meluap -> urusan arah maju, bukan balik.
     if (__contentOverflowPx(quill, bodyEl) > PAGE_FLOW_TOL) return false;
 
-    // Cari kertas berikutnya yang sudah terpasang Quill.
     let nextBody = null;
     let s = sheet.nextElementSibling;
     while (s && s.classList.contains('doc-sheet')) {
@@ -2730,7 +2621,6 @@ function __pullBackPass(quill, bodyEl) {
     const k2 = nkids[0];
     if (__isFloatingKid(k2)) return false;
 
-    // Blok kosong penutup Quill (<p><br></p>, panjang 1) tidak usah ditarik.
     let k2Len = 0;
     try {
         const b2 = Quill.find(k2);
@@ -2749,8 +2639,7 @@ function __pullBackPass(quill, bodyEl) {
         break;
     }
 
-    // Harus muat PENUH dengan margin ekstra supaya arah maju tidak
-    // langsung mendorongnya balik (tidak ada bolak-balik).
+    
     const h2 = k2.getBoundingClientRect().height;
     if (baseBottom + h2 > effBottom - PAGE_FLOW_TOL) return false;
 
@@ -2760,10 +2649,6 @@ function __pullBackPass(quill, bodyEl) {
     const removed = nextQ.getContents(range.start, range.len);
     if (!DeltaCtor || !removed || !(removed.ops || []).length) return false;
 
-    // Amankan caret pengguna: HANYA caret/seleksi yang berada DI DALAM blok
-    // yang ditarik yang ikut naik ke kertas ini. Seleksi lain JANGAN disentuh
-    // -- Quill sudah mentransformasi otomatis, dan setSelection paksa justru
-    // merusak seleksi double-click / menggeser caret saat mengetik.
     const nextSelBefore = nextQ.getSelection();
 
     nextQ.deleteText(range.start, range.len, 'silent');
@@ -2777,9 +2662,6 @@ function __pullBackPass(quill, bodyEl) {
             : JSON.parse(JSON.stringify(op)));
     }
     quill.updateContents(chg, 'silent');
-
-    // Caret/seleksi di dalam blok yang ditarik -> ikut pindah ke ekor kertas
-    // ini, dengan offset dan panjang seleksi yang sama.
     if (nextSelBefore && nextSelBefore.index >= range.start
         && nextSelBefore.index < range.start + range.len) {
         const ni = Math.max(0, Math.min(
@@ -2932,10 +2814,7 @@ window.DocQuill = {
                     if (sel) m.lastCaret = sel.index;
                     pasteHtmlSafely(m.q, html);
 
-                    // Sebar gambar floating kop dari halaman pertama ke
-                    // mirror lain (lihat catatan di syncMirrorsFrom).
-                    // Hanya ditulis ulang bila berubah, agar interaksi
-                    // drag/resize yang sedang berjalan tidak terputus.
+
                     try {
                         const sig = (im) =>
                             (im.getAttribute('src') || '') + '|' +
@@ -2952,8 +2831,6 @@ window.DocQuill = {
                         /* noop */
                     }
 
-                    // Pulihkan caret hanya bila ada seleksi aktif (lihat
-                    // catatan di syncMirrorsFrom soal addRange basi).
                     if (!sel) return;
                     try {
                         const maxIndex = Math.max(0, m.q.getLength() - 1);
@@ -2983,8 +2860,6 @@ window.DocQuill = {
         q.setSelection(Math.max(0, q.getLength() - 1));
     },
 
-    // Aktifkan editor body lalu fokuskan caret di akhir konten.
-    // Dipakai pasca-hapus halaman supaya caret pindah ke halaman sebelumnya.
     focusBodyEnd: (regionEl) => {
         const q = quillsByRegion.get(regionEl);
         if (!q) return;
@@ -2993,8 +2868,6 @@ window.DocQuill = {
         q.focus();
     },
 
-    // Jaminan: semua isi dokumen (body) selalu bisa diketik di luar sesi.
-    // Mengembalikan jumlah body yang sempat mati lalu dipulihkan.
     ensureBodyEditable: () => {
         let revived = 0;
         quillsByRegion.forEach((q, el) => {

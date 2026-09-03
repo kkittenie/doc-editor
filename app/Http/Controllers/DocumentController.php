@@ -96,15 +96,8 @@ class DocumentController extends Controller
                 ?? $this->buildTemplateBodyHtml($template['body_content'] ?? [], $useCenter);
         }
 
-        // Pastikan judul "PASAL n" selalu berurutan sesuai urutan pasalnya,
-        // apa pun isi body (dari template, hasil import, atau manual).
         $bodyHtml = $this->normalizePasalNumbering([$bodyHtml])[0];
 
-        // Halaman pertama dokumen: sampul (cover) untuk semua template kecuali
-        // surat-kuasa & surat-pernyataan; tanpa template -> langsung isi saja.
-        // Untuk cover: ikon masuk section header, identitas/pihak + paraf +
-        // stample/materai masuk section footer (server yang menentukan,
-        // nilai dari form diabaikan).
         $coverPages = 0;
 
         if ($templateKey && in_array($templateKey, $this->coverTemplateKeys(), true)) {
@@ -190,11 +183,6 @@ class DocumentController extends Controller
             .'</p>';
     }
 
-    /**
-     * Isi SECTION FOOTER untuk dokumen ber-cover:
-     * identitas pihak pertama di kiri, lalu paraf para pihak +
-     * area stample/materai di sisi kanan.
-     */
     private function buildCoverFooterHtml(): string
     {
         return implode("\n", [
@@ -208,15 +196,6 @@ class DocumentController extends Controller
         ]);
     }
 
-    /**
-     * Halaman sampul (cover): bagian tubuh saja — judul, para pihak,
-     * dan nomor dokumen. Semua data memakai placeholder agar diisi
-     * sendiri oleh pengguna.
-     *
-     * Ikon pihak pertama berada di section header (buildCoverHeaderHtml),
-     * sedangkan identitas + paraf + stample/materai berada di section
-     * footer (buildCoverFooterHtml).
-     */
     private function buildCoverPageHtml(string $title): string
     {
         $judul = trim($title) !== '' ? e($title) : '[Ketik judul dokumen di sini]';
@@ -232,35 +211,10 @@ class DocumentController extends Controller
         HTML;
     }
 
-        /**
-     * Pastikan judul "PASAL n" berurutan KESELURUHAN dokumen (1,2,3...),
-     * melintasi batas halaman. Dipanggil dengan seluruh array halaman
-     * body sehingga counter tidak ter-reset per halaman.
-     *
-     * Nomor pasal pada template disimpan sebagai TEKS keras (mis. "PASAL 5").
-     * Jika sebuah pasal pernah dipindah/diurut-ulang (di editor, hasil import,
-     * dsb.) nomor teks itu tidak ikut menyesuaikan, sehingga tampak tidak
-     * berurutan. Helper ini menomori ulang hanya untuk baris yang benar-benar
-     * merupakan JUDUL pasal berdiri sendiri (berawalan PASAL + angka), lalu
-     * membiarkan paragraf lain (yang sekadar menyebut "pasal 4 ayat 1", dst.)
-     * tetap apa adanya.
-     *
-     * Terima array halaman -> kembalikan array halaman yang sudah
-onta     * di-renumber secara berurutan.
-     */
     private function normalizePasalNumbering(array $pages): array
     {
         $counter = 0;
 
-        // Match elemen yang isinya HANYA judul pasal (boleh dibungkus tag
-        // inline spt <strong>/<em>), contoh:
-        //   <p><strong>PASAL 1</strong></p>
-        //   <h1 class="unnumbered" id="pasal-1">PASAL 2 — JUDUL</h1>
-        // Baris/cetak HTML boleh banyak elemen dalam satu baris (bentukan
-        // editor), makanya diproses per elemen, bukan per baris.
-        // Inline ref spt "<p>... lihat pasal 4 ayat 1 ...</p>" atau
-        // "Pasal 17 KUHPerdata mengatur..." TIDAK match, karena teks di dalam
-        // elemen tidak diawali kata "pasal" (atau tanpa pemisah judul).
         $pattern = '/(<(?:p|h[1-6])\b[^>]*>)\s*('
             . '(?:<(?!\/(?:p|h[1-6])\b)[^>]+>\s*)*'
             . 'pasal\s+\d+'
@@ -287,18 +241,6 @@ onta     * di-renumber secara berurutan.
         return $pages;
     }
 
-    /**
-     * Bangun HTML body dari data template menjadi dokumen perjanjian yang utuh.
-     *
-     * Mendukung struktur:
-     *  - 'preamble'  : kalimat pembuka (fallback ke legacy 'tujuanSurat')
-     *  - 'menimbang' : konsideran Menimbang (satu poin per baris)
-     *  - 'mengingat' : konsideran Mengingat (satu poin per baris)
-     *  - 'paraPihak' : array deskripsi para pihak
-     *  - 'isi'       : array pasal berisi ['judul' => .., 'text' => ..]
-     *                  (fallback ke legacy 'isiPasal1'..'isiPasalN')
-     *  - 'tutup'     : kalimat penutup
-     */
     private function buildTemplateBodyHtml(array $body, bool $centerPasalHeadings = false): string
     {
         $parts = [];
@@ -474,19 +416,13 @@ onta     * di-renumber secara berurutan.
 
         $borderStyle  = $bordered ? 'border:1px solid #000;' : 'border:none;';
         $cellBaseStyle = $borderStyle.' padding:4px 6px; vertical-align:top;';
-        // Tabel data memenuhi lebar dokumen; tabel tanda tangan lebar otomatis
-        // seperti pada dokumen asli.
+
         $tableStyle = 'border-collapse:collapse; '.($bordered ? 'width:100%;' : 'width:auto;').' margin:0.5rem 0;';
 
-        // ---- render dengan grid-aware merge (colspan + vertical merge) ----
-        // $pending[gridCol] = sisa baris yang masih tertutup merge dari atas.
-        // Sel continuation (v='c') dilewati; sel restart ('r') mendapat rowspan.
+
         $pending = [];
         $byRow   = [];
         $totalRows = count($rows);
-        // Lebar kolom eksplisit: dengan table-layout:fixed + width per sel,
-        // setiap fragmen tabel yang terpotong halaman tetap memiliki grid
-        // kolom yang identik (kolom segaris antar halaman, seperti di Word).
         $colCount = 0;
         foreach ($rows as $row) {
             $w = 0;
@@ -498,10 +434,6 @@ onta     * di-renumber secara berurutan.
         $colCount = max(1, $colCount);
         $colWidth = 100 / $colCount;
 
-        // Baris pendek (jumlah sel < colCount): colspan sel terakhir
-        // diperluas agar baris tetap mengisi seluruh lebar tabel — tanpa
-        // ini, dengan table-layout:fixed baris pendek hanya mengisi
-        // sebagian lebar dan tepi kanan jadi bergerigi.
         foreach ($rows as $ri => $row) {
             $w = 0;
             foreach ($row as $cell) {
