@@ -873,11 +873,12 @@
         flex-direction: column;
     }
 
-    /* Halaman SAMPUL (cover) — template ber-cover mendapat ruang
-       napas ekstra supaya isi kop/tubuh tidak menabrak tepi kertas
-       dan cover terkesan "lapang" (ala sampul dokumen resmi). */
+    /* Halaman SAMPUL (cover): margin ATAS sengaja disamakan dengan
+       halaman lain (20mm) supaya tidak ada ruang kosong ekstra di
+       atas kertas pertama. Sisi kiri-kanan tetap sedikit lebih lega
+       (24mm) sebagai ciri khas sampul tanpa menambah jarak vertikal. */
     .doc-sheet.doc-cover {
-        padding: 34mm 24mm;
+        padding: 20mm 24mm;
         background: linear-gradient(180deg, #ffffff 0%, #fdfdfb 60%, #fafaf7 100%);
     }
 
