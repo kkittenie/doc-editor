@@ -50,47 +50,22 @@ const ListStyleAttributor = new Parchment.ClassAttributor('liststyle', 'ql-lists
 });
 Quill.register(ListStyleAttributor, true);
 
-// ---- Underline style: variasi garis bawah ----
-// Using class attributor for all underline styles to avoid conflicts with Quill's default underline
-const UnderlineStyleSolid = new Parchment.ClassAttributor('ul-solid', 'ul-solid', {
+// ---- Underline style: variasi garis bawah (diperbaiki untuk Quill 2 / Parchment) ----
+// Parchment ClassAttributor.add menambah kelas: keyName + dash + value,
+// mis. attributor 'ul-dotted' + nilai true -> kelas 'ul-dotted-true' (bukan
+// 'ul-dotted'). CSS menarget .ul-dotted, jadi variasi tak pernah tampil.
+// Solusi: SATU attributor prefix 'ul' + whitelist nama variasi; terapkan
+// dengan nilai string (solid, dotted, ...) agar kelas ul-dotted/ul-wavy
+// cocok dengan CSS yang ada.
+const UNDERLINE_STYLE_WHITELIST = [
+    'solid', 'double', 'thick',
+    'dotted', 'dashed', 'dotdashed', 'dotdotdashed', 'wavy',
+];
+const UnderlineStyle = new Parchment.ClassAttributor('ul', 'ul', {
     scope: Parchment.Scope.INLINE,
+    whitelist: UNDERLINE_STYLE_WHITELIST,
 });
-Quill.register(UnderlineStyleSolid, true);
-
-const UnderlineStyleDouble = new Parchment.ClassAttributor('ul-double', 'ul-double', {
-    scope: Parchment.Scope.INLINE,
-});
-Quill.register(UnderlineStyleDouble, true);
-
-const UnderlineStyleThick = new Parchment.ClassAttributor('ul-thick', 'ul-thick', {
-    scope: Parchment.Scope.INLINE,
-});
-Quill.register(UnderlineStyleThick, true);
-
-const UnderlineStyleDotted = new Parchment.ClassAttributor('ul-dotted', 'ul-dotted', {
-    scope: Parchment.Scope.INLINE,
-});
-Quill.register(UnderlineStyleDotted, true);
-
-const UnderlineStyleDashed = new Parchment.ClassAttributor('ul-dashed', 'ul-dashed', {
-    scope: Parchment.Scope.INLINE,
-});
-Quill.register(UnderlineStyleDashed, true);
-
-const UnderlineStyleDotDashed = new Parchment.ClassAttributor('ul-dotdashed', 'ul-dotdashed', {
-    scope: Parchment.Scope.INLINE,
-});
-Quill.register(UnderlineStyleDotDashed, true);
-
-const UnderlineStyleDotDotDashed = new Parchment.ClassAttributor('ul-dotdotdashed', 'ul-dotdotdashed', {
-    scope: Parchment.Scope.INLINE,
-});
-Quill.register(UnderlineStyleDotDotDashed, true);
-
-const UnderlineStyleWavy = new Parchment.ClassAttributor('ul-wavy', 'ul-wavy', {
-    scope: Parchment.Scope.INLINE,
-});
-Quill.register(UnderlineStyleWavy, true);
+Quill.register(UnderlineStyle, true);
 
 const BaseImage = Quill.import('formats/image');
 
@@ -127,7 +102,7 @@ Quill.register(HrBlot);
 // Daftar format yang diizinkan (dipakai semua instance)
 const ALLOWED_FORMATS = [
     'header', 'bold', 'italic', 'underline', 'strike',
-    'ul-solid', 'ul-double', 'ul-thick', 'ul-dotted', 'ul-dashed', 'ul-dotdashed', 'ul-dotdotdashed', 'ul-wavy',
+    'ul',
     'script', 'list', 'align', 'indent',
     'blockquote', 'link', 'image', 'hr',
     'font', 'size', 'color', 'background', 'lineheight', 'liststyle',
@@ -1472,7 +1447,7 @@ const refreshToolbarStates = () => {
         if (TOOLBAR_TOGGLES.includes(cmd)) {
             if (cmd === 'underline') {
                 // Underline is active when any underline style is applied
-                const hasUnderline = !!fmt.underline || !!fmt['ul-solid'] || !!fmt['ul-double'] || !!fmt['ul-thick'] || !!fmt['ul-dotted'] || !!fmt['ul-dashed'] || !!fmt['ul-dotdashed'] || !!fmt['ul-dotdotdashed'] || !!fmt['ul-wavy'];
+                const hasUnderline = !!fmt.underline || !!fmt.ul;
                 btn.classList.toggle('active', hasUnderline);
             } else {
                 btn.classList.toggle('active', !!fmt[cmd]);
@@ -1623,19 +1598,13 @@ const applyCmd = (cmd) => {
             q.format(cmd, !q.getFormat(sel)[cmd]);
             break;
         case 'underline': {
-            // Toggle default underline (solid)
-            const currentUnderline = q.getFormat(sel).underline;
-            if (currentUnderline) {
-                // Remove all underline formatting
+            // Toggle default solid underline. Juga bersihkan variasi kelas (ul-*)
+            // bila sedang aktif.
+            const fmt = q.getFormat(sel);
+            if (fmt.underline || fmt.ul) {
+                // Remove all underline formatting (default <u> + variasi kelas)
                 q.format('underline', false);
-                q.formatText(sel.index, sel.length, 'ul-solid', false);
-                q.formatText(sel.index, sel.length, 'ul-double', false);
-                q.formatText(sel.index, sel.length, 'ul-thick', false);
-                q.formatText(sel.index, sel.length, 'ul-dotted', false);
-                q.formatText(sel.index, sel.length, 'ul-dashed', false);
-                q.formatText(sel.index, sel.length, 'ul-dotdashed', false);
-                q.formatText(sel.index, sel.length, 'ul-dotdotdashed', false);
-                q.formatText(sel.index, sel.length, 'ul-wavy', false);
+                q.formatText(sel.index, sel.length, 'ul', false);
             } else {
                 // Apply solid underline (default)
                 q.format('underline', true);
@@ -1948,38 +1917,14 @@ const bindToolbar = () => {
             const sel = q.getSelection(true);
             if (!sel) return;
 
-            // First remove any existing underline formatting
+            // Hapus underline bawaan (<u> blot) terlebih dahulu
             q.format('underline', false);
 
-            // Remove all underline style classes
-            q.formatText(sel.index, sel.length, 'ul-solid', false);
-            q.formatText(sel.index, sel.length, 'ul-double', false);
-            q.formatText(sel.index, sel.length, 'ul-thick', false);
-            q.formatText(sel.index, sel.length, 'ul-dotted', false);
-            q.formatText(sel.index, sel.length, 'ul-dashed', false);
-            q.formatText(sel.index, sel.length, 'ul-dotdashed', false);
-            q.formatText(sel.index, sel.length, 'ul-dotdotdashed', false);
-            q.formatText(sel.index, sel.length, 'ul-wavy', false);
-
-            // Apply underline
-            q.formatText(sel.index, sel.length, 'underline', true);
-
-            // Apply specific style class
-            const styleClassMap = {
-                'solid': 'ul-solid',
-                'double': 'ul-double',
-                'thick': 'ul-thick',
-                'dotted': 'ul-dotted',
-                'dashed': 'ul-dashed',
-                'dotdashed': 'ul-dotdashed',
-                'dotdotdashed': 'ul-dotdotdashed',
-                'wavy': 'ul-wavy',
-            };
-
-            const styleClass = styleClassMap[style];
-            if (styleClass) {
-                q.formatText(sel.index, sel.length, styleClass, true);
-            }
+            // Hapus variasi garis bawah yang sedang aktif, lalu terapkan
+            // variasi baru. ClassAttributor 'ul' (prefix 'ul') menghasilkan
+            // kelas ul-<style> yang cocok dengan CSS yang ada.
+            q.formatText(sel.index, sel.length, 'ul', false);
+            q.formatText(sel.index, sel.length, 'ul', style);
 
             notifyDirty();
             refreshToolbarStates();
