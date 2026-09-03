@@ -873,22 +873,13 @@
         flex-direction: column;
     }
 
-    /* Halaman SAMPUL (cover): margin ATAS sengaja disamakan dengan
-       halaman lain (20mm) supaya tidak ada ruang kosong ekstra di
-       atas kertas pertama. Sisi kiri-kanan tetap sedikit lebih lega
-       (24mm) sebagai ciri khas sampul tanpa menambah jarak vertikal. */
+    /* Halaman SAMPUL (cover): geometri dibuat SAMA PERSIS dengan
+       halaman lain (padding 20mm semua sisi) supaya koordinat gambar
+       floating yang disalin ke mirror semua halaman konsisten — tidak
+       ada gambar yang terdorong keluar kertas di halaman lain. */
     .doc-sheet.doc-cover {
-        padding: 20mm 24mm;
-        background: linear-gradient(180deg, #ffffff 0%, #fdfdfb 60%, #fafaf7 100%);
-    }
-
-    /* Kop & footer sampul diberi jarak lebih lega. */
-    .doc-sheet.doc-cover .doc-sheet-header {
-        padding-bottom: 12px;
-    }
-
-    .doc-sheet.doc-cover .doc-sheet-footer {
-        padding-top: 16px;
+        padding: 20mm 20mm;
+        background: #ffffff;
     }
 
     /* Region di dalam satu kertas: header, body, footer */

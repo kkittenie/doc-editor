@@ -252,6 +252,59 @@ const clampPosToSheet = (regionEl, left, top, w, h) => {
     return [cx, cy];
 };
 
+// Clamp koordinat gambar floating agar tetap DI DALAM kotak section
+// (header/body/footer) — gambar tidak boleh melewati garis section
+// saat sedang di-drag.
+const clampPosToRegion = (regionEl, left, top, w, h) => {
+    const r = regionEl?.getBoundingClientRect?.();
+    if (!r || !r.width || !r.height) return [Math.max(0, left), Math.max(0, top)];
+    const maxX = Math.max(0, r.width - w);
+    const maxY = Math.max(0, r.height - h);
+    const cx = Math.min(Math.max(left, 0), maxX);
+    const cy = Math.min(Math.max(top, 0), maxY);
+    return [cx, cy];
+};
+
+// "Garis section mengikuti gambar" saat resize: tinggi minimum region
+// dihitung ulang agar semua gambar floating (anak langsung region)
+// tetap muat di dalam garis batas bawah section. Bisa menyusut juga
+// bila semua gambar diperkecil.
+const fitRegionToImage = (region) => {
+    if (!region || region.nodeType !== 1) return;
+    try {
+        const isSection =
+            region.classList?.contains('doc-sheet-header') ||
+            region.classList?.contains('doc-sheet-body') ||
+            region.classList?.contains('doc-sheet-footer');
+        if (!isSection) return;
+
+        const imgs = Array.from(region.querySelectorAll(':scope > img'))
+            .filter((im) => getComputedStyle(im).position === 'absolute');
+        if (!imgs.length) return;
+
+        const padB = parseFloat(getComputedStyle(region).paddingBottom) || 0;
+        const rRect = region.getBoundingClientRect();
+        let maxBottom = 0;
+        imgs.forEach((im) => {
+            const iRect = im.getBoundingClientRect();
+            maxBottom = Math.max(maxBottom, iRect.bottom - rRect.top);
+        });
+        const want = Math.ceil(maxBottom + padB);
+
+        // Tinggi alami region TANPA minHeight dari kita (gambar absolute
+        // tidak ikut memberi tinggi), lalu ambil yang lebih besar.
+        const prevMin = region.style.minHeight;
+        region.style.minHeight = '';
+        const natural = region.offsetHeight;
+        region.style.minHeight = prevMin || '';
+
+        const target = Math.max(natural, want);
+        if (target !== region.offsetHeight) {
+            region.style.minHeight = target + 'px';
+        }
+    } catch (err) { /* noop */ }
+};
+
 const removeImageTools = () => {
     clearInterval(watchTimer);
     cancelAnimationFrame(watchTimer || 0);
@@ -393,8 +446,9 @@ const applyImageLayout = (img, layout) => {
         // supaya gambar tidak "lompat" saat berubah jadi floating.
         const imgRect = img.getBoundingClientRect();
         const regionRect = region.getBoundingClientRect();
-        // Posisi bebas di seluruh area kertas — bukan hanya di dalam region
-        const [freeLeft, freeTop] = clampPosToSheet(
+        // Posisi gambar relatif terhadap region (section)-nya,
+        // tidak boleh melewati garis section.
+        const [freeLeft, freeTop] = clampPosToRegion(
             region,
             imgRect.left - regionRect.left,
             imgRect.top - regionRect.top,
@@ -422,6 +476,9 @@ const applyImageLayout = (img, layout) => {
             img.style.zIndex = '20';
             img.classList.add('doc-image-front');
         }
+
+        // Garis batas bawah section ikut menyesuaikan dgn ukuran gambar
+        fitRegionToImage(region);
     } else if (layout === 'inline' || layout === 'square' || layout === 'topbottom') {
         // Layout aliran teks: gambar WAJIB kembali ke dalam editor Quill.
         // (bila sebelumnya floating, ia anak langsung region — di luar editor)
@@ -801,8 +858,9 @@ const selesaiFlowDrag = (e) => {
     if (region && region.isConnected) {
         // Berhenti PERSIS di titik pelepasan: jadikan gambar floating
         const rRect = region.getBoundingClientRect();
-        // Posisi gambar relatif terhadap region target
-        const [left, top] = clampPosToSheet(
+        // Posisi gambar relatif terhadap region target — dijaga
+        // tetap di dalam garis section.
+        const [left, top] = clampPosToRegion(
             region,
             ghostLeft - rRect.left,
             ghostTop - rRect.top,
@@ -840,10 +898,11 @@ const pindahkanFloatingKeRegion = (img, e) => {
     if (!target || !target.isConnected) return;
     if (target === img.closest(FLOAT_REGION_SELECTOR)) return;
 
-    // Posisi layar gambar saat dilepas -> koordinat relatif region baru
+    // Posisi layar gambar saat dilepas -> koordinat relatif region baru,
+    // dijaga tetap di dalam garis section.
     const iRect = img.getBoundingClientRect();
     const tRect = target.getBoundingClientRect();
-    const [left, top] = clampPosToSheet(
+    const [left, top] = clampPosToRegion(
         target,
         iRect.left - tRect.left,
         iRect.top - tRect.top,
@@ -1298,14 +1357,37 @@ if (!window.__imageToolsBound) {
             const shiftLeft = resizeCorner === 'nw' || resizeCorner === 'sw';
             const shiftTop = resizeCorner === 'nw' || resizeCorner === 'ne';
 
-            activeImage.style.width = newW + 'px';
-            activeImage.style.height = newH + 'px';
-
             if (resizeIsFloating) {
+                const region = activeImage.closest(FLOAT_REGION_SELECTOR);
+                const regionW = region ? region.getBoundingClientRect().width : Infinity;
+
+                // Lebar dibatasi selebar section (kertas tidak ikut melebar).
+                let fW = newW;
+                let fH = newH;
+                if (regionW > 0 && fW > regionW) {
+                    const ratio = Math.max(0.02, regionW / resizeStartW);
+                    fW = Math.max(24, Math.round(resizeStartW * ratio));
+                    fH = Math.max(24, Math.round(resizeStartH * ratio));
+                }
+                const dW2 = fW - resizeStartW;
+                const dH2 = fH - resizeStartH;
+
+                activeImage.style.width = fW + 'px';
+                activeImage.style.height = fH + 'px';
+
                 // Anchor diam: geser left/top hanya bila sisi kiri/atas yang bergerak
-                if (shiftLeft) activeImage.style.left = (resizeStartLeft - dW) + 'px';
-                if (shiftTop) activeImage.style.top = (resizeStartTop - dH) + 'px';
+                if (shiftLeft) activeImage.style.left = (resizeStartLeft - dW2) + 'px';
+                if (shiftTop) activeImage.style.top = (resizeStartTop - dH2) + 'px';
+
+                // Top tidak boleh negatif (tidak menembus garis atas section)
+                if (parseFloat(activeImage.style.top) < 0) activeImage.style.top = '0px';
+
+                // Garis batas bawah section mengikuti ukuran gambar
+                if (region) fitRegionToImage(region);
             } else {
+                activeImage.style.width = newW + 'px';
+                activeImage.style.height = newH + 'px';
+
                 // Gambar di aliran teks: kompensasi margin agar anchor tak bergeser visual
                 if (shiftLeft) activeImage.style.marginLeft = (resizeStartMarginLeft - dW) + 'px';
                 if (shiftTop) activeImage.style.marginTop = (resizeStartMarginTop - dH) + 'px';
@@ -1328,9 +1410,9 @@ if (!window.__imageToolsBound) {
         if (!isDraggingFloating) return;
         e.preventDefault();
 
-        // Bebas digeser ke seluruh area kertas (tanpa batas kotak region)
-        // Transfer ke region lain ditangani saat mouseup berdasarkan posisi kursor
-        const [nextLeft, nextTop] = clampPosToSheet(
+        // Gambar dikunci di dalam kotak section-nya: tidak boleh
+        // melewati garis section saat di-drag.
+        const [nextLeft, nextTop] = clampPosToRegion(
             floatingRegion,
             floatBaseLeft + (e.clientX - floatStartX),
             floatBaseTop + (e.clientY - floatStartY),
@@ -1378,6 +1460,12 @@ if (!window.__imageToolsBound) {
         }
 
         if (isResizingImage) {
+            // Finalisasi: tinggi section disesuaikan dengan ukuran akhir
+            const resizedImg = activeImage;
+            if (resizedImg) {
+                const region = resizedImg.closest(FLOAT_REGION_SELECTOR);
+                if (region) fitRegionToImage(region);
+            }
             notifyDirty();
             document.body.style.userSelect = '';
         }
@@ -2008,6 +2096,13 @@ const syncMirrorsFrom = (sourceQ) => {
                 /* noop */
             }
 
+            // Salin juga tinggi minimum region (garis section yang
+            // "mengikuti" gambar floating) ke semua halaman konsisten.
+            if (m.regionEl && entry.regionEl &&
+                (m.regionEl.style.minHeight || entry.regionEl.style.minHeight)) {
+                m.regionEl.style.minHeight = entry.regionEl.style.minHeight;
+            }
+
 
             if (!sel) return;
             try {
@@ -2299,6 +2394,10 @@ const attachQuillToRegion = (regionEl) => {
             }
             seenFloatImgs.add(key);
         });
+
+        // Pulihkan tinggi section yang "mengikuti" gambar floating
+        // (garis batas bawah section tetap rapi setelah reload).
+        fitRegionToImage(regionEl);
 
         const zoneRole = regionEl.dataset?.region;
         if (zoneRole === 'header' || zoneRole === 'footer') {
@@ -2774,6 +2873,13 @@ window.DocQuill = {
                         }
                     } catch (err) {
                         /* noop */
+                    }
+
+                    // Salin juga tinggi minimum region (garis section yang
+                    // "mengikuti" gambar floating) ke semua halaman konsisten.
+                    if (m.regionEl && list[0].regionEl &&
+                        (m.regionEl.style.minHeight || list[0].regionEl.style.minHeight)) {
+                        m.regionEl.style.minHeight = list[0].regionEl.style.minHeight;
                     }
 
                     if (!sel) return;
