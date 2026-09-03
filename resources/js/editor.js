@@ -23,14 +23,12 @@ const SafeQuillTableBetter = function(quill, options) {
 SafeQuillTableBetter.keyboardBindings = QuillTableBetter.keyboardBindings;
 Quill.register({ 'modules/table-better': SafeQuillTableBetter }, true);
 
-// ---- Font family: pakai inline style (bukan class), seperti TinyMCE ----
 const FontAttributor = Quill.import('attributors/style/font');
 FontAttributor.whitelist = [
     'Arial', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana',
 ];
 Quill.register(FontAttributor, true);
 
-// ---- Ukuran font: nilai px nyata ----
 const SizeAttributor = Quill.import('attributors/style/size');
 SizeAttributor.whitelist = null;
 Quill.register(SizeAttributor, true);
@@ -43,20 +41,12 @@ const LineHeightStyle = new Parchment.StyleAttributor('lineheight', 'line-height
 });
 Quill.register(LineHeightStyle, true);
 
-// ---- Penanda "list ini pakai huruf (a, b, c)", terpisah dari nesting/indent ----
 const ListStyleAttributor = new Parchment.ClassAttributor('liststyle', 'ql-liststyle', {
     scope: Parchment.Scope.BLOCK,
     whitelist: ['alpha'],
 });
 Quill.register(ListStyleAttributor, true);
 
-// ---- Underline style: variasi garis bawah (diperbaiki untuk Quill 2 / Parchment) ----
-// Parchment ClassAttributor.add menambah kelas: keyName + dash + value,
-// mis. attributor 'ul-dotted' + nilai true -> kelas 'ul-dotted-true' (bukan
-// 'ul-dotted'). CSS menarget .ul-dotted, jadi variasi tak pernah tampil.
-// Solusi: SATU attributor prefix 'ul' + whitelist nama variasi; terapkan
-// dengan nilai string (solid, dotted, ...) agar kelas ul-dotted/ul-wavy
-// cocok dengan CSS yang ada.
 const UNDERLINE_STYLE_WHITELIST = [
     'solid', 'double', 'thick',
     'dotted', 'dashed', 'dotdashed', 'dotdotdashed', 'wavy',
@@ -99,7 +89,6 @@ class HrBlot extends BlockEmbed {
 
 Quill.register(HrBlot);
 
-// Daftar format yang diizinkan (dipakai semua instance)
 const ALLOWED_FORMATS = [
     'header', 'bold', 'italic', 'underline', 'strike',
     'ul',
@@ -130,10 +119,8 @@ const uploadImageFile = (file) =>
     });
 
 
-// Semua root editor yang memasang image tools
 let registeredImageToolEditors = [];
 
-// Callback "dokumen berubah" — diisi dari blade (Alpine)
 window.__docEditorDirty = null;
 
 const notifyDirty = () => {
@@ -142,8 +129,7 @@ const notifyDirty = () => {
     }
 };
 
-// Shim dengan API minimal yang dipakai sistem gambar:
-// save / fire / nodeChanged / getBody / dom.remove / dom.create
+
 const makeEditorShim = (rootEl) => ({
     rootEl,
     getBody: () => rootEl,
@@ -176,8 +162,6 @@ const findEditorContaining = (node) => {
 };
 
 
-// IMAGE LAYOUT TOOLS
-// (bubble ⚓ + titik resize + posisi depan/belakang teks)
 
 
 let activeImage = null;
@@ -193,12 +177,10 @@ let resizeStartW = 0, resizeStartH = 0;
 let resizeStartCursorX = 0, resizeStartCursorY = 0;
 let resizeStartLeft = 0, resizeStartTop = 0;
 let resizeIsFloating = false;
-let resizeAnchorX = 0, resizeAnchorY = 0;      // posisi layar sudut OPOSISI (anchor)
-let resizeBaseVecX = 0, resizeBaseVecY = 0;    // vektor handle -> anchor saat mulai
+let resizeAnchorX = 0, resizeAnchorY = 0;      
+let resizeBaseVecX = 0, resizeBaseVecY = 0;    
 let resizeStartMarginLeft = 0, resizeStartMarginTop = 0;
 let watchTimer = null;
-
-// State drag "angkat & jatuhkan" untuk gambar biasa (non-floating)
 let flowDragArmed = false;
 let isDraggingFlowImage = false;
 let flowStartX = 0, flowStartY = 0;
@@ -208,8 +190,6 @@ let flowImgOriginalParent = null;
 let flowImgOriginalNext = null;
 let flowImgOriginalRegion = null;
 let flowDragSourceImg = null;
-
-// State drag bebas untuk gambar floating (behind/front text)
 let floatingImg = null;
 let floatingRegion = null;
 let floatingDragArmed = false;
@@ -252,9 +232,6 @@ const clampPosToSheet = (regionEl, left, top, w, h) => {
     return [cx, cy];
 };
 
-// Clamp koordinat gambar floating agar tetap DI DALAM kotak section
-// (header/body/footer) — gambar tidak boleh melewati garis section
-// saat sedang di-drag.
 const clampPosToRegion = (regionEl, left, top, w, h) => {
     const r = regionEl?.getBoundingClientRect?.();
     if (!r || !r.width || !r.height) return [Math.max(0, left), Math.max(0, top)];
@@ -265,10 +242,6 @@ const clampPosToRegion = (regionEl, left, top, w, h) => {
     return [cx, cy];
 };
 
-// "Garis section mengikuti gambar" saat resize: tinggi minimum region
-// dihitung ulang agar semua gambar floating (anak langsung region)
-// tetap muat di dalam garis batas bawah section. Bisa menyusut juga
-// bila semua gambar diperkecil.
 const fitRegionToImage = (region) => {
     if (!region || region.nodeType !== 1) return;
     try {
@@ -290,9 +263,6 @@ const fitRegionToImage = (region) => {
             maxBottom = Math.max(maxBottom, iRect.bottom - rRect.top);
         });
         const want = Math.ceil(maxBottom + padB);
-
-        // Tinggi alami region TANPA minHeight dari kita (gambar absolute
-        // tidak ikut memberi tinggi), lalu ambil yang lebih besar.
         const prevMin = region.style.minHeight;
         region.style.minHeight = '';
         const natural = region.offsetHeight;
@@ -341,7 +311,6 @@ const positionImageTools = () => {
         removeBtnEl.style.top = (rect.top - 12) + 'px';
     }
 
-    // Permukaan drag menutupi area gambar selama mode edit aktif
     if (dragSurfaceEl) {
         dragSurfaceEl.style.left = rect.left + 'px';
         dragSurfaceEl.style.top = rect.top + 'px';
@@ -363,7 +332,6 @@ const positionImageTools = () => {
     });
 };
 
-// Pastikan region masih punya minimal satu blok untuk menaruh kursor
 const ensureRegionHasBlock = (editor, region) => {
     const hasBlock = Array.from(region.children).some((el) =>
         ['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'BLOCKQUOTE']
@@ -397,9 +365,7 @@ const cleanupAfterFloatMove = (editor, oldParent, region) => {
     }
 };
 
-// Kembalikan gambar floating (anak langsung region, di luar editor Quill)
-// ke dalam aliran konten editor — dipakai saat berganti ke layout aliran
-// teks (inline / persegi / atas-bawah) agar ikut ter-render & tersimpan.
+
 const returnImageToFlow = (editor, img) => {
     const region = img.closest(FLOAT_REGION_SELECTOR);
     const qlEditor = region?.querySelector('.ql-editor');
@@ -442,12 +408,8 @@ const applyImageLayout = (img, layout) => {
     const region = img.closest(FLOAT_REGION_SELECTOR);
 
     if ((layout === 'behind' || layout === 'front') && region) {
-        // Catat posisi visual gambar SAAT INI relatif terhadap region,
-        // supaya gambar tidak "lompat" saat berubah jadi floating.
         const imgRect = img.getBoundingClientRect();
         const regionRect = region.getBoundingClientRect();
-        // Posisi gambar relatif terhadap region (section)-nya,
-        // tidak boleh melewati garis section.
         const [freeLeft, freeTop] = clampPosToRegion(
             region,
             imgRect.left - regionRect.left,
@@ -458,7 +420,6 @@ const applyImageLayout = (img, layout) => {
         const left = Math.round(freeLeft);
         const top = Math.round(freeTop);
 
-        // Keluarkan gambar dari paragrafnya -> jadi anak langsung region.
         region.appendChild(img);
         cleanupAfterFloatMove(editor, oldParent, region);
         ensureRegionHasBlock(editor, region);
@@ -477,20 +438,14 @@ const applyImageLayout = (img, layout) => {
             img.classList.add('doc-image-front');
         }
 
-        // Garis batas bawah section ikut menyesuaikan dgn ukuran gambar
         fitRegionToImage(region);
     } else if (layout === 'inline' || layout === 'square' || layout === 'topbottom') {
-        // Layout aliran teks: gambar WAJIB kembali ke dalam editor Quill.
-        // (bila sebelumnya floating, ia anak langsung region — di luar editor)
         returnImageToFlow(editor, img);
 
         if (layout === 'inline') {
-            // Sejajar dengan teks: mengalir seperti huruf dalam satu baris
             img.style.display = 'inline';
             img.style.verticalAlign = 'middle';
         } else if (layout === 'square') {
-            // Persegi — teks mengalir di sampingnya: CSS float kiri/kanan.
-            // Klik ulang opsi ini saat sudah persegi untuk pindah sisi.
             const side =
                 prevLayout === 'square'
                     ? prevFloat === 'left'
@@ -501,7 +456,6 @@ const applyImageLayout = (img, layout) => {
             img.style.margin =
                 side === 'left' ? '4px 14px 8px 0' : '4px 0 8px 14px';
         } else {
-            // Atas dan bawah: blok penuh — teks hanya di atas & bawah gambar
             img.style.display = 'block';
             img.style.clear = 'both';
         }
@@ -582,8 +536,6 @@ const startImageResize = (e, corner) => {
     resizeStartCursorX = e.clientX;
     resizeStartCursorY = e.clientY;
 
-    // Anchor = sudut OPOSISI dari handle yang ditarik -> titik ini yang tetap diam,
-    // gambar "tumbuh menuju" handle sesuai posisi kursor.
     const rect = activeImage.getBoundingClientRect();
     const cornerPts = {
         nw: [rect.left, rect.top],
@@ -597,7 +549,6 @@ const startImageResize = (e, corner) => {
     resizeBaseVecX = cornerPts[corner][0] - resizeAnchorX;
     resizeBaseVecY = cornerPts[corner][1] - resizeAnchorY;
 
-    // Untuk gambar non-floating: kompensasi margin agar anchor tidak bergeser.
     const cs = getComputedStyle(activeImage);
     resizeStartMarginLeft = parseFloat(cs.marginLeft) || 0;
     resizeStartMarginTop = parseFloat(cs.marginTop) || 0;
@@ -658,7 +609,6 @@ const showImageTools = (editor, img) => {
         return h;
     });
 
-    // Permukaan drag untuk gambar floating
     if (isFloatingImage(img)) {
         dragSurfaceEl = document.createElement('div');
         dragSurfaceEl.title = 'Geser gambar';
@@ -732,29 +682,15 @@ const kembalikanKePosisiSemula = (img) => {
         return;
     }
 
-    // Induk lama sudah hilang (bloknya dinormalisasi Quill saat gambar
-    // diangkat) -> taruh kembali di region ASAL gambar, bukan selalu di
-    // body pertama. Tanpa ini, gambar yang diangkat dari kop lalu dilepas
-    // di luar kertas akan lari ke body dan tidak bisa kembali ke kop.
     const origRegion = (flowImgOriginalRegion && flowImgOriginalRegion.isConnected)
         ? flowImgOriginalRegion
         : document.querySelector('#document-editor .doc-sheet-body');
     if (!origRegion) return;
 
-    // Gambar aliran teks hidup di dalam .ql-editor; kalau belum ada
-    // (region belum terpasang Quill), taruh langsung di region.
     const mount = origRegion.querySelector('.ql-editor') || origRegion;
     mount.insertBefore(img, mount.firstChild);
 };
 
-// Cari region kertas untuk titik layar (x, y):
-//  - titik tepat di dalam region -> region itu
-//  - titik di kertas tapi DI ANTARA region / di margin kertas ->
-//    region TERDEKAT secara geometris (margin atas -> kop, bawah ->
-//    footer), BUKAN selalu body. Dulu fallback-nya .doc-sheet-body,
-//    sehingga gambar yang dilepas sedikit di atas kop "pindah sendiri"
-//    ke dalam body.
-//  - titik di luar semua kertas -> null
 const regionTerdekat = (sheet, x, y) => {
     let best = null;
     let bestDist = Infinity;
@@ -811,7 +747,6 @@ const cariRegionUntukGambar = (img, e) => {
             }
         }
 
-        // Sisanya: region dengan tumpang tindih terbesar (penempatan body)
         document.querySelectorAll(FLOAT_REGION_SELECTOR).forEach((reg) => {
             if (!reg.isConnected) return;
             const rRect = reg.getBoundingClientRect();
@@ -837,17 +772,13 @@ const selesaiFlowDrag = (e) => {
     flowDragSourceImg = null;
     if (!img) return;
 
-    // Titik jatuh yang diinginkan user = posisi ghost saat dilepas
     const ghostLeft = e.clientX - flowDragOffsetX;
     const ghostTop = e.clientY - flowDragOffsetY;
     const ghostW = img.offsetWidth;
     const ghostH = img.offsetHeight;
 
-    // Region target ditentukan oleh TUBUH gambarnya (tumpang tindih
-    // terbesar), bukan titik kursor — lihat cariRegionUntukGambar.
     const region = cariRegionUntukGambar(img, e);
 
-    // Lepas gaya "angkat" (ukuran sengaja dipertahankan)
     img.style.position = '';
     img.style.margin = '';
     img.style.zIndex = '';
@@ -856,10 +787,7 @@ const selesaiFlowDrag = (e) => {
     img.style.maxWidth = '';
 
     if (region && region.isConnected) {
-        // Berhenti PERSIS di titik pelepasan: jadikan gambar floating
         const rRect = region.getBoundingClientRect();
-        // Posisi gambar relatif terhadap region target — dijaga
-        // tetap di dalam garis section.
         const [left, top] = clampPosToRegion(
             region,
             ghostLeft - rRect.left,
@@ -882,7 +810,6 @@ const selesaiFlowDrag = (e) => {
 
         region.appendChild(img);
     } else {
-        // Dilepas di luar kertas -> kembali ke tempat & gaya semula
         img.style.left = '';
         img.style.top = '';
         kembalikanKePosisiSemula(img);
@@ -898,8 +825,6 @@ const pindahkanFloatingKeRegion = (img, e) => {
     if (!target || !target.isConnected) return;
     if (target === img.closest(FLOAT_REGION_SELECTOR)) return;
 
-    // Posisi layar gambar saat dilepas -> koordinat relatif region baru,
-    // dijaga tetap di dalam garis section.
     const iRect = img.getBoundingClientRect();
     const tRect = target.getBoundingClientRect();
     const [left, top] = clampPosToRegion(
@@ -994,12 +919,8 @@ const caretRangeAtPoint = (x, y) => {
     return null;
 };
 
-// Semua "slot" blok dalam satu editor: paragraf/judul/list/kutipan,
-// plus embed hr/img. Dipakai untuk memetakan titik klik -> indeks Quill
-// TERMASUK di area kosong (paragraf kosong, ruang kosong kertas).
 const SLOT_SELECTOR = 'p, h1, h2, h3, h4, h5, h6, li, blockquote, pre, hr, img';
 
-// Indeks caret di dalam SATU slot blok berdasarkan titik klik.
 const indexInSlot = (q, el, x, y) => {
     const r = el.getBoundingClientRect();
     const blot = Quill.find(el);
@@ -1012,12 +933,7 @@ const indexInSlot = (q, el, x, y) => {
             : base;
     }
 
-    // Paragraf/baris KOSONG -> caret persis di baris kosong itu.
-    // (versi lama melompatinya karena tak punya text node)
     if (!(el.textContent || '').trim()) return base;
-
-    // Presisi: baris karakter terdekat dalam slot ini
-    // (teks panjang yang wrap beberapa baris tetap akurat).
     const line = nearestLine(el, x, y);
     if (line) {
         const idx = domPosToQuillIndex(
@@ -1027,7 +943,6 @@ const indexInSlot = (q, el, x, y) => {
         if (idx != null) return idx;
     }
 
-    // Cadangan: awal/akhir blok
     const len = typeof blot?.length === 'function' ? blot.length() : 1;
     return x < r.left + r.width / 2 ? base : base + Math.max(0, len - 1);
 };
@@ -1045,12 +960,9 @@ const quillIndexFromPoint = (q, editorEl, x, y) => {
     const first = slots[0].getBoundingClientRect();
     const last = slots[slots.length - 1].getBoundingClientRect();
 
-    // Klik di atas semua konten -> awal dokumen
     if (y < first.top) return 0;
-    // Klik di bawah semua konten (area kosong kertas) -> akhir dokumen
     if (y > last.bottom) return Math.max(0, q.getLength() - 1);
 
-    // Slot dengan pita vertikal terdekat terhadap titik klik
     let best = null;
     let bestDy = Infinity;
     for (const el of slots) {
@@ -1116,8 +1028,6 @@ const placeCaretAtPoint = (x, y) => {
     return true;
 };
 
-// Indeks Quill pada titik layar untuk SATU instance Quill — TANPA
-// memindahkan caret. Dipakai placeCaretAtPoint dan seleksi double-click.
 const quillIndexAtPoint = (q, x, y) => {
     let index = null;
     const native = caretRangeAtPoint(x, y);
@@ -2872,11 +2782,10 @@ window.DocQuill = {
                             srcImgs.forEach((im) => m.regionEl.appendChild(im.cloneNode(true)));
                         }
                     } catch (err) {
-                        /* noop */
+    
                     }
 
-                    // Salin juga tinggi minimum region (garis section yang
-                    // "mengikuti" gambar floating) ke semua halaman konsisten.
+
                     if (m.regionEl && list[0].regionEl &&
                         (m.regionEl.style.minHeight || list[0].regionEl.style.minHeight)) {
                         m.regionEl.style.minHeight = list[0].regionEl.style.minHeight;
@@ -2887,7 +2796,7 @@ window.DocQuill = {
                         const maxIndex = Math.max(0, m.q.getLength() - 1);
                         m.q.setSelection(Math.min(m.lastCaret, maxIndex), 'silent');
                     } catch (err) {
-                        /* noop */
+                
                     }
                 });
             } finally {
@@ -2904,7 +2813,6 @@ window.DocQuill = {
         });
     },
 
-    // Fokus ke satu zona tertentu (mis. kursor di akhir konten)
     focusZone: (regionEl) => {
         const q = quillsByRegion.get(regionEl);
         if (!q) return;
