@@ -86,6 +86,26 @@
                     <span class="hidden sm:inline">Save As</span>
                 </button>
 
+                <button
+                    x-show="$store.documentEditor?.active"
+                    x-cloak
+                    @click="$store.documentEditor.save && $store.documentEditor.save()"
+                    :disabled="$store.documentEditor?.status === 'saving'"
+                    class="btn-primary text-xs px-3 py-1.5 h-9 shadow-xs disabled:opacity-60"
+                >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/>
+                        <polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    <span x-text="{
+                        saving: 'Menyimpan...',
+                        saved: '✓ Tersimpan',
+                        error: 'Gagal, coba lagi',
+                        idle: 'Save'
+                    }[$store.documentEditor?.status] || 'Save'"></span>
+                </button>
+                
                 <!-- Save Document Action -->
                 <!-- <button @click="savedTime = 'Tersimpan ' + new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})" class="btn-primary text-xs px-3 py-1.5 h-9 shadow-xs">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

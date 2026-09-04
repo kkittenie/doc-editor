@@ -4,8 +4,20 @@ namespace App\Helpers;
 
 class MenuHelper
 {
-    public static function getMainNavItems()
+     public static function getMainNavItems()
     {
+        // Role marketer sengaja dibuat kosong (cuma halaman Dokumen) --
+        // biar gampang diisi lagi nanti tanpa mengganggu menu admin.
+        if (auth()->check() && auth()->user()->hasRole('marketer')) {
+            return [
+                [
+                    'icon' => 'documents',
+                    'name' => 'Dokumen',
+                    'path' => '/documents',
+                ],
+            ];
+        }
+
         return [
             [
                 'icon' => 'dashboard',
@@ -22,16 +34,16 @@ class MenuHelper
                 'name' => 'Dokumen Saya',
                 'path' => '/documents',
             ],
-            [
-                'icon' => 'signature',
-                'name' => 'Tanda Tangan',
-                'path' => '/signatures',
-            ],
         ];
     }
 
     public static function getOthersItems()
     {
+        // Marketer belum ada halaman "Lainnya" sama sekali buat sekarang.
+        if (auth()->check() && auth()->user()->hasRole('marketer')) {
+            return [];
+        }
+
         return [
             [
                 'icon' => 'settings',
@@ -43,16 +55,22 @@ class MenuHelper
 
     public static function getMenuGroups()
     {
-        return [
+        $groups = [
             [
                 'title' => 'Workspace',
                 'items' => self::getMainNavItems()
             ],
-            [
-                'title' => 'Lainnya',
-                'items' => self::getOthersItems()
-            ]
         ];
+
+        $others = self::getOthersItems();
+        if (!empty($others)) {
+            $groups[] = [
+                'title' => 'Lainnya',
+                'items' => $others,
+            ];
+        }
+
+        return $groups;
     }
 
     public static function isActive($path)

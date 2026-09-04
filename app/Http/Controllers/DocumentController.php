@@ -35,36 +35,10 @@ class DocumentController extends Controller
     {
         abort_unless($document->user_id === Auth::id(), 403);
 
-        $signatureData = $document->signature_data ?? [];
-
-        if (!empty($signatureData['signatureId'])) {
-            $signature = \App\Models\Signature::where('id', $signatureData['signatureId'])
-                ->where('user_id', Auth::id())
-                ->first();
-
-            if ($signature) {
-                $signatureData['signatureUrl'] = Storage::url($signature->image_path);
-                $document->signature_data = $signatureData;
-            }
-        }
-
         return view('pages.editor', [
             'title' => 'Edit: ' . $document->title,
             'document' => $document,
-            'signatures' => $this->userSignatures(),
         ]);
-    }
-    
-    private function userSignatures()
-    {
-        return \App\Models\Signature::where('user_id', Auth::id())
-            ->latest()
-            ->get()
-            ->map(fn($s) => [
-                'id' => $s->id,
-                'name' => $s->name,
-                'url' => \Illuminate\Support\Facades\Storage::url($s->image_path),
-            ]);
     }
 
     public function store(Request $request)

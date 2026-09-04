@@ -342,7 +342,7 @@
                         border-t border-parchment-200
                         dark:border-slate-warm-800">
 
-                <a href="{{ route('dashboard') }}"
+                <a href="{{ route(auth()->user()->homeRouteName()) }}"
                    class="px-4 py-2
                           rounded-lg
                           text-xs font-medium

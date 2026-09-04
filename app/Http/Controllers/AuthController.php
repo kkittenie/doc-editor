@@ -37,7 +37,7 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended(route('dashboard'));
+            return redirect()->intended(route(Auth::user()->homeRouteName()));
         }
 
         return back()->withErrors([
@@ -48,9 +48,9 @@ class AuthController extends Controller
     public function showSignup()
     {
         if (Auth::check()) {
-            return redirect()->route('');
+            return redirect()->route(Auth::user()->homeRouteName());
         }
-        return view('pages.auth.signup', ['title' => 'Pendaftaran Penandatangan Resmi']);
+        return view('pages.auth.signup', ['title' => 'Pendaftaran Akses Digital Editor']);
     }
 
     public function register(Request $request)
@@ -68,9 +68,11 @@ class AuthController extends Controller
             'password' => Hash::make($data['password']),
         ]);
 
+        $user->assignRole('admin');
+
         Auth::login($user);
 
-        return redirect()->route('documents.index')->with('success', 'Akun berhasil dibuat!');
+        return redirect()->route($user->homeRouteName())->with('success', 'Akun berhasil dibuat!');
     }
 
     public function logout(Request $request)

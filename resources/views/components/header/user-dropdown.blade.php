@@ -50,16 +50,6 @@ $initials = strtoupper(substr($words[0] ?? 'P', 0, 1) . (isset($words[1]) && $wo
         <!-- Menu Items -->
         <ul class="flex flex-col gap-1 py-1 border-b border-parchment-200 dark:border-slate-warm-800">
             <li>
-                <a href="/signatures"
-                    class="flex items-center gap-2.5 px-2.5 py-2 font-medium text-xs text-ink-800 rounded-lg hover:bg-parchment-100 dark:text-parchment-200 dark:hover:bg-slate-warm-800 transition-colors">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17.5 3.5l3 3L8 19l-4 1 1-4L17.5 3.5z" />
-                        <path d="M3 21h18" />
-                    </svg>
-                    Studio Tanda Tangan & e-Sign
-                </a>
-            </li>
-            <li>
                 <a href="/settings"
                     class="flex items-center gap-2.5 px-2.5 py-2 font-medium text-xs text-ink-800 rounded-lg hover:bg-parchment-100 dark:text-parchment-200 dark:hover:bg-slate-warm-800 transition-colors">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

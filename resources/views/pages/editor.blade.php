@@ -30,11 +30,6 @@
             {{-- RIGHT --}}
             <div class="flex items-center gap-3">
 
-                <button type="button" @click="showSignaturePicker = true" class="toolbar-button"
-                    title="Pilih Tanda Tangan">
-                    <b>TTD</b>
-                </button>
-
                 {{-- CHIP SESI EDIT HEADER/FOOTER --}}
                 <span x-show="editSection" x-cloak
                     class="flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 dark:bg-amber-500/20 dark:text-amber-200">
@@ -282,97 +277,6 @@
 
         </div>
     </main>
-
-    {{-- SIGNATURE PICKER --}}
-    <div x-show="showSignaturePicker" x-cloak
-        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4"
-        @click.self="showSignaturePicker = false">
-
-        <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-warm-900" @click.stop>
-
-            {{-- HEADER --}}
-            <div class="mb-5 flex items-center justify-between">
-
-                <div>
-                    <h2 class="text-base font-semibold text-ink-900 dark:text-parchment-50">
-                        Pilih Tanda Tangan
-                    </h2>
-
-                    <p class="mt-1 text-xs text-slate-warm-500">
-                        Pilih tanda tangan yang sudah tersimpan di database.
-                    </p>
-                </div>
-
-                <button type="button" @click="showSignaturePicker = false"
-                    class="text-xl text-slate-warm-400 hover:text-slate-warm-700">
-                    ×
-                </button>
-
-            </div>
-
-            {{-- TIDAK ADA SIGNATURE --}}
-            <template x-if="signatures.length === 0">
-
-                <div class="rounded-xl border border-dashed border-parchment-300 p-6 text-center">
-
-                    <p class="text-sm text-slate-warm-500">
-                        Belum ada tanda tangan tersimpan.
-                    </p>
-
-                    <a href="{{ route('signatures') }}"
-                        class="mt-3 inline-block text-xs font-semibold text-ink-900 hover:underline">
-                        Kelola Tanda Tangan
-                    </a>
-
-                </div>
-
-            </template>
-
-            {{-- SIGNATURE DATABASE LIST --}}
-            <div x-show="signatures.length > 0" class="grid max-h-[400px] gap-3 overflow-y-auto">
-
-                <template x-for="signature in signatures" :key="signature.id">
-
-                    <button type="button" @click="selectSignature(signature)"
-                        class="group w-full rounded-xl border border-parchment-300 p-4 text-left transition hover:border-ink-900 hover:bg-parchment-50 dark:border-slate-warm-700 dark:hover:bg-slate-warm-800">
-
-                        <div class="flex items-center gap-4">
-
-                            {{-- PREVIEW TTD DATABASE --}}
-                            <div class="flex h-20 w-32 items-center justify-center rounded-lg border bg-white p-2">
-                                <img :src="signature.url" :alt="signature.name"
-                                    class="max-h-full max-w-full object-contain">
-                            </div>
-
-                            {{-- INFO TTD --}}
-                            <div class="flex-1">
-
-                                <div class="text-sm font-semibold text-ink-900 dark:text-parchment-100"
-                                    x-text="signature.name"></div>
-
-                                <div class="mt-1 text-xs text-slate-warm-500">
-                                    Klik untuk memilih tanda tangan ini
-                                </div>
-
-                            </div>
-
-                            {{-- CHECK --}}
-                            <div x-show="selectedSignatureId === signature.id"
-                                class="flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-xs font-bold text-white">
-                                ✓
-                            </div>
-
-                        </div>
-
-                    </button>
-
-                </template>
-
-            </div>
-
-        </div>
-    </div>
-
 </div>
 
 @push('styles')
@@ -1407,34 +1311,10 @@
 
             documentId: @js($document -> id),
 
-            // Semua TTD berasal dari database
-            signatures: @js($signatures ?? []),
-
-            // TTD yang sedang dipakai dokumen
-            selectedSignature: @js($document -> signature_data['signatureUrl'] ?? null),
-            selectedSignatureId: @js($document -> signature_data['signatureId'] ?? null),
-            signatureX: @js($document -> signature_data['signatureX'] ?? 500),
-            signatureY: @js($document -> signature_data['signatureY'] ?? 650),
             headerHtml: @js($document -> header_data['content'] ?? ''),
             footerHtml: @js($document -> footer_data['content'] ?? ''),
 
-            showSignaturePicker: false,
-
-            // Sesi edit header/footer ala Word ('header' | 'footer' | null)
             editSection: null,
-
-            isDraggingSignature: false,
-
-            dragStartX: 0,
-            dragStartY: 0,
-
-            initialSignatureX: 0,
-            initialSignatureY: 0,
-
-            dragOffsetX: 0,
-            dragOffsetY: 0,
-
-            signaturePageRect: null,
 
             saveStatus: 'saved',
             changed: false,
@@ -1463,6 +1343,15 @@
 
             // INIT
             init() {
+
+                Alpine.store('documentEditor', {
+                    active: true,
+                    status: this.saveStatus,
+                    save: () => this.saveDocument(),
+                });
+                this.$watch('saveStatus', (val) => {
+                    Alpine.store('documentEditor').status = val;
+                });
 
                 this.$nextTick(() => {
                     this.initSingleEditor();
@@ -1563,50 +1452,13 @@
 
                 this.markLockedSheets();
 
-                this.setupSignatureEvents();
-
-                // Hook global "dokumen berubah" untuk sistem gambar
                 window.__docEditorDirty = () => this.markAsChanged();
 
-                // Pasang Quill pada setiap region kertas + toolbar bersama
                 window.initBodyEditor('#document-editor', () => {
                     this.markAsChanged();
                 });
 
-                // Jaminan: isi dokumen selalu aktif saat halaman dibuka
                 window.DocQuill.ensureBodyEditable?.();
-
-                this.renderSignature();
-            },
-
-            // Event delegation untuk tanda tangan di dalam editor TinyMCE
-            setupSignatureEvents() {
-                const editorEl = document.getElementById('document-editor');
-                if (!editorEl) return;
-
-                editorEl.addEventListener('mousedown', (e) => {
-                    const sigEl = e.target.closest('.doc-signature');
-                    if (!sigEl) return;
-                    if (e.target.closest('.doc-signature-remove')) return;
-                    this.startDragSignature(e, sigEl);
-                });
-
-                editorEl.addEventListener('click', (e) => {
-                    if (e.target.closest('.doc-signature-remove')) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        this.removeSignature();
-                    }
-                });
-
-                // Drag global supaya tetap jalan walau kursor keluar dari elemen
-                document.addEventListener('mousemove', (e) => {
-                    this.dragSignature(e);
-                });
-
-                document.addEventListener('mouseup', () => {
-                    this.stopDragSignature();
-                });
             },
 
             // TAMBAH HALAMAN (sheet baru di akhir, footer ikut pindah)
@@ -1669,9 +1521,6 @@
                 // Zona baru mengikuti status sesi edit yang sedang berjalan
                 window.DocQuill.setZonesEnabled('header', this.editSection === 'header');
                 window.DocQuill.setZonesEnabled('footer', this.editSection === 'footer');
-
-                // Pindahkan tanda tangan ke halaman baru
-                this.renderSignature();
 
                 this.markAsChanged();
 
@@ -1845,7 +1694,6 @@
                     .forEach((rg) => window.DocQuill.attachRegion(rg));
 
                 window.DocQuill.ensureBodyEditable?.();
-                this.renderSignature();
                 this.markAsChanged();
             },
 
@@ -2092,61 +1940,6 @@
                 this.saveStatus = 'idle';
             },
 
-            // =========================================
-            // SIGNATURE
-            // =========================================
-
-            selectSignature(signature) {
-                this.selectedSignature = signature.url;
-                this.selectedSignatureId = signature.id;
-                this.signatureX = 500;
-                this.signatureY = 650;
-                this.showSignaturePicker = false;
-                this.renderSignature();
-                this.markAsChanged();
-            },
-
-            renderSignature() {
-                const root = document.getElementById('document-editor');
-                if (!root) return;
-
-                // Hapus signature lama
-                root.querySelectorAll('.doc-signature').forEach((el) => el.remove());
-
-                if (!this.selectedSignature) return;
-
-                // Tampilkan di halaman terakhir
-                const sheets = root.querySelectorAll('.doc-sheet[data-sheet-type="page"]');
-                const lastSheet = sheets[sheets.length - 1];
-                if (!lastSheet) return;
-
-                const sig = document.createElement('div');
-                sig.className = 'doc-signature';
-                sig.setAttribute('data-signature', '1');
-                sig.style.cssText =
-                    'position:absolute;left:' + this.signatureX + 'px;top:' + this.signatureY +
-                    'px;z-index:30;cursor:move;';
-
-                sig.innerHTML =
-                    '<img src="' + this.selectedSignature + '" style="max-height:80px;max-width:180px;pointer-events:none;display:block;" />' +
-                    '<button type="button" class="doc-signature-remove" style="position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:#dc2626;color:#fff;font-size:12px;line-height:20px;text-align:center;border:none;cursor:pointer;">×</button>';
-
-                lastSheet.appendChild(sig);
-            },
-
-            removeSignature() {
-                this.selectedSignature = null;
-                this.selectedSignatureId = null;
-                this.signatureX = 500;
-                this.signatureY = 650;
-
-                document.getElementById('document-editor')
-                    ?.querySelectorAll('.doc-signature').forEach((el) => el.remove());
-
-                this.markAsChanged();
-            },
-
-
             async saveDocument() {
 
                 // Akhiri sesi edit header/footer sebelum menyimpan
@@ -2202,13 +1995,7 @@
                     footer_data: {
                         content: footerContent,
                     },
-                    signature_data: {
-                        signatureId: this.selectedSignatureId,
-                        signatureUrl: this.selectedSignature,
-                        signatureX: this.signatureX,
-                        signatureY: this.signatureY
-                    },
-                    status: this.selectedSignature ? 'draft' : 'pending'
+                    status: 'draft',
                 };
 
                 try {
@@ -2252,80 +2039,11 @@
                             ? window.DocQuill.getHtml(footerRegion)
                             : (this.footerHtml || ''),
                     },
-                    signature_data: {
-                        signatureId: this.selectedSignatureId,
-                        signatureUrl: this.selectedSignature,
-                        signatureX: this.signatureX,
-                        signatureY: this.signatureY
-                    }
                 };
 
                 const res = await window.axios.post('/documents/save-as', payload);
                 return res.data.id;
             },
-
-
-            startDragSignature(event, sigEl) {
-
-                event.preventDefault();
-
-                const page = sigEl.closest('.doc-sheet');
-                if (!page) return;
-
-                const pageRect = page.getBoundingClientRect();
-                const rect = sigEl.getBoundingClientRect();
-
-                this.isDraggingSignature = true;
-                this.dragStartX = event.clientX;
-                this.dragStartY = event.clientY;
-                this.initialSignatureX = this.signatureX;
-                this.initialSignatureY = this.signatureY;
-                this.dragOffsetX = event.clientX - rect.left;
-                this.dragOffsetY = event.clientY - rect.top;
-                this.signaturePageRect = pageRect;
-
-                document.body.style.userSelect = 'none';
-            },
-
-            dragSignature(event) {
-
-                if (!this.isDraggingSignature) return;
-
-                const pageRect = this.signaturePageRect ||
-                    document.querySelector('.doc-sheet')?.getBoundingClientRect();
-
-                if (!pageRect) return;
-
-                const nextX = event.clientX - pageRect.left - this.dragOffsetX;
-                const nextY = event.clientY - pageRect.top - this.dragOffsetY;
-
-                const minX = 20;
-                const maxX = Math.max(minX, pageRect.width - 200);
-                const minY = 140;
-                const maxY = Math.max(minY, pageRect.height - 140);
-
-                this.signatureX = Math.min(Math.max(nextX, minX), maxX);
-                this.signatureY = Math.min(Math.max(nextY, minY), maxY);
-
-                // Update posisi visual elemen tanda tangan
-                const sigEl = document.querySelector('#document-editor .doc-signature');
-                if (sigEl) {
-                    sigEl.style.left = this.signatureX + 'px';
-                    sigEl.style.top = this.signatureY + 'px';
-                }
-
-                this.markAsChanged();
-            },
-
-            stopDragSignature() {
-
-                if (!this.isDraggingSignature) return;
-
-                this.isDraggingSignature = false;
-                this.signaturePageRect = null;
-                document.body.style.userSelect = '';
-                this.markAsChanged();
-            }
         };
     }
 
