@@ -637,10 +637,12 @@
     }
 
     /* ─── UNDERLINE DROPDOWN ─── */
+    /* PENTING: JANGAN pakai overflow:hidden di sini — akan memotong menu
+       dropdown yang diposisikan absolute di luar kotak (top: 100% + 6px).
+       Radius tiap tombol sudah ditangani aturan :first-child & toggle. */
     #tb-underline-dd {
         display: inline-flex;
         border-radius: 8px;
-        overflow: hidden;
     }
 
     #tb-underline-dd .toolbar-button:first-child {
