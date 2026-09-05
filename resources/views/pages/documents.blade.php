@@ -3,6 +3,8 @@
 @section('content')
 
 @php
+    $isAdmin = auth()->user()->hasRole('admin');
+
     $documentData = $documents->map(function ($doc) {
         $status = strtolower($doc->status ?? 'draft');
 
@@ -22,9 +24,9 @@
 
             'statusLabel' => match ($status) {
                 'draft' => 'Draft',
-                'pending' => 'Menunggu TTD',
-                'signed' => 'Terverifikasi',
-                'archived' => 'Arsip',
+                'review_marketing' => 'Review Marketing',
+                'revisi' => 'Revisi',
+                'disetujui' => 'Disetujui',
                 default => ucfirst($status),
             },
 
@@ -37,18 +39,22 @@
             'hasSignature' => !empty($doc->signature_data['signatureId']),
 
             'hasMaterai' => false,
+
+            'revisionNotes' => $doc->revision_notes ?? [],
         ];
     })->toArray();
 @endphp
 
 <script>
     window.documentPageData = @json($documentData);
+    window.canManageDocuments = @json($isAdmin);
 
     function documentsPage() {
         return {
             filterStatus: 'all',
             searchQuery: '',
             documents: window.documentPageData,
+            canManage: window.canManageDocuments,
 
             get filteredDocuments() {
                 return this.documents.filter(doc => {
@@ -64,6 +70,100 @@
                         doc.id.toLowerCase().includes(search);
 
                     return matchesStatus && matchesSearch;
+                });
+            },
+
+            async updateDocumentStatus(docId, status, action, reason = null) {
+                const konfirmasi = {
+                    kirim:   { icon: 'info',    title: 'Kirim untuk review?', text: 'Dokumen akan dikirim ke marketing untuk direview.', confirm: 'Ya, kirim', color: '#2563eb' },
+                    setujui: { icon: 'success', title: 'Setujui dokumen?',    text: 'Dokumen akan berstatus Disetujui.', confirm: 'Ya, setujui', color: '#059669' },
+                }[action];
+
+                const result = await Swal.fire({
+                    icon: konfirmasi.icon,
+                    title: konfirmasi.title,
+                    text: konfirmasi.text,
+                    showCancelButton: true,
+                    confirmButtonText: konfirmasi.confirm,
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: konfirmasi.color,
+                });
+
+                if (!result.isConfirmed) return;
+
+                await this.submitStatusUpdate(docId, status, reason);
+            },
+
+            // Popup "Alasan Revisi": textarea wajib diisi sebelum dikirim.
+            async requestRevision(docId) {
+                const result = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Minta revisi dokumen?',
+                    input: 'textarea',
+                    inputLabel: 'Alasan Revisi',
+                    inputPlaceholder: 'Tuliskan alasan / catatan revisi untuk admin...',
+                    inputAttributes: { 'aria-label': 'Alasan Revisi' },
+                    showCancelButton: true,
+                    confirmButtonText: 'Kirim ke Admin',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#d97706',
+                    inputValidator: (value) => {
+                        if (!value || value.trim() === '') {
+                            return 'Alasan revisi wajib diisi.';
+                        }
+                    },
+                });
+
+                if (!result.isConfirmed) return;
+
+                await this.submitStatusUpdate(docId, 'revisi', result.value.trim());
+            },
+
+            async submitStatusUpdate(docId, status, reason = null) {
+                try {
+                    await window.axios.patch(`/documents/${docId}/status`, {
+                        status,
+                        ...(reason !== null ? { reason } : {}),
+                    });
+                    window.location.reload();
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Tidak dapat memperbarui status dokumen.',
+                        confirmButtonColor: '#dc2626',
+                    });
+                }
+            },
+
+            // Admin: popup daftar alasan revisi dari marketing.
+            async showRevisionNotes(doc) {
+                const notes = doc.revisionNotes ?? [];
+
+                if (notes.length === 0) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Alasan Revisi',
+                        text: 'Tidak ada catatan revisi untuk dokumen ini.',
+                    });
+                    return;
+                }
+
+                const items = [...notes].reverse().map((note) => `
+                    <div style="text-align:left; border:1px solid #e5e7eb; border-radius:10px; padding:10px 14px; margin-bottom:10px;">
+                        <div style="font-size:11px; color:#9ca3af; margin-bottom:4px;">
+                            ${note.by ?? '-'} • ${note.at ?? '-'}
+                        </div>
+                        <div style="font-size:14px; color:#374151; white-space:pre-wrap;">${String(note.reason ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+                    </div>
+                `).join('');
+
+                Swal.fire({
+                    title: 'Alasan Revisi',
+                    html: items,
+                    width: 560,
+                    confirmButtonText: 'Tutup',
+                    confirmButtonColor: '#111827',
                 });
             },
 
@@ -199,6 +299,7 @@
 
         <a
             href="{{ route('documents.create') }}"
+            @if(!$isAdmin) hidden @endif
             class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-ink-900 px-4 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:bg-bronze-500 dark:text-ink-900"
         >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
@@ -216,7 +317,7 @@
     
     {{-- SUMMARY CARDS --}}
     
-    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div class="grid grid-cols-2 gap-3 lg:grid-cols-5">
 
         {{-- Total --}}
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
@@ -267,42 +368,67 @@
         </div>
 
 
-        {{-- Pending --}}
+        {{-- Revisi --}}
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
                 <div>
                     <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
-                        Menunggu TTD
+                        Revisi
                     </p>
 
                     <p
                         class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50"
-                        x-text="documents.filter(d => d.status === 'pending').length"
+                        x-text="documents.filter(d => d.status === 'revisi').length"
                     ></p>
                 </div>
 
-                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2">
-                        <path d="M12 2v20"/>
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/>
+                        <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/>
+                        <path d="M3 3v5h5"/>
                     </svg>
                 </div>
             </div>
         </div>
 
 
-        {{-- Signed --}}
+        {{-- Review Marketing --}}
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
                 <div>
                     <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
-                        Terverifikasi
+                        Review Marketing
                     </p>
 
                     <p
                         class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50"
-                        x-text="documents.filter(d => d.status === 'signed').length"
+                        x-text="documents.filter(d => d.status === 'review_marketing').length"
+                    ></p>
+                </div>
+
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+
+        {{-- Disetujui --}}
+        <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                        Disetujui
+                    </p>
+
+                    <p
+                        class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50"
+                        x-text="documents.filter(d => d.status === 'disetujui').length"
                     ></p>
                 </div>
 
@@ -349,32 +475,33 @@
                 </button>
 
                 <button
-                    @click="filterStatus = 'pending'"
-                    :class="filterStatus === 'pending'
+                    @click="filterStatus = 'revisi'"
+                    :class="filterStatus === 'revisi'
                         ? 'bg-white text-ink-900 shadow-sm dark:bg-slate-warm-700 dark:text-white'
                         : 'text-slate-warm-500 hover:text-ink-900 dark:hover:text-white'"
                     class="whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition"
                 >
-                    Menunggu TTD
+                    Revisi
                 </button>
 
                 <button
-                    @click="filterStatus = 'signed'"
-                    :class="filterStatus === 'signed'
+                    @click="filterStatus = 'review_marketing'"
+                    :class="filterStatus === 'review_marketing'
                         ? 'bg-white text-ink-900 shadow-sm dark:bg-slate-warm-700 dark:text-white'
                         : 'text-slate-warm-500 hover:text-ink-900 dark:hover:text-white'"
                     class="whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition"
                 >
-                    Terverifikasi
+                    Review Marketing
                 </button>
+
                 <button
-                    @click="filterStatus = 'archived'"
-                    :class="filterStatus === 'archived'
+                    @click="filterStatus = 'disetujui'"
+                    :class="filterStatus === 'disetujui'
                         ? 'bg-white text-ink-900 shadow-sm dark:bg-slate-warm-700 dark:text-white'
                         : 'text-slate-warm-500 hover:text-ink-900 dark:hover:text-white'"
                     class="whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition"
                 >
-                    Arsip
+                    Disetujui
                 </button>
 
             </div>
@@ -572,28 +699,28 @@
                                     </span>
                                 </template>
 
-                                <template x-if="doc.status === 'pending'">
+                                <template x-if="doc.status === 'review_marketing'">
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-semibold text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
                                         <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
-                                        Menunggu TTD
+                                        Review Marketing
                                     </span>
                                 </template>
 
-                                <template x-if="doc.status === 'signed'">
+                                <template x-if="doc.status === 'revisi'">
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1 text-[10px] font-semibold text-orange-700 dark:bg-orange-900/20 dark:text-orange-400">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-orange-500"></span>
+                                        Revisi
+                                    </span>
+                                </template>
+
+                                <template x-if="doc.status === 'disetujui'">
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400">
                                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                                        Terverifikasi
+                                        Disetujui
                                     </span>
                                 </template>
 
-                                <template x-if="doc.status === 'archived'">
-                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600 dark:bg-slate-warm-800 dark:text-slate-warm-300">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
-                                        Arsip
-                                    </span>
-                                </template>
-
-                                <template x-if="!['draft', 'pending', 'signed', 'archived'].includes(doc.status)">
+                                <template x-if="!['draft', 'review_marketing', 'revisi', 'disetujui'].includes(doc.status)">
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600">
                                         <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
                                         <span x-text="doc.statusLabel"></span>
@@ -608,38 +735,113 @@
 
                                 <div class="flex justify-end gap-1.5">
 
-                                    {{-- Edit --}}
-                                    <button
-                                        type="button"
-                                        @click="window.location.href = `/documents/${doc.databaseId}/edit`"
-                                        class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900"
-                                    >
-                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <path d="M12 20h9"/>
-                                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>
-                                        </svg>
+                                    @if($isAdmin)
+                                        {{-- Kirim Review (draft/revisi) --}}
+                                        <button
+                                            type="button"
+                                            x-show="doc.status === 'draft' || doc.status === 'revisi'"
+                                            @click="updateDocumentStatus(doc.databaseId, 'review_marketing', 'kirim')"
+                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-100 dark:border-blue-900/40 dark:bg-blue-900/20 dark:text-blue-300"
+                                            title="Kirim ke marketing untuk direview"
+                                        >
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <line x1="22" y1="2" x2="11" y2="13"/>
+                                                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                            </svg>
 
-                                        Lanjut
-                                    </button>
+                                            Kirim Review
+                                        </button>
+
+                                        {{-- Lihat Revisi (admin, status revisi) --}}
+                                        <button
+                                            type="button"
+                                            x-show="doc.status === 'revisi'"
+                                            @click="showRevisionNotes(doc)"
+                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 text-[11px] font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-300"
+                                            title="Lihat alasan revisi dari marketing"
+                                        >
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                                <polyline points="14 2 14 8 20 8"/>
+                                                <line x1="8" y1="13" x2="16" y2="13"/>
+                                                <line x1="8" y1="17" x2="16" y2="17"/>
+                                            </svg>
+
+                                            Lihat Revisi
+                                        </button>
+
+                                        {{-- Edit (admin) --}}
+                                        <button
+                                            type="button"
+                                            @click="window.location.href = `/documents/${doc.databaseId}/edit`"
+                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900"
+                                        >
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path d="M12 20h9"/>
+                                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                                            </svg>
+
+                                            Lanjut
+                                        </button>
 
 
-                                    {{-- Delete --}}
-                                    <button
-                                        type="button"
-                                        @click="deleteDocument(doc.databaseId)"
-                                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-slate-warm-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:hover:border-red-900/40 dark:hover:bg-red-900/20"
-                                        title="Hapus dokumen"
-                                    >
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <polyline points="3 6 5 6 21 6"/>
-                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
-                                            <path d="M10 11v6"/>
-                                            <path d="M14 11v6"/>
-                                            <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
-                                        </svg>
-                                    </button>
+                                        {{-- Delete (admin) --}}
+                                        <button
+                                            type="button"
+                                            @click="deleteDocument(doc.databaseId)"
+                                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-slate-warm-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:hover:border-red-900/40 dark:hover:bg-red-900/20"
+                                            title="Hapus dokumen"
+                                        >
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <polyline points="3 6 5 6 21 6"/>
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                                                <path d="M10 11v6"/>
+                                                <path d="M14 11v6"/>
+                                                <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
+                                            </svg>
+                                        </button>
+                                    @else
+                                        {{-- Setujui (marketer, review_marketing) --}}
+                                        <button
+                                            type="button"
+                                            x-show="doc.status === 'review_marketing'"
+                                            @click="updateDocumentStatus(doc.databaseId, 'disetujui', 'setujui')"
+                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-300"
+                                            title="Setujui dokumen"
+                                        >
+                                            ✓ Setujui
+                                        </button>
+
+                                        {{-- Minta Revisi (marketer, review_marketing) --}}
+                                        <button
+                                            type="button"
+                                            x-show="doc.status === 'review_marketing'"
+                                            @click="requestRevision(doc.databaseId)"
+                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 text-[11px] font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-300"
+                                            title="Minta revisi ke admin"
+                                        >
+                                            ↺ Minta Revisi
+                                        </button>
+
+                                        {{-- Lihat (marketer, read-only) --}}
+                                        <button
+                                            type="button"
+                                            @click="window.location.href = `/documents/${doc.databaseId}/edit`"
+                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900"
+                                        >
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+
+                                            Lihat
+                                        </button>
+                                    @endif
 
                                 </div>
 

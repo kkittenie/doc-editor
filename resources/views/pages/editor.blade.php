@@ -30,6 +30,7 @@
             {{-- RIGHT --}}
             <div class="flex items-center gap-3">
 
+                @unless($readOnly ?? false)
                 {{-- CHIP SESI EDIT HEADER/FOOTER --}}
                 <span x-show="editSection" x-cloak
                     class="flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 dark:bg-amber-500/20 dark:text-amber-200">
@@ -51,17 +52,47 @@
                 <span x-show="saveStatus === 'error'" class="text-xs text-red-600">
                     Gagal menyimpan
                 </span>
+                @endunless
 
-                <button type="button" @click="saveDocument()"
-                    class="rounded-xl bg-ink-900 px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 dark:bg-bronze-500 dark:text-ink-900">
-                    Save
-                </button>
+                @if($readOnly ?? false)
+                    {{-- MODE BACA: marketer hanya bisa melihat & mereview --}}
+                    <span
+                        class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-warm-600 dark:bg-slate-warm-800 dark:text-parchment-300">
+                        🔒 Mode Lihat
+                    </span>
+
+                    @if($document->status === 'review_marketing')
+                        <button type="button" @click="setDocumentStatus('revisi')"
+                            class="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+                            ❌ Minta Revisi
+                        </button>
+
+                        <button type="button" @click="setDocumentStatus('disetujui')"
+                            class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700">
+                            ✅ Setujui
+                        </button>
+                    @endif
+                @else
+                    @if($document->status === 'revisi')
+                        {{-- ADMIN: tombol lihat alasan revisi dari marketing --}}
+                        <button type="button" @click="showRevisionNotes()"
+                            class="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+                            📋 Alasan Revisi
+                        </button>
+                    @endif
+
+                    <button type="button" @click="saveDocument()"
+                        class="rounded-xl bg-ink-900 px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 dark:bg-bronze-500 dark:text-ink-900">
+                        Save
+                    </button>
+                @endif
 
             </div>
         </div>
     </div>
 
     {{-- QUILL TOOLBAR (satu toolbar bersama untuk semua region) --}}
+    @unless($readOnly ?? false)
     <div id="body-toolbar-container"
         class="sticky top-[57px] z-30 flex flex-wrap items-center gap-1.5 border-b border-parchment-300 bg-white/95 px-4 py-2.5 shadow-sm backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95 print:hidden">
 
@@ -256,6 +287,7 @@
             </div>
         </div>
     </div>
+    @endunless
 
     {{-- DOCUMENT AREA --}}
     <main class="documentPrintArea bg-slate-100 px-4 py-10 dark:bg-slate-warm-950">
@@ -265,6 +297,7 @@
             {{-- SATU EDITOR UNTUK SEMUA KERTAS --}}
             <div id="document-editor" class="document-editor-canvas"></div>
 
+            @unless($readOnly ?? false)
             {{-- TAMBAH HALAMAN --}}
             <div class="mt-6 flex justify-center print:hidden">
 
@@ -274,12 +307,22 @@
                 </button>
 
             </div>
+            @endunless
 
         </div>
     </main>
 </div>
 
 @push('styles')
+<style>
+    /* Mode baca (marketer): blokir seluruh interaksi pada kertas dokumen,
+       namun tetap bisa discroll & dibaca. */
+    body.editor-readonly .doc-sheet,
+    body.editor-readonly .doc-sheet * {
+        pointer-events: none;
+        user-select: none;
+    }
+</style>
 <style>
     .toolbar-button {
         display: inline-flex;
@@ -1311,6 +1354,13 @@
 
             documentId: @js($document -> id),
 
+            // Mode baca: marketer tidak bisa mengedit, hanya melihat &
+            // (jika berstatus review_marketing) menyetujui/minta revisi.
+            readOnly: @js($readOnly ?? false),
+
+            // Riwayat alasan revisi dari marketing (untuk admin).
+            revisionNotes: @js($document -> revision_notes ?? []),
+
             headerHtml: @js($document -> header_data['content'] ?? ''),
             footerHtml: @js($document -> footer_data['content'] ?? ''),
 
@@ -1374,6 +1424,11 @@
                     // kalau bundle editor.js belum dibangun ulang).
                     this.initAutoPagination();
                 });
+
+                // Mode baca: kunci semua editor agar tidak bisa diketik.
+                if (this.readOnly) {
+                    this.applyReadOnlyLock();
+                }
 
                 // Bridge UNDO/REDO tingkat dokumen buat toolbar Quill.
                 // Editor.js akan memanggil ini dulu; kalau ada snapshot struktur
@@ -1940,7 +1995,128 @@
                 this.saveStatus = 'idle';
             },
 
+            // Kunci halaman editor pada mode baca (read-only):
+            // nonaktifkan contentEditable Quill + blokir interaksi kertas.
+            applyReadOnlyLock() {
+                document.body.classList.add('editor-readonly');
+
+                const lockAll = () => {
+                    document.querySelectorAll('.ql-editor').forEach((el) => {
+                        el.setAttribute('contenteditable', 'false');
+                    });
+                    document.querySelectorAll('.ql-toolbar').forEach((el) => el.remove());
+                };
+
+                // Editor diinisialisasi asinkron → kunci berulang sampai
+                // semua instance Quill siap.
+                const timer = setInterval(() => {
+                    lockAll();
+                    if (document.querySelectorAll('.ql-editor').length > 0) {
+                        clearInterval(timer);
+                    }
+                }, 300);
+                setTimeout(() => clearInterval(timer), 10000);
+            },
+
+            // Marketer: setujui / minta revisi dokumen yang direview.
+            // Minta revisi memunculkan popup textarea "Alasan Revisi" (wajib).
+            async setDocumentStatus(status) {
+
+                let reason = null;
+
+                if (status === 'revisi') {
+                    const input = await Swal.fire({
+                        icon: 'warning',
+                        title: 'Minta revisi dokumen?',
+                        input: 'textarea',
+                        inputLabel: 'Alasan Revisi',
+                        inputPlaceholder: 'Tuliskan alasan / catatan revisi untuk admin...',
+                        inputAttributes: { 'aria-label': 'Alasan Revisi' },
+                        showCancelButton: true,
+                        confirmButtonText: 'Kirim ke Admin',
+                        cancelButtonText: 'Batal',
+                        confirmButtonColor: '#d97706',
+                        inputValidator: (value) => {
+                            if (!value || value.trim() === '') {
+                                return 'Alasan revisi wajib diisi.';
+                            }
+                        },
+                    });
+
+                    if (!input.isConfirmed) return;
+                    reason = input.value.trim();
+                } else {
+                    const konfirmasi = await Swal.fire({
+                        icon: 'success',
+                        title: 'Setujui dokumen ini?',
+                        text: 'Dokumen akan berstatus Disetujui.',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, setujui',
+                        cancelButtonText: 'Batal',
+                        confirmButtonColor: '#059669',
+                    });
+
+                    if (!konfirmasi.isConfirmed) return;
+                }
+
+                try {
+                    await window.axios.patch(`/documents/${this.documentId}/status`, {
+                        status,
+                        ...(reason !== null ? { reason } : {}),
+                    });
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Status dokumen berhasil diperbarui.',
+                        timer: 1500,
+                        showConfirmButton: false,
+                    });
+                    window.location.href = '/documents';
+                } catch (error) {
+                    console.error(error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Tidak dapat memperbarui status dokumen.',
+                    });
+                }
+            },
+
+            // Admin: popup daftar alasan revisi dari marketing.
+            showRevisionNotes() {
+                const notes = this.revisionNotes ?? [];
+
+                if (notes.length === 0) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Alasan Revisi',
+                        text: 'Tidak ada catatan revisi untuk dokumen ini.',
+                    });
+                    return;
+                }
+
+                const items = [...notes].reverse().map((note) => `
+                    <div style="text-align:left; border:1px solid #e5e7eb; border-radius:10px; padding:10px 14px; margin-bottom:10px;">
+                        <div style="font-size:11px; color:#9ca3af; margin-bottom:4px;">
+                            ${note.by ?? '-'} • ${note.at ?? '-'}
+                        </div>
+                        <div style="font-size:14px; color:#374151; white-space:pre-wrap;">${String(note.reason ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+                    </div>
+                `).join('');
+
+                Swal.fire({
+                    title: 'Alasan Revisi',
+                    html: items,
+                    width: 560,
+                    confirmButtonText: 'Tutup',
+                    confirmButtonColor: '#111827',
+                });
+            },
+
             async saveDocument() {
+
+                // Mode baca: tidak ada yang bisa disimpan.
+                if (this.readOnly) return;
 
                 // Akhiri sesi edit header/footer sebelum menyimpan
                 this.exitEditSection();
@@ -1995,7 +2171,8 @@
                     footer_data: {
                         content: footerContent,
                     },
-                    status: 'draft',
+                    // Tidak mengirim 'status': simpan hanya konten, status
+                    // (draft/pending/signed/archived) tidak di-reset ke draft.
                 };
 
                 try {

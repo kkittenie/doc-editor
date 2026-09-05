@@ -18,6 +18,7 @@ class Document extends Model
         'body_content',
         'footer_data',
         'signature_data',
+        'revision_notes',
         'status',
     ];
 
@@ -26,6 +27,7 @@ class Document extends Model
         'body_content'   => 'array',
         'footer_data'    => 'array',
         'signature_data' => 'array',
+        'revision_notes' => 'array',
     ];
 
     public function user()

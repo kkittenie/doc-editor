@@ -14,7 +14,15 @@ class DocumentController extends Controller
 {
     public function index()
     {
-       $documents = Document::where('user_id', auth()->id())
+        // Visibilitas dokumen berbasis status (alur kerja baru):
+        // - admin    → draft & revisi (dokumen yang masih dikerjakan)
+        // - marketer → review_marketing & disetujui (untuk direview / final)
+        $user = auth()->user();
+        $statuses = ($user->hasRole('marketer') && ! $user->hasRole('admin'))
+            ? ['review_marketing', 'disetujui']
+            : ['draft', 'revisi'];
+
+        $documents = Document::whereIn('status', $statuses)
             ->latest()
             ->get();
 
@@ -26,6 +34,9 @@ class DocumentController extends Controller
 
     public function create()
     {
+        // Pembuatan dokumen hanya untuk admin.
+        abort_unless(auth()->user()->hasRole('admin'), 403);
+
         return view('pages.document-create', [
             'title'    => 'Buat Dokumen Baru',
         ]);
@@ -33,16 +44,32 @@ class DocumentController extends Controller
 
     public function edit(Document $document)
     {
-        abort_unless($document->user_id === Auth::id(), 403);
+        $user = Auth::user();
+
+        // Admin pemilik dokumen boleh MENGEDIT hanya saat berstatus
+        // draft / revisi. Marketer hanya bisa MELIHAT (read-only)
+        // dokumen yang berstatus review_marketing / disetujui.
+        $canEdit = $user->hasRole('admin')
+            && $document->user_id === $user->id
+            && in_array($document->status, ['draft', 'revisi'], true);
+
+        $canView = $user->hasRole('admin')
+            || ($user->hasRole('marketer') && in_array($document->status, ['review_marketing', 'disetujui'], true));
+
+        abort_unless($canView, 403);
 
         return view('pages.editor', [
-            'title' => 'Edit: ' . $document->title,
+            'title' => ($canEdit ? 'Edit: ' : 'Lihat: ') . $document->title,
             'document' => $document,
+            'readOnly' => ! $canEdit,
         ]);
     }
 
     public function store(Request $request)
     {
+        // Pembuatan dokumen hanya untuk admin.
+        abort_unless(Auth::user()->hasRole('admin'), 403);
+
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'header_data' => ['required', 'array'],
@@ -538,7 +565,11 @@ class DocumentController extends Controller
 
     public function update(Request $request, Document $document)
     {
-        abort_unless($document->user_id === Auth::id(), 403);
+        // Mengubah isi dokumen hanya untuk admin pemilik dokumen.
+        abort_unless(
+            Auth::user()->hasRole('admin') && $document->user_id === Auth::id(),
+            403
+        );
 
         $data = $request->validate([
             'title'          => ['required', 'string', 'max:255'],
@@ -546,7 +577,7 @@ class DocumentController extends Controller
             'body_content'   => ['nullable', 'array'],
             'footer_data'    => ['required', 'array'],
             'signature_data' => ['nullable', 'array'],
-            'status'         => ['nullable', 'in:draft,pending,signed,archieved'],
+            'status'         => ['nullable', 'in:draft,review_marketing,revisi,disetujui'],
         ]);
 
         // Pastikan judul "PASAL n" berurutan KESELURUHAN dokumen (1,2,3...)
@@ -569,18 +600,66 @@ class DocumentController extends Controller
 
     public function updateStatus(Request $request, Document $document)
     {
-        abort_unless($document->user_id === Auth::id(), 403);
+        $user = Auth::user();
+        $isAdmin = $user->hasRole('admin');
+        $isMarketer = $user->hasRole('marketer');
 
         $data = $request->validate([
             'status' => [
                 'required',
-                'in:draft,pending,signed,archived'
+                'in:draft,review_marketing,revisi,disetujui'
             ],
+            // Alasan revisi (ditulis marketing saat minta revisi).
+            'reason' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $document->update([
-            'status' => $data['status'],
-        ]);
+        $from = $document->status;
+        $to = $data['status'];
+
+        // Alasan revisi wajib diisi ketika dokumen ditolak (→ revisi).
+        if ($to === 'revisi' && trim((string) ($data['reason'] ?? '')) === '') {
+            return response()->json([
+                'message' => 'Alasan revisi wajib diisi.',
+                'errors' => ['reason' => ['Alasan revisi wajib diisi.']],
+            ], 422);
+        }
+
+        // Aturan transisi status (alur kerja):
+        // - admin    : draft → review_marketing, revisi → review_marketing (kirim review)
+        // - marketer : review_marketing → disetujui (setujui) / revisi (minta revisi)
+        $allowed = false;
+
+        if ($isAdmin && $document->user_id === $user->id) {
+            $allowed = in_array(
+                [$from, $to],
+                [['draft', 'review_marketing'], ['revisi', 'review_marketing']],
+                true
+            );
+        }
+
+        if (! $allowed && $isMarketer) {
+            $allowed = $from === 'review_marketing'
+                && in_array($to, ['disetujui', 'revisi'], true);
+        }
+
+        abort_unless($allowed, 403);
+
+        $attributes = [
+            'status' => $to,
+        ];
+
+        // Catat riwayat alasan revisi setiap kali dokumen ditolak.
+        if ($to === 'revisi') {
+            $notes = $document->revision_notes ?? [];
+            $notes[] = [
+                'reason' => trim($data['reason']),
+                'by'     => $user->name,
+                'at'     => now()->format('d M Y H:i'),
+            ];
+            $attributes['revision_notes'] = $notes;
+        }
+
+        $document->update($attributes);
 
         return response()->json([
             'message' => 'Status dokumen berhasil diperbarui.',
@@ -590,13 +669,20 @@ class DocumentController extends Controller
 
     public function destroy(Document $document)
     {
-        abort_unless($document->user_id === Auth::id(), 403);
+        // Penghapusan dokumen hanya untuk admin pemilik dokumen.
+        abort_unless(
+            Auth::user()->hasRole('admin') && $document->user_id === Auth::id(),
+            403
+        );
         $document->delete();
         return response()->json(['message' => 'Dokumen dipindah ke trash.']);
     }
 
     public function deleteAll()
     {
+        // Penghapusan massal hanya untuk admin.
+        abort_unless(Auth::user()->hasRole('admin'), 403);
+
         $query = Document::where('user_id', Auth::id());
         $count = (clone $query)->count();
 
@@ -616,7 +702,13 @@ class DocumentController extends Controller
 
     public function exportPdf(Document $document)
     {
-        abort_unless($document->user_id === Auth::id(), 403);
+        // Admin pemilik dokumen boleh ekspor kapan pun; marketer hanya
+        // untuk dokumen yang sedang/bisa mereka review.
+        $user = Auth::user();
+        $canAccess = ($user->hasRole('admin') && $document->user_id === $user->id)
+            || ($user->hasRole('marketer') && in_array($document->status, ['review_marketing', 'disetujui'], true));
+
+        abort_unless($canAccess, 403);
 
         $signaturePath = $this->resolvePublicPath($document->signature_data['signatureUrl'] ?? null);
         // Renumber di saat ekspor juga, supaya dokumen lama (tersimpan sebelum
@@ -719,6 +811,9 @@ class DocumentController extends Controller
 
     public function saveAsNew(Request $request)
     {
+        // Membuat salinan dokumen hanya untuk admin.
+        abort_unless(Auth::user()->hasRole('admin'), 403);
+
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'type'  => ['nullable', 'string'],
@@ -744,6 +839,12 @@ class DocumentController extends Controller
 
     public function chooseStart()
     {
+        // Halaman "/" (Studio Editor) hanya untuk admin. Pengunjung / role lain
+        // diarahkan ke Daftar Dokumen mereka (daripada menampilkan 403).
+        if (!auth()->user()->hasRole('admin')) {
+            return redirect()->route('documents');
+        }
+
         return view('pages.editor-start', [
             'title' => 'Mulai dokumen baru', 
         ]);
@@ -790,6 +891,9 @@ class DocumentController extends Controller
 
     public function importDocument(Request $request)
     {
+        // Impor dokumen hanya untuk admin.
+        abort_unless(Auth::user()->hasRole('admin'), 403);
+
         $request->validate([
             'file' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
         ]);

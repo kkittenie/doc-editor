@@ -440,9 +440,40 @@
                               text-slate-warm-500
                               dark:text-slate-warm-400">
 
-                        Pengaturan password akan kita tambahkan di sini.
+                        Ubah kata sandi akun Anda.
 
                     </p>
+
+                    <a href="{{ route('profile.password') }}"
+                       class="inline-flex items-center gap-2
+                              mt-3 px-3.5 py-2
+                              rounded-lg
+                              border border-parchment-300
+                              text-xs font-semibold
+                              text-ink-800
+                              hover:border-bronze-500
+                              hover:text-bronze-700
+                              dark:border-slate-warm-700
+                              dark:text-parchment-200
+                              dark:hover:border-bronze-500
+                              dark:hover:text-bronze-400
+                              transition">
+
+                        Ubah Kata Sandi
+
+                        <svg class="w-3.5 h-3.5"
+                             fill="none"
+                             stroke="currentColor"
+                             viewBox="0 0 24 24">
+
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M9 5l7 7-7 7"/>
+
+                        </svg>
+
+                    </a>
 
                 </div>
 

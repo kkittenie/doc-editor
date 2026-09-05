@@ -13,29 +13,28 @@ class DashboardController extends Controller
     {
         $userId = Auth::id();
 
-        //total semua document
-        $totalDocuments = Document::where('user_id', $userId)->count();
+        // Semua dokumen milik user (dasar penghitungan kartu ringkasan).
+        $documents = Document::where('user_id', $userId)->get();
 
-        //jumlah draft document
-        $draftDocuments = Document::where('user_id', $userId)
-            ->where('status', 'draft')
-            ->count();
+        $totalDocuments = $documents->count();
 
-        //jumlah document final
-        $finalDocuments = Document::where('user_id', $userId)
-            ->where('status', 'final')
-            ->count();
+        // Jumlah dokumen per status — mengikuti enum alur kerja baru
+        // (draft, review_marketing, revisi, disetujui).
+        $draftDocuments = $documents->where('status', 'draft')->count();
+        $revisiDocuments = $documents->where('status', 'revisi')->count();
+        $reviewDocuments = $documents->where('status', 'review_marketing')->count();
+        $disetujuiDocuments = $documents->where('status', 'disetujui')->count();
 
-        //5 dokumen terbaru
-        $recentDocuments = Document::where('user_id', $userId)
-            ->latest()
-            ->take(5)
-            ->get();
+        // 5 dokumen terbaru
+        $recentDocuments = $documents->sortByDesc('created_at')->take(5)->values();
 
         return view('pages.dashboard', compact(
+            'documents',
             'totalDocuments',
             'draftDocuments',
-            'finalDocuments',
+            'revisiDocuments',
+            'reviewDocuments',
+            'disetujuiDocuments',
             'recentDocuments'
         ));
     }

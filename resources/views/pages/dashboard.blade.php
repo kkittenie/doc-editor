@@ -43,7 +43,7 @@
 
 
     {{-- SUMMARY CARDS --}}
-    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div class="grid grid-cols-2 gap-3 lg:grid-cols-5">
 
         {{-- Total --}}
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
@@ -53,8 +53,8 @@
                         Total Dokumen
                     </p>
 
-                    <p class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50"
-                       x-text="documents.length">
+                    <p class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50">
+                        {{ $totalDocuments }}
                     </p>
                 </div>
 
@@ -79,8 +79,7 @@
 
                     <p
                         class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50"
-                        x-text="documents.filter(d => d.status === 'draft').length"
-                    ></p>
+                    >{{ $draftDocuments }}</p>
                 </div>
 
                 <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
@@ -94,43 +93,65 @@
         </div>
 
 
-        {{-- Pending --}}
+        {{-- Revisi --}}
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
                 <div>
                     <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
-                        Menunggu TTD
+                        Revisi
                     </p>
 
                     <p
                         class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50"
-                        x-text="documents.filter(d => d.status === 'pending').length"
-                    ></p>
+                    >{{ $revisiDocuments }}</p>
                 </div>
 
-                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2">
-                        <path d="M12 2v20"/>
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/>
+                        <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/>
+                        <path d="M3 3v5h5"/>
                     </svg>
                 </div>
             </div>
         </div>
 
 
-        {{-- Signed --}}
+        {{-- Review Marketing --}}
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
                 <div>
                     <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
-                        Terverifikasi
+                        Review Marketing
                     </p>
 
                     <p
                         class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50"
-                        x-text="documents.filter(d => d.status === 'signed').length"
-                    ></p>
+                    >{{ $reviewDocuments }}</p>
+                </div>
+
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+
+        {{-- Disetujui --}}
+        <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                        Disetujui
+                    </p>
+
+                    <p
+                        class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50"
+                    >{{ $disetujuiDocuments }}</p>
                 </div>
 
                 <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400">
@@ -254,17 +275,43 @@
                                     Draft
                                 </span>
 
-                            @elseif($document->status === 'final')
+                            @elseif($document->status === 'review_marketing')
 
                                 <span class="hidden sm:inline-flex
                                              px-2.5 py-1
                                              rounded-full
                                              text-xs font-medium
-                                             bg-green-100
-                                             text-green-700
-                                             dark:bg-green-900/30
-                                             dark:text-green-400">
-                                    Final
+                                             bg-blue-100
+                                             text-blue-700
+                                             dark:bg-blue-900/30
+                                             dark:text-blue-400">
+                                    Review Marketing
+                                </span>
+
+                            @elseif($document->status === 'revisi')
+
+                                <span class="hidden sm:inline-flex
+                                             px-2.5 py-1
+                                             rounded-full
+                                             text-xs font-medium
+                                             bg-orange-100
+                                             text-orange-700
+                                             dark:bg-orange-900/30
+                                             dark:text-orange-400">
+                                    Revisi
+                                </span>
+
+                            @elseif($document->status === 'disetujui')
+
+                                <span class="hidden sm:inline-flex
+                                             px-2.5 py-1
+                                             rounded-full
+                                             text-xs font-medium
+                                             bg-emerald-100
+                                             text-emerald-700
+                                             dark:bg-emerald-900/30
+                                             dark:text-emerald-400">
+                                    Disetujui
                                 </span>
 
                             @else
@@ -277,7 +324,7 @@
                                              text-gray-600
                                              dark:bg-gray-700
                                              dark:text-gray-300">
-                                    Archived
+                                    {{ ucfirst($document->status ?? '-') }}
                                 </span>
 
                             @endif

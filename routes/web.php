@@ -8,7 +8,7 @@ use App\Http\Controllers\ProfileController;
 
 // Protected Routes
 Route::middleware('auth')->group(function () {
-    // Dokumen (bebas diakses admin & marketer)
+    // Operasi dokumen (bebas diakses admin & marketer)
     Route::get('/documents/new', [DocumentController::class, 'create'])->name('documents.create');
     Route::post('/documents/import', [DocumentController::class, 'importDocument'])->name('documents.import');
     Route::get('/documents/{document}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
@@ -24,6 +24,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/documents/template/{template}', [DocumentController::class, 'createFromTemplate'])->name('documents.template');
     Route::post('/documents/save-as', [DocumentController::class, 'saveAsNew'])->name('documents.saveAs');
 
+    // Root "/" = Studio Editor. Bebas diakses user login; kontroller akan
+    // mengarahkan non-admin ke daftar dokumen mereka (daripada 403).
+    Route::get('/', [DocumentController::class, 'chooseStart'])->name('editor.start');
+
     // Profil (bebas diakses semua role)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -34,7 +38,6 @@ Route::middleware('auth')->group(function () {
     // Khusus admin -- ini yang belum ada di sidebar marketer
     Route::middleware('role:admin')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/', [DocumentController::class, 'chooseStart'])->name('editor.start');
         Route::get('/settings', fn() => view('pages.settings', ['title' => 'Pengaturan Workspace']))->name('settings');
     });
 });

@@ -12,7 +12,7 @@ class AuthController extends Controller
     public function showSignin()
     {
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            return redirect()->route(Auth::user()->homeRouteName());
         }
         return view('pages.auth.signin', ['title' => 'Masuk ke Studio Papercraft']);
     }
@@ -37,7 +37,31 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended(route(Auth::user()->homeRouteName()));
+
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+
+            // Daftar path yang wajib role admin. Kalau URL "intended" si user
+            // menunjuk ke salah satunya padahal dia bukan admin, kita abaikan
+            // intended-nya dan arahkan ke halaman utama sesuai role-nya.
+            // (Menghindari 403 "does not have the right roles" setelah login.)
+            $adminOnlyPaths = ['/', '/dashboard', '/settings'];
+
+            $intended = $request->session()->get('url.intended');
+            $intendedPath = $intended !== null
+                ? (parse_url($intended, PHP_URL_PATH) ?: '/')
+                : null;
+
+            $isAdminOnly = $intendedPath !== null
+                && in_array($intendedPath, $adminOnlyPaths, true);
+
+            if ($isAdminOnly && !$user->hasRole('admin')) {
+                $request->session()->forget('url.intended');
+
+                return redirect()->route($user->homeRouteName());
+            }
+
+            return redirect()->intended(route($user->homeRouteName()));
         }
 
         return back()->withErrors([
