@@ -1,4 +1,4 @@
-<header
+﻿<header
     class="sticky top-0 flex w-full bg-parchment-50/90 border-parchment-200 backdrop-blur-md z-9999 border-b dark:border-slate-warm-800 dark:bg-slate-warm-900/90"
     x-data="{
         isApplicationMenuOpen: false,
@@ -86,6 +86,7 @@
                     <span class="hidden sm:inline">Save As</span>
                 </button>
 
+                @if(! (auth()->check() && auth()->user()->hasRole('marketer')))
                 <button
                     x-show="$store.documentEditor?.active"
                     x-cloak
@@ -100,11 +101,12 @@
                     </svg>
                     <span x-text="{
                         saving: 'Menyimpan...',
-                        saved: '✓ Tersimpan',
+                        saved: 'âœ“ Tersimpan',
                         error: 'Gagal, coba lagi',
                         idle: 'Save'
                     }[$store.documentEditor?.status] || 'Save'"></span>
                 </button>
+                @endif
                 
                 <!-- Save Document Action -->
                 <!-- <button @click="savedTime = 'Tersimpan ' + new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})" class="btn-primary text-xs px-3 py-1.5 h-9 shadow-xs">
