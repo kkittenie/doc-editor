@@ -53,21 +53,12 @@
     <div class="pt-6 pb-6 px-2 flex items-center border-b border-parchment-200/80 dark:border-slate-warm-800"
         :class="(!$store.sidebar.isExpanded && !$store.sidebar.isHovered && !$store.sidebar.isMobileOpen) ? 'xl:justify-center' : 'justify-between'">
         <a href="/" class="flex items-center gap-3">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ink-900 text-parchment-100 shadow-md dark:bg-parchment-100 dark:text-ink-900">
-                <!-- Fountain Pen / Document Logo SVG -->
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L4 6V18L12 22L20 18V6L12 2Z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
-                    <path d="M12 6V18" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/>
-                    <path d="M8 10H16M8 14H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-            </div>
+           
+                <img src="{{ asset('images/aksesdigital.webp') }}" alt="aksesdigital" width="100">
+                <div class="green">
+                    <span class="black">Akses </span>Digital
+                </div>
             <div x-show="$store.sidebar.isExpanded || $store.sidebar.isHovered || $store.sidebar.isMobileOpen" class="flex flex-col">
-                <span class="font-serif font-bold text-lg leading-none tracking-tight text-ink-900 dark:text-parchment-50">
-                    Papercraft
-                </span>
-                <span class="text-[10px] font-mono tracking-wider uppercase text-bronze-700 dark:text-bronze-400 mt-1">
-                    Dokumen Resmi v2.4
-                </span>
             </div>
         </a>
     </div>
@@ -159,3 +150,12 @@
 <!-- Mobile Overlay -->
 <div x-show="$store.sidebar.isMobileOpen" @click="$store.sidebar.setMobileOpen(false)"
     class="fixed z-50 h-screen w-full bg-slate-warm-900/60 backdrop-blur-xs"></div>
+
+<style>
+    .green{
+        color: green;
+    }
+    .black{
+        color: black;
+    }
+</style>

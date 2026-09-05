@@ -55,36 +55,40 @@
                 @endunless
 
                 @if($readOnly ?? false)
-                    {{-- MODE BACA: marketer hanya bisa melihat & mereview --}}
-                    <span
-                        class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-warm-600 dark:bg-slate-warm-800 dark:text-parchment-300">
-                        🔒 Mode Lihat
-                    </span>
+                {{-- MODE BACA: marketer hanya bisa melihat & mereview --}}
+                <span
+                    class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-warm-600 dark:bg-slate-warm-800 dark:text-parchment-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-ban"
+                        viewBox="0 0 16 16">
+                        <path
+                            d="M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0" />
+                    </svg>Tidak bisa mengedit dokumen
+                </span>
 
-                    @if($document->status === 'review_marketing')
-                        <button type="button" @click="setDocumentStatus('revisi')"
-                            class="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
-                            ❌ Minta Revisi
-                        </button>
+                @if($document->status === 'review_marketing')
+                <button type="button" @click="setDocumentStatus('revisi')"
+                    class="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300"> 
+                        Revisi
+                </button>
 
-                        <button type="button" @click="setDocumentStatus('disetujui')"
-                            class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700">
-                            ✅ Setujui
-                        </button>
-                    @endif
+                <button type="button" @click="setDocumentStatus('disetujui')"
+                    class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700">
+                    Setujui
+                </button>
+                @endif
                 @else
-                    @if($document->status === 'revisi')
-                        {{-- ADMIN: tombol lihat alasan revisi dari marketing --}}
-                        <button type="button" @click="showRevisionNotes()"
-                            class="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
-                            📋 Alasan Revisi
-                        </button>
-                    @endif
+                @if($document->status === 'revisi')
+                {{-- ADMIN: tombol lihat alasan revisi dari marketing --}}
+                <button type="button" @click="showRevisionNotes()"
+                    class="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+                    📋 Alasan Revisi
+                </button>
+                @endif
 
-                    <button type="button" @click="saveDocument()"
-                        class="rounded-xl bg-ink-900 px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 dark:bg-bronze-500 dark:text-ink-900">
-                        Save
-                    </button>
+                <button type="button" @click="saveDocument()"
+                    class="rounded-xl bg-ink-900 px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 dark:bg-bronze-500 dark:text-ink-900">
+                    Save
+                </button>
                 @endif
 
             </div>
@@ -151,9 +155,13 @@
         <button type="button" class="toolbar-button font-bold" data-cmd="bold" title="Tebal">B</button>
         <button type="button" class="toolbar-button italic" data-cmd="italic" title="Miring">I</button>
         <div class="toolbar-dropdown" id="tb-underline-dd">
-            <button type="button" class="toolbar-button underline" data-cmd="underline" title="Garis bawah (default: solid)">U</button>
-            <button type="button" class="toolbar-button underline-dropdown-toggle" id="tb-underline-toggle" title="Pilih variasi underline">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M2 3.5L5 6.5L8 3.5"/></svg>
+            <button type="button" class="toolbar-button underline" data-cmd="underline"
+                title="Garis bawah (default: solid)">U</button>
+            <button type="button" class="toolbar-button underline-dropdown-toggle" id="tb-underline-toggle"
+                title="Pilih variasi underline">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                    <path d="M2 3.5L5 6.5L8 3.5" />
+                </svg>
             </button>
             <div class="toolbar-dropdown-menu underline-menu">
                 <button type="button" class="underline-dd-item" data-underline-style="solid">
@@ -744,13 +752,11 @@
         text-decoration: underline !important;
         text-decoration-style: dashed !important;
         text-decoration-thickness: 1px !important;
-        background-image: repeating-linear-gradient(
-            to right,
-            currentColor 0px,
-            currentColor 2px,
-            transparent 2px,
-            transparent 4px
-        );
+        background-image: repeating-linear-gradient(to right,
+                currentColor 0px,
+                currentColor 2px,
+                transparent 2px,
+                transparent 4px);
         background-position: 0 100%;
         background-repeat: repeat-x;
         background-size: 4px 1px;
@@ -2100,7 +2106,7 @@
                         <div style="font-size:11px; color:#9ca3af; margin-bottom:4px;">
                             ${note.by ?? '-'} • ${note.at ?? '-'}
                         </div>
-                        <div style="font-size:14px; color:#374151; white-space:pre-wrap;">${String(note.reason ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+                        <div style="font-size:14px; color:#374151; white-space:pre-wrap;">${String(note.reason ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
                     </div>
                 `).join('');
 
@@ -2338,4 +2344,3 @@
 @endpush
 
 @endsection
-
