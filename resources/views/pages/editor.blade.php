@@ -2006,6 +2006,11 @@
             applyReadOnlyLock() {
                 document.body.classList.add('editor-readonly');
 
+                // Reset proteksi unsaved-changes: dokumen read-only tidak
+                // punya perubahan yang perlu diperingatkan.
+                this.changed = false;
+                window.hasUnsavedChanges = false;
+
                 const lockAll = () => {
                     document.querySelectorAll('.ql-editor').forEach((el) => {
                         el.setAttribute('contenteditable', 'false');
@@ -2234,9 +2239,16 @@
     // 2. PROTEKSI UNSAVED CHANGES
     // =========================================
 
+    // Mode baca (marketer): tidak ada perubahan yang bisa disimpan,
+    // jadi peringatan "simpan perubahan?" tidak boleh muncul —
+    // apa pun versi bundle editor.js yang dimuat browser.
+    window.__docEditorReadOnly = @js($readOnly ?? false);
+
     window.hasUnsavedChanges = false;
 
     window.addEventListener('beforeunload', function (e) {
+        if (window.__docEditorReadOnly) return;
+
         if (window.hasUnsavedChanges) {
             e.preventDefault();
             e.returnValue = '';
@@ -2250,13 +2262,14 @@
 
         Alpine.effect(() => {
             const data = Alpine.$data(editorRoot);
-            window.hasUnsavedChanges = data.changed;
+            window.hasUnsavedChanges = data.changed && !window.__docEditorReadOnly;
         });
 
         document.addEventListener('click', function (e) {
 
             const link = e.target.closest('a[href]');
             if (!link) return;
+            if (window.__docEditorReadOnly) return;
             if (!window.hasUnsavedChanges) return;
 
             const href = link.getAttribute('href');

@@ -190,7 +190,7 @@ test('marketer membuka editor dalam mode baca (read-only)', function () {
     $this->actingAs($marketer)
         ->get(route('documents.edit', $doc))
         ->assertOk()
-        ->assertSee('Mode Lihat')
+        ->assertSee('Tidak bisa mengedit dokumen')
         ->assertSee('Setujui');
 });
 
@@ -204,7 +204,7 @@ test('admin membuka editor draft dalam mode edit penuh', function () {
         ->get(route('documents.edit', $doc))
         ->assertOk()
         ->assertSee('Save')
-        ->assertDontSee('Mode Lihat');
+        ->assertDontSee('Tidak bisa mengedit dokumen');
 });
 
 test('marketer menolak dengan alasan revisi tersimpan', function () {
