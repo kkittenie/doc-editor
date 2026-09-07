@@ -669,9 +669,10 @@ class DocumentController extends Controller
 
     public function destroy(Document $document)
     {
-        // Penghapusan dokumen hanya untuk admin pemilik dokumen.
+        // Penghapusan dokumen oleh admin pemilik dokumen atau marketer.
         abort_unless(
-            Auth::user()->hasRole('admin') && $document->user_id === Auth::id(),
+            (Auth::user()->hasRole('admin') && $document->user_id === Auth::id())
+            || Auth::user()->hasRole('marketer'),
             403
         );
         $document->delete();

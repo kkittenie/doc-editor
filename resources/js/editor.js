@@ -276,6 +276,10 @@ const fitRegionToImage = (region) => {
 };
 
 const removeImageTools = () => {
+    // Diagnostik: lacak siapa yang menutup tools gambar
+    if (activeImage) {
+        console.debug('[ImageTools] ditutup oleh:', new Error().stack?.split('\n').slice(1, 4).join(' | '));
+    }
     clearInterval(watchTimer);
     cancelAnimationFrame(watchTimer || 0);
     watchTimer = null;
@@ -294,12 +298,13 @@ const removeImageTools = () => {
 };
 
 const positionImageTools = () => {
-    if (!activeImage || !activeImage.isConnected) {
-        removeImageTools();
-        return;
-    }
+    if (!activeImage) return;
+
+    if (!activeImage.isConnected) return;
 
     const rect = activeImage.getBoundingClientRect();
+
+    if (!rect.width && !rect.height) return;
 
     if (bubbleEl) {
         bubbleEl.style.left = (rect.right - 12) + 'px';
@@ -564,12 +569,16 @@ const showImageTools = (editor, img) => {
     activeEditor = editor;
 
     bubbleEl = document.createElement('div');
-    bubbleEl.innerHTML = '⚓';
-    bubbleEl.title = 'Atur Posisi Gambar';
+    bubbleEl.innerHTML =
+        '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" ' +
+        'viewBox="0 0 16 16" style="display:block">' +
+        '<path fill-rule="evenodd" d="M2 12.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"/>' +
+        '</svg>';
+    bubbleEl.title = 'Layout Options';
     bubbleEl.style.cssText =
         'position:fixed;z-index:999999;width:26px;height:26px;border-radius:6px;background:#1B2A4A;' +
         'color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;' +
-        'box-shadow:0 2px 6px rgba(0,0,0,.25);font-size:13px;';
+        'box-shadow:0 2px 6px rgba(0,0,0,.25);padding:0;line-height:0;';
     document.body.appendChild(bubbleEl);
 
     bubbleEl.addEventListener('click', (e) => {
@@ -579,12 +588,17 @@ const showImageTools = (editor, img) => {
 
     // Tombol hapus cepat di samping anchor
     removeBtnEl = document.createElement('div');
-    removeBtnEl.innerHTML = '✕';
     removeBtnEl.title = 'Hapus gambar';
     removeBtnEl.style.cssText =
         'position:fixed;z-index:999999;width:26px;height:26px;border-radius:6px;background:#dc2626;' +
         'color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;' +
-        'box-shadow:0 2px 6px rgba(0,0,0,.25);font-size:12px;';
+        'box-shadow:0 2px 6px rgba(0,0,0,.25);padding:0;line-height:0;';
+    removeBtnEl.innerHTML =
+        '<svg width="12" height="12" viewBox="0 0 12 12" style="display:block" ' +
+        'stroke="#fff" stroke-width="2" stroke-linecap="round">' +
+        '<line x1="1.5" y1="1.5" x2="10.5" y2="10.5"/>' +
+        '<line x1="10.5" y1="1.5" x2="1.5" y2="10.5"/>' +
+        '</svg>';
     document.body.appendChild(removeBtnEl);
 
     removeBtnEl.addEventListener('click', (e) => {
@@ -635,13 +649,23 @@ const showImageTools = (editor, img) => {
 
     positionImageTools();
 
+    let disconnectedSince = 0;
+
     const loop = () => {
         if (!activeImage) return;
+
+
         if (!activeImage.isConnected) {
-            removeImageTools();
-            return;
+            if (!disconnectedSince) disconnectedSince = Date.now();
+            if (Date.now() - disconnectedSince > 3000) {
+                removeImageTools();
+                return;
+            }
+        } else {
+            disconnectedSince = 0;
+            positionImageTools();
         }
-        positionImageTools();
+
         watchTimer = requestAnimationFrame(loop);
     };
     watchTimer = requestAnimationFrame(loop);
@@ -889,8 +913,6 @@ const nearestLine = (rootEl, x, y) => {
     return best;
 };
 
-// Konversi posisi DOM (text node + offset) di dalam editor Quill
-// menjadi indeks karakter milik Quill. Bukan text node -> null.
 const domPosToQuillIndex = (q, node, offset) => {
     try {
         if (!node || node.nodeType !== Node.TEXT_NODE || !q.root.contains(node)) return null;
@@ -1050,10 +1072,20 @@ const quillIndexAtPoint = (q, x, y) => {
 
 // LISTENER GLOBAL (dipasang sekali)
 
-if (!window.__imageToolsBound) {
-    window.__imageToolsBound = true;
+// HMR/eval-ulang aman: handler lama dilepas dulu, lalu dipasang ulang.
+if (typeof window.__imageToolsUnbind === 'function') window.__imageToolsUnbind();
+const __imageToolsUnbinds = [];
+window.__imageToolsUnbind = () => {
+    while (__imageToolsUnbinds.length) {
+        try { __imageToolsUnbinds.pop()(); } catch (err) { /* noop */ }
+    }
+};
+const __bind = (target, type, fn, opts) => {
+    target.addEventListener(type, fn, opts);
+    __imageToolsUnbinds.push(() => target.removeEventListener(type, fn, opts));
+};
 
-    document.addEventListener('mousedown', (e) => {
+    __bind(document, 'mousedown', (e) => {
         if (e.target?.nodeName !== 'IMG') return;
         const img = e.target;
         if (!isFloatingImage(img)) return;
@@ -1079,7 +1111,7 @@ if (!window.__imageToolsBound) {
     });
 
     // Siapkan drag angkat & jatuhkan saat menekan gambar biasa
-    document.addEventListener('mousedown', (e) => {
+    __bind(document, 'mousedown', (e) => {
         if (e.target?.nodeName !== 'IMG') return;
         if (e.button !== 0) return;
         const img = e.target;
@@ -1107,9 +1139,8 @@ if (!window.__imageToolsBound) {
         flowImgOriginalRegion = img.closest(FLOAT_REGION_SELECTOR);
     });
 
-    // Blokir drag bawaan browser pada gambar dokumen —
-    // ghost drag native membunuh event mousemove/mouseup milik drag kustom.
-    document.addEventListener('dragstart', (e) => {
+
+    __bind(document, 'dragstart', (e) => {
         const img = e.target;
         if (img?.nodeName !== 'IMG') return;
         if (img.closest('.doc-signature')) return;
@@ -1118,7 +1149,7 @@ if (!window.__imageToolsBound) {
     });
 
     // TITIK SISIP DI MANA SAJA: SEMUA klik kiri di kertas dihitung lewat
-    document.addEventListener(
+    __bind(document,
         'mousedown',
         (e) => {
             if (e.button !== 0) return;
@@ -1126,13 +1157,10 @@ if (!window.__imageToolsBound) {
             const sheet = e.target?.closest?.('.doc-sheet');
             if (!sheet) return; // hanya di dalam kertas
 
-            // Interaksi khusus yang tidak boleh diganggu
             if (e.target.closest?.('.doc-signature')) return;
             if (e.target.closest?.('img')) return;
             if (e.target.closest?.('button, a, input, select, textarea')) return;
 
-            // Zona terkunci (di luar sesi): biarkan tanpa caret —
-            // double-click untuk membuka sesi ditangani handler lain
             const zone = e.target.closest?.('.doc-sheet-header, .doc-sheet-footer');
             if (zone) {
                 const zq = quillsByRegion.get(zone);
@@ -1162,7 +1190,7 @@ if (!window.__imageToolsBound) {
 
     const __wordChar = (ch) => /[\w\u00C0-\u024F\u1E00-\u1EFF]/.test(ch || '');
 
-    document.addEventListener(
+    __bind(document,
         'dblclick',
         (e) => {
             if (e.button !== 0) return;
@@ -1228,7 +1256,7 @@ if (!window.__imageToolsBound) {
         true
     );
 
-    document.addEventListener('mousemove', (e) => {
+    __bind(document, 'mousemove', (e) => {
         // ---- DRAG ANGKAT GAMBAR FLOW: trigger saat digeser + ghost ikut kursor ----
         if (flowDragArmed && !isDraggingFlowImage && flowDragSourceImg) {
             if (e.buttons === 0) {
@@ -1335,7 +1363,7 @@ if (!window.__imageToolsBound) {
         positionImageTools();
     });
 
-    document.addEventListener('mouseup', (e) => {
+    __bind(document, 'mouseup', (e) => {
         // Selesaikan drag floating
         if (floatingImg) {
             const draggedImg = floatingImg;
@@ -1382,11 +1410,11 @@ if (!window.__imageToolsBound) {
         isResizingImage = false;
     });
 
-    document.addEventListener('scroll', () => positionImageTools(), true);
-    window.addEventListener('resize', () => positionImageTools());
+    __bind(document, 'scroll', () => positionImageTools(), true);
+    __bind(window, 'resize', () => positionImageTools());
 
     // Klik di luar gambar & alatnya -> tutup mode edit gambar
-    document.addEventListener('click', (e) => {
+    __bind(document, 'click', (e) => {
         if (e.target === bubbleEl || bubbleEl?.contains(e.target)) return;
         if (e.target === removeBtnEl || removeBtnEl?.contains(e.target)) return;
         if (e.target === dragSurfaceEl || dragSurfaceEl?.contains(e.target)) return;
@@ -1396,8 +1424,8 @@ if (!window.__imageToolsBound) {
         removeImageTools();
     });
 
-    // Klik dua kali pada gambar yang TERTUTUP teks -> pilih gambarnya
-    document.addEventListener('dblclick', (e) => {
+    
+    __bind(document, 'dblclick', (e) => {
         const stack = document.elementsFromPoint(e.clientX, e.clientY);
         const img = stack.find((el) => el.nodeName === 'IMG');
         if (!img) return;
@@ -1415,7 +1443,6 @@ if (!window.__imageToolsBound) {
 
         showImageTools(editor, img);
     });
-}
 
 // TOOLBAR QUILL (satu toolbar bersama untuk semua region)
 
