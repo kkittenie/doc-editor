@@ -52,14 +52,13 @@
     <!-- Brand Logo Section -->
     <div class="pt-6 pb-6 px-2 flex items-center border-b border-parchment-200/80 dark:border-slate-warm-800"
         :class="(!$store.sidebar.isExpanded && !$store.sidebar.isHovered && !$store.sidebar.isMobileOpen) ? 'xl:justify-center' : 'justify-between'">
-        <a href="/" class="flex items-center gap-3">
-           
-                <img src="{{ asset('images/aksesdigital.webp') }}" alt="aksesdigital" width="100">
-                <div class="green">
+        <a href="/" class="overflow-hidden"
+            :class="(!$store.sidebar.isExpanded && !$store.sidebar.isHovered && !$store.sidebar.isMobileOpen) ? 'flex flex-col items-center gap-1' : 'flex items-center gap-3'">
+                <img src="{{ asset('images/aksesdigital.webp') }}" alt="aksesdigital" width="100" class="h-auto shrink-0">
+                <div class="green shrink-0"
+                    x-show="$store.sidebar.isExpanded || $store.sidebar.isHovered || $store.sidebar.isMobileOpen">
                     <span class="black">Akses </span>Digital
                 </div>
-            <div x-show="$store.sidebar.isExpanded || $store.sidebar.isHovered || $store.sidebar.isMobileOpen" class="flex flex-col">
-            </div>
         </a>
     </div>
 
