@@ -62,6 +62,9 @@ class DocumentController extends Controller
             'title' => ($canEdit ? 'Edit: ' : 'Lihat: ') . $document->title,
             'document' => $document,
             'readOnly' => ! $canEdit,
+            // Footer efektif (dokumen cover dengan footer kosong otomatis
+            // diregenerasi — lihat resolveFooterHtml()).
+            'footerHtml' => $this->resolveFooterHtml($document),
         ]);
     }
 
@@ -187,14 +190,46 @@ class DocumentController extends Controller
     private function buildCoverFooterHtml(): string
     {
         return implode("\n", [
-            '<p><strong>Pihak Pertama</strong></p>',
-            '<p>Alamat: [Ketik alamat pihak pertama di sini]</p>',
-            '<p>No. Telp | Email | Web: '
+            // Footer rapikan 2 kolom: identitas Pihak Pertama di kiri,
+            // paraf + stample/materai di kanan, ukur kecil (9px), pada
+            // line yang sama (seberangan dalam satu baris tabel).
+            '<table style="width:100%; table-layout:fixed; border-collapse:collapse; margin:0; page-break-inside:avoid;">',
+            '<tbody>',
+            '<tr>',
+            '<td style="width:50%; vertical-align:top; text-align:left; padding:0; font-size:9px; border:none;">',
+            '<p style="margin:0 0 3px; font-size:9px;"><strong>Pihak Pertama</strong></p>',
+            '<p style="margin:0 0 3px; font-size:9px;">Alamat: [Ketik alamat pihak pertama di sini]</p>',
+            '<p style="margin:0 0 3px; font-size:9px;">No. Telp | Email | Web: '
                 .'[Ketik telp di sini] | [Ketik email di sini] | [Ketik website di sini]</p>',
-            '<p style="text-align:right;"><strong>Paraf PIHAK PERTAMA:</strong> ______________</p>',
-            '<p style="text-align:right;"><strong>Paraf PIHAK KEDUA:</strong> ______________</p>',
-            '<p style="text-align:right;">[ Tempel Stample/Materai di sini ]</p>',
+            '</td>',
+            '<td style="width:50%; vertical-align:top; text-align:right; padding:0; font-size:9px; border:none;">',
+            '<p style="margin:0 0 3px; font-size:9px;"><strong>Paraf PIHAK PERTAMA:</strong> ______________</p>',
+            '<p style="margin:0 0 3px; font-size:9px;"><strong>Paraf PIHAK KEDUA:</strong> ______________</p>',
+            '<p style="margin:0 0 3px; font-size:9px;">[ Tempel Stample/Materai di sini ]</p>',
+            '</td>',
+            '</tr>',
+            '</tbody>',
+            '</table>',
         ]);
+    }
+
+    /**
+     * Footer efektif untuk render editor/PDF. Dokumen ber-cover harus selalu
+     * punya footer tabel (identitas Pihak Pertama | Paraf/Stempel). Dokumen
+     * lama yang footernya kosong atau tergerus round-trip lama diregenerasi
+     * on-the-fly sehingga tampil kembali tanpa perlu dibuat ulang.
+     */
+    private function resolveFooterHtml(Document $document): string
+    {
+        $footerHtml = (string) ($document->footer_data['content'] ?? '');
+
+        $isCover = (int) ($document->body_content['coverPages'] ?? 0) > 0;
+
+        if ($isCover && !preg_match('/<table/i', $footerHtml)) {
+            $footerHtml = $this->buildCoverFooterHtml();
+        }
+
+        return $footerHtml;
     }
 
     private function buildCoverPageHtml(string $title): string
@@ -593,6 +628,14 @@ class DocumentController extends Controller
             $data['body_content']['coverPages'] = (int) ($document->body_content['coverPages'] ?? 0);
         }
 
+        // Dokumen cover tidak boleh kehilangan footer tabelnya: kalau payload
+        // simpanan membawa footer kosong/tanpa tabel (mis. hasil konversi
+        // Quill yang gagal senyap di masa lalu), regenerasi + backfill.
+        if ((int) ($document->body_content['coverPages'] ?? 0) > 0
+            && !preg_match('/<table/i', (string) ($data['footer_data']['content'] ?? ''))) {
+            $data['footer_data']['content'] = $this->buildCoverFooterHtml();
+        }
+
         $document->update($data);
 
         return response()->json(['message' => 'Perubahan tersimpan.']);
@@ -719,13 +762,17 @@ class DocumentController extends Controller
         );
 
         $headerHtml = $this->resolveImagePathsForPdf($document->header_data['content'] ?? '');
-        $footerHtml = $this->resolveImagePathsForPdf($document->footer_data['content'] ?? '');
+        $footerHtml = $this->resolveImagePathsForPdf($this->resolveFooterHtml($document));
+        // Footer ber-tabel (cover: Pihak Pertama | Paraf/Stempel) dirender
+        // full-width, sedangkan footer teks biasa tetap di kolom kanan 50%.
+        $footerHasTable = (bool) preg_match('/<table/i', $footerHtml);
 
         $pdf = Pdf::loadView('pdf.document', [
             'document'      => $document,
             'pages'         => $pages,
             'headerHtml'    => $headerHtml,
             'footerHtml'    => $footerHtml,
+            'footerHasTable' => $footerHasTable,
             'signaturePath' => $signaturePath,
         ])->setPaper('a4', 'portrait');
 

@@ -1164,6 +1164,24 @@
         opacity: 1;
     }
 
+    /* Tabel footer cover (Pihak Pertama | Paraf/Stempel) naher Quill:
+       Quill beretain <table> maar membuang style inline (margin pada <p>,
+       padding/border pada <td>). Rule ini pulihkan penampilan compact. */
+    .doc-sheet-footer table.contract-table-unstyled {
+        margin: 0;
+        width: 100%;
+    }
+
+    .doc-sheet-footer table.contract-table-unstyled td {
+        padding: 0;
+        vertical-align: top;
+    }
+
+    .doc-sheet-footer table.contract-table-unstyled td p {
+        margin: 0 0 3px;
+        font-size: 9px;
+    }
+
     .editing-header .doc-sheet-body,
     .editing-header .doc-sheet-footer,
     .editing-footer .doc-sheet-body,
@@ -1368,7 +1386,7 @@
             revisionNotes: @js($document -> revision_notes ?? []),
 
             headerHtml: @js($document -> header_data['content'] ?? ''),
-            footerHtml: @js($document -> footer_data['content'] ?? ''),
+            footerHtml: @js($footerHtml ?? $document -> footer_data['content'] ?? ''),
 
             editSection: null,
 

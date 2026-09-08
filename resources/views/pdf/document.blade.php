@@ -162,6 +162,32 @@
             font-size: 9px;
         }
 
+        /* FOOTER COVER: tabel full-width (identitas Pihak Pertama | Paraf/Stempel)
+           di bawahnya baris Tembusan + Tanda Tangan.
+           Rule ini juga pulihkan penampilan compact jika Quill membuang
+           style inline (margin/font-size/padding/border) pada round-trip. */
+        .footer-cover {
+            width: 100%;
+            margin-top: 30px;
+            page-break-inside: avoid;
+        }
+
+        .footer-cover table {
+            width: 100%;
+            margin: 0;
+        }
+
+        .footer-cover table td {
+            padding: 0;
+            border: none;
+            vertical-align: top;
+        }
+
+        .footer-cover table td p {
+            margin: 0 0 3px;
+            font-size: 9px;
+        }
+
         .signature-space {
             height: 70px;
             text-align: center;
@@ -196,6 +222,13 @@
     </div>
     @endforeach
 
+    @if($footerHasTable ?? false)
+    {{-- FOOTER TIPO COVER: tabel full-width, tidak dikompresi ke kolom 50%. --}}
+    <div class="footer-cover">
+        {!! $footerHtml !!}
+    </div>
+    @endif
+
     <table class="footer-table">
         <tr>
             <td class="left-col">
@@ -205,7 +238,9 @@
                 @endif
             </td>
             <td class="right-col">
+                @if(!($footerHasTable ?? false))
                 {!! $footerHtml ?? '' !!}
+                @endif
 
             <div class="signature-space">
                 @if(!empty($signaturePath))

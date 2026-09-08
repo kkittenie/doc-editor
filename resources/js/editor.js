@@ -2231,19 +2231,28 @@ const attachQuillToRegion = (regionEl) => {
 
         let q;
         try {
+            // Zona header/footer TIDAK memakai modul table-better: matchers-nya
+            // mengubah tabel polos menjadi cangkang <temporary> kosong (tinggi
+            // 0px, konten hilang) pada quill 2.0.1 + quill-table-better 1.2.3.
+            // Dengan table blots bawaan Quill core, tabel polos footer/header
+            // terkonversi utuh dan tetap bisa diedit sebagai teks.
+            const zoneRole = regionEl.dataset?.region;
+            const isZone = zoneRole === 'header' || zoneRole === 'footer';
             q = new Quill(host, {
                 theme: 'snow',
                 placeholder: '',
-                modules: {
-                    toolbar: hiddenToolbar,
-                    table: false,
-                    'table-better': {
-                        language: 'en_US', 
-                        menus: ['column', 'row', 'merge', 'table', 'cell', 'wrap', 'copy', 'delete'],
-                        toolbarTable: false
+                modules: isZone
+                    ? { toolbar: hiddenToolbar, table: false }
+                    : {
+                        toolbar: hiddenToolbar,
+                        table: false,
+                        'table-better': {
+                            language: 'en_US',
+                            menus: ['column', 'row', 'merge', 'table', 'cell', 'wrap', 'copy', 'delete'],
+                            toolbarTable: false
+                        },
+                        keyboard: { bindings: QuillTableBetter.keyboardBindings },
                     },
-                    keyboard: { bindings: QuillTableBetter.keyboardBindings },
-                },
                 formats: ALLOWED_FORMATS,
             });
         } catch (err) {
@@ -2253,6 +2262,27 @@ const attachQuillToRegion = (regionEl) => {
             regionEl.setAttribute('contenteditable', 'true');
             regionEl.classList.add('ql-editor');
             return null;
+        }
+
+        // TableClipboard (modules/clipboard milik quill-table-better yang
+        // terdaftar GLOBAL via QuillTableBetter.register()) menyuntikkan
+        // matchers tabelnya ke SETIAP instance Quill. Delta hasil campuran
+        // format table-better ('table-cell'/'table-cell-block') dengan
+        // format 'table' bawaan core GAGAL dimaterialisasi setContents:
+        // isi sel hilang dan tabel menjadi cangkang tinggi 0px.
+        // Dedupe: sisakan matcher core pertama per selector + matcher
+        // 'td, th' milik editor ini (yang ditambahkan paling akhir),
+        // buang matcher table-better ('table' & 'col' dan duplikatnya).
+        {
+            const ms = q.clipboard.matchers || [];
+            const firstOf = (sel) => ms.find(([s]) => s === sel);
+            const lastOf = (sel) => ms.filter(([s]) => s === sel).pop();
+            q.clipboard.matchers = [
+                ...ms.filter(([s]) =>
+                    s !== 'tr' && s !== 'td, th' && s !== 'table' && s !== 'col'),
+                firstOf('tr'),   // matcher core: format 'table' (nomor baris)
+                lastOf('td, th'), // matcher editor: align/bold/rowspan sel
+            ].filter(Boolean);
         }
 
         q.clipboard.addMatcher('td, th', (node, delta) => {
@@ -2308,6 +2338,26 @@ const attachQuillToRegion = (regionEl) => {
         if (existingHtml.trim()) {
     
             pasteHtmlSafely(q, existingHtml);
+
+            // Guard anti-hilang: clipboard.convert bisa GAGAL SENYAP (delta
+            // kosong / tabel ditelan) tanpa melempar error apa pun. Zona
+            // header/footer ber-tabel wajib selamat — kalau tabelnya hilang
+            // setelah konversi, pulihkan HTML asli dan lepas region dari
+            // Quill (getHtml() tetap membaca innerHTML region sehingga
+            // simpanan tidak kehilangan tabel).
+            if (/<table/i.test(existingHtml)
+                && (!q.root.querySelector('table') || !q.root.querySelector('table tr'))) {
+                if (regionEl.dataset?.region === 'body') {
+                    console.warn('[DocQuill] Tabel pada BODY tidak terkonversi Quill (konten tetap dirender).');
+                } else {
+                    console.warn('[DocQuill] Konversi tabel header/footer gagal senyap — region dipulihkan ke HTML asli.');
+                    regionEl.dataset.quillReady = '';
+                    regionEl.innerHTML = existingHtml;
+                    regionEl.setAttribute('contenteditable', 'true');
+                    regionEl.classList.add('ql-editor');
+                    return null;
+                }
+            }
 
             q.root.querySelectorAll('img').forEach((im) => {
                 const st = im.getAttribute('style') || '';
