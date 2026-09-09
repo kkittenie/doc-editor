@@ -196,6 +196,10 @@ let floatingDragArmed = false;
 let isDraggingFloating = false;
 let floatStartX = 0, floatStartY = 0;
 let floatBaseLeft = 0, floatBaseTop = 0;
+// Guard per-press: true bila press ini baru saja MENSELEKSI gambar (via
+// mousedown) atau baru saja menyelesaikan drag sungguhan, sehingga event
+// click berikutnya TIDAK boleh melepas seleksi (toggle-off).
+let imgToggleGuard = false;
 
 const FLOAT_REGION_SELECTOR = '.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer';
 
@@ -276,12 +280,7 @@ const fitRegionToImage = (region) => {
 };
 
 const removeImageTools = () => {
-    // Diagnostik: lacak siapa yang menutup tools gambar
-    if (activeImage) {
-        console.debug('[ImageTools] ditutup oleh:', new Error().stack?.split('\n').slice(1, 4).join(' | '));
-    }
-    clearInterval(watchTimer);
-    cancelAnimationFrame(watchTimer || 0);
+    cancelAnimationFrame(watchTimer);
     watchTimer = null;
     bubbleEl?.remove();
     removeBtnEl?.remove();
@@ -295,6 +294,11 @@ const removeImageTools = () => {
     handleEls = [];
     activeImage = null;
     activeEditor = null;
+    floatingImg = null;
+    floatingRegion = null;
+    floatingDragArmed = false;
+    isDraggingFloating = false;
+    isResizingImage = false;
 };
 
 const positionImageTools = () => {
@@ -1098,8 +1102,12 @@ const __bind = (target, type, fn, opts) => {
         // preventDefault: cegah seleksi teks & drag bawaan browser.
         e.preventDefault();
         
-        // Tampilkan tools (drag surface + resize handles) untuk gambar floating
-        showImageTools(activeEditor || findEditorContaining(region) || findEditorFor(img), img);
+        // Tampilkan tools (drag surface + resize handles) untuk gambar floating.
+        // Bila press ini MENSELEKSI (bukan sudah terpilih), click berikutnya
+        // tidak boleh langsung melepas (guard).
+        const wasSelectedBefore = activeImage === img;
+        showImageTools(activeEditor || findEditorContaining(region), img);
+        if (!wasSelectedBefore) imgToggleGuard = true;
         floatingImg = img;
         floatingRegion = region;
         floatingDragArmed = true;
@@ -1123,7 +1131,9 @@ const __bind = (target, type, fn, opts) => {
             const zq = quillsByRegion.get(zone);
             if (!zq || !zq.isEnabled()) {
     
-                showImageTools(activeEditor || findEditorContaining(zone) || findEditorFor(img), img);
+                const wasSelectedBefore = activeImage === img;
+                showImageTools(activeEditor || findEditorContaining(zone), img);
+                if (!wasSelectedBefore) imgToggleGuard = true;
                 return;
             }
         }
@@ -1375,6 +1385,8 @@ const __bind = (target, type, fn, opts) => {
             isDraggingFloating = false;
 
             if (wasDragged) {
+                // Drag sungguhan: click berikutnya tidak boleh melepas.
+                imgToggleGuard = true;
                 document.body.style.userSelect = '';
                 // Lepas di atas region lain (body <-> kop/footer) ->
                 // pindahkan induk gambarnya, bukan sekadar geser left/top.
@@ -1390,6 +1402,8 @@ const __bind = (target, type, fn, opts) => {
             isDraggingFlowImage = false;
 
             if (wasDragging) {
+                // Drag sungguhan: click berikutnya tidak boleh melepas.
+                imgToggleGuard = true;
                 document.body.style.userSelect = '';
                 selesaiFlowDrag(e);
             } else {
@@ -1413,14 +1427,35 @@ const __bind = (target, type, fn, opts) => {
     __bind(document, 'scroll', () => positionImageTools(), true);
     __bind(window, 'resize', () => positionImageTools());
 
-    // Klik di luar gambar & alatnya -> tutup mode edit gambar
+    // Reset guard per-press: setiap mousedown baru memulai siklus seleksi.
+    __bind(document, 'mousedown', () => { imgToggleGuard = false; }, true);
+
+    // Klik di luar gambar & alatnya -> tutup mode edit gambar.
+    // Klik SINGKAT pada gambar yang sedang terpilih (termasuk lewat
+    // permukaan drag gambar floating) = toggle-lepas; press yang baru
+    // saja menseleksi / drag sungguhan dipertahankan.
     __bind(document, 'click', (e) => {
         if (e.target === bubbleEl || bubbleEl?.contains(e.target)) return;
         if (e.target === removeBtnEl || removeBtnEl?.contains(e.target)) return;
-        if (e.target === dragSurfaceEl || dragSurfaceEl?.contains(e.target)) return;
         if (e.target === panelEl || panelEl?.contains(e.target)) return;
         if (handleEls.includes(e.target)) return;
+        if (e.target === dragSurfaceEl || dragSurfaceEl?.contains(e.target)) {
+            if (imgToggleGuard) {
+                imgToggleGuard = false;
+                return;
+            }
+            removeImageTools();
+            return;
+        }
         if (e.target.nodeName === 'IMG') return;
+        // Press yang baru menseleksi gambar via mousedown (floating/zona
+        // terkunci) bisa menembakkan click ke BODY: target mouseup adalah
+        // drag-surface yang baru dibuat, sehingga click jatuh ke common
+        // ancestor (BODY). Itu BUKAN klik-luar - jangan tutup tools.
+        if (imgToggleGuard) {
+            imgToggleGuard = false;
+            return;
+        }
         removeImageTools();
     });
 
@@ -2786,10 +2821,21 @@ window.initBodyEditor = function (rootSelector, onSync = null) {
         const regions = root.querySelectorAll('.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer');
         regions.forEach(attachQuillToRegion);
 
-        // Klik gambar yang terlihat -> langsung buka mode edit gambar
+        // Klik gambar yang terlihat -> langsung buka mode edit gambar.
+        // Klik ULANG gambar yang sedang terpilih = lepas (toggle), supaya
+        // siklus pilih -> lepas -> pilih lagi selalu selesai dalam 1 klik.
+        // Press yang baru saja menseleksi via mousedown dilindungi guard.
         root.addEventListener('click', (e) => {
             if (e.target.nodeName !== 'IMG') return;
             if (e.target.closest('.doc-signature')) return;
+            if (activeImage === e.target) {
+                if (imgToggleGuard) {
+                    imgToggleGuard = false;
+                    return;
+                }
+                removeImageTools();
+                return;
+            }
             showImageTools(shim, e.target);
         });
 
