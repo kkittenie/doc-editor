@@ -200,6 +200,14 @@ let floatBaseLeft = 0, floatBaseTop = 0;
 // mousedown) atau baru saja menyelesaikan drag sungguhan, sehingga event
 // click berikutnya TIDAK boleh melepas seleksi (toggle-off).
 let imgToggleGuard = false;
+// Per-press tambahan: true bila `showImageTools` BARU saja dipanggil untuk
+// gambar yang belum terpilih (mis. klik pertama setelah insert / klik di luar
+// lalu klik kembali). Mencegah handler click global yang menemukan
+// `activeImage === e.target` (setelah showImageTools) langsung menutupnya
+// sebelum positioning loop selesai menggambar — ini adalah AKAR dari
+// "berkedip" tombol hapus / drag-size / layout options. Direset di mousedown
+// berikutnya.
+let lastImgToggleGuard = false;
 
 const FLOAT_REGION_SELECTOR = '.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer';
 
@@ -566,6 +574,9 @@ const startImageResize = (e, corner) => {
 };
 
 const showImageTools = (editor, img) => {
+    // Gambar baru yang belum terpilih: naikkan guard satu klik agar handler
+    // click berikutnya (activeImage === e.target) tidak langsung toggle-off.
+    if (activeImage !== img) lastImgToggleGuard = true;
     if (activeImage === img) return;
     removeImageTools();
 
@@ -1428,7 +1439,8 @@ const __bind = (target, type, fn, opts) => {
     __bind(window, 'resize', () => positionImageTools());
 
     // Reset guard per-press: setiap mousedown baru memulai siklus seleksi.
-    __bind(document, 'mousedown', () => { imgToggleGuard = false; }, true);
+    // lastImgToggleGuard juga direset agar tidak lekat ke press berikutnya.
+    __bind(document, 'mousedown', () => { imgToggleGuard = false; lastImgToggleGuard = false; }, true);
 
     // Klik di luar gambar & alatnya -> tutup mode edit gambar.
     // Klik SINGKAT pada gambar yang sedang terpilih (termasuk lewat
@@ -1440,8 +1452,9 @@ const __bind = (target, type, fn, opts) => {
         if (e.target === panelEl || panelEl?.contains(e.target)) return;
         if (handleEls.includes(e.target)) return;
         if (e.target === dragSurfaceEl || dragSurfaceEl?.contains(e.target)) {
-            if (imgToggleGuard) {
+            if (imgToggleGuard || lastImgToggleGuard) {
                 imgToggleGuard = false;
+                lastImgToggleGuard = false;
                 return;
             }
             removeImageTools();
@@ -1452,8 +1465,9 @@ const __bind = (target, type, fn, opts) => {
         // terkunci) bisa menembakkan click ke BODY: target mouseup adalah
         // drag-surface yang baru dibuat, sehingga click jatuh ke common
         // ancestor (BODY). Itu BUKAN klik-luar - jangan tutup tools.
-        if (imgToggleGuard) {
+        if (imgToggleGuard || lastImgToggleGuard) {
             imgToggleGuard = false;
+            lastImgToggleGuard = false;
             return;
         }
         removeImageTools();
@@ -2829,8 +2843,13 @@ window.initBodyEditor = function (rootSelector, onSync = null) {
             if (e.target.nodeName !== 'IMG') return;
             if (e.target.closest('.doc-signature')) return;
             if (activeImage === e.target) {
-                if (imgToggleGuard) {
+                // Press yang baru saja MENSELEKSI gambar ini (seleksi baru via
+                // showImageTools) atau drag sungguhan: click berikutnya tidak
+                // boleh langsung melepas (toggle-off) — tanpa ini, gambar yang
+                // baru diseleksi berkedip dan alatnya mustahil diklik.
+                if (imgToggleGuard || lastImgToggleGuard) {
                     imgToggleGuard = false;
+                    lastImgToggleGuard = false;
                     return;
                 }
                 removeImageTools();
