@@ -247,10 +247,57 @@ const clampPosToSheet = (regionEl, left, top, w, h) => {
 const clampPosToRegion = (regionEl, left, top, w, h) => {
     const r = regionEl?.getBoundingClientRect?.();
     if (!r || !r.width || !r.height) return [Math.max(0, left), Math.max(0, top)];
-    const maxX = Math.max(0, r.width - w);
-    const maxY = Math.max(0, r.height - h);
-    const cx = Math.min(Math.max(left, 0), maxX);
-    const cy = Math.min(Math.max(top, 0), maxY);
+
+    // Header & footer boleh "menjelajah" seluruh kertas agar gambar bisa
+    // ditarik ke margin atas/bawah dan pojok kertas (seperti di halaman
+    // biasa). Body tetap dikunci di dalam zona karena tubuh halaman
+    // memakai overflow:hidden.
+    const role = regionEl.dataset?.region;
+    const isZone = role === 'header' || role === 'footer';
+    const sheet = isZone ? regionEl.closest('.doc-sheet') : null;
+    const sRect = sheet ? sheet.getBoundingClientRect() : null;
+
+    let minX = 0, minY = 0;
+    let maxX = r.width - w;
+    let maxY = r.height - h;
+
+    if (sRect) {
+        // Offset posisi region relatif terhadap kertas (jarak margin).
+        const offX = r.left - sRect.left;
+        const offY = r.top - sRect.top;
+        minX = -offX;
+        maxX = sRect.width - w - offX;
+
+        if (role === 'header') {
+            // Atas tetap bebas ke margin/pojok kertas (fix sebelumnya).
+            minY = -offY;
+            // Batas bawah = tidak boleh melewati garis pemisah header->body.
+            // Sertakan padding-bottom header (8px) agar berhenti di atas garis.
+            const padB = parseFloat(getComputedStyle(regionEl).paddingBottom) || 0;
+            const bottomMax = r.height - padB - h;
+            // Kalau gambar terlalu tinggi untuk header, biarkan overflow ke
+            // ATAS (terpotong di tepi kertas), BUKAN bleber ke body.
+            minY = Math.min(minY, bottomMax);
+            maxY = bottomMax;
+        } else if (role === 'footer') {
+            // Bawah tetap bebas ke margin bawah kertas.
+            maxY = sRect.height - h - offY;
+            // Batas atas = tidak boleh melewati garis pemisah footer<-body.
+            const padT = parseFloat(getComputedStyle(regionEl).paddingTop) || 0;
+            const topBound = padT;
+            // Kalau terlalu tinggi, overflow ke BAWAH (terpotong di tepi
+            // kertas), BUKAN bleber ke body.
+            minY = topBound;
+            maxY = Math.max(maxY, topBound);
+        } else {
+            // Body: tetap terkunci di dalam zona (overflow:hidden di kertas).
+            minY = -offY;
+            maxY = sRect.height - h - offY;
+        }
+    }
+
+    const cx = Math.min(Math.max(left, minX), Math.max(minX, maxX));
+    const cy = Math.min(Math.max(top, minY), Math.max(minY, maxY));
     return [cx, cy];
 };
 
@@ -1338,8 +1385,17 @@ const __bind = (target, type, fn, opts) => {
                 if (shiftLeft) activeImage.style.left = (resizeStartLeft - dW2) + 'px';
                 if (shiftTop) activeImage.style.top = (resizeStartTop - dH2) + 'px';
 
-                // Top tidak boleh negatif (tidak menembus garis atas section)
-                if (parseFloat(activeImage.style.top) < 0) activeImage.style.top = '0px';
+                // Saat resize: kunci gambar tetap di dalam kertas (header/footer
+                // boleh masuk margin & pojok, body tetap di dalam zona).
+                const [cL, cT] = clampPosToRegion(
+                    region,
+                    parseFloat(activeImage.style.left) || 0,
+                    parseFloat(activeImage.style.top) || 0,
+                    activeImage.offsetWidth,
+                    activeImage.offsetHeight
+                );
+                activeImage.style.left = cL + 'px';
+                activeImage.style.top = cT + 'px';
 
                 // Garis batas bawah section mengikuti ukuran gambar
                 if (region) fitRegionToImage(region);
