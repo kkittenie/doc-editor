@@ -6,7 +6,7 @@
 
     {{-- TOP BAR --}}
     <div
-        class="editor-topbar sticky top-0 z-40 border-b border-parchment-300 bg-white/95 backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95">
+        class="editor-topbar sticky top-[57px] z-40 border-b border-parchment-300 bg-white/95 backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95">
         <div class="flex items-center justify-between px-5 py-3">
 
             {{-- LEFT --}}
@@ -98,7 +98,7 @@
     {{-- QUILL TOOLBAR (satu toolbar bersama untuk semua region) --}}
     @unless($readOnly ?? false)
     <div id="body-toolbar-container"
-        class="sticky top-[57px] z-30 flex flex-wrap items-center gap-1.5 border-b border-parchment-300 bg-white/95 px-4 py-2.5 shadow-sm backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95 print:hidden">
+        class="sticky top-[114px] z-30 flex flex-wrap items-center gap-1.5 border-b border-parchment-300 bg-white/95 px-4 py-2.5 shadow-sm backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95 print:hidden">
 
         <button type="button" class="toolbar-button" data-cmd="undo" title="Urungkan"><b>↺</b></button>
         <button type="button" class="toolbar-button" data-cmd="redo" title="Ulangi"><b>↻</b></button>
