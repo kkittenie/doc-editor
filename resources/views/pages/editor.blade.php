@@ -1104,6 +1104,38 @@
         margin: 0 0 10px 0;
     }
 
+    /*
+        Halaman SAMPUL (cover): blok judul + pihak lebih ditengahkan ke
+        kertas dan jarak antar baris dijadikan lebih lega.
+        Catatan: Quill membuang style inline (margin/font-size) pada <p>/<h1>,
+        jadi tata letak cover dipaksa lewat CSS stylesheet yang scoped ke
+        kertas sampul (.doc-cover).
+    */
+    .doc-sheet.doc-cover .doc-sheet-body .ql-editor {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 100% !important;
+        padding: 8px 0 44px;
+    }
+
+    .doc-sheet.doc-cover .doc-sheet-body .ql-editor h1 {
+        margin: 0;
+    }
+
+    .doc-sheet.doc-cover .doc-sheet-body .ql-editor p {
+        margin: 0;
+    }
+
+    /* Quill menambahkan baris kosong <p><br></p> (class ql-align-center)
+       di akhir body yang bisa diedit. Baris "hantu" ini menyita satu slot
+       flex dan merusak distribusi space-between, jadi buang dari tata letak
+       (hanya untuk tampilan; tetap tersimpan utuh saat di-save). */
+    .doc-sheet.doc-cover .doc-sheet-body .ql-editor p:last-child:empty,
+    .doc-sheet.doc-cover .doc-sheet-body .ql-editor p:last-child:has(> br) {
+        display: none;
+    }
+
     .doc-sheet .ql-editor img {
         cursor: pointer !important;
         max-width: 100%;

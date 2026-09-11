@@ -237,13 +237,13 @@ class DocumentController extends Controller
         $judul = trim($title) !== '' ? e($title) : '[Ketik judul dokumen di sini]';
 
         return <<<HTML
-        <h1 style="text-align:center; font-size:22pt; font-weight:bold; letter-spacing:1px; margin:120px 0 48px;">{$judul}</h1>
+        <h1 style="text-align:center; font-size:22pt; font-weight:bold; letter-spacing:1px; margin:16px 0 40px;">{$judul}</h1>
 
-        <p style="text-align:center; font-size:13pt; font-weight:bold; margin:10px 0;">[Ketik nama pihak pertama di sini]</p>
-        <p style="text-align:center; font-size:11pt; margin:10px 0;">Dengan</p>
-        <p style="text-align:center; font-size:13pt; font-weight:bold; margin:10px 0;">[Ketik nama pihak kedua di sini]</p>
+        <p style="text-align:center; font-size:13pt; font-weight:bold; margin:0 0 90px;">[Ketik nama pihak pertama di sini]</p>
+        <p style="text-align:center; font-size:11pt; margin:0 0 70px;">Dengan</p>
+        <p style="text-align:center; font-size:13pt; font-weight:bold; margin:0 0 70px;">[Ketik nama pihak kedua di sini]</p>
 
-        <p style="text-align:center; font-size:11pt; margin:72px 0 0;"><strong>Nomor:</strong> [Ketik nomor dokumen di sini]</p>
+        <p style="text-align:center; font-size:11pt; margin:8px 0 0;"><strong>Nomor:</strong> [Ketik nomor dokumen di sini]</p>
         HTML;
     }
 
@@ -774,6 +774,7 @@ class DocumentController extends Controller
             'footerHtml'    => $footerHtml,
             'footerHasTable' => $footerHasTable,
             'signaturePath' => $signaturePath,
+            'coverPages'    => (int) ($document->body_content['coverPages'] ?? 0),
         ])->setPaper('a4', 'portrait');
 
         return $pdf->download('dokumen-'.$document->id.'-'.now()->format('Ymd').'.pdf');

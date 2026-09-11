@@ -95,6 +95,29 @@
             margin-top: 8px;
         }
 
+        /* Halaman SAMPUL (cover): judul melekat di atas (dekat kop),
+           baris-baris pihak direntangkan dengan jarak lega hingga
+           "Dengan" berada di sekitar tengah-ke-atas kertas.
+           dompdf mematuhi style inline dari buildCoverPageHtml() (baru),
+           jadi rule di sini TANPA !important agar tidak menimpa inline —
+           hanya berlaku sebagai fallback untuk dokumen lama yang inline
+           margin-nya sudah hilang/terstrip Quill. */
+        .body-content.cover-page {
+            padding-top: 4px;
+        }
+
+        .body-content.cover-page h1 {
+            margin: 8px 0 70px;
+        }
+
+        .body-content.cover-page p {
+            margin: 0 0 60px;
+        }
+
+        .body-content.cover-page p:last-child {
+            margin: 0;
+        }
+
         .body-content p {
             margin: 0 0 8px;
         }
@@ -216,8 +239,8 @@
             {!! $headerHtml ?? '' !!}
         </div>
 
-    @foreach($pages as $pageHtml)
-    <div class="body-content" @if(!$loop->last) style="page-break-after: always;" @endif>
+    @foreach($pages as $index => $pageHtml)
+    <div class="body-content @if($index < ($coverPages ?? 0)) cover-page @endif" @if(!$loop->last) style="page-break-after: always;" @endif>
         {!! $pageHtml !!}
     </div>
     @endforeach
