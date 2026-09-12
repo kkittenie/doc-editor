@@ -52,4 +52,10 @@ class User extends Authenticatable
     {
         return $this->hasRole('admin') ? 'dashboard' : 'documents';
     }
+
+    // Dokumen-dokumen yang ditugaskan ke user ini sebagai marketer.
+    public function marketingDocuments()
+    {
+        return $this->hasMany(\App\Models\Document::class, 'marketer_id');
+    }
 }

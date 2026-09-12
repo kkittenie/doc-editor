@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Document;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
@@ -14,17 +15,22 @@ class DocumentController extends Controller
 {
     public function index()
     {
-        // Visibilitas dokumen berbasis status (alur kerja baru):
-        // - admin    → draft & revisi (dokumen yang masih dikerjakan)
-        // - marketer → review_marketing & disetujui (untuk direview / final)
+        // Visibilitas dokumen berbasis status + penugasan marketer (alur kerja baru):
+        // - admin    → draft, revisi & disetujui (dokumen yang dikerjakan)
+        // - marketer → HANYA dokumen yang ditugaskan kepadanya (marketer_id = id)
+        //              dengan status review_marketing & disetujui.
         $user = auth()->user();
-        $statuses = ($user->hasRole('marketer') && ! $user->hasRole('admin'))
-            ? ['review_marketing', 'disetujui']
-            : ['draft', 'revisi'];
 
-        $documents = Document::whereIn('status', $statuses)
-            ->latest()
-            ->get();
+        if ($user->hasRole('marketer') && ! $user->hasRole('admin')) {
+            $documents = Document::where('marketer_id', $user->id)
+                ->whereIn('status', ['review_marketing', 'disetujui'])
+                ->latest()
+                ->get();
+        } else {
+            $documents = Document::whereIn('status', ['draft', 'revisi', 'disetujui'])
+                ->latest()
+                ->get();
+        }
 
         return view('pages.documents', [
             'title' => 'Dokumen Saya & Arsip',
@@ -37,8 +43,11 @@ class DocumentController extends Controller
         // Pembuatan dokumen hanya untuk admin.
         abort_unless(auth()->user()->hasRole('admin'), 403);
 
+        $marketers = User::role('marketer')->orderBy('name')->get();
+
         return view('pages.document-create', [
-            'title'    => 'Buat Dokumen Baru',
+            'title'     => 'Buat Dokumen Baru',
+            'marketers' => $marketers,
         ]);
     }
 
@@ -54,7 +63,9 @@ class DocumentController extends Controller
             && in_array($document->status, ['draft', 'revisi'], true);
 
         $canView = $user->hasRole('admin')
-            || ($user->hasRole('marketer') && in_array($document->status, ['review_marketing', 'disetujui'], true));
+            || ($user->hasRole('marketer')
+                && $document->marketer_id === $user->id
+                && in_array($document->status, ['review_marketing', 'disetujui'], true));
 
         abort_unless($canView, 403);
 
@@ -75,6 +86,8 @@ class DocumentController extends Controller
 
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            // Marketer penerima dokumen wajib dipilih saat pembuatan.
+            'marketer_id' => ['required', 'exists:users,id'],
             'header_data' => ['required', 'array'],
             'header_data.nomorSurat' => ['required', 'string', 'max:255'],
             'header_data.content' => ['required', 'string'],
@@ -107,7 +120,7 @@ class DocumentController extends Controller
         if ($templateKey && in_array($templateKey, $this->coverTemplateKeys(), true)) {
             $headerContent = $this->buildCoverHeaderHtml();
             $footerContent = $this->buildCoverFooterHtml();
-            $pages = [$this->buildCoverPageHtml($title), $bodyHtml];
+            $pages = [$this->buildCoverPageHtml($title, $nomorSurat), $bodyHtml];
             $coverPages = 1; // halaman pertama = sampul: dikunci dari paginasi balik
         } else {
             $pages = [$bodyHtml];
@@ -115,6 +128,7 @@ class DocumentController extends Controller
 
         $document = Document::create([
             'user_id' => Auth::id(),
+            'marketer_id' => $data['marketer_id'],
             'title' => $title,
             'type' => $data['type'] ?? 'surat',
             'header_data' => [
@@ -232,9 +246,12 @@ class DocumentController extends Controller
         return $footerHtml;
     }
 
-    private function buildCoverPageHtml(string $title): string
+    private function buildCoverPageHtml(string $title, ?string $nomorSurat = null): string
     {
         $judul = trim($title) !== '' ? e($title) : '[Ketik judul dokumen di sini]';
+
+        // Tampilkan nomor dokumen yang dimasukkan admin (fallback ke placeholder).
+        $nomor = trim((string) $nomorSurat) !== '' ? e($nomorSurat) : '[Ketik nomor dokumen di sini]';
 
         return <<<HTML
         <h1 style="text-align:center; font-size:22pt; font-weight:bold; letter-spacing:1px; margin:16px 0 40px;">{$judul}</h1>
@@ -243,7 +260,7 @@ class DocumentController extends Controller
         <p style="text-align:center; font-size:11pt; margin:0 0 70px;">Dengan</p>
         <p style="text-align:center; font-size:13pt; font-weight:bold; margin:0 0 70px;">[Ketik nama pihak kedua di sini]</p>
 
-        <p style="text-align:center; font-size:11pt; margin:8px 0 0;"><strong>Nomor:</strong> [Ketik nomor dokumen di sini]</p>
+        <p style="text-align:center; font-size:11pt; margin:8px 0 0;"><strong>Nomor:</strong> {$nomor}</p>
         HTML;
     }
 
@@ -680,7 +697,8 @@ class DocumentController extends Controller
             );
         }
 
-        if (! $allowed && $isMarketer) {
+        if (! $allowed && $isMarketer
+            && $document->marketer_id === $user->id) {
             $allowed = $from === 'review_marketing'
                 && in_array($to, ['disetujui', 'revisi'], true);
         }
@@ -715,7 +733,7 @@ class DocumentController extends Controller
         // Penghapusan dokumen oleh admin pemilik dokumen atau marketer.
         abort_unless(
             (Auth::user()->hasRole('admin') && $document->user_id === Auth::id())
-            || Auth::user()->hasRole('marketer'),
+            || (Auth::user()->hasRole('marketer') && $document->marketer_id === Auth::id()),
             403
         );
         $document->delete();
@@ -750,7 +768,9 @@ class DocumentController extends Controller
         // untuk dokumen yang sedang/bisa mereka review.
         $user = Auth::user();
         $canAccess = ($user->hasRole('admin') && $document->user_id === $user->id)
-            || ($user->hasRole('marketer') && in_array($document->status, ['review_marketing', 'disetujui'], true));
+            || ($user->hasRole('marketer')
+                && $document->marketer_id === $user->id
+                && in_array($document->status, ['review_marketing', 'disetujui'], true));
 
         abort_unless($canAccess, 403);
 

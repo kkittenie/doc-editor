@@ -5,10 +5,11 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 
 if (! function_exists('workflowCreateDocument')) {
-    function workflowCreateDocument(User $user, string $status = 'draft', array $revisionNotes = []): Document
+    function workflowCreateDocument(User $user, string $status = 'draft', array $revisionNotes = [], ?User $marketer = null): Document
     {
         return Document::create([
             'user_id' => $user->id,
+            'marketer_id' => $marketer?->id,
             'title' => 'Dokumen Uji Workflow',
             'type' => 'surat',
             'header_data' => ['nomorSurat' => 'TEST/001', 'content' => '<p>header</p>'],
@@ -30,7 +31,7 @@ if (! function_exists('workflowUser')) {
     }
 }
 
-test('admin melihat dokumen draft dan revisi saja', function () {
+test('admin melihat dokumen draft, revisi, dan disetujui', function () {
     $this->seed(RoleSeeder::class);
 
     $admin = workflowUser('admin');
@@ -42,19 +43,28 @@ test('admin melihat dokumen draft dan revisi saja', function () {
     $response = $this->actingAs($admin)->get(route('documents'))->assertOk();
 
     expect($response->viewData('documents')->pluck('status')->all())
-        ->toEqualCanonicalizing(['draft', 'revisi']);
+        ->toEqualCanonicalizing(['draft', 'revisi', 'disetujui']);
 });
 
-test('marketer melihat dokumen review marketing dan disetujui saja', function () {
+test('marketer melihat dokumen review marketing dan disetujui saja untuk dokumen yang ditugaskan padanya', function () {
     $this->seed(RoleSeeder::class);
 
     $admin = workflowUser('admin');
     $marketer = workflowUser('marketer');
+    $marketerLain = workflowUser('marketer');
 
-    workflowCreateDocument($admin, 'draft');
-    workflowCreateDocument($admin, 'revisi');
+    // Ditugaskan ke marketer ini.
+    workflowCreateDocument($admin, 'draft', [], $marketer);
+    workflowCreateDocument($admin, 'revisi', [], $marketer);
+    workflowCreateDocument($admin, 'review_marketing', [], $marketer);
+    workflowCreateDocument($admin, 'disetujui', [], $marketer);
+
+    // Ditugaskan ke marketer lain → tidak boleh muncul.
+    workflowCreateDocument($admin, 'review_marketing', [], $marketerLain);
+    workflowCreateDocument($admin, 'disetujui', [], $marketerLain);
+
+    // Tanpa penugasan (marketer_id null).
     workflowCreateDocument($admin, 'review_marketing');
-    workflowCreateDocument($admin, 'disetujui');
 
     $response = $this->actingAs($marketer)->get(route('documents'))->assertOk();
 
@@ -109,7 +119,7 @@ test('marketer bisa menyetujui dokumen review marketing', function () {
 
     $admin = workflowUser('admin');
     $marketer = workflowUser('marketer');
-    $doc = workflowCreateDocument($admin, 'review_marketing');
+    $doc = workflowCreateDocument($admin, 'review_marketing', [], $marketer);
 
     $this->actingAs($marketer)
         ->patch(route('documents.Status', $doc), ['status' => 'disetujui'])
@@ -124,7 +134,7 @@ test('marketer bisa meminta revisi dokumen review marketing', function () {
 
     $admin = workflowUser('admin');
     $marketer = workflowUser('marketer');
-    $doc = workflowCreateDocument($admin, 'review_marketing');
+    $doc = workflowCreateDocument($admin, 'review_marketing', [], $marketer);
 
     $this->actingAs($marketer)
         ->patch(route('documents.Status', $doc), [
@@ -185,7 +195,7 @@ test('marketer membuka editor dalam mode baca (read-only)', function () {
 
     $admin = workflowUser('admin');
     $marketer = workflowUser('marketer');
-    $doc = workflowCreateDocument($admin, 'review_marketing');
+    $doc = workflowCreateDocument($admin, 'review_marketing', [], $marketer);
 
     $this->actingAs($marketer)
         ->get(route('documents.edit', $doc))
@@ -212,7 +222,7 @@ test('marketer menolak dengan alasan revisi tersimpan', function () {
 
     $admin = workflowUser('admin');
     $marketer = workflowUser('marketer');
-    $doc = workflowCreateDocument($admin, 'review_marketing');
+    $doc = workflowCreateDocument($admin, 'review_marketing', [], $marketer);
 
     $this->actingAs($marketer)
         ->patch(route('documents.Status', $doc), [
@@ -258,7 +268,7 @@ test('alasan revisi tercatat setiap kali dokumen ditolak ulang', function () {
 
     $admin = workflowUser('admin');
     $marketer = workflowUser('marketer');
-    $doc = workflowCreateDocument($admin, 'review_marketing');
+    $doc = workflowCreateDocument($admin, 'review_marketing', [], $marketer);
 
     // Tolak pertama.
     $this->actingAs($marketer)
@@ -311,5 +321,34 @@ test('editor admin pada dokumen revisi menampilkan alasan revisi', function () {
         ->assertOk()
         ->assertSee('Alasan Revisi')
         ->assertSee('Nama pihak kedua perlu diganti');
+});
+test('nomor dokumen yang diinput di halaman create tertulis di halaman sampul', function () {
+    $this->seed(RoleSeeder::class);
+
+    $admin = workflowUser('admin');
+    $marketer = workflowUser('marketer');
+
+    $nomor = 'SK/AUTO/001/XII/2026';
+
+    $this->actingAs($admin)
+        ->post(route('documents.store'), [
+            'title' => 'Kontrak Uji Nomor',
+            'marketer_id' => $marketer->id,
+            'header_data' => [
+                'nomorSurat' => $nomor,
+                'content' => '<p></p>',
+            ],
+            'footer_data' => ['content' => ''],
+            'body_html' => '<p>Isi dokumen</p>',
+            'template' => 'kontrak-soho',
+            'type' => 'surat',
+        ])
+        ->assertRedirect();
+
+    $doc = Document::where('title', 'Kontrak Uji Nomor')->first();
+
+    expect($doc)->not->toBeNull()
+        ->and($doc->body_content['pages'][0])->toContain('Nomor:</strong> '.$nomor)
+        ->and($doc->body_content['pages'][0])->not->toContain('[Ketik nomor dokumen di sini]');
 });
 

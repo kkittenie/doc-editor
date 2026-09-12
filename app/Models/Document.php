@@ -12,6 +12,7 @@ class Document extends Model
 
     protected $fillable = [
         'user_id',
+        'marketer_id',
         'title',
         'type',
         'header_data',
@@ -33,5 +34,11 @@ class Document extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    // Marketer yang menjadi pemilik/reviewer dokumen ini (nullable).
+    public function marketer()
+    {
+        return $this->belongsTo(User::class, 'marketer_id');
     }
 }

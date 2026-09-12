@@ -162,6 +162,24 @@
 
             </div>
 
+            <div class="mt-4">
+                <label class="block text-xs font-medium mb-1.5">
+                    Dokumen untuk Akun Marketer <span class="text-red-500">*</span>
+                </label>
+                <select name="marketer_id" required
+                    class="w-full rounded-xl border border-parchment-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800">
+                    <option value="" disabled selected>— Pilih marketer —</option>
+                    @forelse ($marketers ?? [] as $marketer)
+                        <option value="{{ $marketer->id }}">{{ $marketer->name }} ({{ $marketer->email }})</option>
+                    @empty
+                        <option value="" disabled>Belum ada akun marketer. Buat dulu di Kelola User.</option>
+                    @endforelse
+                </select>
+                <p class="mt-1.5 text-xs text-slate-warm-400">
+                    Dokumen ini hanya akan terlihat di akun marketer yang dipilih.
+                </p>
+            </div>
+
         </div>
 
         {{-- 4 TEMPLATE --}}
