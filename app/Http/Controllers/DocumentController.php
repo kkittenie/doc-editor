@@ -161,7 +161,7 @@ class DocumentController extends Controller
      */
     private function templateData(string $key): ?array
     {
-        return \App\Data\ContractTemplates::find($key);
+        return \App\Data\ContractTemplates::all()[$key] ?? null;
     }
 
     /**
@@ -421,6 +421,11 @@ class DocumentController extends Controller
      * Ubah teks yang mungkin berisi beberapa paragraf (dipisah baris kosong)
      * menjadi satu atau lebih tag <p> yang sudah di-escape dan dijaga barisnya.
      */
+    private function styleContractPartyNames(string $text): string
+    {
+        return preg_replace('/\bPIHAK KEDUA\b/i', '<strong>$0</strong>', $text) ?? $text;
+    }
+
     private function contractPara(string $text): string
     {
         $blocks = preg_split('/(\r?\n){2,}/', $text);
@@ -431,7 +436,7 @@ class DocumentController extends Controller
             if ($block === '') {
                 continue;
             }
-            $out[] = '<p>'.nl2br(e($block)).'</p>';
+            $out[] = '<p>'.nl2br($this->styleContractPartyNames(e($block))).'</p>';
         }
 
         return count($out) ? implode("\n", $out) : '<p></p>';
@@ -575,7 +580,7 @@ class DocumentController extends Controller
                 $spanAttr  = $span > 1 ? ' colspan="'.$span.'"' : '';
                 $spanAttr .= !empty($pc['rowspan']) ? ' rowspan="'.$pc['rowspan'].'"' : '';
 
-                $content = implode('<br>', array_map(static fn ($l) => e((string) $l), $lines));
+                $content = implode('<br>', array_map(fn ($l) => $this->styleContractPartyNames(e((string) $l)), $lines));
 
                 $isHeadCell = $head && $r === 0;
                 $tag   = $isHeadCell ? 'th' : 'td';

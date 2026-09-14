@@ -1606,7 +1606,7 @@ const refreshToolbarStates = () => {
     const fontSel = document.getElementById('tb-font');
     if (fontSel) fontSel.value = fmt.font || 'Arial';
     const sizeSel = document.getElementById('tb-size');
-    if (sizeSel) sizeSel.value = fmt.size || '14px';
+    if (sizeSel) sizeSel.value = fmt.size || '12px';
     const lineHeightSel = document.getElementById('tb-lineheight');
     if (lineHeightSel) lineHeightSel.value = fmt.lineheight || '1.5';
 };
@@ -1898,7 +1898,7 @@ const bindToolbar = () => {
             if (!q) return;
             const sel = q.getSelection(true);
             if (!sel) return;
-            const currentPx = parseInt(q.getFormat(sel).size, 10) || 14;
+            const currentPx = parseInt(q.getFormat(sel).size, 10) || 12;
             applyFontSize(currentPx + step);
         });
     });

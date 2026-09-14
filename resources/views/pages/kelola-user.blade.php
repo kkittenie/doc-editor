@@ -201,7 +201,7 @@
                                                 ];
                                                 $deletePayload = ['id' => $user->id, 'name' => $user->name];
                                             @endphp
-                                            <button type="button" @click="openEdit(@json($editPayload))"
+                                            <button type="button" @click='openEdit(@json($editPayload))'
                                                 class="inline-flex h-8 items-center rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900">
                                                 Edit
                                             </button>
@@ -211,7 +211,7 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="button"
-                                                        @click="confirmDelete(@json($deletePayload))"
+                                                        @click='confirmDelete(@json($deletePayload))'
                                                         class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-slate-warm-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:hover:border-red-900/40 dark:hover:bg-red-900/20">
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                             <polyline points="3 6 5 6 21 6"/>

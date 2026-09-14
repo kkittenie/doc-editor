@@ -85,6 +85,14 @@
                 </button>
                 @endif
 
+                @if(in_array($document->status, ['draft', 'revisi']))
+                {{-- ADMIN: kirim dokumen untuk direview marketing --}}
+                <button type="button" @click="sendToReview()"
+                    class="rounded-xl border border-ink-900 bg-white px-5 py-2.5 text-sm font-semibold text-ink-900 transition hover:bg-parchment-100 dark:border-bronze-500 dark:bg-transparent dark:text-bronze-500 dark:hover:bg-bronze-500/10">
+                    📤 Kirim ke Marketing
+                </button>
+                @endif
+
                 <button type="button" @click="saveDocument()"
                     class="rounded-xl bg-ink-900 px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 dark:bg-bronze-500 dark:text-ink-900">
                     Save
@@ -332,6 +340,12 @@
     }
 </style>
 <style>
+    #body-toolbar-container {
+        position: sticky;
+        top: 114px;
+        z-index: 30;
+    }
+
     .toolbar-button {
         display: inline-flex;
         width: 34px;
@@ -1075,7 +1089,7 @@
     .doc-sheet .ql-container {
         border: none !important;
         font-family: inherit;
-        font-size: 14px;
+        font-size: 12px;
         height: auto !important;
         /* jangan kunci 100% — biarkan ikut aliran flex */
     }
@@ -1086,7 +1100,7 @@
         height: auto !important;
         overflow: visible !important;
         font-family: inherit;
-        font-size: 14px;
+        font-size: 12px;
         line-height: 1.5;
         color: #111827;
     }
@@ -2077,6 +2091,54 @@
                     }
                 }, 300);
                 setTimeout(() => clearInterval(timer), 10000);
+            },
+
+            // Admin: simpan lalu kirim dokumen untuk direview marketing.
+            async sendToReview() {
+
+                if (this.readOnly) return;
+
+                const konfirmasi = await Swal.fire({
+                    icon: 'question',
+                    title: 'Kirim ke marketing?',
+                    text: 'Dokumen akan disimpan lalu dikirim untuk direview marketing.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, kirim',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#1B2A4A',
+                });
+
+                if (!konfirmasi.isConfirmed) return;
+
+                try {
+                    await this.saveDocument();
+
+                    // Batalkan pengiriman kalau penyimpanan gagal,
+                    // supaya status tidak berubah sementara isi belum tersimpan.
+                    if (this.saveStatus === 'error') {
+                        throw new Error('save-failed');
+                    }
+
+                    await window.axios.patch(`/documents/${this.documentId}/status`, {
+                        status: 'review_marketing',
+                    });
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Terkirim',
+                        text: 'Dokumen berhasil dikirim ke marketing.',
+                        timer: 1500,
+                        showConfirmButton: false,
+                    });
+                    window.hasUnsavedChanges = false;
+                    window.location.href = '/documents';
+                } catch (error) {
+                    console.error(error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Tidak dapat mengirim dokumen ke marketing.',
+                    });
+                }
             },
 
             // Marketer: setujui / minta revisi dokumen yang direview.
