@@ -443,8 +443,53 @@ class DocumentController extends Controller
     }
 
     /**
+     * Render satu daftar bernomor kontrak menjadi <ol>.
+     * Bentuk data: ['type' => '1|a|A', 'start' => n, 'items' => [...]].
+     * Setiap item berupa string (satu <li>) atau array nested satu level:
+     * ['text' => '...', 'children' => ['type' => 'a', 'items' => [...]]].
+     */
+    private function contractListHtml(array $list): string
+    {
+        $type  = $list['type'] ?? '1';
+        $start = (int) ($list['start'] ?? 1);
+        $items = $list['items'] ?? [];
+
+        $styleType = match ($type) {
+            'a'     => 'lower-alpha',
+            'A'     => 'upper-alpha',
+            default => 'decimal',
+        };
+
+        $startAttr = $start > 1 ? ' start="'.$start.'"' : '';
+
+        $html = '<ol'.$startAttr.' style="list-style-type:'.$styleType.'; padding-left:2rem; margin:0 0 0.75rem;">';
+
+        foreach ($items as $item) {
+            if (is_string($item)) {
+                $html .= '<li>'.$this->styleContractPartyNames(e($item)).'</li>';
+                continue;
+            }
+
+            if (is_array($item)) {
+                $text = (string) ($item['text'] ?? '');
+                $html .= '<li>'.$this->styleContractPartyNames(e($text));
+                if (!empty($item['children']) && is_array($item['children'])) {
+                    $html .= $this->contractListHtml($item['children']);
+                }
+                $html .= '</li>';
+            }
+        }
+
+        $html .= '</ol>';
+
+        return $html;
+    }
+
+    /**
      * Render blok terstruktur body template kontrak: urutan paragraf & tabel
      * asli dari dokumen .docx, dipertahankan pada posisi aslinya.
+     * Blok 'ol' dipakai secara selektif hanya untuk bagian yang memang
+     * seharusnya bernomor (definisi, rincian hak/kewajiban, ayat, syarat).
      */
     private function renderBlocks(array $blocks): string
     {
@@ -453,6 +498,8 @@ class DocumentController extends Controller
         foreach ($blocks as $block) {
             if (isset($block['p'])) {
                 $out[] = $this->contractPara((string) $block['p']);
+            } elseif (isset($block['ol']) && is_array($block['ol'])) {
+                $out[] = $this->contractListHtml($block['ol']);
             } elseif (isset($block['table']) && is_array($block['table'])) {
                 $out[] = $this->contractTableHtml($block['table']);
             }

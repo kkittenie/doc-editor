@@ -159,7 +159,7 @@ test('numeral & klaim untuk setiap template dipertahankan', function () use ($ke
     expect($tpl['body_content']['isi'][0]['judul'])->toBe('DEFINISI');
     expect(implode("\n", array_column($tpl['body_content']['isi'], 'text')))
         ->toContain('Perjanjian adalah Perjanjian Kerja Sama Jual Kembali Jasa Layanan Akses Internet');
-    expect($tpl['body_content']['tutup'] ?? '')->toContain('Adi Darmawan');
+    expect($tpl['body_content']['tutup'] ?? '')->toContain('[PIHAK KEDUA]');
 
     // Colocation
     $tpl = ContractTemplates::find('kontrak-colocation');
@@ -260,4 +260,25 @@ test('render HTML memunculkan tabel asli dengan border & posisi yang benar', fun
     expect(strpos($html, 'rowspan="5"', (int) $pos))->toBeInt();
     // tidak ada lagi sel kosong ekstra pada baris data (kolom hantu hilang)
     expect(substr_count($html, '<td></td>'))->toBe(0);
+});
+test('render numbering selektif: blok yang memang list me-render menjadi <ol>', function () use ($keys) {
+    // kemitraan: definisi + hak/kewajiban secara selektif jadi daftar bernomor
+    $tpl  = ContractTemplates::find('kontrak-kemitraan');
+    $html = contractBuildBodyHtml($tpl, false);
+    expect($html)->toContain('list-style-type:decimal');
+    expect($html)->toContain('list-style-type:lower-alpha');
+    expect(strpos($html, '<ol'))->toBeInt();
+    // rincian hak PIHAK PERTAMA adalah daftar (nama pihak di-bold oleh renderer)
+    expect($html)->toContain('<li>menerima pembayaran dari ');
+
+    // colocation: ayat pasal bernomor + sub-list A + lanjutan start
+    $tpl  = ContractTemplates::find('kontrak-colocation');
+    $html = contractBuildBodyHtml($tpl, false);
+    expect($html)->toContain('list-style-type:upper-alpha');
+    expect($html)->toContain('start="3"');  // PASAL 9 lanjutan
+    expect($html)->toContain('start="8"');  // PASAL 3 lanjutan
+    expect(strpos($html, '<ol'))->toBeInt();
+
+    // lampiran: Syarat (decimal) + Fasilitas (A..D nested decimal)
+    expect($html)->toContain('<li>Harga diatas belum termasuk PPN');
 });
