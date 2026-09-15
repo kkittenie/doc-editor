@@ -13,15 +13,15 @@
 
         <!-- Brand Mark -->
         <div class="text-center mb-10">
-            <div
-                class="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-ink-900 text-parchment-100 font-serif font-bold text-lg shadow-lg dark:bg-parchment-100 dark:text-ink-900 mx-auto mb-4">
-                P
+           <div class="flex items-center justify-center h-16 w-16 mx-auto mb-4">
+                <img src="{{ asset('images/aksesdigital.webp') }}" alt="Logo" class="w-full h-full object-contain filter drop-shadow-xl">
             </div>
+
             <h1 class="font-serif font-bold text-2xl text-ink-900 dark:text-parchment-50 tracking-tight">
-                Masuk ke Papercraft
+                Aplikasi Legal
             </h1>
             <p class="text-sm text-slate-warm-500 dark:text-parchment-400 mt-1.5">
-                Kelola dokumen resmi & tanda tangan digital Anda.
+                Kelola dokumen resmi
             </p>
         </div>
 
