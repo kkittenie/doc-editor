@@ -121,7 +121,7 @@ test('setiap template memuat tabel sesuai dokumen asli pada posisi yang benar', 
     // Tabel tanda tangan tanpa border (seperti dokumen asli)
     $sig = $tpl['body_content']['tutupBlocks'][0]['table'];
     expect($sig['bordered'])->toBeFalse();
-    expect(json_encode($sig, JSON_UNESCAPED_UNICODE))->toContain('PT Solusindo Bintang Pratama');
+    expect(json_encode($sig, JSON_UNESCAPED_UNICODE))->toContain('PT Bina Informatika Solusi');
 
     // Managed Service: tabel denda di pasal 4 & LAMPIRAN A identitas ber-border
     $tpl = ContractTemplates::find('kontrak-managed-service');
@@ -167,7 +167,7 @@ test('numeral & klaim untuk setiap template dipertahankan', function () use ($ke
     expect($tpl['body_content']['isi'][3]['judul'])
         ->toBe('JANGKA WAKTU PERJANJIAN, BERITA ACARA AKTIVASI, SUSPENSI LAYANAN DAN PEMBERHENTIAN');
     expect($tpl['body_content']['lampiran'][0]['judul'])->toBe('DESKRIPSI LAYANAN');
-    expect($tpl['body_content']['tutup'] ?? '')->toContain('PT Solusindo Bintang Pratama');
+    expect($tpl['body_content']['tutup'] ?? '')->toContain('PT Bina Informatika Solusi');
 
     // Managed Service
     $tpl = ContractTemplates::find('kontrak-managed-service');

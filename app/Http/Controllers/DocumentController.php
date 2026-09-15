@@ -388,33 +388,75 @@ class DocumentController extends Controller
                     $parts[] = '<p><strong>'.$judul.'</strong></p>';
                 }
 
+                $hasBlocks = !empty($item['blocks']) && is_array($item['blocks']);
+                $hasText   = !empty($item['text']);
+                $hasHtml   = !empty($item['html']);
+                $hasP      = !empty($item['p']);
+                $hasOl     = !empty($item['ol']) && is_array($item['ol']);
+
                 // Blok terstruktur (paragraf + tabel asli dari .docx)
-                if (!empty($item['blocks']) && is_array($item['blocks'])) {
+                if ($hasBlocks) {
                     $parts[] = $this->renderBlocks($item['blocks']);
                 }
 
                 // Blok teks biasa (diparagraph-kan otomatis).
-                if (empty($item['blocks']) && !empty($item['text'])) {
+                if (!$hasBlocks && $hasText) {
                     $parts[] = $this->contractPara($item['text']);
                 }
 
                 // Blok HTML mentah (mis. tabel pada lampiran template
                 // kontrak-kemitraan) — dirender apa adanya tanpa escape.
-                if (!empty($item['html'])) {
+                if ($hasHtml) {
                     $htmlBlocks = is_array($item['html']) ? $item['html'] : [$item['html']];
                     foreach ($htmlBlocks as $htmlBlock) {
                         $parts[] = $htmlBlock;
                     }
                 }
 
+                // Paragraf tunggal (blok 'p') pada lampiran — penanganan
+                // tambahan untuk template kolocation yang memakai struktur
+                // array campuran (item pertama pakai 'blocks', item berikutnya
+                // pakai 'p'/'ol' langsung).
+                if (!$hasBlocks && !$hasText && !$hasHtml && $hasP) {
+                    $parts[] = $this->contractPara((string) $item['p']);
+                }
+
+                // Daftar (blok 'ol') pada lampiran.
+                if (!$hasBlocks && !$hasText && !$hasHtml && !$hasP && $hasOl) {
+                    $list = $this->contractListHtml($item['ol']);
+                    if ($list !== '') {
+                        $parts[] = $list;
+                    }
+                }
+
                 // Lampiran kosong (judul saja) — kompatibel dengan perilaku lama.
-                if (empty($item['text']) && empty($item['html'])) {
+                if (!$hasText && !$hasHtml && !$hasP && !$hasOl) {
                     $parts[] = $this->contractPara('');
                 }
             }
         }
 
-        return implode("\n", $parts);
+        $html = implode("\n", $parts);
+        return $this->stripEmptyHtmlFragments($html) ?: '<p></p>';
+    }
+
+    private function stripEmptyHtmlFragments(string $html): string
+    {
+        $patterns = [
+            '/<p\b[^>]*>\s*(?:&nbsp;|\s|<br\s*\/?>)*\s*<\/p>/i',
+            '/<li\b[^>]*>\s*(?:&nbsp;|\s|<br\s*\/?>)*\s*<\/li>/i',
+            '/<td\b[^>]*>\s*(?:&nbsp;|\s|<br\s*\/?>)*\s*<\/td>/i',
+            '/<th\b[^>]*>\s*(?:&nbsp;|\s|<br\s*\/?>)*\s*<\/th>/i',
+        ];
+
+        do {
+            $before = $html;
+            foreach ($patterns as $pattern) {
+                $html = preg_replace($pattern, '', $html) ?? $html;
+            }
+        } while ($html !== $before);
+
+        return trim($html);
     }
 
     /**
@@ -428,18 +470,23 @@ class DocumentController extends Controller
 
     private function contractPara(string $text): string
     {
+        $text = trim($text);
+        if ($text === '') {
+            return '';
+        }
+
         $blocks = preg_split('/(\r?\n){2,}/', $text);
         $out = [];
 
         foreach ($blocks as $block) {
-            $block = trim($block);
+            $block = trim((string) $block);
             if ($block === '') {
                 continue;
             }
             $out[] = '<p>'.nl2br($this->styleContractPartyNames(e($block))).'</p>';
         }
 
-        return count($out) ? implode("\n", $out) : '<p></p>';
+        return count($out) ? implode("\n", $out) : '';
     }
 
     /**
@@ -463,26 +510,39 @@ class DocumentController extends Controller
         $startAttr = $start > 1 ? ' start="'.$start.'"' : '';
 
         $html = '<ol'.$startAttr.' style="list-style-type:'.$styleType.'; padding-left:2rem; margin:0 0 0.75rem;">';
+        $hasItems = false;
 
         foreach ($items as $item) {
             if (is_string($item)) {
+                $item = trim($item);
+                if ($item === '') {
+                    continue;
+                }
                 $html .= '<li>'.$this->styleContractPartyNames(e($item)).'</li>';
+                $hasItems = true;
                 continue;
             }
 
             if (is_array($item)) {
-                $text = (string) ($item['text'] ?? '');
+                $text = trim((string) ($item['text'] ?? ''));
+                if ($text === '' && empty($item['children'])) {
+                    continue;
+                }
                 $html .= '<li>'.$this->styleContractPartyNames(e($text));
                 if (!empty($item['children']) && is_array($item['children'])) {
-                    $html .= $this->contractListHtml($item['children']);
+                    $nested = $this->contractListHtml($item['children']);
+                    if (trim(strip_tags($nested)) !== '') {
+                        $html .= $nested;
+                    }
                 }
                 $html .= '</li>';
+                $hasItems = true;
             }
         }
 
         $html .= '</ol>';
 
-        return $html;
+        return $hasItems ? $html : '';
     }
 
     /**
@@ -497,11 +557,20 @@ class DocumentController extends Controller
 
         foreach ($blocks as $block) {
             if (isset($block['p'])) {
-                $out[] = $this->contractPara((string) $block['p']);
+                $para = $this->contractPara((string) $block['p']);
+                if ($para !== '') {
+                    $out[] = $para;
+                }
             } elseif (isset($block['ol']) && is_array($block['ol'])) {
-                $out[] = $this->contractListHtml($block['ol']);
+                $list = $this->contractListHtml($block['ol']);
+                if ($list !== '') {
+                    $out[] = $list;
+                }
             } elseif (isset($block['table']) && is_array($block['table'])) {
-                $out[] = $this->contractTableHtml($block['table']);
+                $table = $this->contractTableHtml($block['table']);
+                if (trim(strip_tags($table)) !== '') {
+                    $out[] = $table;
+                }
             }
         }
 

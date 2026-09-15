@@ -1843,6 +1843,26 @@
                 const pos = this.pages.findIndex((p) => p.uid === uid);
                 if (pos < 0) return null;
 
+                const root = document.getElementById('document-editor');
+                const target = root && uid
+                    ? root.querySelector('[data-page-uid="' + uid + '"]')
+                    : null;
+                const targetBody = target?.querySelector('.doc-sheet-body[data-region="body"]');
+
+                // Halaman kosong / placeholder tidak boleh memicu pembuatan
+                // kertas baru terus-menerus; itu menghasilkan rangkaian page
+                // blank yang tak berujung.
+                const targetText = (targetBody?.textContent || '').replace(/\u200b/g, '').replace(/\u00a0/g, '').trim();
+                const hasVisualContent = !!targetBody?.querySelector('img, iframe, video, table');
+                const hasStructuredText = !!targetBody?.querySelector('p, li, td, th')
+                    && Array.from(targetBody.querySelectorAll('p, li, td, th')).some((node) => {
+                        const value = (node.textContent || '').replace(/\u200b/g, '').replace(/\u00a0/g, '').trim();
+                        return value !== '';
+                    });
+                if (targetBody && targetText === '' && !hasVisualContent && !hasStructuredText) {
+                    return null;
+                }
+
                 const newUid = 'page-' + (++this.pageSeq) + '-' +
                     Date.now().toString(36);
 
@@ -1852,10 +1872,6 @@
                 // Jaga daftar halaman (dipakai saat init / hitung) tetap selaras.
                 this.pages.splice(pos + 1, 0, { uid: newUid, html: '<p></p>' });
 
-                const root = document.getElementById('document-editor');
-                const target = root && uid
-                    ? root.querySelector('[data-page-uid="' + uid + '"]')
-                    : null;
                 if (!root || !target) return null;
 
                 const sheet = document.createElement('div');

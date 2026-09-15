@@ -2534,6 +2534,8 @@ let autoPaginationApi = null;
 const PAGE_FLOW_TOL = 4;        // toleransi ukur (px)
 const PAGE_FLOW_MAX_STEPS = 24; // pengaman anti-loop per kali jalan
 const PAGE_FLOW_MAX_REQUEUES = 200; // pengaman antre-ulang (dokumen panjang)
+const PAGE_FLOW_MAX_TOTAL    = 50;  // batas total iterasi paginasi per siklus
+let   pageFlowTotalRuns      = 0;
 
 const pageFlowTimers = new WeakMap();
 const pageFlowRequeues = new WeakMap(); // bodyEl -> jumlah antre-ulang aktif
@@ -2598,6 +2600,22 @@ function __isFloatingKid(kid) {
     } catch (err) { return false; }
 }
 
+function __hasMeaningfulTextNode(el) {
+    try {
+        if (!el) return false;
+        const txt = (el.textContent || '')
+            .replace(/\u200b/g, '')
+            .replace(/\u00a0/g, '')
+            .trim();
+        if (txt !== '') return true;
+        const nested = Array.from(el.querySelectorAll('p, li, td, th, div'))
+            .reduce((sum, node) => sum + (node.textContent || ''), '');
+        return nested.replace(/\u200b/g, '').replace(/\u00a0/g, '').trim() !== '';
+    } catch (err) {
+        return false;
+    }
+}
+
 function __looksEmptyBody(bodyEl) {
     try {
         if (bodyEl.querySelector('img, iframe, video')) return false;
@@ -2608,6 +2626,7 @@ function __looksEmptyBody(bodyEl) {
 
 function __contentOverflowPx(quill, boxEl) {
     try {
+        if (!boxEl || __looksEmptyBody(boxEl)) return 0;
         const inner = (quill.root && quill.root !== boxEl) ? Math.max(0, quill.root.scrollHeight) : 0;
         const outer = Math.max(boxEl.scrollHeight || 0, inner);
         return outer - (boxEl.clientHeight || 0);
@@ -2621,13 +2640,13 @@ function __firstOverflowIndex(quill, boxEl) {
     const boxRect = boxEl.getBoundingClientRect();
     const padT = parseFloat(getComputedStyle(boxEl).paddingTop || '0');
     const effBottom = boxRect.top + padT + boxEl.clientHeight - PAGE_FLOW_TOL;
-    const baseTop = kids[0].getBoundingClientRect().top;
     for (let i = 0; i < kids.length; i++) {
-        if (__isFloatingKid(kids[i])) return -1; 
+        if (__isFloatingKid(kids[i])) continue;
+        if (!__hasMeaningfulTextNode(kids[i])) continue;
         const bottom = kids[i].getBoundingClientRect().bottom;
         if (bottom - PAGE_FLOW_TOL > effBottom) return i;
     }
-    return kids.length; 
+    return kids.length;
 }
 
 
@@ -2678,6 +2697,7 @@ async function __flowPass(quill, bodyEl) {
     const idx = __firstOverflowIndex(quill, bodyEl);
     const kids = Array.from(quill.root.children || []);
     if (idx < 0 || idx >= kids.length) return false; // tak bisa dipetakan aman
+    if (!__hasMeaningfulTextNode(kids[idx])) return false;
 
     const targetBody = await __resolveTargetBody(sheet,
         autoPaginationApi && autoPaginationApi.createPageAfter);
@@ -2755,7 +2775,7 @@ function __pullBackPass(quill, bodyEl) {
     const nkids = Array.from(nextQ.root.children || []);
     if (!nkids.length) return false;
     const k2 = nkids[0];
-    if (__isFloatingKid(k2)) return false;
+    if (__isFloatingKid(k2) || !__hasMeaningfulTextNode(k2)) return false;
 
     let k2Len = 0;
     try {
@@ -2813,6 +2833,12 @@ function __pullBackPass(quill, bodyEl) {
 
 function __runFlow(quill, bodyEl) {
     if (!autoPaginationApi) return; // bridge belum siap
+    pageFlowTotalRuns++;
+    if (pageFlowTotalRuns > PAGE_FLOW_MAX_TOTAL) {
+        console.warn('[DocQuill] Paginasi dihentikan: terlalu banyak iterasi.');
+        pageFlowTotalRuns = 0;
+        return;
+    }
     const job = pageFlowChain
         .then(async () => {
             let movedAny = false;
@@ -2854,7 +2880,7 @@ function bindPageOverflowWatch(quill, regionEl) {
     let timer = 0;
     const schedule = () => {
         clearTimeout(timer);
-        timer = setTimeout(() => __runFlow(quill, regionEl), 140);
+        timer = setTimeout(() => { pageFlowTotalRuns = 0; __runFlow(quill, regionEl); }, 140);
     };
 
     quill.on('text-change', (_d, _o, source) => {
