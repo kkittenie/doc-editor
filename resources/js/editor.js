@@ -2536,6 +2536,8 @@ const PAGE_FLOW_MAX_STEPS = 24; // pengaman anti-loop per kali jalan
 const PAGE_FLOW_MAX_REQUEUES = 200; // pengaman antre-ulang (dokumen panjang)
 const PAGE_FLOW_MAX_TOTAL    = 50;  // batas total iterasi paginasi per siklus
 let   pageFlowTotalRuns      = 0;
+let   pageFlowHalted         = false; // kunci keras: berhenti total sampai sesi paginasi baru
+const pageFlowJustPushed     = new WeakMap(); // sheet -> blok yang barusan didorong ke kertas berikut
 
 const pageFlowTimers = new WeakMap();
 const pageFlowRequeues = new WeakMap(); // bodyEl -> jumlah antre-ulang aktif
@@ -2747,6 +2749,10 @@ async function __flowPass(quill, bodyEl) {
 
     if (autoPaginationApi) __runFlow(targetQ, targetBody);
 
+    // Catat blok yang barusan didorong ke kertas berikutnya; dipakai
+    // __pullBackPass untuk menolak menariknya balik (anti-flip A<->B).
+    pageFlowJustPushed.set(sheet, kids[idx]);
+
     notifyDirty();
     return true;
 }
@@ -2777,6 +2783,11 @@ function __pullBackPass(quill, bodyEl) {
     const k2 = nkids[0];
     if (__isFloatingKid(k2) || !__hasMeaningfulTextNode(k2)) return false;
 
+    // Anti-flip: jangan langsung menarik balik blok yang barusan didorong
+    // oleh __flowPass di siklus yang sama - memicu getar abadi (push -> pull
+    // -> push -> ...) yang membuat kertas terasa "berjalan sendiri".
+    if (pageFlowJustPushed.get(sheet) === k2) return false;
+
     let k2Len = 0;
     try {
         const b2 = Quill.find(k2);
@@ -2788,11 +2799,15 @@ function __pullBackPass(quill, bodyEl) {
     const boxRect = bodyEl.getBoundingClientRect();
     const padT = parseFloat(getComputedStyle(bodyEl).paddingTop || '0');
     const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
+    // Batas bawah = maksimum di SEMUA blok non-mengambang (bukan hanya blok
+    // terakhir). Bila hanya memakai blok terakhir, ruang kosong bisa terhitung
+    // terlalu longgar -> ada blok ditarik balik ke kertas yang sebenarnya penuh
+    // -> tabrakan -> terus mengalir tanpa henti.
     let baseBottom = boxRect.top + padT;
-    for (let i = kids.length - 1; i >= 0; i--) {
+    for (let i = 0; i < kids.length; i++) {
         if (__isFloatingKid(kids[i])) continue;
-        baseBottom = Math.max(baseBottom, kids[i].getBoundingClientRect().bottom);
-        break;
+        const kbot = kids[i].getBoundingClientRect().bottom;
+        if (kbot > baseBottom) baseBottom = kbot;
     }
 
     
@@ -2832,11 +2847,17 @@ function __pullBackPass(quill, bodyEl) {
 }
 
 function __runFlow(quill, bodyEl) {
-    if (!autoPaginationApi) return; // bridge belum siap
+    if (!autoPaginationApi || pageFlowHalted) return; // bridge belum siap / sudah terkunci latch
     pageFlowTotalRuns++;
     if (pageFlowTotalRuns > PAGE_FLOW_MAX_TOTAL) {
-        console.warn('[DocQuill] Paginasi dihentikan: terlalu banyak iterasi.');
-        pageFlowTotalRuns = 0;
+        // Latch keras (BUKAN reset): jika di-reset di sini, aliran paginasi
+        // start-ulang tiap 50 iterasi dan tak pernah berhenti - persis gejala
+        // "kertas terus berjalan sendiri" pada template colocation. Kunci ini
+        // baru dibuka oleh schedule() saat ada edit user / resize.
+        if (!pageFlowHalted) {
+            console.warn('[DocQuill] Paginasi dihentikan: terlalu banyak iterasi (' + PAGE_FLOW_MAX_TOTAL + ').');
+            pageFlowHalted = true;
+        }
         return;
     }
     const job = pageFlowChain
@@ -2880,7 +2901,11 @@ function bindPageOverflowWatch(quill, regionEl) {
     let timer = 0;
     const schedule = () => {
         clearTimeout(timer);
-        timer = setTimeout(() => { pageFlowTotalRuns = 0; __runFlow(quill, regionEl); }, 140);
+        timer = setTimeout(() => {
+            pageFlowHalted = false; // sesi paginasi baru (edit/resize) -> buka latch
+            pageFlowTotalRuns = 0;
+            __runFlow(quill, regionEl);
+        }, 140);
     };
 
     quill.on('text-change', (_d, _o, source) => {
