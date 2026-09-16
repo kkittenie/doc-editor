@@ -2452,16 +2452,12 @@ const attachQuillToRegion = (regionEl) => {
             // simpanan tidak kehilangan tabel).
             if (/<table/i.test(existingHtml)
                 && (!q.root.querySelector('table') || !q.root.querySelector('table tr'))) {
-                if (regionEl.dataset?.region === 'body') {
-                    console.warn('[DocQuill] Tabel pada BODY tidak terkonversi Quill (konten tetap dirender).');
-                } else {
-                    console.warn('[DocQuill] Konversi tabel header/footer gagal senyap — region dipulihkan ke HTML asli.');
-                    regionEl.dataset.quillReady = '';
-                    regionEl.innerHTML = existingHtml;
-                    regionEl.setAttribute('contenteditable', 'true');
-                    regionEl.classList.add('ql-editor');
-                    return null;
-                }
+                console.warn('[DocQuill] Konversi tabel gagal senyap — region dipulihkan ke HTML asli.');
+                regionEl.dataset.quillReady = '';
+                regionEl.innerHTML = existingHtml;
+                regionEl.setAttribute('contenteditable', 'true');
+                regionEl.classList.add('ql-editor');
+                return null;
             }
 
             q.root.querySelectorAll('img').forEach((im) => {

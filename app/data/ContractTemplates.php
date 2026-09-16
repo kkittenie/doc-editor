@@ -15,8 +15,8 @@ class ContractTemplates
             'kontrak-kemitraan' => [
                 'title' => 'Perjanjian Kerjasama Jual Kembali Jasa Layanan Akses Internet',
                 'header_data' => [
-                    'kopInstansi' => '[Nama Perusahaan PIHAK PERTAMA]',
-                    'kopAlamat' => '[Alamat perusahaan PIHAK PERTAMA]',
+                    'kopInstansi' => 'PT BINA INFORMATIKA SOLUSI',
+                    'kopAlamat' => 'Jl. Prakarsa Muda No. 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131',
                     'kopKontrak' => 'PERJANJIAN KERJASAMA',
                     'nomorSurat' => '[Nomor Perjanjian]',
                     'perihalSurat' => 'Jual Kembali Jasa Layanan Akses Internet',
@@ -39,7 +39,9 @@ JUAL KEMBALI JASA LAYANAN AKSES INTERNET
 
 NOMOR: 196/FBT/PKS/III/2026
 
-Perjanjian Kerjasama tentang Jual Kembali Jasa Layanan Akses Internet (selanjutnya disebut “Perjanjian”), dibuat pada hari Kamis, tanggal 5 Maret 2026, bertempat di Cirebon, oleh dan antara:
+Nomor: [Nomor Perjanjian]
+
+Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Kerja Sama tentang Jual Kembali Jasa Layanan Akses Internet (selanjutnya disebut “Perjanjian”), oleh dan antara:
 
 PT Bina Informatika Solusi, suatu perseroan terbatas, yang didirikan berdasarkan Hukum Negara Republik Indonesia, berkedudukan di Jl. Prakarsa Muda No. 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T., M.Kom., selaku Direktur, sah bertindak untuk dan atas nama PT Bina Informatika Solusi, selanjutnya disebut sebagai “PIHAK PERTAMA”.
 
@@ -2171,8 +2173,8 @@ NOMOR: 196/FBT/PKS/III/2026',
             'kontrak-colocation' => [
                 'title' => 'Perjanjian Berlangganan Jasa Colocation',
                 'header_data' => [
-                    'kopInstansi' => '[Nama Perusahaan PIHAK PERTAMA]',
-                    'kopAlamat' => '[Alamat perusahaan PIHAK PERTAMA]',
+                    'kopInstansi' => 'PT BINA INFORMATIKA SOLUSI',
+                    'kopAlamat' => 'Jl. Prakarsa Muda No. 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131',
                     'kopKontrak' => 'PERJANJIAN BERLANGGANAN',
                     'nomorSurat' => '[Nomor Perjanjian]',
                     'perihalSurat' => 'Jasa Colocation',
@@ -2189,15 +2191,11 @@ DENGAN
 
 [PIHAK KEDUA]
 
-Nomor: 239/FBT/J.C/VII/2026
+NOMOR: 239/FBT/J.C/VII/2026
 
-PERJANJIAN BERLANGGANAN
+Nomor: [Nomor Perjanjian]
 
-JASA COLOCATION
-
-Nomor: 239/FBT/J.C/VII/2026
-
-Perjanjian Berlangganan Jasa Colocation ini disetujui di Cirebon, pada hari Sabtu, tanggal 25 Juli 2026, oleh dan antara:
+Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Berlangganan Jasa Colocation (selanjutnya disebut “Perjanjian”), oleh dan antara:
 
 PT Bina Informatika Solusi, suatu perseroan terbatas, yang didirikan berdasarkan Hukum Negara Republik Indonesia, berkedudukan di Jalan Prakarsa Muda Nomor 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T., M.Kom, selaku Direktur, bertindak untuk dan atas nama PT Bina Informatika Solusi, selanjutnya disebut sebagai PIHAK PERTAMA.
 
@@ -3306,8 +3304,8 @@ Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjala
             'kontrak-managed-service' => [
                 'title' => 'Perjanjian Berlangganan Jasa Dedicated, Metro, dan Managed Service',
                 'header_data' => [
-                    'kopInstansi' => '[Nama Perusahaan PIHAK PERTAMA]',
-                    'kopAlamat' => '[Alamat perusahaan PIHAK PERTAMA]',
+                    'kopInstansi' => 'PT BINA INFORMATIKA SOLUSI',
+                    'kopAlamat' => 'Jl. Prakarsa Muda No. 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131',
                     'kopKontrak' => 'PERJANJIAN BERLANGGANAN',
                     'nomorSurat' => '[Nomor Perjanjian]',
                     'perihalSurat' => 'Jasa Dedicated, Metro, dan Managed Service',
@@ -3316,23 +3314,19 @@ Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjala
                 'body_content' => [
                     'preamble' => 'PERJANJIAN BERLANGGANAN
 
-JASA MANAGED SERVICE
+JASA DEDICATED, METRO, DAN MANAGED SERVICE
 
-PT BINA INFORMATIKA SOLUSINDO
+PT BINA INFORMATIKA SOLUSI
 
 DENGAN
 
 [PIHAK KEDUA]
 
-Nomor: 335/FBC/J.MS/IV/2026
+NOMOR: 335/FBC/J.MS/IV/2026
 
-PERJANJIAN BERLANGGANAN
+Nomor: [Nomor Perjanjian]
 
-JASA MANAGED SERVICE
-
-Nomor: 335/FBC/J.MS/IV/2026
-
-Pada hari ini, Rabu, tanggal 1 April 2026, bertempat di Bandung, telah dibuat dan ditandatangani Perjanjian, oleh dan antara:
+Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Berlangganan Jasa Dedicated, Metro, dan Managed Service (selanjutnya disebut “Perjanjian”), oleh dan antara:
 
 PT Bina Informatika Solusindo, berkedudukan di Gedung Wisma Bumiputera Lantai 7 Suite #701B Jl. Asia-Afrika No.141-149 Kebon Pisang, Sumur, Kota Bandung. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T.,M.Kom., selaku Direktur, bertindak untuk dan atas nama PT Bina Informatika Solusindo, selanjutnya disebut “PIHAK PERTAMA”
 
@@ -4215,8 +4209,8 @@ Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, ma
             'kontrak-soho' => [
                 'title' => 'Perjanjian Berlangganan Jasa SOHO',
                 'header_data' => [
-                    'kopInstansi' => '[Nama Perusahaan PIHAK PERTAMA]',
-                    'kopAlamat' => '[Alamat perusahaan PIHAK PERTAMA]',
+                    'kopInstansi' => 'PT BINA INFORMATIKA SOLUSI',
+                    'kopAlamat' => 'Jl. Prakarsa Muda No. 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131',
                     'kopKontrak' => 'PERJANJIAN BERLANGGANAN',
                     'nomorSurat' => '[Nomor Perjanjian]',
                     'perihalSurat' => 'Jasa SOHO',
@@ -4233,15 +4227,11 @@ DENGAN
 
 [PIHAK KEDUA]
 
-Nomor: 152/FBT/J.S/IX/2025
+NOMOR: 152/FBT/J.S/IX/2025
 
-PERJANJIAN BERLANGGANAN
+Nomor: [Nomor Perjanjian]
 
-JASA SOHO
-
-Nomor: 152/FBT/J.S/IX/2025
-
-Pada hari ini, Senin, tanggal 1 September 2025, bertempat di Cirebon, telah dibuat dan ditandatangani Perjanjian, oleh dan antara:
+Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Berlangganan Jasa SOHO (selanjutnya disebut “Perjanjian”), oleh dan antara:
 
 PT Bina Informatika Solusi, berkedudukan di Jalan Prakarsa Muda Nomor 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T.,       M. Kom., selaku Direktur, sah bertindak untuk dan atas nama PT Bina Informatika Solusi, selanjutnya disebut sebagai “PIHAK PERTAMA”
 
@@ -5006,10 +4996,10 @@ Manager Area Bandung',
             'kontrak-payung' => [
                 'title' => 'Perjanjian Kerja Sama (Kontrak Payung) Berlangganan Jasa Metro Fiber Optik',
                 'header_data' => [
-                    'kopInstansi' => '[Nama Perusahaan PIHAK PERTAMA]',
-                    'kopAlamat' => '[Alamat perusahaan PIHAK PERTAMA]',
+                    'kopInstansi' => 'PT BINA INFORMATIKA SOLUSI',
+                    'kopAlamat' => 'Jl. Prakarsa Muda No. 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131',
                     'kopKontrak' => 'PERJANJIAN KERJA SAMA (KONTRAK PAYUNG)',
-                    'nomorSurat' => 'PK/001/VIII/2026',
+                    'nomorSurat' => '[Nomor Perjanjian]',
                     'perihalSurat' => 'Berlangganan Jasa Metro Fiber Optik',
                     'sifatSurat' => 'Penting',
                 ],
@@ -5023,14 +5013,11 @@ DENGAN
 
 [PIHAK KEDUA]
 
-Nomor: 238/FBT/J.M/VI/2026
+NOMOR: 238/FBT/J.M/VI/2026
 
-PERJANJIAN KERJA SAMA (KONTRAK PAYUNG)
-BERLANGGANAN JASA METRO FIBER OPTIK
+Nomor: [Nomor Perjanjian]
 
-Nomor: 238/FBT/J.M/VI/2026
-
-Pada hari ini, Selasa, tanggal 23 Juni 2026, bertempat di Cirebon, telah dibuat dan ditandatangani Perjanjian Kerja Sama Berlangganan Jasa Metro Fiber Optik (“Perjanjian”), oleh dan antara:
+Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Kerja Sama Berlangganan Jasa Metro Fiber Optik (selanjutnya disebut “Perjanjian”), oleh dan antara:
 
 PT Bina Informatika Solusi, berkedudukan di Jalan Prakarsa Muda Nomor 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T., M. Kom., selaku Direktur, sah bertindak untuk dan atas nama PT Bina Informatika Solusi, selanjutnya disebut “PIHAK PERTAMA”
 
