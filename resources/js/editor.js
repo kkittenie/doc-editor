@@ -2776,6 +2776,99 @@ function __domSplitTable(tableEl, effBottom, targetBody) {
     } catch (err) { return 0; }
 }
 
+// Belah <ol>/<ul> besar pada body DOM-fallback: pindahkan <li> yang meluap
+// ke list baru di kertas berikut. Analog __domSplitTable untuk blok list.
+function __domSplitList(listEl, effBottom, targetBody) {
+    try {
+        const items = Array.from(listEl.children || []).filter((c) => c.tagName === 'LI');
+        if (items.length < 2) return 0;
+        let cut = -1;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].getBoundingClientRect().bottom - PAGE_FLOW_TOL > effBottom) {
+                cut = i;
+                break;
+            }
+        }
+        if (cut <= 0 || cut >= items.length) return 0;
+        if (!listEl.dataset.splitId) {
+            listEl.dataset.splitId = 'l' + Date.now().toString(36) +
+                Math.floor(Math.random() * 1e6).toString(36);
+        }
+        let targetList = null;
+        const prevKids = Array.from(targetBody.children || []);
+        for (const kid of prevKids) {
+            if (kid.tagName === listEl.tagName
+                && kid.dataset?.splitFrom === listEl.dataset.splitId) {
+                targetList = kid;
+                break;
+            }
+        }
+        if (!targetList) {
+            targetList = listEl.cloneNode(false);
+            targetList.removeAttribute('id');
+            targetList.dataset.splitFrom = listEl.dataset.splitId;
+            targetBody.insertBefore(targetList, targetBody.firstChild);
+        } else {
+            targetBody.insertBefore(targetList, targetBody.firstChild);
+        }
+        let moved = 0;
+        for (let i = cut; i < items.length; i++) {
+            targetList.appendChild(items[i]);
+            moved++;
+        }
+        return moved;
+    } catch (err) { return 0; }
+}
+
+// Belah <ol>/<ul> besar pada body DOM-fallback menuju TARGET QUILL:
+// konversi item yang meluap ke delta target (sinkron blot), verifikasi
+// benar-benar mendarat, BARU hapus <li> asal dari DOM (tidak ada data hilang).
+function __domSplitListToQuill(listEl, effBottom, targetQ) {
+    try {
+        const items = Array.from(listEl.children || []).filter((c) => c.tagName === 'LI');
+        if (items.length < 2) return 0;
+        let cut = -1;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].getBoundingClientRect().bottom - PAGE_FLOW_TOL > effBottom) {
+                cut = i;
+                break;
+            }
+        }
+        if (cut <= 0 || cut >= items.length) return 0;
+        const srcList = listEl.cloneNode(false);
+        srcList.removeAttribute('id');
+        for (let i = cut; i < items.length; i++) {
+            srcList.appendChild(items[i].cloneNode(true));
+        }
+        let delta = null;
+        try {
+            delta = targetQ.clipboard.convert({ html: srcList.outerHTML, text: '\n' });
+        } catch (err) { delta = null; }
+        if (!delta || !(delta.ops || []).length) return 0;
+        const DeltaCtor = __flowDeltaCtor(targetQ);
+        if (!DeltaCtor) return 0;
+        const liBefore = targetQ.root.querySelectorAll('li').length;
+        const chg = new DeltaCtor();
+        for (const op of delta.ops) {
+            chg.push(op.insert == null
+                ? { retain: __opLength(op) }
+                : JSON.parse(JSON.stringify(op)));
+        }
+        targetQ.updateContents(chg, 'silent');
+        const liAfter = targetQ.root.querySelectorAll('li').length;
+        if (!(liAfter > liBefore)) {
+            console.warn('[DocQuill] Belah list DOM->Quill menelan isi — dibatalkan.');
+            return 0;
+        }
+        let moved = 0;
+        for (let i = cut; i < items.length; i++) {
+            items[i].remove();
+            moved++;
+        }
+        return moved;
+    } catch (err) { return 0; }
+}
+
 async function __domFlowPass(bodyEl) {
     const sheet = bodyEl ? bodyEl.closest('.doc-sheet') : null;
     if (!sheet) return false;
@@ -2817,8 +2910,39 @@ async function __domFlowPass(bodyEl) {
             }
         }
     }
+    if ((overKid.tagName === 'OL' || overKid.tagName === 'UL') && targetIsDom) {
+        const movedItems = __domSplitList(overKid, effBottom, targetBody);
+        if (movedItems > 0) {
+            pageFlowJustPushed.set(sheet, overKid);
+            notifyDirty();
+            __runDomFlow(targetBody);
+            return true;
+        }
+    }
+    // List raksasa pada body DOM-fallback dengan TARGET QUILL: konversi
+    // item meluap ke delta target (sinkron blot) — JANGAN pindah utuh.
+    if ((overKid.tagName === 'OL' || overKid.tagName === 'UL') && targetQ) {
+        const movedItems = __domSplitListToQuill(overKid, effBottom, targetQ);
+        if (movedItems > 0) {
+            pageFlowJustPushed.set(sheet, overKid);
+            notifyDirty();
+            __runFlow(targetQ, targetBody);
+            return true;
+        }
+    }
     const moving = kids.slice(idx);
     if (!moving.length) return false;
+    // Guard anti-halaman-hantu: blok tunggal raksasa yang tidak bisa dibelah
+    // dan tingginya melebihi satu halaman kosong penuh — jangan buat kertas
+    // baru (kertas lama akan selalu kosong, proses berulang tanpa akhir).
+    if (moving.length === 1
+        && overKid.tagName !== 'TABLE'
+        && overKid.tagName !== 'OL'
+        && overKid.tagName !== 'UL'
+        && overKid.getBoundingClientRect().height > bodyEl.clientHeight - PAGE_FLOW_TOL) {
+        console.warn('[DocQuill] Blok tunggal (DOM) lebih tinggi dari satu halaman dan tak bisa dibelah — paginasi blok ini dihentikan aman.');
+        return false;
+    }
     if (targetIsDom) {
         const marker = document.createElement('span');
         marker.setAttribute('data-domflow-marker', '1');
@@ -2888,6 +3012,10 @@ function __domRunFlow(bodyEl) {
                 const moved = await __domFlowPass(bodyEl);
                 if (!moved) break;
                 movedAny = true;
+                // Ada kemajuan -> reset kuota iterasi global. Batas 50 hanya
+                // menghentikan run TANPA kemajuan beruntun (anti-runaway),
+                // bukan mengunci dokumen panjang di tengah alur.
+                pageFlowTotalRuns = 0;
                 await __nextFrame();
             }
             const stillOverflowing = document.body.contains(bodyEl)
@@ -3072,10 +3200,43 @@ async function __flowPass(quill, bodyEl) {
         // bawah; kalau tetap tak muat, flow berhenti aman (terpotong rapi).
     }
 
+    // List raksasa yang meluap: belah item-per-item (analog tabel), JANGAN
+    // pindah utuh — kasus template colocation: <ol> pasal setinggi > 1 halaman.
+    if ((kids[idx].tagName === 'OL' || kids[idx].tagName === 'UL') && targetQ) {
+        const boxRect = bodyEl.getBoundingClientRect();
+        const padT = parseFloat(getComputedStyle(bodyEl).paddingTop || '0');
+        const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
+        const movedItems = __quillSplitList(quill, kids[idx], effBottom, targetQ);
+        if (movedItems > 0) {
+            pageFlowJustPushed.set(sheet, kids[idx]);
+            notifyDirty();
+            if (autoPaginationApi) __runFlow(targetQ, targetBody);
+            return true;
+        }
+    }
+
     const remaining = kids.slice(idx);
     const bulk = targetQ.getLength() <= 1
         && remaining.length > 0
         && !remaining.some(__isFloatingKid);
+
+    // Guard anti-halaman-hantu: blok tunggal raksasa yang TIDAK bisa dibelah
+    // (bukan table/list) dan tingginya melebihi satu halaman kosong penuh —
+    // memindahkannya hanya akan menghasilkan kertas kosong berulang (kertas
+    // lama jadi kosong, proses berulang sampai latch 50). Lebih aman berhenti
+    // rapi: konten tetap ada, terpotong di batas kertas.
+    if (bulk && remaining.length === 1
+        && kids[idx].tagName !== 'TABLE'
+        && kids[idx].tagName !== 'OL'
+        && kids[idx].tagName !== 'UL') {
+        try {
+            const bRect = bodyEl.getBoundingClientRect();
+            if (kids[idx].getBoundingClientRect().height > bRect.height - PAGE_FLOW_TOL) {
+                console.warn('[DocQuill] Blok tunggal lebih tinggi dari satu halaman dan tak bisa dibelah — paginasi blok ini dihentikan aman.');
+                return false;
+            }
+        } catch (err) { /* lanjut jalur normal */ }
+    }
 
     const range = bulk
         ? {
@@ -3256,6 +3417,9 @@ function __runFlow(quill, bodyEl) {
                 }
                 if (!moved) break;
                 movedAny = true;
+                // Ada kemajuan -> reset kuota iterasi global (lihat catatan
+                // pada __domRunFlow): latch hanya untuk run tanpa kemajuan.
+                pageFlowTotalRuns = 0;
                 await __nextFrame();
             }
 
@@ -3383,6 +3547,68 @@ function __quillSplitTable(quill, tableEl, effBottom, targetBody, targetQ) {
         }
         quill.deleteText(start, end - start, 'silent');
         return rows.length - safeCut;
+    } catch (err) { return 0; }
+}
+
+// Belah <ol>/<ul> besar milik Quill: pindahkan item (<li>) yang meluap ke
+// list baru di kertas berikut. Analog __quillSplitTable untuk blok list —
+// kasus template colocation: satu <ol> pasal yang tingginya melebihi satu
+// halaman penuh sehingga tidak pernah muat utuh di kertas mana pun.
+function __quillSplitList(quill, listEl, effBottom, targetQ) {
+    try {
+        const items = Array.from(listEl.children || []).filter((c) => c.tagName === 'LI');
+        if (items.length < 2) return 0;
+        let cut = -1;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].getBoundingClientRect().bottom - PAGE_FLOW_TOL > effBottom) {
+                cut = i;
+                break;
+            }
+        }
+        if (cut <= 0 || cut >= items.length) return 0;
+        // Bangun list lanjutan dari HTML item yang pindah (atribut <ol> seperti
+        // type/start ikut terbawa lewat cloneNode(false)), lalu sisipkan lewat
+        // clipboard target supaya tetap sinkron dengan blot Quill.
+        const srcList = listEl.cloneNode(false);
+        srcList.removeAttribute('id');
+        for (let i = cut; i < items.length; i++) {
+            srcList.appendChild(items[i].cloneNode(true));
+        }
+        let delta = null;
+        try {
+            delta = targetQ.clipboard.convert({ html: srcList.outerHTML, text: '\n' });
+        } catch (err) { delta = null; }
+        if (!delta || !(delta.ops || []).length) return 0;
+        const DeltaCtor = __flowDeltaCtor(quill);
+        if (!DeltaCtor) return 0;
+        const itemRanges = [];
+        for (let i = cut; i < items.length; i++) {
+            const r = __blockRangeOf(quill, items[i]);
+            if (r) itemRanges.push(r);
+        }
+        if (itemRanges.length !== items.length - cut) return 0;
+        const start = Math.min.apply(null, itemRanges.map((r) => r.start));
+        const end = Math.max.apply(null, itemRanges.map((r) => r.start + r.len));
+        const removed = quill.getContents(start, end - start);
+        if (!removed || !(removed.ops || []).length) return 0;
+        // Sisipkan ke target DULU, verifikasi item benar-benar mendarat,
+        // BARU hapus item asal — kalau konversi menelan list, isi asal
+        // tetap utuh (tidak ada data yang hilang).
+        const liBefore = targetQ.root.querySelectorAll('li').length;
+        const chg = new DeltaCtor();
+        for (const op of delta.ops) {
+            chg.push(op.insert == null
+                ? { retain: __opLength(op) }
+                : JSON.parse(JSON.stringify(op)));
+        }
+        targetQ.updateContents(chg, 'silent');
+        const liAfter = targetQ.root.querySelectorAll('li').length;
+        if (!(liAfter > liBefore)) {
+            console.warn('[DocQuill] Belah list Quill menelan isi — dibatalkan.');
+            return 0;
+        }
+        quill.deleteText(start, end - start, 'silent');
+        return items.length - cut;
     } catch (err) { return 0; }
 }
 
