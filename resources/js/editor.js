@@ -1553,6 +1553,9 @@ const __bind = (target, type, fn, opts) => {
 
 let activeQuill = null;
 const quillsByRegion = new Map();
+// BODY fallback DOM (tanpa Quill): dideklarasikan di sini supaya
+// unregisterRegion di bawah bisa mengaksesnya tanpa TDZ.
+const domFlowBodies = new Set();
 
 let hiddenImageInput = null;
 
@@ -2106,6 +2109,7 @@ const unregisterRegion = (regionEl) => {
         mirrorRegistry[role] = mirrorRegistry[role].filter((m) => m.regionEl !== regionEl);
     });
     quillsByRegion.delete(regionEl);
+    domFlowBodies.delete(regionEl);
 };
 
 const syncMirrorsFrom = (sourceQ) => {
@@ -2450,13 +2454,28 @@ const attachQuillToRegion = (regionEl) => {
             // setelah konversi, pulihkan HTML asli dan lepas region dari
             // Quill (getHtml() tetap membaca innerHTML region sehingga
             // simpanan tidak kehilangan tabel).
+            // CATATAN: bindDomPageOverflowWatch hoisted — aman dipanggil
+            // dari sini walau definisinya di bawah (function declaration).
             if (/<table/i.test(existingHtml)
                 && (!q.root.querySelector('table') || !q.root.querySelector('table tr'))) {
                 console.warn('[DocQuill] Konversi tabel gagal senyap — region dipulihkan ke HTML asli.');
+                const failedRole = regionEl.dataset?.region;
+                try { q.disable?.(); } catch (err) { /* noop */ }
+                try { q.off?.('text-change'); } catch (err) { /* noop */ }
+                try { q.off?.('selection-change'); } catch (err) { /* noop */ }
+                quillsByRegion.delete(regionEl);
                 regionEl.dataset.quillReady = '';
                 regionEl.innerHTML = existingHtml;
                 regionEl.setAttribute('contenteditable', 'true');
                 regionEl.classList.add('ql-editor');
+                if (failedRole === 'body') {
+                    // BODY fallback (tanpa Quill) TETAP ikut paginasi otomatis
+                    // lewat alur DOM — tanpa ini isi template ber-tabel besar
+                    // tidak pernah dipindah ke kertas berikut dan tumpah
+                    // keluar kertas secara visual.
+                    regionEl.dataset.domFlow = '1';
+                    bindDomPageOverflowWatch(regionEl);
+                }
                 return null;
             }
 
@@ -2516,14 +2535,18 @@ const attachQuillToRegion = (regionEl) => {
         return q;
     } catch (err) {
         console.error('[DocQuill] Gagal memasang editor pada region:', err);
+        const failedRole = regionEl.dataset?.region;
         regionEl.dataset.quillReady = '';
         regionEl.innerHTML = existingHtml || '<p><br></p>';
         regionEl.setAttribute('contenteditable', 'true');
         regionEl.classList.add('ql-editor');
+        if (failedRole === 'body') {
+            regionEl.dataset.domFlow = '1';
+            bindDomPageOverflowWatch(regionEl);
+        }
         return null;
     }
 };
-
 
 let autoPaginationApi = null;
 
@@ -2622,6 +2645,65 @@ function __looksEmptyBody(bodyEl) {
     } catch (err) { return false; }
 }
 
+// ─── PAGINASI DOM (untuk BODY fallback tanpa Quill) ───
+// Dipakai saat konversi tabel template gagal senyap: region BODY berisi
+// HTML mentah + contenteditable (tanpa instance Quill), sehingga alur
+// paginasi Quill (delta/blot) tidak bisa dipakai. Alur ini memindahkan
+// node DOM tingkat-atas ke kertas berikut, termasuk MEMBELAH <table>
+// besar baris-per-baris (<tr>) supaya tabel spesifikasi bisa mengalir
+// ke halaman 2, 3, dst.
+
+function __domKids(bodyEl) {
+    try {
+        return Array.from(bodyEl ? bodyEl.children : []).filter((kid) =>
+            !__isFloatingKid(kid) && __hasMeaningfulTextNode(kid));
+    } catch (err) { return []; }
+}
+
+function __domContentOverflowPx(bodyEl) {
+    try {
+        if (!bodyEl || __looksEmptyBody(bodyEl)) return 0;
+        return Math.max(0, (bodyEl.scrollHeight || 0) - (bodyEl.clientHeight || 0));
+    } catch (err) { return 0; }
+}
+
+async function __domResolveTargetBody(sheet) {
+    const nextSheet = sheet ? sheet.nextElementSibling : null;
+    if (nextSheet && nextSheet.classList.contains('doc-sheet')) {
+        const nb = nextSheet.querySelector('.doc-sheet-body[data-region="body"]');
+        if (nb && (quillsByRegion.has(nb) || nb.dataset?.domFlow === '1')) return nb;
+    }
+    // Kertas berikut ada tapi body-nya belum terinisialisasi (mis. baru
+    // dibuat createPageAfter lalu attachRegion gagal sebelum bind): pakai
+    // langsung sebagai target DOM + pasang watcher agar alirannya jalan.
+    if (nextSheet && nextSheet.classList.contains('doc-sheet')) {
+        const nb = nextSheet.querySelector('.doc-sheet-body[data-region="body"]');
+        if (nb && !quillsByRegion.has(nb)) {
+            nb.dataset.domFlow = '1';
+            bindDomPageOverflowWatch(nb);
+            return nb;
+        }
+    }
+    const uid = sheet && sheet.dataset ? sheet.dataset.pageUid : null;
+    const apiCreate = autoPaginationApi && autoPaginationApi.createPageAfter;
+    if (!uid || typeof apiCreate !== 'function') return null;
+    const created = await apiCreate(uid);
+    if (!created) return null;
+    for (let i = 0; i < 20; i++) {
+        if (quillsByRegion.has(created) || created.dataset?.domFlow === '1') return created;
+        await __waitMs(25);
+    }
+    // createPageAfter membuat body Quill kosong; kalau attach-nya belum
+    // terdaftar saat kita cek, jadikan target DOM sementara supaya flow
+    // tidak mati (nanti Quill attach saat rebuild / watcher jalan).
+    if (created && !quillsByRegion.has(created)) {
+        created.dataset.domFlow = '1';
+        bindDomPageOverflowWatch(created);
+        return created;
+    }
+    return (quillsByRegion.has(created) || created.dataset?.domFlow === '1') ? created : null;
+}
+
 function __contentOverflowPx(quill, boxEl) {
     try {
         if (!boxEl || __looksEmptyBody(boxEl)) return 0;
@@ -2631,6 +2713,237 @@ function __contentOverflowPx(quill, boxEl) {
     } catch (err) { return 0; }
 }
 
+// Belah <table> besar: pindahkan baris (<tr>) yang meluap ke tabel baru
+// di kertas berikut. Baris yang "digantung" rowspan dari baris sebelumnya
+// tidak ikut dipindah supaya struktur kolom tidak rusak.
+function __domSplitTable(tableEl, effBottom, targetBody) {
+    try {
+        const rows = Array.from(tableEl.querySelectorAll(':scope > tbody > tr, :scope > tr'));
+        if (rows.length < 2) return 0;
+        let cut = -1;
+        for (let i = 0; i < rows.length; i++) {
+            if (rows[i].getBoundingClientRect().bottom - PAGE_FLOW_TOL > effBottom) {
+                cut = i;
+                break;
+            }
+        }
+        if (cut <= 0) return 0;
+        let safeCut = cut;
+        for (let i = cut; i < rows.length; i++) {
+            const prevCells = rows[i - 1] ? Array.from(rows[i - 1].cells || []) : [];
+            let blocked = false;
+            for (const cell of prevCells) {
+                const rs = parseInt(cell.getAttribute('rowspan') || '1', 10) || 1;
+                if (rs > 1 && (i - 1) + rs > i) { blocked = true; break; }
+            }
+            if (!blocked) { safeCut = i; break; }
+            safeCut = i + 1;
+        }
+        if (safeCut >= rows.length) return 0;
+        if (!tableEl.dataset.splitId) {
+            tableEl.dataset.splitId = 't' + Date.now().toString(36) +
+                Math.floor(Math.random() * 1e6).toString(36);
+        }
+        let targetTable = null;
+        // Cari tabel lanjutan yang sudah ada (bisa di posisi mana pun karena
+        // tiap siklus menyisipkan di depan): cocokkan penanda splitFrom.
+        const prevKids = Array.from(targetBody.children || []);
+        for (const kid of prevKids) {
+            if (kid.tagName === 'TABLE' && kid.dataset?.splitFrom === tableEl.dataset.splitId) {
+                targetTable = kid;
+                break;
+            }
+        }
+        if (!targetTable) {
+            targetTable = document.createElement('table');
+            const srcStyle = tableEl.getAttribute('style') || '';
+            if (srcStyle) targetTable.setAttribute('style', srcStyle);
+            if (tableEl.className) targetTable.className = tableEl.className;
+            const colgroup = tableEl.querySelector(':scope > colgroup');
+            if (colgroup) targetTable.appendChild(colgroup.cloneNode(true));
+            const thead = tableEl.querySelector(':scope > thead');
+            if (thead) targetTable.appendChild(thead.cloneNode(true));
+            const tbody = document.createElement('tbody');
+            targetTable.appendChild(tbody);
+            targetTable.dataset.splitFrom = tableEl.dataset.splitId;
+            // Sisipkan sebagai blok PERTAMA di target (isi lanjutan) supaya
+            // urutan dokumen tetap benar: baris pindahan selalu di depan
+            // konten lama halaman berikut.
+            targetBody.insertBefore(targetTable, targetBody.firstChild);
+        }
+        else {
+            // Tabel lanjutan sudah ada: angkat ke posisi paling depan supaya
+            // baris pindahan (append di bawah) tetap berurutan benar.
+            targetBody.insertBefore(targetTable, targetBody.firstChild);
+        }
+        let targetTbody = targetTable.querySelector(':scope > tbody');
+        if (!targetTbody) {
+            targetTbody = document.createElement('tbody');
+            targetTable.appendChild(targetTbody);
+        }
+        let moved = 0;
+        for (let i = safeCut; i < rows.length; i++) {
+            targetTbody.appendChild(rows[i]);
+            moved++;
+        }
+        return moved;
+    } catch (err) { return 0; }
+}
+
+async function __domFlowPass(bodyEl) {
+    const sheet = bodyEl ? bodyEl.closest('.doc-sheet') : null;
+    if (!sheet) return false;
+    if (__domContentOverflowPx(bodyEl) <= PAGE_FLOW_TOL) return false;
+    const kids = __domKids(bodyEl);
+    if (!kids.length) return false;
+    const boxRect = bodyEl.getBoundingClientRect();
+    const padT = parseFloat(getComputedStyle(bodyEl).paddingTop || '0');
+    const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
+    let idx = -1;
+    for (let i = 0; i < kids.length; i++) {
+        if (kids[i].getBoundingClientRect().bottom - PAGE_FLOW_TOL > effBottom) {
+            idx = i;
+            break;
+        }
+    }
+    if (idx < 0) return false;
+    const overKid = kids[idx];
+    const targetBody = await __domResolveTargetBody(sheet);
+    if (!targetBody || targetBody === bodyEl) return false;
+    const targetQ = quillsByRegion.get(targetBody);
+    const targetIsDom = !targetQ && targetBody.dataset?.domFlow === '1';
+    if (!targetQ && !targetIsDom) return false;
+    if (targetQ && !targetQ.isEnabled()) return false;
+    if (overKid.tagName === 'TABLE') {
+        // Target Quill: JANGAN panggil __domSplitTable (itu untuk target DOM —
+        // ia menyisipkan <table> mentah ke Quill dan merusak blot). Untuk
+        // target Quill, belah hanya bila __quillSplitTable tersedia; kalau
+        // tidak, jatuh ke pindah blok utuh di bawah.
+        // NOTE: __quillSplitTable didefinisikan di bawah (function
+        // declaration -> hoisted, aman dipanggil dari sini).
+        if (targetIsDom) {
+            const movedRows = __domSplitTable(overKid, effBottom, targetBody);
+            if (movedRows > 0) {
+                pageFlowJustPushed.set(sheet, overKid);
+                notifyDirty();
+                __runDomFlow(targetBody);
+                return true;
+            }
+        }
+    }
+    const moving = kids.slice(idx);
+    if (!moving.length) return false;
+    if (targetIsDom) {
+        const marker = document.createElement('span');
+        marker.setAttribute('data-domflow-marker', '1');
+        marker.style.display = 'none';
+        targetBody.insertBefore(marker, targetBody.firstChild);
+        moving.forEach((kid) => targetBody.insertBefore(kid, marker));
+        marker.remove();
+    } else {
+        const wrap = document.createElement('div');
+        moving.forEach((kid) => wrap.appendChild(kid.cloneNode(true)));
+        let delta = null;
+        try {
+            delta = targetQ.clipboard.convert({ html: wrap.innerHTML, text: '\n' });
+        } catch (err) { delta = null; }
+        if (!delta || !(delta.ops || []).length) return false;
+        const DeltaCtor = __flowDeltaCtor(targetQ);
+        if (!DeltaCtor) return false;
+        const probe = document.createElement('div');
+        probe.innerHTML = wrap.innerHTML;
+        const hadTable = !!probe.querySelector('table tr');
+        const trBefore = targetQ.root.querySelectorAll('table tr').length;
+        const chg = new DeltaCtor();
+        for (const op of delta.ops) {
+            chg.push(op.insert == null
+                ? { retain: __opLength(op) }
+                : JSON.parse(JSON.stringify(op)));
+        }
+        targetQ.updateContents(chg, 'silent');
+        if (hadTable) {
+            const trAfter = targetQ.root.querySelectorAll('table tr').length;
+            if (!(trAfter > trBefore)) {
+                console.warn('[DocQuill] Paginasi DOM->Quill menelan tabel — dibatalkan.');
+                return false;
+            }
+        }
+        moving.forEach((kid) => kid.remove());
+    }
+    pageFlowJustPushed.set(sheet, overKid);
+    notifyDirty();
+    if (targetIsDom) __runDomFlow(targetBody);
+    else if (targetQ) __runFlow(targetQ, targetBody);
+    return true;
+}
+
+// Wrapper hoisted: __runDomFlow dipakai lebih awal (attachQuillToRegion),
+// implementasi engine ada di __domRunFlow di bawah.
+function __runDomFlow(bodyEl) {
+    __domRunFlow(bodyEl);
+}
+
+function __domRunFlow(bodyEl) {
+    if (!autoPaginationApi || pageFlowHalted) return;
+    pageFlowTotalRuns++;
+    if (pageFlowTotalRuns > PAGE_FLOW_MAX_TOTAL) {
+        if (!pageFlowHalted) {
+            console.warn('[DocQuill] Paginasi dihentikan: terlalu banyak iterasi (' + PAGE_FLOW_MAX_TOTAL + ').');
+            pageFlowHalted = true;
+        }
+        return;
+    }
+    const job = pageFlowChain
+        .then(async () => {
+            let movedAny = false;
+            for (let step = 0; step < PAGE_FLOW_MAX_STEPS; step++) {
+                if (__sessionActive()) break;
+                if (!document.body.contains(bodyEl)) break;
+                const moved = await __domFlowPass(bodyEl);
+                if (!moved) break;
+                movedAny = true;
+                await __nextFrame();
+            }
+            const stillOverflowing = document.body.contains(bodyEl)
+                && !__sessionActive()
+                && __domContentOverflowPx(bodyEl) > PAGE_FLOW_TOL;
+            if (stillOverflowing && movedAny) {
+                const n = (pageFlowRequeues.get(bodyEl) || 0) + 1;
+                if (n <= PAGE_FLOW_MAX_REQUEUES) {
+                    pageFlowRequeues.set(bodyEl, n);
+                    __runDomFlow(bodyEl);
+                    return;
+                }
+            }
+            pageFlowRequeues.delete(bodyEl);
+        })
+        .catch((err) => console.warn('[DocQuill] Paginasi otomatis dilewati:', err));
+    pageFlowChain = job;
+}
+
+function bindDomPageOverflowWatch(bodyEl) {
+    if (!bodyEl || bodyEl.__domFlowBound) return;
+    bodyEl.__domFlowBound = true;
+    domFlowBodies.add(bodyEl);
+    let timer = 0;
+    const schedule = () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            pageFlowHalted = false;
+            pageFlowTotalRuns = 0;
+            __runDomFlow(bodyEl);
+        }, 140);
+    };
+    bodyEl.addEventListener('input', () => {
+        if (bodyEl.dataset?.region !== 'body') return;
+        notifyDirty();
+        schedule();
+    });
+    window.addEventListener('resize', () => schedule(), { passive: true });
+    setTimeout(() => __runDomFlow(bodyEl), 350);
+}
+
+// ─── Paginasi Quill: hanya untuk BODY ber-Quill ───
 function __firstOverflowIndex(quill, boxEl) {
     const root = quill.root;
     if (!root || !root.children || !root.children.length) return -1;
@@ -2673,15 +2986,31 @@ async function __resolveTargetBody(sheet, apiCreate) {
     const nextSheet = sheet.nextElementSibling;
     if (nextSheet && nextSheet.classList.contains('doc-sheet')) {
         const nb = nextSheet.querySelector('.doc-sheet-body[data-region="body"]');
-        if (nb && quillsByRegion.has(nb)) return nb;
+        if (nb && (quillsByRegion.has(nb) || nb.dataset?.domFlow === '1')) return nb;
+    }
+    // Kertas berikut ada tapi body-nya belum terdaftar (mis. attach Quill
+    // gagal / tertunda): daftarkan sebagai target DOM sementara supaya flow
+    // tidak mati.
+    if (nextSheet && nextSheet.classList.contains('doc-sheet')) {
+        const nb = nextSheet.querySelector('.doc-sheet-body[data-region="body"]');
+        if (nb && !quillsByRegion.has(nb)) {
+            nb.dataset.domFlow = '1';
+            bindDomPageOverflowWatch(nb);
+            return nb;
+        }
     }
     const uid = sheet.dataset?.pageUid;
     if (!uid || typeof apiCreate !== 'function') return null;
     const created = await apiCreate(uid);
     if (!created) return null;
     for (let i = 0; i < 20; i++) {
-        if (quillsByRegion.has(created)) return created;
+        if (quillsByRegion.has(created) || created.dataset?.domFlow === '1') return created;
         await __waitMs(25);
+    }
+    if (created && !quillsByRegion.has(created)) {
+        created.dataset.domFlow = '1';
+        bindDomPageOverflowWatch(created);
+        return created;
     }
     return quillsByRegion.has(created) ? created : null;
 }
@@ -2701,10 +3030,61 @@ async function __flowPass(quill, bodyEl) {
         autoPaginationApi && autoPaginationApi.createPageAfter);
     if (!targetBody || targetBody === bodyEl) return false;
     const targetQ = quillsByRegion.get(targetBody);
-    if (!targetQ || !targetQ.isEnabled()) return false;
+    if (targetQ && !targetQ.isEnabled()) return false;
+
+    // Target body-DOM (fallback tanpa Quill): pindahkan node DOM mentah.
+    if (!targetQ) {
+        if (targetBody.dataset?.domFlow !== '1') return false;
+        const moving = Array.from(quill.root.children || []).slice(idx);
+        // Petakan blok Quill -> node DOM: pindahkan berdasar urutan dengan
+        // menandai node asal supaya tidak salah bila ada kembaran isi.
+        const srcKids = Array.from(quill.root.children || []);
+        const moveSet = new Set(moving);
+        const marker = document.createElement('span');
+        marker.setAttribute('data-domflow-marker', '1');
+        marker.style.display = 'none';
+        targetBody.insertBefore(marker, targetBody.firstChild);
+        srcKids.forEach((kid) => {
+            if (!moveSet.has(kid)) return;
+            const html = kid.outerHTML || '';
+            if (!html) return;
+            const tmp = document.createElement('div');
+            tmp.innerHTML = html;
+            const node = tmp.firstElementChild;
+            if (node) targetBody.insertBefore(node, marker);
+        });
+        marker.remove();
+        // Hapus dari Quill asal via delta (tetap sinkron dengan blot).
+        const firstRange = __blockRangeOf(quill, moving[0]);
+        if (firstRange) {
+            quill.deleteText(firstRange.start,
+                Math.max(firstRange.len, quill.getLength() - firstRange.start), 'silent');
+        }
+        pageFlowJustPushed.set(sheet, moving[0]);
+        notifyDirty();
+        __runDomFlow(targetBody);
+        return true;
+    }
 
     const firstRange = __blockRangeOf(quill, kids[idx]);
     if (!firstRange) return false;
+
+    // Tabel raksasa yang meluap: belah baris-per-baris, JANGAN pindah utuh
+    // (pindah utuh tidak akan pernah muat -> overflow permanen di kertas).
+    if (kids[idx].tagName === 'TABLE' && targetQ) {
+        const boxRect = bodyEl.getBoundingClientRect();
+        const padT = parseFloat(getComputedStyle(bodyEl).paddingTop || '0');
+        const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
+        const movedRows = __quillSplitTable(quill, kids[idx], effBottom, targetBody, targetQ);
+        if (movedRows > 0) {
+            pageFlowJustPushed.set(sheet, kids[idx]);
+            notifyDirty();
+            if (autoPaginationApi) __runFlow(targetQ, targetBody);
+            return true;
+        }
+        // Tak bisa dibelah (mis. 1 baris raksasa): jatuh ke pindah utuh di
+        // bawah; kalau tetap tak muat, flow berhenti aman (terpotong rapi).
+    }
 
     const remaining = kids.slice(idx);
     const bulk = targetQ.getLength() <= 1
@@ -2729,6 +3109,11 @@ async function __flowPass(quill, bodyEl) {
     quill.deleteText(range.start, range.len, 'silent');
 
     // Sisipkan DI DEPAN isi kertas berikutnya agar urutan dokumen tetap benar.
+    // Guard anti-hilang: verifikasi delta benar-benar mendarat di target
+    // (khusus blok tabel: jumlah <tr> target harus bertambah). Kalau
+    // konversi menelan tabel, KEMBALIKAN isi ke asal (tidak ada data hilang).
+    const probeTable = kids[idx].tagName === 'TABLE';
+    const trBefore = probeTable ? targetQ.root.querySelectorAll('table tr').length : 0;
     const chg = new DeltaCtor();
     for (const op of removed.ops) {
         chg.push(op.insert == null
@@ -2736,6 +3121,22 @@ async function __flowPass(quill, bodyEl) {
             : JSON.parse(JSON.stringify(op)));
     }
     targetQ.updateContents(chg, 'silent');
+
+    if (probeTable) {
+        const trAfter = targetQ.root.querySelectorAll('table tr').length;
+        if (!(trAfter > trBefore)) {
+            console.warn('[DocQuill] Paginasi Quill menelan tabel — dibatalkan, isi dikembalikan.');
+            const back = new DeltaCtor();
+            back.retain(range.start);
+            for (const op of removed.ops) {
+                back.push(op.insert == null
+                    ? { retain: __opLength(op) }
+                    : JSON.parse(JSON.stringify(op)));
+            }
+            quill.updateContents(back, 'silent');
+            return false;
+        }
+    }
 
     if (selBefore && selBefore.index >= range.start
         && selBefore.index < range.start + range.len) {
@@ -2916,6 +3317,89 @@ function bindPageOverflowWatch(quill, regionEl) {
     setTimeout(() => __runFlow(quill, regionEl), 350);
 }
 
+// Belah <table> besar milik Quill: pindahkan baris (<tr>) yang meluap ke
+// tabel baru di kertas berikut. Dipakai saat blok meluap adalah SATU tabel
+// raksasa (kasus template: tabel spesifikasi colocation dsb.) yang tidak
+// bisa dipindah utuh karena tingginya melebihi sisa ruang kertas.
+function __quillSplitTable(quill, tableEl, effBottom, targetBody, targetQ) {
+    try {
+        const rows = Array.from(tableEl.querySelectorAll(':scope > tbody > tr, :scope > tr'));
+        if (rows.length < 2) return 0;
+        let cut = -1;
+        for (let i = 0; i < rows.length; i++) {
+            if (rows[i].getBoundingClientRect().bottom - PAGE_FLOW_TOL > effBottom) {
+                cut = i;
+                break;
+            }
+        }
+        if (cut <= 0) return 0;
+        let safeCut = cut;
+        for (let i = cut; i < rows.length; i++) {
+            const prevCells = rows[i - 1] ? Array.from(rows[i - 1].cells || []) : [];
+            let blocked = false;
+            for (const cell of prevCells) {
+                const rs = parseInt(cell.getAttribute('rowspan') || '1', 10) || 1;
+                if (rs > 1 && (i - 1) + rs > i) { blocked = true; break; }
+            }
+            if (!blocked) { safeCut = i; break; }
+            safeCut = i + 1;
+        }
+        if (safeCut >= rows.length) return 0;
+        // Bangun tabel lanjutan dari HTML baris yang pindah, lalu sisipkan
+        // lewat clipboard target supaya tetap sinkron dengan blot Quill.
+        const srcTable = tableEl.cloneNode(false);
+        srcTable.removeAttribute('id');
+        const colgroup = tableEl.querySelector(':scope > colgroup');
+        if (colgroup) srcTable.appendChild(colgroup.cloneNode(true));
+        const thead = tableEl.querySelector(':scope > thead');
+        if (thead) srcTable.appendChild(thead.cloneNode(true));
+        const tbody = document.createElement('tbody');
+        for (let i = safeCut; i < rows.length; i++) {
+            tbody.appendChild(rows[i].cloneNode(true));
+        }
+        srcTable.appendChild(tbody);
+        let delta = null;
+        try {
+            delta = targetQ.clipboard.convert({ html: srcTable.outerHTML, text: '\n' });
+        } catch (err) { delta = null; }
+        if (!delta || !(delta.ops || []).length) return 0;
+        // Hapus baris asal dari Quill via delta (tetap sinkron blot).
+        const DeltaCtor = __flowDeltaCtor(quill);
+        if (!DeltaCtor) return 0;
+        const rowRanges = [];
+        for (let i = safeCut; i < rows.length; i++) {
+            const r = __blockRangeOf(quill, rows[i]);
+            if (r) rowRanges.push(r);
+        }
+        if (!rowRanges.length) return 0;
+        const start = Math.min.apply(null, rowRanges.map((r) => r.start));
+        const end = Math.max.apply(null, rowRanges.map((r) => r.start + r.len));
+        const removed = quill.getContents(start, end - start);
+        if (!removed || !(removed.ops || []).length) return 0;
+        // Sisipkan ke target DULU, verifikasi tabel benar-benar mendarat,
+        // BARU hapus baris asal — kalau konversi menelan tabel, isi asal
+        // tetap utuh (tidak ada data yang hilang).
+        const trBefore = targetQ.root.querySelectorAll('table tr').length;
+        const chg = new DeltaCtor();
+        for (const op of delta.ops) {
+            chg.push(op.insert == null
+                ? { retain: __opLength(op) }
+                : JSON.parse(JSON.stringify(op)));
+        }
+        targetQ.updateContents(chg, 'silent');
+        // Guard: jumlah baris tabel target HARUS bertambah (mencegah kasus
+        // tabel lanjutan menyatu/merge dengan tabel lama tetap dihitung ok,
+        // tapi konversi yang menelan isi pasti tertolak).
+        const trAfter = targetQ.root.querySelectorAll('table tr').length;
+        if (!(trAfter > trBefore)) {
+            console.warn('[DocQuill] Belah tabel Quill menelan isi — dibatalkan.');
+            return 0;
+        }
+        quill.deleteText(start, end - start, 'silent');
+        return rows.length - safeCut;
+    } catch (err) { return 0; }
+}
+
 
 
 window.initBodyEditor = function (rootSelector, onSync = null) {
@@ -2982,7 +3466,7 @@ window.initBodyEditor = function (rootSelector, onSync = null) {
 
 
 window.DocQuill = {
-    __version: 'hf-10-flow',
+    __version: 'hf-11-domflow',
 
     attachRegion: attachQuillToRegion,
 
@@ -2990,7 +3474,15 @@ window.DocQuill = {
         if (!regionEl) return '';
         const q = quillsByRegion.get(regionEl);
         let html = q ? q.root.innerHTML : regionEl.innerHTML;
+        // Gambar floating hidup sebagai anak langsung region (di luar
+        // q.root / alur konten): sertakan, tapi JANGAN gandakan gambar
+        // yang sudah termasuk di dalam html (kasus body-DOM fallback di
+        // mana q.root === region itu sendiri / tidak ada host terpisah).
         regionEl.querySelectorAll(':scope > img').forEach((im) => {
+            try {
+                if (q && q.root && q.root.contains(im)) return;
+                if (html && html.indexOf(im.outerHTML) >= 0) return;
+            } catch (err) { /* lanjut sertakan */ }
             html += im.outerHTML;
         });
         return html;
@@ -3065,11 +3557,26 @@ window.DocQuill = {
     },
 
     focusBodyEnd: (regionEl) => {
+        if (!regionEl) return;
         const q = quillsByRegion.get(regionEl);
-        if (!q) return;
-        if (!q.isEnabled()) q.enable();
-        q.setSelection(Math.max(0, q.getLength() - 1), 'silent');
-        q.focus();
+        if (q) {
+            if (!q.isEnabled()) q.enable();
+            q.setSelection(Math.max(0, q.getLength() - 1), 'silent');
+            q.focus();
+            return;
+        }
+        // Body-DOM fallback: fokuskan caret ke akhir konten mentah.
+        if (regionEl.dataset?.domFlow === '1') {
+            try {
+                regionEl.focus?.();
+                const range = document.createRange();
+                range.selectNodeContents(regionEl);
+                range.collapse(false);
+                const sel = window.getSelection();
+                sel?.removeAllRanges();
+                sel?.addRange(range);
+            } catch (err) { /* noop */ }
+        }
     },
 
     ensureBodyEditable: () => {
@@ -3077,6 +3584,13 @@ window.DocQuill = {
         quillsByRegion.forEach((q, el) => {
             if (el.dataset?.region === 'body' && !q.isEnabled()) {
                 q.enable();
+                revived++;
+            }
+        });
+        // Body-DOM fallback selalu editable via contenteditable mentah.
+        domFlowBodies.forEach((el) => {
+            if (el.isConnected && el.getAttribute('contenteditable') !== 'true') {
+                el.setAttribute('contenteditable', 'true');
                 revived++;
             }
         });
@@ -3090,12 +3604,24 @@ window.DocQuill = {
                 bindPageOverflowWatch(qq, el);
             }
         });
+        // BODY fallback DOM (tanpa Quill, mis. template ber-tabel yang
+        // gagal konversi): ikutkan ke paginasi lewat alur DOM.
+        try {
+            document.querySelectorAll('.doc-sheet-body[data-region="body"][data-dom-flow="1"]')
+                .forEach((el) => bindDomPageOverflowWatch(el));
+        } catch (err) { /* noop */ }
     },
 
     clickAndType: (regionEl, clientX, clientY) => {
         console.log('[clickAndType] dipanggil', { clientX, clientY });
         const q = quillsByRegion.get(regionEl);
-        if (!q || !q.isEnabled()) {
+        if (!q) {
+            // Body-DOM fallback: biarkan caret native contenteditable bekerja.
+            if (regionEl?.dataset?.domFlow === '1') return false;
+            console.log('[clickAndType] BAIL: quill gak ketemu/gak aktif');
+            return false;
+        }
+        if (!q.isEnabled()) {
             console.log('[clickAndType] BAIL: quill gak ketemu/gak aktif');
             return false;
         }

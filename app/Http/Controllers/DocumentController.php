@@ -683,7 +683,7 @@ class DocumentController extends Controller
             $byRow[$r] = $rowOut;
         }
 
-        $html = '<table style="'.$tableStyle.'">';
+        $html = '<table style="'.$tableStyle.' table-layout:fixed; word-break:break-word;">';
 
         foreach ($rows as $r => $row) {
             $html .= '<tr>';
@@ -700,8 +700,12 @@ class DocumentController extends Controller
 
                 $isHeadCell = $head && $r === 0;
                 $tag   = $isHeadCell ? 'th' : 'td';
+                // word-break/overflow-wrap: sel tabel template (mis. nomor
+                // perjanjian / URL panjang tanpa spasi) TIDAK BOLEH melebar
+                // keluar kolom & keluar kertas secara horizontal.
                 $style = $cellBaseStyle.($isHeadCell ? ' font-weight:bold; text-align:center;' : '')
-                    .' width:'.round($span * $colWidth, 2).'%;';
+                    .' width:'.round($span * $colWidth, 2).'%;'
+                    .' word-break:break-word; overflow-wrap:anywhere;';
 
                 $html .= '<'.$tag.$spanAttr.' style="'.$style.'">'.$content.'</'.$tag.'>';
             }

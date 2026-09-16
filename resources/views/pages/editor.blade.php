@@ -861,9 +861,11 @@
     .doc-sheet-body {
         flex: 1;
         min-height: 0;
-        overflow: hidden;
+        overflow: hidden !important;
         /* konten yang meluap DIKELUARKAN otomatis
-                                        ke kertas berikutnya oleh paginasi */
+                                        ke kertas berikutnya oleh paginasi.
+           !important: menang atas .ql-editor generik (overflow:visible)
+           pada body fallback non-Quill yang ikut ber-class ql-editor. */
     }
 
     .doc-sheet-footer {
@@ -995,6 +997,10 @@
         box-sizing: border-box;
     }
 
+    .doc-sheet table {
+        max-width: 100%;
+    }
+
     .doc-sheet table th,
     .doc-sheet table td {
         border: 1px solid #374151 !important;
@@ -1002,6 +1008,10 @@
         min-width: 60px;
         height: 32px;
         vertical-align: top;
+        /* Teks panjang tanpa spasi (nomor/URL) dipotong dalam sel,
+           bukan melebar keluar kolom & keluar kertas. */
+        word-break: break-word;
+        overflow-wrap: anywhere;
     }
 
     .doc-sheet th {
@@ -1019,6 +1029,12 @@
         margin-top: 8px;
         margin-bottom: 12px;
         cursor: pointer !important;
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Media & kata panjang tidak boleh melebar keluar kertas. */
+    .doc-sheet .doc-sheet-body>* {
         max-width: 100%;
     }
 
@@ -1085,24 +1101,44 @@
         background: #3b3428;
     }
 
-    /* Editor Quill menyatu dengan gaya kertas */
+    /* Editor Quill menyatu dengan gaya kertas.
+       CATATAN: .ql-editor di dalam BODY TIDAK BOLEH overflow:visible,
+       kalau tidak konten yang meluap (mis. template ber-tabel besar)
+       akan tumpah keluar kertas secara visual alih-alih terpotong rapi
+       di dalam kertas lalu dipindah ke kertas berikutnya oleh paginasi.
+       Quill editor resmi (dengan .ql-container) tetap butuh overflow
+       visible agar dropdown/toolbar tidak terpotong — visible itu milik
+       .ql-editor, tapi .ql-container + BODY-nya dikunci hidden sehingga
+       visual tetap terpotong di batas kertas. */
     .doc-sheet .ql-container {
         border: none !important;
         font-family: inherit;
         font-size: 12px;
         height: auto !important;
         /* jangan kunci 100% — biarkan ikut aliran flex */
+        overflow: hidden;
     }
 
     .doc-sheet .ql-editor {
         padding: 0;
         min-height: 40px;
         height: auto !important;
-        overflow: visible !important;
+        overflow: visible;
         font-family: inherit;
         font-size: 12px;
         line-height: 1.5;
         color: #111827;
+    }
+
+    /* KUNCI VISUAL: body region selalu memotong konten di batas kertas —
+       mencakup body Quill (.ql-container di dalam) maupun body fallback
+       non-Quill (region ber-class ql-editor TANPA .ql-container, dipakai
+       saat konversi tabel template gagal). Spesifisitas dibuat tinggi agar
+       menang atas rule generik .ql-editor di atas. */
+    .doc-sheet .doc-sheet-body,
+    .doc-sheet .doc-sheet-body.ql-editor,
+    .doc-sheet .doc-sheet-body .ql-container {
+        overflow: hidden !important;
     }
 
     .doc-sheet .doc-sheet-body .ql-container {
