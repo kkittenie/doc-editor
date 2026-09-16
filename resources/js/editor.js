@@ -1,4 +1,4 @@
-import Quill from 'quill';
+﻿import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import QuillTableBetter, { ToolbarTable } from 'quill-table-better';
 import 'quill-table-better/dist/quill-table-better.css';
@@ -2444,8 +2444,15 @@ const attachQuillToRegion = (regionEl) => {
             // dari sini walau definisinya di bawah (function declaration).
             if (/<table/i.test(existingHtml)
                 && (!q.root.querySelector('table') || !q.root.querySelector('table tr'))) {
-                console.warn('[DocQuill] Konversi tabel gagal senyap — region dipulihkan ke HTML asli.');
                 const failedRole = regionEl.dataset?.region;
+                if (failedRole === 'body') {
+                    console.warn('[DocQuill] Konversi tabel BODY gagal — fallback HTML aktif (paginasi DOM jalan).');
+                } else {
+                    // Zona header/footer ber-tabel memang dirancang tetap HTML
+                    // asli (footer cover: identitas | paraf/stempel) — ini
+                    // NORMAL setiap kali kertas baru dibuat, bukan error.
+                    console.info('[DocQuill] Tabel zona header/footer dipertahankan sebagai HTML asli.');
+                }
                 try { q.disable?.(); } catch (err) { /* noop */ }
                 try { q.off?.('text-change'); } catch (err) { /* noop */ }
                 try { q.off?.('selection-change'); } catch (err) { /* noop */ }
@@ -2867,6 +2874,39 @@ function __domSplitListToQuill(listEl, effBottom, targetQ) {
         }
         return moved;
     } catch (err) { return 0; }
+// Ambil alih BODY Quill menjadi BODY fallback DOM (round-trip innerHTML —
+// tanpa kehilangan data). Dipakai saat tabel besar tidak bisa dibelah lewat
+// delta Quill (lookup blot baris gagal / konversi menelan tabel); alur DOM
+// kemudian membelah baris tabel secara native dan terbukti jalan.
+function __takeoverBodyAsDom(bodyEl) {
+    try {
+        if (!bodyEl || !bodyEl.isConnected) return false;
+        const q = quillsByRegion.get(bodyEl);
+        let html = '';
+        // Gambar floating hidup sebagai :scope > img region (di luar q.root)
+        // — kumpulkan dulu supaya tidak hilang saat innerHTML ditimpa.
+        const floatImgs = Array.from(bodyEl.querySelectorAll(':scope > img'));
+        if (q) {
+            html = q.root ? q.root.innerHTML : '';
+            try { q.off?.('text-change'); } catch (err) { /* noop */ }
+            try { q.off?.('selection-change'); } catch (err) { /* noop */ }
+            try { q.disable?.(); } catch (err) { /* noop */ }
+            quillsByRegion.delete(bodyEl);
+        }
+        if (!html || !html.trim()) html = bodyEl.innerHTML;
+        bodyEl.dataset.quillReady = '';
+        bodyEl.innerHTML = html;
+        floatImgs.forEach((im) => bodyEl.appendChild(im));
+        bodyEl.setAttribute('contenteditable', 'true');
+        bodyEl.classList.add('ql-editor');
+        bodyEl.dataset.domFlow = '1';
+        bindDomPageOverflowWatch(bodyEl);
+        console.info('[DocQuill] Body diambil alih sebagai DOM — belah tabel baris-per-baris aktif.');
+        return true;
+    } catch (err) {
+        console.warn('[DocQuill] Takeover DOM gagal:', err);
+        return false;
+    }
 }
 
 async function __domFlowPass(bodyEl) {
@@ -2894,12 +2934,8 @@ async function __domFlowPass(bodyEl) {
     if (!targetQ && !targetIsDom) return false;
     if (targetQ && !targetQ.isEnabled()) return false;
     if (overKid.tagName === 'TABLE') {
-        // Target Quill: JANGAN panggil __domSplitTable (itu untuk target DOM —
-        // ia menyisipkan <table> mentah ke Quill dan merusak blot). Untuk
-        // target Quill, belah hanya bila __quillSplitTable tersedia; kalau
-        // tidak, jatuh ke pindah blok utuh di bawah.
-        // NOTE: __quillSplitTable didefinisikan di bawah (function
-        // declaration -> hoisted, aman dipanggil dari sini).
+        const tableH = overKid.getBoundingClientRect().height;
+        const fitsFreshPage = tableH <= (bodyEl.clientHeight + PAGE_FLOW_TOL);
         if (targetIsDom) {
             const movedRows = __domSplitTable(overKid, effBottom, targetBody);
             if (movedRows > 0) {
@@ -2908,6 +2944,26 @@ async function __domFlowPass(bodyEl) {
                 __runDomFlow(targetBody);
                 return true;
             }
+            // Tak bisa dibelah DAN tak akan pernah muat di halaman mana pun
+            // -> jangan pindah utuh (memicu kaskade pembuatan halaman);
+            // biarkan terpotong rapi di dalam kertas.
+            if (!fitsFreshPage) return false;
+        } else {
+            // Target Quill: kalau tabel tidak muat di halaman kosong baru,
+            // ambil alih target sebagai DOM lalu belah barisnya native.
+            if (!fitsFreshPage) {
+                if (__takeoverBodyAsDom(targetBody)) {
+                    const movedRows = __domSplitTable(overKid, effBottom, targetBody);
+                    if (movedRows > 0) {
+                        pageFlowJustPushed.set(sheet, overKid);
+                        notifyDirty();
+                        __runDomFlow(targetBody);
+                        return true;
+                    }
+                }
+                return false;
+            }
+            // Tabel muat di halaman kosong -> boleh pindah utuh (jalur di bawah).
         }
     }
     if ((overKid.tagName === 'OL' || overKid.tagName === 'UL') && targetIsDom) {
@@ -2974,7 +3030,19 @@ async function __domFlowPass(bodyEl) {
         if (hadTable) {
             const trAfter = targetQ.root.querySelectorAll('table tr').length;
             if (!(trAfter > trBefore)) {
-                console.warn('[DocQuill] Paginasi DOM->Quill menelan tabel — dibatalkan.');
+                console.warn('[DocQuill] Paginasi DOM->Quill menelan tabel — target diambil alih sebagai DOM.');
+                // Node sumber BELUM dihapus (removal terjadi setelah guard),
+                // jadi cukup pindahkan via DOM murni.
+                if (__takeoverBodyAsDom(targetBody)) {
+                    const marker = document.createElement('span');
+                    marker.setAttribute('data-domflow-marker', '1');
+                    marker.style.display = 'none';
+                    targetBody.insertBefore(marker, targetBody.firstChild);
+                    moving.forEach((kid) => targetBody.insertBefore(kid, marker));
+                    marker.remove();
+                    __runDomFlow(targetBody);
+                    return true;
+                }
                 return false;
             }
         }
@@ -3133,6 +3201,9 @@ async function __flowPass(quill, bodyEl) {
     const sheet = bodyEl.closest('.doc-sheet');
     if (!sheet) return false;
 
+    // Quill sudah dilepas dari DOM (body di-takeover sebagai DOM)?
+    try { if (quill.root && !quill.root.isConnected) return false; } catch (err) { return false; }
+
     if (__contentOverflowPx(quill, bodyEl) <= PAGE_FLOW_TOL) return false;
 
     const idx = __firstOverflowIndex(quill, bodyEl);
@@ -3149,6 +3220,23 @@ async function __flowPass(quill, bodyEl) {
     // Target body-DOM (fallback tanpa Quill): pindahkan node DOM mentah.
     if (!targetQ) {
         if (targetBody.dataset?.domFlow !== '1') return false;
+        // Tabel besar: belah langsung barisnya ke target DOM — JANGAN pindah
+        // tabel utuh yang lebih tinggi dari satu halaman (kaskade halaman).
+        if (kids[idx].tagName === 'TABLE') {
+            const boxRect = bodyEl.getBoundingClientRect();
+            const padT = parseFloat(getComputedStyle(bodyEl).paddingTop || '0');
+            const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
+            const movedRows = __domSplitTable(kids[idx], effBottom, targetBody);
+            if (movedRows > 0) {
+                pageFlowJustPushed.set(sheet, kids[idx]);
+                notifyDirty();
+                __runDomFlow(targetBody);
+                return true;
+            }
+            const tooBig = kids[idx].getBoundingClientRect().height
+                > (bodyEl.clientHeight + PAGE_FLOW_TOL);
+            if (tooBig) return false; // terpotong rapi, tanpa kaskade
+        }
         const moving = Array.from(quill.root.children || []).slice(idx);
         // Petakan blok Quill -> node DOM: pindahkan berdasar urutan dengan
         // menandai node asal supaya tidak salah bila ada kembaran isi.
@@ -3184,7 +3272,7 @@ async function __flowPass(quill, bodyEl) {
     if (!firstRange) return false;
 
     // Tabel raksasa yang meluap: belah baris-per-baris, JANGAN pindah utuh
-    // (pindah utuh tidak akan pernah muat -> overflow permanen di kertas).
+    // (pindah utuh tidak akan pernah muat -> kaskade pembuatan halaman).
     if (kids[idx].tagName === 'TABLE' && targetQ) {
         const boxRect = bodyEl.getBoundingClientRect();
         const padT = parseFloat(getComputedStyle(bodyEl).paddingTop || '0');
@@ -3196,8 +3284,19 @@ async function __flowPass(quill, bodyEl) {
             if (autoPaginationApi) __runFlow(targetQ, targetBody);
             return true;
         }
-        // Tak bisa dibelah (mis. 1 baris raksasa): jatuh ke pindah utuh di
-        // bawah; kalau tetap tak muat, flow berhenti aman (terpotong rapi).
+        // Split via delta gagal (lookup blot baris table-better gagal dsb.).
+        const tableH = kids[idx].getBoundingClientRect().height;
+        if (tableH > bodyEl.clientHeight + PAGE_FLOW_TOL) {
+            // Lebih tinggi dari SATU halaman -> ambil alih body ini sebagai
+            // DOM (round-trip innerHTML, tanpa kehilangan data) lalu biarkan
+            // alur DOM membelah baris tabel secara native.
+            if (__takeoverBodyAsDom(bodyEl)) {
+                __domRunFlow(bodyEl);
+                return true;
+            }
+            return false; // terpotong rapi di dalam kertas
+        }
+        // Tabel muat di halaman kosong baru -> boleh pindah utuh (bulk di bawah).
     }
 
     // List raksasa yang meluap: belah item-per-item (analog tabel), JANGAN
@@ -3216,9 +3315,13 @@ async function __flowPass(quill, bodyEl) {
     }
 
     const remaining = kids.slice(idx);
+    const overTableTooBig = kids[idx].tagName === 'TABLE'
+        && kids[idx].getBoundingClientRect().height > bodyEl.clientHeight + PAGE_FLOW_TOL;
     const bulk = targetQ.getLength() <= 1
         && remaining.length > 0
-        && !remaining.some(__isFloatingKid);
+        && !remaining.some(__isFloatingKid)
+        && !overTableTooBig;
+    if (overTableTooBig) return false;
 
     // Guard anti-halaman-hantu: blok tunggal raksasa yang TIDAK bisa dibelah
     // (bukan table/list) dan tingginya melebihi satu halaman kosong penuh —
@@ -3272,7 +3375,7 @@ async function __flowPass(quill, bodyEl) {
     if (probeTable) {
         const trAfter = targetQ.root.querySelectorAll('table tr').length;
         if (!(trAfter > trBefore)) {
-            console.warn('[DocQuill] Paginasi Quill menelan tabel — dibatalkan, isi dikembalikan.');
+            console.warn('[DocQuill] Paginasi Quill menelan tabel — isi dikembalikan, body diambil alih sebagai DOM.');
             const back = new DeltaCtor();
             back.retain(range.start);
             for (const op of removed.ops) {
@@ -3281,6 +3384,12 @@ async function __flowPass(quill, bodyEl) {
                     : JSON.parse(JSON.stringify(op)));
             }
             quill.updateContents(back, 'silent');
+            // Progress tetap terjamin: sumber jadi body DOM, alur DOM yang
+            // membelah baris tabel ke halaman berikutnya.
+            if (__takeoverBodyAsDom(bodyEl)) {
+                __domRunFlow(bodyEl);
+                return true;
+            }
             return false;
         }
     }
@@ -3305,6 +3414,8 @@ function __pullBackPass(quill, bodyEl) {
     const sheet = bodyEl.closest('.doc-sheet');
     if (!sheet) return false;
 
+    // Quill sudah dilepas dari DOM (body di-takeover sebagai DOM)?
+    try { if (quill.root && !quill.root.isConnected) return false; } catch (err) { return false; }
 
     if (sheet.dataset?.flowLock) return false;
 
@@ -3326,6 +3437,10 @@ function __pullBackPass(quill, bodyEl) {
     if (!nkids.length) return false;
     const k2 = nkids[0];
     if (__isFloatingKid(k2) || !__hasMeaningfulTextNode(k2)) return false;
+    // Tabel TIDAK PERNAH ditarik balik: tabel hanya bergerak lewat belah
+    // baris (__domSplitTable / __quillSplitTable). Menarik balik tabel
+    // lanjutan memicu ping-pong push<->pull yang menguras iterasi paginasi.
+    if (k2.tagName === 'TABLE') return false;
 
     // Anti-flip: jangan langsung menarik balik blok yang barusan didorong
     // oleh __flowPass di siklus yang sama - memicu getar abadi (push -> pull
@@ -3392,6 +3507,8 @@ function __pullBackPass(quill, bodyEl) {
 
 function __runFlow(quill, bodyEl) {
     if (!autoPaginationApi || pageFlowHalted) return; // bridge belum siap / sudah terkunci latch
+    // Quill sudah dilepas dari DOM (body di-takeover sebagai DOM)?
+    try { if (quill && quill.root && !quill.root.isConnected) return; } catch (err) { /* noop */ }
     pageFlowTotalRuns++;
     if (pageFlowTotalRuns > PAGE_FLOW_MAX_TOTAL) {
         // Latch keras (BUKAN reset): jika di-reset di sini, aliran paginasi
