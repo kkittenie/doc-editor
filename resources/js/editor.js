@@ -196,17 +196,7 @@ let floatingDragArmed = false;
 let isDraggingFloating = false;
 let floatStartX = 0, floatStartY = 0;
 let floatBaseLeft = 0, floatBaseTop = 0;
-// Guard per-press: true bila press ini baru saja MENSELEKSI gambar (via
-// mousedown) atau baru saja menyelesaikan drag sungguhan, sehingga event
-// click berikutnya TIDAK boleh melepas seleksi (toggle-off).
 let imgToggleGuard = false;
-// Per-press tambahan: true bila `showImageTools` BARU saja dipanggil untuk
-// gambar yang belum terpilih (mis. klik pertama setelah insert / klik di luar
-// lalu klik kembali). Mencegah handler click global yang menemukan
-// `activeImage === e.target` (setelah showImageTools) langsung menutupnya
-// sebelum positioning loop selesai menggambar — ini adalah AKAR dari
-// "berkedip" tombol hapus / drag-size / layout options. Direset di mousedown
-// berikutnya.
 let lastImgToggleGuard = false;
 
 const FLOAT_REGION_SELECTOR = '.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer';
@@ -449,14 +439,12 @@ const applyImageLayout = (img, layout) => {
     const editor = activeEditor;
     if (!editor) return;
 
-    // Layout & sisi float SEBELUM direset (dipakai toggle sisi opsi 'square')
     const prevLayout = getImageLayout(img);
     const prevFloat =
         prevLayout === 'square' ? getComputedStyle(img).cssFloat : 'none';
 
     const oldParent = img.parentElement;
 
-    // Reset semua style layout dulu
     img.style.float = '';
     img.style.display = '';
     img.style.margin = '';
@@ -621,8 +609,6 @@ const startImageResize = (e, corner) => {
 };
 
 const showImageTools = (editor, img) => {
-    // Gambar baru yang belum terpilih: naikkan guard satu klik agar handler
-    // click berikutnya (activeImage === e.target) tidak langsung toggle-off.
     if (activeImage !== img) lastImgToggleGuard = true;
     if (activeImage === img) return;
     removeImageTools();
