@@ -14,7 +14,7 @@
     <div class="space-y-6 max-w-2xl text-xs">
         <div>
             <label class="block font-semibold text-ink-900 dark:text-parchment-200 mb-1">Nama Organisasi / Perusahaan Default</label>
-            <input type="text" value="PT NUSANTARA CITRA MEDIA TBK" class="w-full text-xs rounded-lg border border-parchment-300 p-2.5 bg-parchment-25 focus:border-ink-900 dark:bg-slate-warm-800 dark:border-slate-warm-700 dark:text-parchment-100 font-serif font-bold" />
+            <input type="text" value="CV AKSES DIGITAL" class="w-full text-xs rounded-lg border border-parchment-300 p-2.5 bg-parchment-25 focus:border-ink-900 dark:bg-slate-warm-800 dark:border-slate-warm-700 dark:text-parchment-100 font-serif font-bold" />
         </div>
 
         <div>
