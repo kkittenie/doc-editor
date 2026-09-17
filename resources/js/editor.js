@@ -1,4 +1,4 @@
-﻿import Quill from 'quill';
+import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import QuillTableBetter, { ToolbarTable } from 'quill-table-better';
 import 'quill-table-better/dist/quill-table-better.css';
@@ -2874,6 +2874,8 @@ function __domSplitListToQuill(listEl, effBottom, targetQ) {
         }
         return moved;
     } catch (err) { return 0; }
+}
+
 // Ambil alih BODY Quill menjadi BODY fallback DOM (round-trip innerHTML —
 // tanpa kehilangan data). Dipakai saat tabel besar tidak bisa dibelah lewat
 // delta Quill (lookup blot baris gagal / konversi menelan tabel); alur DOM
