@@ -55,7 +55,7 @@
                 @endunless
 
                 @if($readOnly ?? false)
-                {{-- MODE BACA: marketer hanya bisa melihat & mereview --}}
+                {{-- MODE BACA: dokumen sudah final --}}
                 <span
                     class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-warm-600 dark:bg-slate-warm-800 dark:text-parchment-300">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-ban"
@@ -65,31 +65,12 @@
                     </svg>Tidak bisa mengedit dokumen
                 </span>
 
-                @if($document->status === 'review_marketing')
-                <button type="button" @click="setDocumentStatus('revisi')"
-                    class="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300"> 
-                        Revisi
-                </button>
-
-                <button type="button" @click="setDocumentStatus('disetujui')"
-                    class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700">
-                    Setujui
-                </button>
-                @endif
-                @else
-                @if($document->status === 'revisi')
-                {{-- ADMIN: tombol lihat alasan revisi dari marketing --}}
-                <button type="button" @click="showRevisionNotes()"
-                    class="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
-                    📋 Alasan Revisi
-                </button>
-                @endif
-
-                @if(in_array($document->status, ['draft', 'revisi']))
-                {{-- ADMIN: kirim dokumen untuk direview marketing --}}
+                                                @else
+                @if(in_array($document->status, ['draft', 'on_progress'], true))
+                {{-- ADMIN: kirim dokumen untuk review --}}
                 <button type="button" @click="sendToReview()"
                     class="rounded-xl border border-ink-900 bg-white px-5 py-2.5 text-sm font-semibold text-ink-900 transition hover:bg-parchment-100 dark:border-bronze-500 dark:bg-transparent dark:text-bronze-500 dark:hover:bg-bronze-500/10">
-                    📤 Kirim ke Marketing
+                    📤 Kirim untuk Review
                 </button>
                 @endif
 
@@ -331,7 +312,8 @@
 
 @push('styles')
 <style>
-    /* Mode baca (marketer): blokir seluruh interaksi pada kertas dokumen,
+    /* Mode baca: blokir seluruh interaksi pada kertas dokumen,
+       namun tetap bisa discroll & dibaca. */
        namun tetap bisa discroll & dibaca. */
     body.editor-readonly .doc-sheet,
     body.editor-readonly .doc-sheet * {
@@ -2145,15 +2127,15 @@
                 setTimeout(() => clearInterval(timer), 10000);
             },
 
-            // Admin: simpan lalu kirim dokumen untuk direview marketing.
+                        // Admin: simpan lalu kirim dokumen untuk review.
             async sendToReview() {
 
                 if (this.readOnly) return;
 
                 const konfirmasi = await Swal.fire({
                     icon: 'question',
-                    title: 'Kirim ke marketing?',
-                    text: 'Dokumen akan disimpan lalu dikirim untuk direview marketing.',
+                    title: 'Kirim untuk review?',
+                    text: 'Dokumen akan disimpan lalu dikirim untuk review.',
                     showCancelButton: true,
                     confirmButtonText: 'Ya, kirim',
                     cancelButtonText: 'Batal',
@@ -2171,13 +2153,13 @@
                         throw new Error('save-failed');
                     }
 
-                    await window.axios.patch(`/documents/${this.documentId}/status`, {
-                        status: 'review_marketing',
+                                    await window.axios.patch(`/documents/${this.documentId}/status`, {
+                        status: 'on_review',
                     });
                     await Swal.fire({
                         icon: 'success',
                         title: 'Terkirim',
-                        text: 'Dokumen berhasil dikirim ke marketing.',
+                        text: 'Dokumen berhasil dikirim untuk review.',
                         timer: 1500,
                         showConfirmButton: false,
                     });
@@ -2188,107 +2170,12 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Gagal',
-                        text: 'Tidak dapat mengirim dokumen ke marketing.',
+                                                text: 'Tidak dapat mengirim dokumen untuk review.',
                     });
                 }
             },
 
-            // Marketer: setujui / minta revisi dokumen yang direview.
-            // Minta revisi memunculkan popup textarea "Alasan Revisi" (wajib).
-            async setDocumentStatus(status) {
-
-                let reason = null;
-
-                if (status === 'revisi') {
-                    const input = await Swal.fire({
-                        icon: 'warning',
-                        title: 'Minta revisi dokumen?',
-                        input: 'textarea',
-                        inputLabel: 'Alasan Revisi',
-                        inputPlaceholder: 'Tuliskan alasan / catatan revisi untuk admin...',
-                        inputAttributes: { 'aria-label': 'Alasan Revisi' },
-                        showCancelButton: true,
-                        confirmButtonText: 'Kirim ke Admin',
-                        cancelButtonText: 'Batal',
-                        confirmButtonColor: '#d97706',
-                        inputValidator: (value) => {
-                            if (!value || value.trim() === '') {
-                                return 'Alasan revisi wajib diisi.';
-                            }
-                        },
-                    });
-
-                    if (!input.isConfirmed) return;
-                    reason = input.value.trim();
-                } else {
-                    const konfirmasi = await Swal.fire({
-                        icon: 'success',
-                        title: 'Setujui dokumen ini?',
-                        text: 'Dokumen akan berstatus Disetujui.',
-                        showCancelButton: true,
-                        confirmButtonText: 'Ya, setujui',
-                        cancelButtonText: 'Batal',
-                        confirmButtonColor: '#059669',
-                    });
-
-                    if (!konfirmasi.isConfirmed) return;
-                }
-
-                try {
-                    await window.axios.patch(`/documents/${this.documentId}/status`, {
-                        status,
-                        ...(reason !== null ? { reason } : {}),
-                    });
-                    await Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: 'Status dokumen berhasil diperbarui.',
-                        timer: 1500,
-                        showConfirmButton: false,
-                    });
-                    window.location.href = '/documents';
-                } catch (error) {
-                    console.error(error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: 'Tidak dapat memperbarui status dokumen.',
-                    });
-                }
-            },
-
-            // Admin: popup daftar alasan revisi dari marketing.
-            showRevisionNotes() {
-                const notes = this.revisionNotes ?? [];
-
-                if (notes.length === 0) {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Alasan Revisi',
-                        text: 'Tidak ada catatan revisi untuk dokumen ini.',
-                    });
-                    return;
-                }
-
-                const items = [...notes].reverse().map((note) => `
-                    <div style="text-align:left; border:1px solid #e5e7eb; border-radius:10px; padding:10px 14px; margin-bottom:10px;">
-                        <div style="font-size:11px; color:#9ca3af; margin-bottom:4px;">
-                            ${note.by ?? '-'} • ${note.at ?? '-'}
-                        </div>
-                        <div style="font-size:14px; color:#374151; white-space:pre-wrap;">${String(note.reason ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
-                    </div>
-                `).join('');
-
-                Swal.fire({
-                    title: 'Alasan Revisi',
-                    html: items,
-                    width: 560,
-                    confirmButtonText: 'Tutup',
-                    confirmButtonColor: '#111827',
-                });
-            },
-
-            async saveDocument() {
+                                    async saveDocument() {
 
                 // Mode baca: tidak ada yang bisa disimpan.
                 if (this.readOnly) return;

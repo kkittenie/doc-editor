@@ -17,13 +17,6 @@
     <link rel="preload" as="style" href="/build/assets/app-oMVDrCku.css" /><link rel="preload" as="style" href="/build/assets/editor-BhabBkMN.css" /><link rel="preload" as="style" href="/build/assets/app-CksuuEqD.css" /><link rel="modulepreload" as="script" href="/build/assets/app-C9BX_7q2.js" /><link rel="modulepreload" as="script" href="/build/assets/editor-Dx5Xp04Z.js" /><link rel="stylesheet" href="/build/assets/app-oMVDrCku.css" /><link rel="stylesheet" href="/build/assets/editor-BhabBkMN.css" /><link rel="stylesheet" href="/build/assets/app-CksuuEqD.css" /><script type="module" src="/build/assets/app-C9BX_7q2.js"></script><script type="module" src="/build/assets/editor-Dx5Xp04Z.js"></script>
     
     <style>
-    /* Mode baca (marketer): blokir seluruh interaksi pada kertas dokumen,
-       namun tetap bisa discroll & dibaca. */
-    body.editor-readonly .doc-sheet,
-    body.editor-readonly .doc-sheet * {
-        pointer-events: none;
-        user-select: none;
-    }
 </style>
 <style>
     .toolbar-button {
@@ -1933,12 +1926,7 @@
 
             documentId: 101,
 
-            // Mode baca: marketer tidak bisa mengedit, hanya melihat &
-            // (jika berstatus review_marketing) menyetujui/minta revisi.
             readOnly: false,
-
-            // Riwayat alasan revisi dari marketing (untuk admin).
-            revisionNotes: [],
 
             headerHtml: '\u003Cp style=\u0022text-align:center;\u0022\u003E[ Foto \/ Ikon Pihak Pertama ]\u003C\/p\u003E',
             footerHtml: '\u003Ctable style=\u0022width:100%; table-layout:fixed; border-collapse:collapse; margin:0; page-break-inside:avoid;\u0022\u003E\n\u003Ctbody\u003E\n\u003Ctr\u003E\n\u003Ctd style=\u0022width:50%; vertical-align:top; text-align:left; padding:0; font-size:9px; border:none;\u0022\u003E\n\u003Cp style=\u0022margin:0 0 3px; font-size:9px;\u0022\u003E\u003Cstrong\u003EPihak Pertama\u003C\/strong\u003E\u003C\/p\u003E\n\u003Cp style=\u0022margin:0 0 3px; font-size:9px;\u0022\u003EAlamat: [Ketik alamat pihak pertama di sini]\u003C\/p\u003E\n\u003Cp style=\u0022margin:0 0 3px; font-size:9px;\u0022\u003ENo. Telp | Email | Web: [Ketik telp di sini] | [Ketik email di sini] | [Ketik website di sini]\u003C\/p\u003E\n\u003C\/td\u003E\n\u003Ctd style=\u0022width:50%; vertical-align:top; text-align:right; padding:0; font-size:9px; border:none;\u0022\u003E\n\u003Cp style=\u0022margin:0 0 3px; font-size:9px;\u0022\u003E\u003Cstrong\u003EParaf PIHAK PERTAMA:\u003C\/strong\u003E ______________\u003C\/p\u003E\n\u003Cp style=\u0022margin:0 0 3px; font-size:9px;\u0022\u003E\u003Cstrong\u003EParaf PIHAK KEDUA:\u003C\/strong\u003E ______________\u003C\/p\u003E\n\u003Cp style=\u0022margin:0 0 3px; font-size:9px;\u0022\u003E[ Tempel Stample\/Materai di sini ]\u003C\/p\u003E\n\u003C\/td\u003E\n\u003C\/tr\u003E\n\u003C\/tbody\u003E\n\u003C\/table\u003E',
@@ -2594,101 +2582,6 @@
                 setTimeout(() => clearInterval(timer), 10000);
             },
 
-            // Marketer: setujui / minta revisi dokumen yang direview.
-            // Minta revisi memunculkan popup textarea "Alasan Revisi" (wajib).
-            async setDocumentStatus(status) {
-
-                let reason = null;
-
-                if (status === 'revisi') {
-                    const input = await Swal.fire({
-                        icon: 'warning',
-                        title: 'Minta revisi dokumen?',
-                        input: 'textarea',
-                        inputLabel: 'Alasan Revisi',
-                        inputPlaceholder: 'Tuliskan alasan / catatan revisi untuk admin...',
-                        inputAttributes: { 'aria-label': 'Alasan Revisi' },
-                        showCancelButton: true,
-                        confirmButtonText: 'Kirim ke Admin',
-                        cancelButtonText: 'Batal',
-                        confirmButtonColor: '#d97706',
-                        inputValidator: (value) => {
-                            if (!value || value.trim() === '') {
-                                return 'Alasan revisi wajib diisi.';
-                            }
-                        },
-                    });
-
-                    if (!input.isConfirmed) return;
-                    reason = input.value.trim();
-                } else {
-                    const konfirmasi = await Swal.fire({
-                        icon: 'success',
-                        title: 'Setujui dokumen ini?',
-                        text: 'Dokumen akan berstatus Disetujui.',
-                        showCancelButton: true,
-                        confirmButtonText: 'Ya, setujui',
-                        cancelButtonText: 'Batal',
-                        confirmButtonColor: '#059669',
-                    });
-
-                    if (!konfirmasi.isConfirmed) return;
-                }
-
-                try {
-                    await window.axios.patch(`/documents/${this.documentId}/status`, {
-                        status,
-                        ...(reason !== null ? { reason } : {}),
-                    });
-                    await Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: 'Status dokumen berhasil diperbarui.',
-                        timer: 1500,
-                        showConfirmButton: false,
-                    });
-                    window.location.href = '/documents';
-                } catch (error) {
-                    console.error(error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: 'Tidak dapat memperbarui status dokumen.',
-                    });
-                }
-            },
-
-            // Admin: popup daftar alasan revisi dari marketing.
-            showRevisionNotes() {
-                const notes = this.revisionNotes ?? [];
-
-                if (notes.length === 0) {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Alasan Revisi',
-                        text: 'Tidak ada catatan revisi untuk dokumen ini.',
-                    });
-                    return;
-                }
-
-                const items = [...notes].reverse().map((note) => `
-                    <div style="text-align:left; border:1px solid #e5e7eb; border-radius:10px; padding:10px 14px; margin-bottom:10px;">
-                        <div style="font-size:11px; color:#9ca3af; margin-bottom:4px;">
-                            ${note.by ?? '-'} • ${note.at ?? '-'}
-                        </div>
-                        <div style="font-size:14px; color:#374151; white-space:pre-wrap;">${String(note.reason ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
-                    </div>
-                `).join('');
-
-                Swal.fire({
-                    title: 'Alasan Revisi',
-                    html: items,
-                    width: 560,
-                    confirmButtonText: 'Tutup',
-                    confirmButtonColor: '#111827',
-                });
-            },
-
             async saveDocument() {
 
                 // Mode baca: tidak ada yang bisa disimpan.
@@ -2804,9 +2697,8 @@
     // 2. PROTEKSI UNSAVED CHANGES
     // =========================================
 
-    // Mode baca (marketer): tidak ada perubahan yang bisa disimpan,
-    // jadi peringatan "simpan perubahan?" tidak boleh muncul —
-    // apa pun versi bundle editor.js yang dimuat browser.
+    // Proteksi unsaved changes: jangan tampilkan dialog "simpan perubahan?"
+    // jika dokumen dalam mode baca saja, karena tidak ada yang bisa disimpan.
     window.__docEditorReadOnly = false;
 
     window.hasUnsavedChanges = false;

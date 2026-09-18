@@ -43,7 +43,7 @@
 
 
     {{-- SUMMARY CARDS --}}
-    <div class="grid grid-cols-2 gap-3 lg:grid-cols-5">
+    <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
 
         {{-- Total --}}
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
@@ -93,6 +93,30 @@
         </div>
 
 
+        {{-- On Progress --}}
+        <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                        On Progress
+                    </p>
+
+                    <p
+                        class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50"
+                    >{{ $onProgressDocuments }}</p>
+                </div>
+
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-400">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/>
+                        <path d="M3 3v5h5"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+
         {{-- Revisi --}}
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
@@ -117,12 +141,12 @@
         </div>
 
 
-        {{-- Review Marketing --}}
+        {{-- On Review --}}
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
                 <div>
                     <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
-                        Review Marketing
+                        On Review
                     </p>
 
                     <p
@@ -275,7 +299,20 @@
                                     Draft
                                 </span>
 
-                            @elseif($document->status === 'review_marketing')
+                            @elseif($document->status === 'on_progress')
+
+                                <span class="hidden sm:inline-flex
+                                             px-2.5 py-1
+                                             rounded-full
+                                             text-xs font-medium
+                                             bg-sky-100
+                                             text-sky-700
+                                             dark:bg-sky-900/30
+                                             dark:text-sky-400">
+                                    On Progress
+                                </span>
+
+                            @elseif($document->status === 'on_review')
 
                                 <span class="hidden sm:inline-flex
                                              px-2.5 py-1
@@ -285,7 +322,7 @@
                                              text-blue-700
                                              dark:bg-blue-900/30
                                              dark:text-blue-400">
-                                    Review Marketing
+                                    On Review
                                 </span>
 
                             @elseif($document->status === 'revisi')

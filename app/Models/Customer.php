@@ -6,37 +6,38 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Document extends Model
+/**
+ * Pelanggan / kontrak pelanggan (Tabel Pelanggan di halaman Dokumen Saya).
+ */
+class Customer extends Model
 {
     use HasFactory, SoftDeletes;
 
-        /** Status dokumen — satu kosakata dengan alur kontrak pelanggan. */
+    /** Status alur kerja kontrak (dipakai juga oleh dokumen). */
     public const STATUSES = [
         'draft',
         'on_progress',
         'on_review',
         'revisi',
         'disetujui',
-        'archived',
     ];
 
-        protected $fillable = [
+    protected $fillable = [
         'user_id',
-        'customer_id',
-        'title',
-        'type',
-        'header_data',
-        'body_content',
-        'footer_data',
-        'signature_data',
+        'customer_number',
+        'name',
+        'contract_number',
+        'contract_name',
+        'active_date',
+        'active_months',
+        'finish_date',
         'status',
     ];
 
     protected $casts = [
-        'header_data'    => 'array',
-        'body_content'   => 'array',
-        'footer_data'    => 'array',
-        'signature_data' => 'array',
+        'active_date'   => 'date',
+        'finish_date'   => 'date',
+        'active_months' => 'integer',
     ];
 
     public function user()
@@ -44,25 +45,24 @@ class Document extends Model
         return $this->belongsTo(User::class);
     }
 
-    /** Pelanggan/kontrak yang menjadi induk dokumen ini (opsional). */
-    public function customer()
-    {
-        return $this->belongsTo(Customer::class);
-    }
-
-    /** Data barang yang menempel pada kontrak dokumen ini. */
+    /** Data Barang (nullable, boleh banyak). */
     public function barang()
     {
         return $this->hasMany(Barang::class);
     }
 
-    /** Data service yang menempel pada kontrak dokumen ini. */
+    /** Data Service (nullable, boleh banyak). */
     public function services()
     {
         return $this->hasMany(Service::class);
     }
 
-    /** Label status untuk tampilan. */
+    public function documents()
+    {
+        return $this->hasMany(Document::class);
+    }
+
+    /** Label status untuk tampilan tabel. */
     public function statusLabel(): string
     {
         return match (strtolower($this->status ?? 'draft')) {
@@ -71,7 +71,6 @@ class Document extends Model
             'on_review'   => 'On Review',
             'revisi'      => 'Revisi',
             'disetujui'   => 'Disetujui',
-            'archived'    => 'Diarsipkan',
             default       => ucfirst((string) $this->status),
         };
     }

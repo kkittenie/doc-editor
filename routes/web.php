@@ -2,46 +2,47 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 
-// Protected Routes
+
 Route::middleware('auth')->group(function () {
-    // Operasi dokumen (bebas diakses admin & marketer)
-    Route::get('/documents/new', [DocumentController::class, 'create'])->name('documents.create');
+    Route::get('/documents/new/{customer?}', [DocumentController::class, 'create'])->name('documents.create');
     Route::post('/documents/import', [DocumentController::class, 'importDocument'])->name('documents.import');
     Route::get('/documents/{document}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
     Route::patch('/documents/{document}/status', [DocumentController::class, 'updateStatus'])->name('documents.Status');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
-    Route::get('/documents', [DocumentController::class, 'index'])->name('documents');
     Route::delete('/documents', [DocumentController::class, 'deleteAll'])->name('documents.deleteAll');
     Route::get('/documents/{document}/export', [DocumentController::class, 'exportPdf']);
+
+    Route::get('/documents', [CustomerController::class, 'index'])->name('documents');
+    Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
+    Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+
     Route::post('documents/logo', [DocumentController::class, 'uploadLogo'])->name('documents.logo');
     Route::post('documents/image', [DocumentController::class, 'uploadImage'])->name('documents.image');
     Route::get('/documents/template/{template}', [DocumentController::class, 'createFromTemplate'])->name('documents.template');
     Route::post('/documents/save-as', [DocumentController::class, 'saveAsNew'])->name('documents.saveAs');
 
-    // Root "/" = Studio Editor. Bebas diakses user login; kontroller akan
-    // mengarahkan non-admin ke daftar dokumen mereka (daripada 403).
     Route::get('/', [DocumentController::class, 'chooseStart'])->name('editor.start');
 
-    // Profil (bebas diakses semua role)
+    Route::get('/studio/{customer}', [DocumentController::class, 'chooseStart'])->name('studio.customer');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/profile/password', fn() => view('pages.profile.password', ['title' => 'Ubah Kata Sandi']))->name('profile.password');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    // Khusus admin -- ini yang belum ada di sidebar marketer
     Route::middleware('role:admin')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/settings', fn() => view('pages.settings', ['title' => 'Pengaturan Workspace']))->name('settings');
 
-        // Kelola User (buat akun admin/marketer, ubah role, hapus).
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
         Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
@@ -49,7 +50,6 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-// Guest Routes
 Route::middleware('guest')->group(function () {
     Route::get('/signin', [AuthController::class, 'showSignin'])->name('signin');
     Route::post('/signin', [AuthController::class, 'login']);

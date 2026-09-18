@@ -44,7 +44,7 @@
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-ink-900 dark:text-parchment-50">Kelola User</h1>
         <p class="mt-2 text-sm text-slate-warm-600 dark:text-parchment-400">
-            Hanya admin yang dapat mengelola akun. Buat akun admin/marketer,
+                        Hanya admin yang dapat mengelola akun. Buat akun admin,
             ubah role, atau hapus user.
         </p>
     </div>
@@ -121,8 +121,7 @@
                         <select name="role" required
                             class="w-full rounded-xl border border-parchment-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800">
                             <option value="" disabled selected>— Pilih role —</option>
-                            <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
-                            <option value="marketer" {{ old('role') === 'marketer' ? 'selected' : '' }}>Marketer</option>
+                                                        <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
                         </select>
                     </div>
 
@@ -181,12 +180,8 @@
                                         </div>
                                     </td>
                                     <td class="px-3 py-3 text-slate-warm-600 dark:text-parchment-300">{{ $user->email }}</td>
-                                    <td class="px-3 py-3">
-                                        @if ($roleName === 'admin')
-                                            <span class="inline-flex items-center rounded-full bg-ink-900 px-2.5 py-0.5 text-[10px] font-bold text-white dark:bg-bronze-500 dark:text-ink-900">Admin</span>
-                                        @else
-                                            <span class="inline-flex items-center rounded-full bg-bronze-100 px-2.5 py-0.5 text-[10px] font-bold text-bronze-800 dark:bg-bronze-900 dark:text-bronze-300">Marketer</span>
-                                        @endif
+                                                                        <td class="px-3 py-3">
+                                        <span class="inline-flex items-center rounded-full bg-ink-900 px-2.5 py-0.5 text-[10px] font-bold text-white dark:bg-bronze-500 dark:text-ink-900">Admin</span>
                                     </td>
 <td class="px-4 py-3 text-right">
                                         <div class="inline-flex items-center gap-1.5">
@@ -279,8 +274,7 @@
                         <label class="block text-xs font-medium mb-1.5">Role <span class="text-red-500">*</span></label>
                         <select name="role" x-model="editing.role" required
                             class="w-full rounded-xl border border-parchment-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800">
-                            <option value="admin">Admin</option>
-                            <option value="marketer">Marketer</option>
+                                                        <option value="admin">Admin</option>
                         </select>
                     </div>
 

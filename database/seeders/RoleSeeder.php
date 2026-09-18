@@ -14,8 +14,7 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        $admin = Role::firstOrCreate(['name' => 'admin']);
-        Role::firstOrCreate(['name' => 'marketer']);
+                $admin = Role::firstOrCreate(['name' => 'admin']);
 
         User::whereDoesntHave('roles')->get()->each(function (User $user) use ($admin) {
             $user->assignRole($admin);

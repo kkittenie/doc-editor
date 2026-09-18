@@ -4,20 +4,8 @@ namespace App\Helpers;
 
 class MenuHelper
 {
-     public static function getMainNavItems()
+         public static function getMainNavItems()
     {
-        // Role marketer sengaja dibuat kosong (cuma halaman Dokumen) --
-        // biar gampang diisi lagi nanti tanpa mengganggu menu admin.
-        if (auth()->check() && auth()->user()->hasRole('marketer')) {
-            return [
-                [
-                    'icon' => 'documents',
-                    'name' => 'Dokumen',
-                    'path' => '/documents',
-                ],
-            ];
-        }
-
         return [
             [
                 'icon' => 'dashboard',
@@ -42,13 +30,8 @@ class MenuHelper
         ];
     }
 
-    public static function getOthersItems()
+        public static function getOthersItems()
     {
-        // Marketer belum ada halaman "Lainnya" sama sekali buat sekarang.
-        if (auth()->check() && auth()->user()->hasRole('marketer')) {
-            return [];
-        }
-
         return [
             [
                 'icon' => 'settings',

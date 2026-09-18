@@ -9,7 +9,7 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
-    const ROLES = ['admin', 'marketer'];
+        const ROLES = ['admin'];
 
     public function index()
     {
@@ -38,7 +38,7 @@ class UserController extends Controller
             'username.unique'    => 'Username sudah digunakan.',
             'password.required'  => 'Password wajib diisi.',
             'password.min'       => 'Password minimal 8 karakter.',
-            'role.required'      => 'Pilih role (admin atau marketer).',
+                        'role.required'      => 'Pilih role (admin).',
             'role.in'            => 'Role tidak valid.',
         ]);
 

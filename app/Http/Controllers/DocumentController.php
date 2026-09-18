@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Barang;
+use App\Models\Customer;
 use App\Models\Document;
+use App\Models\Service;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
@@ -22,24 +25,12 @@ class DocumentController extends Controller
      */
     private const CONTRACT_HEADING_TOP_MARGIN = '30px';
 
-    public function index()
+        public function index()
     {
-        // Visibilitas dokumen berbasis status + penugasan marketer (alur kerja baru):
-        // - admin    → draft, revisi & disetujui (dokumen yang dikerjakan)
-        // - marketer → HANYA dokumen yang ditugaskan kepadanya (marketer_id = id)
-        //              dengan status review_marketing & disetujui.
-        $user = auth()->user();
-
-        if ($user->hasRole('marketer') && ! $user->hasRole('admin')) {
-            $documents = Document::where('marketer_id', $user->id)
-                ->whereIn('status', ['review_marketing', 'disetujui'])
-                ->latest()
-                ->get();
-        } else {
-            $documents = Document::whereIn('status', ['draft', 'revisi', 'disetujui'])
-                ->latest()
-                ->get();
-        }
+        // Admin melihat semua dokumen (seluruh status) yang pernah dibuatnya.
+        $documents = Document::where('user_id', Auth::id())
+            ->latest()
+            ->get();
 
         return view('pages.documents', [
             'title' => 'Dokumen Saya & Arsip',
@@ -47,34 +38,37 @@ class DocumentController extends Controller
         ]);
     }
 
-    public function create()
+        public function create(?Customer $customer = null)
     {
         // Pembuatan dokumen hanya untuk admin.
         abort_unless(auth()->user()->hasRole('admin'), 403);
 
-        $marketers = User::role('marketer')->orderBy('name')->get();
+        // Pelanggan hanya boleh milik user yang sedang login.
+        if ($customer) {
+            abort_unless($customer->user_id === Auth::id(), 403);
+        }
 
         return view('pages.document-create', [
-            'title'     => 'Buat Dokumen Baru',
-            'marketers' => $marketers,
+            'title' => 'Buat Dokumen Baru',
+            'customers' => Customer::where('user_id', Auth::id())
+                ->orderBy('name')
+                ->get(),
+            'selectedCustomer' => $customer,
         ]);
     }
 
-    public function edit(Document $document)
+        public function edit(Document $document)
     {
         $user = Auth::user();
 
-        // Admin pemilik dokumen boleh MENGEDIT hanya saat berstatus
-        // draft / revisi. Marketer hanya bisa MELIHAT (read-only)
-        // dokumen yang berstatus review_marketing / disetujui.
+        // Admin pemilik dokumen boleh MENGEDIT hanya saat kontrak masih
+        // berjalan (draft / on_progress / revisi). Status lain read-only.
         $canEdit = $user->hasRole('admin')
             && $document->user_id === $user->id
-            && in_array($document->status, ['draft', 'revisi'], true);
+            && in_array($document->status, ['draft', 'on_progress', 'revisi'], true);
 
         $canView = $user->hasRole('admin')
-            || ($user->hasRole('marketer')
-                && $document->marketer_id === $user->id
-                && in_array($document->status, ['review_marketing', 'disetujui'], true));
+            && $document->user_id === $user->id;
 
         abort_unless($canView, 403);
 
@@ -95,8 +89,6 @@ class DocumentController extends Controller
 
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
-            // Marketer penerima dokumen wajib dipilih saat pembuatan.
-            'marketer_id' => ['required', 'exists:users,id'],
             'header_data' => ['required', 'array'],
             'header_data.nomorSurat' => ['required', 'string', 'max:255'],
             'header_data.content' => ['required', 'string'],
@@ -105,7 +97,28 @@ class DocumentController extends Controller
             'body_html' => ['nullable', 'string'],
             'type' => ['nullable', 'string'],
             'template' => ['nullable', 'string'],
+
+            // --- Detail kontrak (form baru di Studio Editor) ---
+            'customer_id' => ['nullable', 'integer', 'exists:customers,id'],
+            'active_date' => ['nullable', 'date'],
+            'active_months' => ['nullable', 'integer', 'min:1', 'max:120'],
+
+            // --- Data barang (nullable, boleh banyak) ---
+            'items_barang' => ['nullable', 'array'],
+            'items_barang.*.name' => ['nullable', 'string', 'max:150'],
+            'items_barang.*.quantity' => ['nullable', 'integer', 'min:0', 'max:1000000'],
+            'items_barang.*.price' => ['nullable', 'numeric', 'min:0'],
+
+            // --- Data service (nullable, boleh banyak) ---
+            'items_service' => ['nullable', 'array'],
+            'items_service.*.name' => ['nullable', 'string', 'max:150'],
+            'items_service.*.price' => ['nullable', 'numeric', 'min:0'],
         ]);
+
+        // Pelanggan yang dipilih harus milik user yang sedang login.
+        $customer = isset($data['customer_id'])
+            ? Customer::where('user_id', Auth::id())->find($data['customer_id'])
+            : null;
 
         $templateKey = $request->input('template');
         $template = $templateKey ? $this->templateData($templateKey) : null;
@@ -135,9 +148,9 @@ class DocumentController extends Controller
             $pages = [$bodyHtml];
         }
 
-        $document = Document::create([
+                $document = Document::create([
             'user_id' => Auth::id(),
-            'marketer_id' => $data['marketer_id'],
+            'customer_id' => $customer?->id,
             'title' => $title,
             'type' => $data['type'] ?? 'surat',
             'header_data' => [
@@ -160,9 +173,88 @@ class DocumentController extends Controller
             'status' => 'draft',
         ]);
 
+        $this->persistContractData($document, $customer, $data);
+
         return redirect()
             ->route('documents.edit', $document)
             ->with('success', 'Dokumen berhasil dibuat.');
+    }
+
+    /**
+     * Simpan detail kontrak + data barang/service ke Tabel Pelanggan.
+     *
+     * Rumus Tanggal Selesai: Tanggal Aktif + Masa Aktif (bulan). Perhitungan
+     * dilakukan di server (Carbon addMonthsNoOverflow) supaya hasilnya sama
+     * walau input dari klien berbeda — mis. 1 Sep + 3 bulan = 1 Des.
+     */
+    private function persistContractData(Document $document, ?Customer $customer, array $data): void
+    {
+        if (! $customer) {
+            return;
+        }
+
+        $activeDate = $data['active_date'] ?? null;
+        $activeMonths = isset($data['active_months']) ? (int) $data['active_months'] : null;
+
+        $customer->update([
+            'contract_name' => $document->title,
+            'active_date'   => $activeDate,
+            'active_months' => $activeMonths,
+            'finish_date'   => $this->calculateFinishDate($activeDate, $activeMonths),
+        ]);
+
+        // Satu baris pelanggan = satu kontrak, jadi data barang/service lama
+        // diganti dengan isian terbaru dari form (mencegah data ganda saat
+        // form diulang untuk pelanggan yang sama).
+        Barang::where('customer_id', $customer->id)->delete();
+        Service::where('customer_id', $customer->id)->delete();
+
+        foreach ($data['items_barang'] ?? [] as $row) {
+            $name = trim((string) ($row['name'] ?? ''));
+
+            if ($name === '') {
+                continue; // baris kosong dari form dilewati
+            }
+
+            Barang::create([
+                'customer_id' => $customer->id,
+                'document_id' => $document->id,
+                'name'        => $name,
+                'quantity'    => max(1, (int) ($row['quantity'] ?? 1)),
+                'price'       => (float) ($row['price'] ?? 0),
+            ]);
+        }
+
+        foreach ($data['items_service'] ?? [] as $row) {
+            $name = trim((string) ($row['name'] ?? ''));
+
+            if ($name === '') {
+                continue;
+            }
+
+            Service::create([
+                'customer_id' => $customer->id,
+                'document_id' => $document->id,
+                'name'        => $name,
+                'price'       => (float) ($row['price'] ?? 0),
+            ]);
+        }
+    }
+
+    /**
+     * Tanggal Selesai = Tanggal Aktif + Masa Aktif (bulan).
+     * Contoh: 1 September + 3 bulan → 1 Desember (tahun yang sama).
+     * Hari akhir bulan di-clamp (31 Jan + 1 bulan → 28/29 Feb).
+     */
+    private function calculateFinishDate(?string $activeDate, ?int $activeMonths): ?string
+    {
+        if (! $activeDate || ! $activeMonths || $activeMonths < 1) {
+            return null;
+        }
+
+        return \Illuminate\Support\Carbon::parse($activeDate)
+            ->addMonthsNoOverflow($activeMonths)
+            ->toDateString();
     }
 
     /**
@@ -787,7 +879,7 @@ class DocumentController extends Controller
             'body_content'   => ['nullable', 'array'],
             'footer_data'    => ['required', 'array'],
             'signature_data' => ['nullable', 'array'],
-            'status'         => ['nullable', 'in:draft,review_marketing,revisi,disetujui'],
+                        'status'         => ['nullable', 'in:draft,on_progress,on_review,revisi,disetujui,archived'],
         ]);
 
         // Pastikan judul "PASAL n" berurutan KESELURUHAN dokumen (1,2,3...)
@@ -811,74 +903,76 @@ class DocumentController extends Controller
             $data['footer_data']['content'] = $this->buildCoverFooterHtml();
         }
 
+        // Status tidak pernah diubah lewat payload konten; status hanya
+        // berubah melalui updateStatus() atau aturan "On Progress" di bawah.
+        unset($data['status']);
+
         $document->update($data);
+
+        // Begitu dokumen disimpan (tombol Save di editor), kontrak dianggap
+        // sedang dikerjakan → status naik dari Draft ke On Progress.
+        // Status yang lebih jauh (On Review/Revisi/Disetujui) tidak diturunkan.
+        if ($document->status === 'draft') {
+            $document->update(['status' => 'on_progress']);
+        }
+
+        // Sinkronkan status kontrak di Tabel Pelanggan.
+        $customer = $document->customer;
+        if ($customer && in_array($customer->status, ['draft', 'on_progress'], true)) {
+            $customer->update(['status' => 'on_progress']);
+        }
 
         return response()->json(['message' => 'Perubahan tersimpan.']);
     }
 
-    public function updateStatus(Request $request, Document $document)
+        public function updateStatus(Request $request, Document $document)
     {
         $user = Auth::user();
         $isAdmin = $user->hasRole('admin');
-        $isMarketer = $user->hasRole('marketer');
 
         $data = $request->validate([
-            'status' => [
-                'required',
-                'in:draft,review_marketing,revisi,disetujui'
-            ],
-            // Alasan revisi (ditulis marketing saat minta revisi).
-            'reason' => ['nullable', 'string', 'max:2000'],
+            'status' => ['required', 'in:draft,on_progress,on_review,revisi,disetujui,archived'],
         ]);
 
         $from = $document->status;
         $to = $data['status'];
 
-        // Alasan revisi wajib diisi ketika dokumen ditolak (→ revisi).
-        if ($to === 'revisi' && trim((string) ($data['reason'] ?? '')) === '') {
-            return response()->json([
-                'message' => 'Alasan revisi wajib diisi.',
-                'errors' => ['reason' => ['Alasan revisi wajib diisi.']],
-            ], 422);
-        }
-
-        // Aturan transisi status (alur kerja):
-        // - admin    : draft → review_marketing, revisi → review_marketing (kirim review)
-        // - marketer : review_marketing → disetujui (setujui) / revisi (minta revisi)
+        // Aturan transisi status (alur kontrak pelanggan):
+        // - draft|on_progress → on_review   (Kirim untuk Review)
+        // - on_review         → disetujui   (Setujui)
+        // - on_review         → revisi      (Minta revisi)
+        // - revisi            → on_review   (Kirim ulang)
+        // - revisi            → on_progress (Lanjut dikerjakan)
+        // - draft|on_progress|disetujui → archived (Arsipkan)
         $allowed = false;
 
         if ($isAdmin && $document->user_id === $user->id) {
             $allowed = in_array(
                 [$from, $to],
-                [['draft', 'review_marketing'], ['revisi', 'review_marketing']],
+                [
+                    ['draft', 'on_review'],
+                    ['on_progress', 'on_review'],
+                    ['on_review', 'disetujui'],
+                    ['on_review', 'revisi'],
+                    ['revisi', 'on_review'],
+                    ['revisi', 'on_progress'],
+                    ['draft', 'archived'],
+                    ['on_progress', 'archived'],
+                    ['disetujui', 'archived'],
+                ],
                 true
             );
         }
 
-        if (! $allowed && $isMarketer
-            && $document->marketer_id === $user->id) {
-            $allowed = $from === 'review_marketing'
-                && in_array($to, ['disetujui', 'revisi'], true);
-        }
-
         abort_unless($allowed, 403);
 
-        $attributes = [
-            'status' => $to,
-        ];
+        $document->update(['status' => $to]);
 
-        // Catat riwayat alasan revisi setiap kali dokumen ditolak.
-        if ($to === 'revisi') {
-            $notes = $document->revision_notes ?? [];
-            $notes[] = [
-                'reason' => trim($data['reason']),
-                'by'     => $user->name,
-                'at'     => now()->format('d M Y H:i'),
-            ];
-            $attributes['revision_notes'] = $notes;
+        // Tabel Pelanggan selalu mengikuti status dokumen ("archived" tidak
+        // punya padanan di kontrak, jadi status kontrak dibiarkan apa adanya).
+        if ($document->customer && in_array($to, Customer::STATUSES, true)) {
+            $document->customer->update(['status' => $to]);
         }
-
-        $document->update($attributes);
 
         return response()->json([
             'message' => 'Status dokumen berhasil diperbarui.',
@@ -886,12 +980,11 @@ class DocumentController extends Controller
         ]);
     }
 
-    public function destroy(Document $document)
+        public function destroy(Document $document)
     {
-        // Penghapusan dokumen oleh admin pemilik dokumen atau marketer.
+        // Penghapusan dokumen hanya untuk admin pemilik dokumen.
         abort_unless(
-            (Auth::user()->hasRole('admin') && $document->user_id === Auth::id())
-            || (Auth::user()->hasRole('marketer') && $document->marketer_id === Auth::id()),
+            Auth::user()->hasRole('admin') && $document->user_id === Auth::id(),
             403
         );
         $document->delete();
@@ -920,15 +1013,11 @@ class DocumentController extends Controller
         ]);
     }
 
-    public function exportPdf(Document $document)
+        public function exportPdf(Document $document)
     {
-        // Admin pemilik dokumen boleh ekspor kapan pun; marketer hanya
-        // untuk dokumen yang sedang/bisa mereka review.
+        // Admin pemilik dokumen boleh ekspor kapan pun.
         $user = Auth::user();
-        $canAccess = ($user->hasRole('admin') && $document->user_id === $user->id)
-            || ($user->hasRole('marketer')
-                && $document->marketer_id === $user->id
-                && in_array($document->status, ['review_marketing', 'disetujui'], true));
+        $canAccess = $user->hasRole('admin') && $document->user_id === $user->id;
 
         abort_unless($canAccess, 403);
 
@@ -1064,7 +1153,7 @@ class DocumentController extends Controller
         return response()->json(['id' => $newDocument->id]);
     }
 
-    public function chooseStart()
+    public function chooseStart(?Customer $customer = null)
     {
         // Halaman "/" (Studio Editor) hanya untuk admin. Pengunjung / role lain
         // diarahkan ke Daftar Dokumen mereka (daripada menampilkan 403).
@@ -1072,8 +1161,25 @@ class DocumentController extends Controller
             return redirect()->route('documents');
         }
 
+        // Konteks pelanggan: dipakai saat user menekan "Lanjut" di Tabel
+        // Pelanggan (Dokumen Saya) → /studio/{customer}.
+        if ($customer) {
+            abort_unless($customer->user_id === Auth::id(), 403);
+        }
+
+        $existingDocument = $customer
+            ? Document::where('user_id', Auth::id())
+                ->where('customer_id', $customer->id)
+                ->latest()
+                ->first()
+            : null;
+
         return view('pages.editor-start', [
-            'title' => 'Mulai dokumen baru', 
+            'title' => $customer
+                ? 'Studio Editor — ' . $customer->name
+                : 'Mulai dokumen baru',
+            'customer' => $customer,
+            'existingDocument' => $existingDocument,
         ]);
     }
 

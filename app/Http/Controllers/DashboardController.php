@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\MenuHelper;
+use App\Models\Customer;
 use App\Models\Document;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -18,12 +19,16 @@ class DashboardController extends Controller
 
         $totalDocuments = $documents->count();
 
-        // Jumlah dokumen per status — mengikuti enum alur kerja baru
-        // (draft, review_marketing, revisi, disetujui).
+        // Jumlah dokumen per status — mengikuti enum kontrak terbaru
+        // (draft, on_progress, on_review, revisi, disetujui, archived).
         $draftDocuments = $documents->where('status', 'draft')->count();
+        $onProgressDocuments = $documents->where('status', 'on_progress')->count();
+        $reviewDocuments = $documents->where('status', 'on_review')->count();
         $revisiDocuments = $documents->where('status', 'revisi')->count();
-        $reviewDocuments = $documents->where('status', 'review_marketing')->count();
         $disetujuiDocuments = $documents->where('status', 'disetujui')->count();
+
+        // Ringkasan pelanggan/kontrak (Tabel Pelanggan di halaman Dokumen Saya).
+        $totalCustomers = Customer::where('user_id', $userId)->count();
 
         // 5 dokumen terbaru
         $recentDocuments = $documents->sortByDesc('created_at')->take(5)->values();
@@ -32,9 +37,11 @@ class DashboardController extends Controller
             'documents',
             'totalDocuments',
             'draftDocuments',
-            'revisiDocuments',
+            'onProgressDocuments',
             'reviewDocuments',
+            'revisiDocuments',
             'disetujuiDocuments',
+            'totalCustomers',
             'recentDocuments'
         ));
     }
