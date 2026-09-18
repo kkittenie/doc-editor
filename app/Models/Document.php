@@ -30,13 +30,16 @@ class Document extends Model
         'footer_data',
         'signature_data',
         'status',
+        'pdf_path',
+        'pdf_generated_at',
     ];
 
     protected $casts = [
-        'header_data'    => 'array',
-        'body_content'   => 'array',
-        'footer_data'    => 'array',
-        'signature_data' => 'array',
+        'header_data'      => 'array',
+        'body_content'     => 'array',
+        'footer_data'      => 'array',
+        'signature_data'   => 'array',
+        'pdf_generated_at' => 'datetime',
     ];
 
     public function user()
@@ -74,5 +77,22 @@ class Document extends Model
             'archived'    => 'Diarsipkan',
             default       => ucfirst((string) $this->status),
         };
+    }
+
+    /**
+     * Sudah disetujui (dokumen final yang boleh diterbitkan sebagai S.O.F).
+     */
+    public function isApproved(): bool
+    {
+        return $this->status === 'disetujui';
+    }
+
+    /**
+     * Punya berkas PDF S.O.F tersimpan? (path saja — keberadaan file dicek
+     * oleh pemanggil lewat Storage supaya model tetap bebas dari I/O.)
+     */
+    public function hasSofPdf(): bool
+    {
+        return ! empty($this->pdf_path);
     }
 }

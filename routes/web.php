@@ -7,6 +7,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SofController;
 
 
 Route::middleware('auth')->group(function () {
@@ -16,11 +17,20 @@ Route::middleware('auth')->group(function () {
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
     Route::patch('/documents/{document}/status', [DocumentController::class, 'updateStatus'])->name('documents.Status');
+    // Approval dokumen (status pra-final → disetujui) + generate & simpan PDF S.O.F.
+    Route::post('/documents/{document}/approve', [DocumentController::class, 'approve'])->name('documents.approve');
+    // Revisi dokumen yang sudah disetujui: keluarkan dari Menu S.O.F
+    // (berkas PDF dihapus) dan kembalikan status dokumen + kontrak ke On Progress.
+    Route::post('/documents/{document}/revise', [DocumentController::class, 'revise'])->name('documents.revise');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
     Route::delete('/documents', [DocumentController::class, 'deleteAll'])->name('documents.deleteAll');
-    Route::get('/documents/{document}/export', [DocumentController::class, 'exportPdf']);
+    Route::get('/documents/{document}/export', [DocumentController::class, 'exportPdf'])->name('documents.export');
 
     Route::get('/documents', [CustomerController::class, 'index'])->name('documents');
+
+    // Menu S.O.F — repositori berkas PDF dari kontrak yang sudah disetujui.
+    Route::get('/sof', [SofController::class, 'index'])->name('sof.index');
+    Route::get('/sof/{customer}/download', [SofController::class, 'download'])->name('sof.download');
     Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
 

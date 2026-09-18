@@ -54,31 +54,47 @@
                 </span>
                 @endunless
 
-                @if($readOnly ?? false)
-                {{-- MODE BACA: dokumen sudah final --}}
-                <span
-                    class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-warm-600 dark:bg-slate-warm-800 dark:text-parchment-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-ban"
-                        viewBox="0 0 16 16">
-                        <path
-                            d="M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0" />
-                    </svg>Tidak bisa mengedit dokumen
-                </span>
-
-                                                @else
-                @if(in_array($document->status, ['draft', 'on_progress'], true))
-                {{-- ADMIN: kirim dokumen untuk review --}}
-                <button type="button" @click="sendToReview()"
-                    class="rounded-xl border border-ink-900 bg-white px-5 py-2.5 text-sm font-semibold text-ink-900 transition hover:bg-parchment-100 dark:border-bronze-500 dark:bg-transparent dark:text-bronze-500 dark:hover:bg-bronze-500/10">
-                    📤 Kirim untuk Review
+                @if(($document->status ?? '') === 'disetujui')
+                {{-- Dokumen sudah masuk S.O.F: tawarkan aksi revisi supaya bisa
+                     diedit ulang (mengeluarkannya dari Menu S.O.F). --}}
+                <button type="button" @click="reviseDocument()"
+                    class="rounded-xl border border-orange-400 bg-white px-5 py-2.5 text-sm font-semibold text-orange-700 transition hover:bg-orange-50 dark:border-orange-500/60 dark:bg-transparent dark:text-orange-300 dark:hover:bg-orange-500/10"
+                    title="Keluarkan dari S.O.F &amp; kembalikan ke On Progress">
+                    ✏️ Revisi
                 </button>
                 @endif
 
+                {{-- TAHAP REVIEW: tombol keputusan admin. Sengaja diletakkan di
+                     luar @unless($readOnly) karena dokumen "On Review" memang
+                     terkunci read-only — keputusan tetap harus bisa diambil. --}}
+                @if(($document->status ?? '') === 'on_review')
+                <button type="button" @click="requestRevision()"
+                    class="rounded-xl border border-orange-400 bg-white px-5 py-2.5 text-sm font-semibold text-orange-700 transition hover:bg-orange-50 dark:border-orange-500/60 dark:bg-transparent dark:text-orange-300 dark:hover:bg-orange-500/10">
+                    ✏️ Minta Revisi
+                </button>
+
+                <button type="button" @click="approveDocument()" title="Setujui dokumen &amp; terbitkan berkas S.O.F"
+                    class="rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 dark:bg-green-600 dark:text-white">
+                    ✅ Selesai
+                </button>
+                @endif
+
+                @unless($readOnly ?? false)
                 <button type="button" @click="saveDocument()"
                     class="rounded-xl bg-ink-900 px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 dark:bg-bronze-500 dark:text-ink-900">
                     Save
                 </button>
+
+                @if(in_array($document->status, ['draft', 'on_progress', 'revisi'], true))
+                {{-- Selesai: setujui dokumen & terbitkan berkas S.O.F langsung,
+                     tanpa wajib melewati tahap review. Isi terbaru otomatis
+                     disimpan dulu oleh approveDocument(). --}}
+                <button type="button" @click="approveDocument()" title="Setujui dokumen &amp; terbitkan berkas S.O.F"
+                    class="rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 dark:bg-green-600 dark:text-white">
+                    ✅ Selesai
+                </button>
                 @endif
+                @endunless
 
             </div>
         </div>
@@ -2127,55 +2143,165 @@
                 setTimeout(() => clearInterval(timer), 10000);
             },
 
-                        // Admin: simpan lalu kirim dokumen untuk review.
-            async sendToReview() {
-
-                if (this.readOnly) return;
+            // Dokumen yang sudah disetujui (read-only, ada di Menu S.O.F):
+            // keluarkan dari S.O.F dan kembalikan status ke On Progress agar
+            // bisa diedit ulang. Setelah sukses, editor dimuat ulang dan
+            // dokumen otomatis tidak lagi read-only.
+            async reviseDocument() {
 
                 const konfirmasi = await Swal.fire({
                     icon: 'question',
-                    title: 'Kirim untuk review?',
-                    text: 'Dokumen akan disimpan lalu dikirim untuk review.',
+                    title: 'Ingin merevisi dokumen?',
+                    text: 'Dokumen akan dikeluarkan dari Menu S.O.F dan status kembali menjadi On Progress agar dapat diedit ulang.',
                     showCancelButton: true,
-                    confirmButtonText: 'Ya, kirim',
+                    confirmButtonText: 'Ya, revisi',
                     cancelButtonText: 'Batal',
-                    confirmButtonColor: '#1B2A4A',
+                    confirmButtonColor: '#ea580c',
                 });
 
                 if (!konfirmasi.isConfirmed) return;
 
                 try {
-                    await this.saveDocument();
+                    await window.axios.post(`/documents/${this.documentId}/revise`);
 
-                    // Batalkan pengiriman kalau penyimpanan gagal,
-                    // supaya status tidak berubah sementara isi belum tersimpan.
-                    if (this.saveStatus === 'error') {
-                        throw new Error('save-failed');
-                    }
-
-                                    await window.axios.patch(`/documents/${this.documentId}/status`, {
-                        status: 'on_review',
-                    });
                     await Swal.fire({
                         icon: 'success',
-                        title: 'Terkirim',
-                        text: 'Dokumen berhasil dikirim untuk review.',
-                        timer: 1500,
+                        title: 'Siap direvisi',
+                        text: 'Dokumen dikeluarkan dari S.O.F. Status kembali ke On Progress.',
+                        timer: 1800,
                         showConfirmButton: false,
                     });
+
+                    // Muat ulang editor: dokumen kini tidak lagi read-only.
                     window.hasUnsavedChanges = false;
-                    window.location.href = '/documents';
+                    window.location.href = `/documents/${this.documentId}/edit`;
                 } catch (error) {
                     console.error(error);
+
                     Swal.fire({
                         icon: 'error',
                         title: 'Gagal',
-                                                text: 'Tidak dapat mengirim dokumen untuk review.',
+                        text: this.serverMessage(error, 'Dokumen gagal direvisi.'),
                     });
                 }
             },
 
-                                    async saveDocument() {
+            // ADMIN: selesaikan dokumen (tombol "Selesai" / Selesai-Setujui) → server
+            // membuat & menyimpan berkas PDF S.O.F, status menjadi Disetujui,
+            // lalu dokumen muncul di Menu S.O.F.
+            // Bisa ditekan dari tahap mana pun sebelum final (draft, on_progress,
+            // on_review, revisi). TIDAK ada guard readOnly di sini — dokumen On
+            // Review memang read-only, tapi keputusan approval harus tetap bisa
+            // diambil.
+            async approveDocument() {
+
+                const konfirmasi = await Swal.fire({
+                    icon: 'question',
+                    title: 'Selesaikan & setujui dokumen ini?',
+                    text: 'Status akan menjadi Disetujui dan berkas PDF S.O.F dibuat otomatis.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, selesaikan',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#16a34a',
+                });
+
+                if (!konfirmasi.isConfirmed) return;
+
+                try {
+                    // Dokumen yang masih bisa diedit disimpan dulu supaya isi
+                    // terbaru ikut tercetak di S.O.F (intent 'draft' → status
+                    // tidak diubah di sini, langsung dilempar ke approve).
+                    // Dokumen On Review (read-only) dilewati karena tidak ada
+                    // perubahan yang bisa disimpan.
+                    if (!this.readOnly) {
+                        await this.saveDocument('draft');
+
+                        // Batalkan approval kalau penyimpanan gagal, supaya
+                        // status tidak berubah sementara isi belum tersimpan.
+                        if (this.saveStatus === 'error') {
+                            throw new Error('save-failed');
+                        }
+                    }
+
+                    await window.axios.post(`/documents/${this.documentId}/approve`);
+
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Disetujui',
+                        text: 'Dokumen disetujui. Berkas S.O.F bisa diunduh di Menu S.O.F.',
+                        timer: 1800,
+                        showConfirmButton: false,
+                    });
+
+                    window.hasUnsavedChanges = false;
+                    window.location.href = '/sof';
+                } catch (error) {
+                    console.error(error);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: error instanceof Error && error.message === 'save-failed'
+                            ? 'Dokumen gagal disimpan, persetujuan dibatalkan.'
+                            : this.serverMessage(error, 'Dokumen gagal disetujui.'),
+                    });
+                }
+            },
+
+            // ADMIN: kembalikan dokumen ke tahap Revisi supaya bisa diperbaiki.
+            async requestRevision() {
+
+                const konfirmasi = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Minta revisi?',
+                    text: 'Dokumen akan dikembalikan ke status Revisi agar dapat diperbaiki.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, minta revisi',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#ea580c',
+                });
+
+                if (!konfirmasi.isConfirmed) return;
+
+                try {
+                    await window.axios.patch(`/documents/${this.documentId}/status`, {
+                        status: 'revisi',
+                    });
+
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Revisi diminta',
+                        text: 'Dokumen kembali ke status Revisi.',
+                        timer: 1500,
+                        showConfirmButton: false,
+                    });
+
+                    // Muat ulang editor supaya mode baca dilepas dan isi
+                    // dokumen bisa diperbaiki.
+                    window.hasUnsavedChanges = false;
+                    window.location.href = `/documents/${this.documentId}/edit`;
+                } catch (error) {
+                    console.error(error);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: this.serverMessage(error, 'Tidak dapat meminta revisi dokumen.'),
+                    });
+                }
+            },
+
+            // Pesan dari respons JSON server (mis. 422 saat approval ditolak).
+            serverMessage(error, fallback) {
+                return error?.response?.data?.message || fallback;
+            },
+
+
+
+                                    // Simpan dokumen. `intent` menentukan niat tombol yang ditekan:
+            // - 'submit' (default) → Save / Kirim untuk Review: draf naik ke On Progress
+            // - 'draft'            → Simpan Draf: status dokumen tetap Draft
+            async saveDocument(intent = 'submit') {
 
                 // Mode baca: tidak ada yang bisa disimpan.
                 if (this.readOnly) return;
@@ -2234,7 +2360,8 @@
                         content: footerContent,
                     },
                     // Tidak mengirim 'status': simpan hanya konten, status
-                    // (draft/pending/signed/archived) tidak di-reset ke draft.
+                    // (draft/on_progress/on_review/revisi/disetujui) tidak di-reset.
+                    intent,
                 };
 
                 try {

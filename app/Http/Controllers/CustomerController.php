@@ -23,6 +23,9 @@ class CustomerController extends Controller
     {
         $customers = Customer::where('user_id', Auth::id())
             ->withCount(['barang', 'services', 'documents'])
+            // Dokumen terbaru dipakai untuk tombol aksi di Tabel Pelanggan:
+            // "Setujui" (dokumen On Review) dan "Unduh S.O.F" (sudah disetujui).
+            ->with(['documents' => fn ($query) => $query->orderByDesc('id')])
             ->latest()
             ->get();
 

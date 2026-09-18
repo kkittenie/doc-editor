@@ -28,6 +28,17 @@
             'statusLabel' => $customer->statusLabel(),
             'studioUrl' => route('studio.customer', $customer->id),
             'deleteUrl' => route('customers.destroy', $customer->id),
+
+            // Dokumen terbaru milik kontrak — sumber aksi "Revisi".
+            'documentId' => $customer->documents->first()?->id,
+            'documentStatus' => $customer->documents->first()?->status,
+
+            // Revisi: keluarkan kontrak yang sudah disetujui dari Menu S.O.F
+            // (berkas PDF dihapus) dan kembalikan statusnya ke On Progress.
+            'canRevise' => $customer->documents->first()?->status === 'disetujui',
+            'reviseUrl' => $customer->documents->first()
+                ? route('documents.revise', $customer->documents->first()->id)
+                : null,
         ];
     })->toArray();
 @endphp
@@ -143,6 +154,49 @@
                         icon: 'error',
                         title: 'Gagal',
                         text: 'Pelanggan gagal dihapus.',
+                        confirmButtonColor: '#1B2A4A',
+                    });
+                }
+            },
+
+            // Revisi dokumen kontrak yang sudah disetujui: keluarkan dari
+            // Menu S.O.F (berkas PDF dihapus) dan kembalikan status kontrak
+            // ke On Progress supaya bisa diedit ulang di Studio Editor.
+            async reviseCustomer(customer) {
+                const result = await Swal.fire({
+                    icon: 'question',
+                    title: 'Ingin merevisi dokumen?',
+                    text: 'Dokumen akan dikeluarkan dari Menu S.O.F dan status kontrak kembali menjadi On Progress agar dapat diedit ulang di Studio Editor.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, revisi',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#ea580c',
+                });
+
+                if (!result.isConfirmed) return;
+
+                try {
+                    await window.axios.post(customer.reviseUrl);
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Siap direvisi',
+                        text: 'Dokumen dikeluarkan dari S.O.F. Status kontrak kembali ke On Progress.',
+                        confirmButtonColor: '#1B2A4A',
+                        timer: 1800,
+                        showConfirmButton: false,
+                    });
+
+                    // Muat ulang supaya badge status, kartu ringkasan, dan isi
+                    // Menu S.O.F ikut terbarui.
+                    setTimeout(() => window.location.reload(), 1200);
+                } catch (error) {
+                    console.error(error);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: error?.response?.data?.message || 'Dokumen gagal direvisi.',
                         confirmButtonColor: '#1B2A4A',
                     });
                 }
@@ -526,6 +580,22 @@
 
                                         Lanjut
                                     </a>
+
+                                    {{-- Revisi — keluarkan kontrak yang sudah disetujui dari S.O.F
+                                         & kembalikan statusnya ke On Progress --}}
+                                    <template x-if="customer.canRevise">
+                                        <button type="button" @click="reviseCustomer(customer)"
+                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-orange-400 bg-white px-2.5 text-[11px] font-semibold text-orange-700 transition hover:bg-orange-50 dark:border-orange-500/60 dark:bg-transparent dark:text-orange-300 dark:hover:bg-orange-500/10"
+                                            title="Keluarkan dari S.O.F &amp; kembalikan ke On Progress">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path d="M12 20h9" />
+                                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                                            </svg>
+
+                                            Revisi
+                                        </button>
+                                    </template>
 
                                     {{-- Hapus pelanggan --}}
                                     <button type="button" @click="deleteCustomer(customer)"

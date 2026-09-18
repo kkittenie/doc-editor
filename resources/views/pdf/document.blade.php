@@ -239,6 +239,11 @@
             {!! $headerHtml ?? '' !!}
         </div>
 
+    @if(!empty($sofSummaryHtml))
+    {{-- Blok ringkasan S.O.F (Menu S.O.F): identitas kontrak + Barang + Service. --}}
+    {!! $sofSummaryHtml !!}
+    @endif
+
     @foreach($pages as $index => $pageHtml)
     <div class="body-content @if($index < ($coverPages ?? 0)) cover-page @endif" @if(!$loop->last) style="page-break-after: always;" @endif>
         {!! $pageHtml !!}
