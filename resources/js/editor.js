@@ -41,6 +41,17 @@ const LineHeightStyle = new Parchment.StyleAttributor('lineheight', 'line-height
 });
 Quill.register(LineHeightStyle, true);
 
+// Jarak judul template kontrak (PASAL, DEFINISI, SPESIFIKASI, MENIMBANG,
+// MENGINGAT, LAMPIRAN): DocumentController merender judul dengan
+// style inline margin-top (konstanta CONTRACT_HEADING_TOP_MARGIN). Tanpa
+// attributor ini, Quill membuang margin-top saat clipboard.convert ->
+// jarak judul hilang di editor dan di HTML tersimpan (ikut ke PDF).
+const ParaHeadMargin = new Parchment.StyleAttributor('phead', 'margin-top', {
+    scope: Parchment.Scope.BLOCK,
+    whitelist: null, // terima nilai px apa pun (pola sama dengan SizeAttributor)
+});
+Quill.register(ParaHeadMargin, true);
+
 const ListStyleAttributor = new Parchment.ClassAttributor('liststyle', 'ql-liststyle', {
     scope: Parchment.Scope.BLOCK,
     whitelist: ['alpha'],
@@ -94,7 +105,7 @@ const ALLOWED_FORMATS = [
     'ul',
     'script', 'list', 'align', 'indent',
     'blockquote', 'link', 'image', 'hr',
-    'font', 'size', 'color', 'background', 'lineheight', 'liststyle',
+    'font', 'size', 'color', 'background', 'lineheight', 'liststyle', 'phead',
     'table', 'table-header', 'table-cell', 'table-cell-block',
     'table-th', 'table-th-block', 'table-row', 'table-th-row',
     'table-body', 'table-thead', 'table-temporary', 'table-col',
@@ -2445,12 +2456,22 @@ const attachQuillToRegion = (regionEl) => {
             if (/<table/i.test(existingHtml)
                 && (!q.root.querySelector('table') || !q.root.querySelector('table tr'))) {
                 const failedRole = regionEl.dataset?.region;
+                // Zona header/footer ber-tabel memang dirancang tetap HTML
+                // asli (footer cover: identitas | paraf/stempel).
+                // BODY ber-tabel juga NORMAL jatuh ke jalur ini: matchers
+                // table-better (quill 2.0.1 + quill-table-better 1.2.3) menelan
+                // tabel menjadi cangkang kosong. Konversi ulang memakai Quill
+                // core DITOLAK karena core tidak mengenal <ol start>/type dan
+                // tidak mendukung list bersarang — penomoran ayat kontrak
+                // (colocation: start="8"/start="3", kemitraan: list bersarang)
+                // akan rusak. HTML dipulihkan utuh; paginasi jalan lewat DOM.
                 if (failedRole === 'body') {
-                    console.warn('[DocQuill] Konversi tabel BODY gagal — fallback HTML aktif (paginasi DOM jalan).');
+                    const tableCount = (existingHtml.match(/<table/gi) || []).length;
+                    console.info(
+                        `[DocQuill] Body ber-tabel (${tableCount}) dipertahankan sebagai HTML asli`
+                        + ' — paginasi DOM aktif. Ini normal untuk dokumen dari template kontrak.'
+                    );
                 } else {
-                    // Zona header/footer ber-tabel memang dirancang tetap HTML
-                    // asli (footer cover: identitas | paraf/stempel) — ini
-                    // NORMAL setiap kali kertas baru dibuat, bukan error.
                     console.info('[DocQuill] Tabel zona header/footer dipertahankan sebagai HTML asli.');
                 }
                 try { q.disable?.(); } catch (err) { /* noop */ }
@@ -2605,6 +2626,36 @@ function __deltaLength(delta) {
 
 function __cloneOps(ops) {
     return ops.map((o) => Object.assign({}, o));
+}
+
+// Judul/heading kontrak (PASAL N, baris judul pasal, DEFINISI, SPESIFIKASI,
+// MENIMBANG, MENGINGAT, LAMPIRAN): paragraf pendek yang SELURUH teksnya
+// bold. Dipakai keep-with-next paginasi agar heading tidak tertinggal
+// sendirian di dasar kertas saat isinya pindah ke kertas berikutnya.
+function __isContractHeadingLine(el) {
+    try {
+        if (!el || el.tagName !== 'P') return false;
+        const txt = (el.textContent || '').replace(/\u00a0/g, ' ').trim();
+        if (!txt || txt.length > 64) return false;
+        if (!el.querySelector('strong, b')) return false;
+        // Seluruh teks harus berada di dalam <strong>/<b>: setelah elemen
+        // bold dihapus, tidak boleh ada sisa teks sama sekali (bold inline
+        // pada "PIHAK KEDUA" dsb. tidak dianggap heading).
+        const probe = el.cloneNode(true);
+        probe.querySelectorAll('strong, b').forEach((s) => s.remove());
+        if ((probe.textContent || '').replace(/\u00a0/g, ' ').trim()) return false;
+        return true;
+    } catch (err) { return false; }
+}
+
+// Awal grup heading yang menempel tepat di atas blok yang akan dipindah
+// (PASAL N + baris judul pasal = 1-2 baris). Nilai kembalian <= idx.
+function __headingGroupStart(kids, idx) {
+    try {
+        let start = idx;
+        while (start > 0 && __isContractHeadingLine(kids[start - 1])) start--;
+        return start;
+    } catch (err) { return idx; }
 }
 
 function __isFloatingKid(kid) {
@@ -2814,8 +2865,19 @@ function __domSplitList(listEl, effBottom, targetBody) {
             targetList = listEl.cloneNode(false);
             targetList.removeAttribute('id');
             targetList.dataset.splitFrom = listEl.dataset.splitId;
+            // Nomor ayat harus BERSAMBUNG: list lanjutan mulai dari item
+            // (cut + 1) list asal. `start` list asal bisa non-1 (ayat pasal
+            // colocation bersambung antar pasal, mis. start="8"), jadi
+            // dasarnya atribut start asal, bukan 1.
+            if (listEl.tagName === 'OL') {
+                const startBase = parseInt(listEl.getAttribute('start') || '1', 10) || 1;
+                targetList.setAttribute('start', String(startBase + cut));
+            }
             targetBody.insertBefore(targetList, targetBody.firstChild);
         } else {
+            // List lanjutan yang sudah ada (belah bertahap): pertahankan
+            // nilai start dari belah pertama — item target sudah memulai
+            // penomoran dari posisi itu, jadi jangan ditimpa ulang.
             targetBody.insertBefore(targetList, targetBody.firstChild);
         }
         let moved = 0;
@@ -2988,13 +3050,24 @@ async function __domFlowPass(bodyEl) {
             return true;
         }
     }
-    const moving = kids.slice(idx);
+    // Keep-with-next: baris judul/heading kontrak (PASAL N + judul pasal)
+    // yang menempel di atas blok yang pindah ikut dipindah — heading tidak
+    // boleh tertinggal sendirian di dasar kertas. Heading yang sudah berada
+    // di PUNCAK kertas tidak dipaksa turun (grpStart===0) supaya tidak
+    // menciptakan kertas kosong.
+    let grpStart = idx;
+    if (idx > 0 && __isContractHeadingLine(kids[idx - 1])) {
+        grpStart = __headingGroupStart(kids, idx);
+        if (grpStart === 0) grpStart = idx;
+    }
+    const moving = kids.slice(grpStart);
     if (!moving.length) return false;
-    // Guard anti-halaman-hantu: blok tunggal raksasa yang tidak bisa dibelah
+    // Guard anti-halaman-hantu: blok ISI raksasa yang tidak bisa dibelah
     // dan tingginya melebihi satu halaman kosong penuh — jangan buat kertas
     // baru (kertas lama akan selalu kosong, proses berulang tanpa akhir).
-    if (moving.length === 1
-        && overKid.tagName !== 'TABLE'
+    // Dinilai pada overKid (BUKAN panjang moving) supaya keep-with-next
+    // tidak bisa mem-bypass guard ini.
+    if (overKid.tagName !== 'TABLE'
         && overKid.tagName !== 'OL'
         && overKid.tagName !== 'UL'
         && overKid.getBoundingClientRect().height > bodyEl.clientHeight - PAGE_FLOW_TOL) {
@@ -3239,10 +3312,16 @@ async function __flowPass(quill, bodyEl) {
                 > (bodyEl.clientHeight + PAGE_FLOW_TOL);
             if (tooBig) return false; // terpotong rapi, tanpa kaskade
         }
-        const moving = Array.from(quill.root.children || []).slice(idx);
         // Petakan blok Quill -> node DOM: pindahkan berdasar urutan dengan
         // menandai node asal supaya tidak salah bila ada kembaran isi.
         const srcKids = Array.from(quill.root.children || []);
+        // Keep-with-next: heading yang menempel di atas blok pertama ikut pindah.
+        let grpStart = idx;
+        if (idx > 0 && __isContractHeadingLine(srcKids[idx - 1])) {
+            grpStart = __headingGroupStart(srcKids, idx);
+            if (grpStart === 0) grpStart = idx; // heading di puncak kertas: jangan dipaksa turun
+        }
+        const moving = srcKids.slice(grpStart);
         const moveSet = new Set(moving);
         const marker = document.createElement('span');
         marker.setAttribute('data-domflow-marker', '1');
@@ -3316,7 +3395,18 @@ async function __flowPass(quill, bodyEl) {
         }
     }
 
-    const remaining = kids.slice(idx);
+    // Keep-with-next: baris judul/heading kontrak (PASAL N + judul pasal)
+    // yang menempel di atas blok yang pindah ikut dipindah — heading tidak
+    // boleh tertinggal sendirian di dasar kertas. Heading yang sudah di
+    // PUNCAK kertas tidak dipaksa turun (grpStart===0) supaya tidak
+    // menciptakan kertas kosong.
+    let grpStart = idx;
+    if (idx > 0 && __isContractHeadingLine(kids[idx - 1])) {
+        grpStart = __headingGroupStart(kids, idx);
+        if (grpStart === 0) grpStart = idx;
+    }
+
+    const remaining = kids.slice(grpStart);
     const overTableTooBig = kids[idx].tagName === 'TABLE'
         && kids[idx].getBoundingClientRect().height > bodyEl.clientHeight + PAGE_FLOW_TOL;
     const bulk = targetQ.getLength() <= 1
@@ -3325,12 +3415,14 @@ async function __flowPass(quill, bodyEl) {
         && !overTableTooBig;
     if (overTableTooBig) return false;
 
-    // Guard anti-halaman-hantu: blok tunggal raksasa yang TIDAK bisa dibelah
+    // Guard anti-halaman-hantu: blok ISI raksasa yang TIDAK bisa dibelah
     // (bukan table/list) dan tingginya melebihi satu halaman kosong penuh —
     // memindahkannya hanya akan menghasilkan kertas kosong berulang (kertas
     // lama jadi kosong, proses berulang sampai latch 50). Lebih aman berhenti
     // rapi: konten tetap ada, terpotong di batas kertas.
-    if (bulk && remaining.length === 1
+    // Dinilai pada kids[idx] (BUKAN remaining.length) supaya keep-with-next
+    // tidak bisa mem-bypass guard ini.
+    if (bulk
         && kids[idx].tagName !== 'TABLE'
         && kids[idx].tagName !== 'OL'
         && kids[idx].tagName !== 'UL') {
@@ -3343,12 +3435,23 @@ async function __flowPass(quill, bodyEl) {
         } catch (err) { /* lanjut jalur normal */ }
     }
 
+    const groupFirstRange = (grpStart < idx)
+        ? __blockRangeOf(quill, kids[grpStart])
+        : firstRange;
+    if (!groupFirstRange) return false;
     const range = bulk
         ? {
-            start: firstRange.start,
-            len: Math.max(firstRange.len, quill.getLength() - firstRange.start),
+            start: groupFirstRange.start,
+            len: Math.max(groupFirstRange.len, quill.getLength() - groupFirstRange.start),
         }
-        : firstRange;
+        : (grpStart < idx
+            ? {
+                // Dari awal heading sampai akhir blok yang meluap (blok
+                // Quill berurutan dalam delta, jadi bisa dihitung langsung).
+                start: groupFirstRange.start,
+                len: (firstRange.start - groupFirstRange.start) + firstRange.len,
+            }
+            : firstRange);
     if (!range) return false;
 
     const DeltaCtor = __flowDeltaCtor(quill);

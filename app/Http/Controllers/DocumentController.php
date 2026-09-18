@@ -13,6 +13,15 @@ use App\Data\DocumentTemplates;
 
 class DocumentController extends Controller
 {
+    /**
+     * Jarak (margin-top) setiap judul template kontrak (PASAL, DEFINISI,
+     * SPESIFIKASI, MENIMBANG, MENGINGAT, LAMPIRAN) dari teks yang
+     * mendahuluinya. Dirender sebagai style inline pada <p> judul dan
+     * selamat dari round-trip Quill karena margin-top terdaftar sebagai
+     * Parchment attributor 'phead' di resources/js/editor.js.
+     */
+    private const CONTRACT_HEADING_TOP_MARGIN = '30px';
+
     public function index()
     {
         // Visibilitas dokumen berbasis status + penugasan marketer (alur kerja baru):
@@ -268,24 +277,28 @@ class DocumentController extends Controller
     {
         $counter = 0;
 
-        $pattern = '/(<(?:p|h[1-6])\b[^>]*>)\s*('
-            . '(?:<(?!\/(?:p|h[1-6])\b)[^>]+>\s*)*'
-            . 'pasal\s+\d+'
+        // Hanya ubah heading pasal yang benar-benar berdiri sendiri di tag
+        // <p> / <hN> — bukan teks isi biasa seperti "Dalam pasal 4 ayat (1)"
+        // yang muncul di template colocation dan template lain.
+        $pattern = '/(<(?:p|h[1-6])\b[^>]*>\s*(?:<(?!\/(?:p|h[1-6])\b)[^>]+>\s*)*)'
+            . '(pasal\s+\d+)'
             . '(?:\s*[\x{2013}\x{2014}.;,:-][^<]*)?'
-            . '\s*(?:<(?!\/(?:p|h[1-6])\b)[^>]+>\s*)*'
-            . ')<\/(?:p|h[1-6])>/iu';
+            . '(?:\s*(?:<(?!\/(?:p|h[1-6])\b)[^>]+>\s*)*)'
+            . '<\/(?:p|h[1-6])>/iu';
 
         foreach ($pages as $key => $html) {
             $pages[$key] = preg_replace_callback(
                 $pattern,
                 function ($m) use (&$counter) {
-                    $open  = $m[1];
-                    $inner = $m[2];
-                    $close = substr($m[0], strlen($open) + strlen($inner));
-
                     $counter++;
+                    $replacement = $m[1] . 'PASAL ' . $counter;
 
-                    return $open . preg_replace('/pasal\s+\d+/iu', 'PASAL ' . $counter, $inner, 1) . $close;
+                    // Pertahankan trailing judul/teks yang mengikutinya setelah nomor,
+                    // mis. 'PASAL 3 — HAK DAN KEWAJIBAN'.
+                    $suffix = substr($m[0], strlen($m[1]) + strlen($m[2]));
+                    $suffix = preg_replace('/^\s*[:\-.;,\s]*/u', '', $suffix, 1);
+
+                    return $replacement . $suffix;
                 },
                 (string) $html
             );
@@ -314,26 +327,26 @@ class DocumentController extends Controller
         // 2b) Blok definisi istilah (mis. template colocation) — dirender
         //     sebelum pasal-pasal dan TIDAK ikut penomoran PASAL.
         if (!empty($body['definisi'])) {
-            $parts[] = '<p><strong>DEFINISI DAN INTERPRETASI</strong></p>';
+            $parts[] = $this->contractHeadingHtml('DEFINISI DAN INTERPRETASI');
             $parts[] = $this->contractPara($body['definisi']);
         }
 
         // 2c) Tabel spesifikasi (HTML mentah, mis. template colocation).
         if (!empty($body['spesifikasi'])) {
-            $parts[] = '<p><strong>SPESIFIKASI</strong></p>';
+            $parts[] = $this->contractHeadingHtml('SPESIFIKASI');
             $spec = $body['spesifikasi'];
             $parts[] = is_array($spec) ? implode("\n", $spec) : $spec;
         }
 
         // 3) Konsideran Menimbang
         if (!empty($body['menimbang'])) {
-            $parts[] = '<p><strong>MENIMBANG:</strong></p>';
+            $parts[] = $this->contractHeadingHtml('MENIMBANG:');
             $parts[] = $this->contractRecitals($body['menimbang'], 'lower-alpha');
         }
 
         // 4) Konsideran Mengingat
         if (!empty($body['mengingat'])) {
-            $parts[] = '<p><strong>MENGINGAT:</strong></p>';
+            $parts[] = $this->contractHeadingHtml('MENGINGAT:');
             $parts[] = $this->contractRecitals($body['mengingat'], 'decimal');
         }
 
@@ -353,13 +366,15 @@ class DocumentController extends Controller
         foreach ($pasals as $pasal) {
             $judul = strtoupper(trim($pasal['judul'] ?? ''));
             if ($centerPasalHeadings) {
-                $parts[] = '<p style="text-align:center;"><strong>PASAL '.$number.'</strong></p>';
+                // Baris PASAL diberi jarak dari pasal sebelumnya; baris judul
+                // pasal di bawahnya tetap rapat (tanpa margin-top tambahan).
+                $parts[] = $this->contractHeadingHtml('PASAL '.$number, true);
                 if ($judul !== '') {
                     $parts[] = '<p style="text-align:center;"><strong>'.$judul.'</strong></p>';
                 }
             } else {
                 $heading = 'PASAL '.$number.($judul !== '' ? ' — '.$judul : '');
-                $parts[] = '<p><strong>'.$heading.'</strong></p>';
+                $parts[] = $this->contractHeadingHtml($heading);
             }
             if (!empty($pasal['blocks']) && is_array($pasal['blocks'])) {
                 $parts[] = $this->renderBlocks($pasal['blocks']);
@@ -385,7 +400,7 @@ class DocumentController extends Controller
             foreach ($lampiran as $item) {
                 $judul = strtoupper(trim($item['judul'] ?? ''));
                 if ($judul !== '') {
-                    $parts[] = '<p><strong>'.$judul.'</strong></p>';
+                    $parts[] = $this->contractHeadingHtml($judul);
                 }
 
                 $hasBlocks = !empty($item['blocks']) && is_array($item['blocks']);
@@ -466,6 +481,24 @@ class DocumentController extends Controller
     private function styleContractPartyNames(string $text): string
     {
         return preg_replace('/\bPIHAK KEDUA\b/i', '<strong>$0</strong>', $text) ?? $text;
+    }
+
+    /**
+     * Judul/heading template kontrak (PASAL N, DEFINISI, SPESIFIKASI,
+     * MENIMBANG, MENGINGAT, LAMPIRAN) dengan jarak dari teks sebelumnya
+     * (margin-top inline — lihat CONTRACT_HEADING_TOP_MARGIN). Varian
+     * $center dipakai heading pasal rata-tengah (template kontrak modern).
+     * Style inline ini selamat dari konversi Quill karena margin-top
+     * terdaftar sebagai attributor 'phead' di resources/js/editor.js.
+     */
+    private function contractHeadingHtml(string $inner, bool $center = false): string
+    {
+        $style = 'margin-top:'.self::CONTRACT_HEADING_TOP_MARGIN;
+        if ($center) {
+            $style = 'text-align:center; '.$style;
+        }
+
+        return '<p style="'.$style.';"><strong>'.e($inner).'</strong></p>';
     }
 
     private function contractPara(string $text): string
