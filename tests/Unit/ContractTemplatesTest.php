@@ -190,6 +190,19 @@ test('numeral & klaim untuk setiap template dipertahankan', function () use ($ke
     expect($tpl['body_content']['lampiran'][0]['judul'])->toBe('LAMPIRAN BERLANGGANAN JASA I');
 });
 
+test('normalisasi pasal hanya mengubah judul pasal, bukan referensi di isi paragraf', function () {
+    $html = '<p>Dalam pasal 4 ayat (1), PIHAK PERTAMA akan ...</p>'
+        . '<p><strong>PASAL 1 — PENGERTIAN</strong></p>'
+        . '<p><strong>PASAL 2 — HAK DAN KEWAJIBAN</strong></p>';
+
+    $normalized = contractNormalizePasal($html);
+
+    expect($normalized)->toContain('Dalam pasal 4 ayat (1)');
+    expect($normalized)->toContain('<strong>PASAL 1');
+    expect($normalized)->toContain('<strong>PASAL 2');
+    expect($normalized)->not->toContain('Dalam <strong>PASAL');
+});
+
 test('render buildTemplateBodyHtml menormalisasi PASAL menjadi 1..N berurutan', function () use ($keys) {
     foreach ($keys as $key) {
         $tpl  = ContractTemplates::find($key);
