@@ -47,6 +47,20 @@ class DocumentController extends Controller
         // Pelanggan hanya boleh milik user yang sedang login.
         if ($customer) {
             abort_unless($customer->user_id === Auth::id(), 403);
+
+            // Lanjut kedua dst: pelanggan yang sudah punya dokumen aktif
+            // (draft/on_progress/revisi) langsung dibuka di editor dokumen
+            // itu — bukan buat dokumen baru (mencegah dokumen yatim +
+            // barang/service tersalin ganda).
+            $activeDocument = $customer->documents()
+                ->whereIn('status', ['draft', 'on_progress', 'revisi'])
+                ->orderByDesc('id')
+                ->first();
+
+            if ($activeDocument) {
+                return redirect()->route('documents.edit', $activeDocument);
+            }
+
             $customer->load(['barang', 'services']);
         }
 
@@ -233,28 +247,32 @@ class DocumentController extends Controller
             'status'        => 'on_progress',
         ]);
 
-        // Salin barang/service milik pelanggan ke dokumen ini (data master
-        // tetap di pelanggan; document_id menandai kontrak yang memakainya).
-        foreach ($customer->barang as $item) {
-            Barang::create([
-                'customer_id' => $customer->id,
-                'document_id' => $document->id,
-                'name'        => $item->name,
-                'quantity'    => $item->quantity,
-                'price'       => $item->price,
-                'price_type'  => $item->price_type ?? 'one_time',
-                'ownership'   => $item->ownership ?? 'dibeli',
-            ]);
-        }
+        // Salin barang/service MASTER milik pelanggan ke dokumen ini (relasi
+        // barang()/services() sudah difilter document_id NULL, jadi salinan
+        // lama tidak ikut tersalin ganda). Guard exists() menjaga idempotensi
+        // kalau store terpanggil ulang untuk pelanggan yang sama.
+        if (! $customer->barangCopies()->where('document_id', $document->id)->exists()) {
+            foreach ($customer->barang as $item) {
+                Barang::create([
+                    'customer_id' => $customer->id,
+                    'document_id' => $document->id,
+                    'name'        => $item->name,
+                    'quantity'    => $item->quantity,
+                    'price'       => $item->price,
+                    'price_type'  => $item->price_type ?? 'one_time',
+                    'ownership'   => $item->ownership ?? 'dibeli',
+                ]);
+            }
 
-        foreach ($customer->services as $item) {
-            Service::create([
-                'customer_id' => $customer->id,
-                'document_id' => $document->id,
-                'name'        => $item->name,
-                'price'       => $item->price,
-                'price_type'  => $item->price_type ?? 'one_time',
-            ]);
+            foreach ($customer->services as $item) {
+                Service::create([
+                    'customer_id' => $customer->id,
+                    'document_id' => $document->id,
+                    'name'        => $item->name,
+                    'price'       => $item->price,
+                    'price_type'  => $item->price_type ?? 'one_time',
+                ]);
+            }
         }
     }
 

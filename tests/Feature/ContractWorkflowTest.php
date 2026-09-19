@@ -145,6 +145,26 @@ test('tombol lanjut langsung masuk ke halaman pilih template', function () {
         ->assertRedirect(route('documents'));
 });
 
+test('lanjut kedua membuka editor dokumen yang sudah ada, barang tidak mengganda', function () {
+    seedContractCustomer($this->customer);
+
+    $this->actingAs($this->user)
+        ->post(route('documents.store'), contractPayload($this->customer));
+
+    $document = Document::firstOrFail();
+
+    // Klik Lanjut lagi: redirect ke editor dokumen aktif, bukan buat baru.
+    $this->actingAs($this->user)
+        ->get(route('documents.create', $this->customer))
+        ->assertRedirect(route('documents.edit', $document));
+
+    expect($this->customer->refresh()->barang()->count())->toBe(1)
+        ->and($this->customer->refresh()->services()->count())->toBe(1)
+        ->and($this->customer->barangCopies()->count())->toBe(1)
+        ->and($this->customer->serviceCopies()->count())->toBe(1)
+        ->and(Document::count())->toBe(1);
+});
+
 test('halaman buat dokumen baru menampilkan tabel kontrak read-only dan template', function () {
     seedContractCustomer($this->customer);
 

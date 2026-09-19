@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Barang;
 use App\Models\Customer;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -154,8 +156,10 @@ class CustomerController extends Controller
         // semuanya dihapus/dilepas eksplisit di sini. Dokumen yang pernah dibuat
         // tetap tersimpan, hanya kolom customer_id-nya yang dikosongkan.
         $customer->documents()->update(['customer_id' => null]);
-        $customer->barang()->delete();
-        $customer->services()->delete();
+        // Hapus master + salinan per-dokumen (relasi barang()/services()
+        // hanya memuat master/document_id NULL, jadi salinan dihapus eksplisit).
+        Barang::where('customer_id', $customer->id)->delete();
+        Service::where('customer_id', $customer->id)->delete();
         $customer->delete();
 
         return response()->json([
