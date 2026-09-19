@@ -5,14 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Halaman "Dokumen Saya" (Tabel Pelanggan).
  *
- * Alur: isi Form Pelanggan (Nomer Pelanggan, Nama Pelanggan, Nomor Kontrak)
+ * Alur: isi Form Pelanggan (data pelanggan + periode kontrak + barang/service)
  * → Simpan → baris muncul di Tabel Pelanggan dengan status default Draft.
- * Kolom kontrak (Nama Kontrak, Tanggal Aktif, Masa Aktif, Tanggal Selesai)
- * baru terisi setelah user menyelesaikan form di Studio Editor.
+ * Tombol Lanjut langsung masuk ke halaman pilih template (read-only).
  */
 class CustomerController extends Controller
 {
@@ -48,9 +48,29 @@ class CustomerController extends Controller
             'customer_number' => ['required', 'string', 'max:50'],
             'name'            => ['required', 'string', 'max:150'],
             'contract_number' => ['nullable', 'string', 'max:100'],
+
+            // Periode kontrak — tanggal selesai selalu dihitung server.
+            'active_date'   => ['required', 'date'],
+            'active_months' => ['required', 'integer', 'min:1', 'max:120'],
+
+            // Barang (boleh kosong, boleh banyak; baris tanpa nama diabaikan).
+            'barang'                   => ['nullable', 'array', 'max:20'],
+            'barang.*.name'            => ['nullable', 'string', 'max:150'],
+            'barang.*.quantity'        => ['nullable', 'integer', 'min:1', 'max:100000'],
+            'barang.*.price'           => ['nullable', 'numeric', 'min:0', 'max:9999999999999.99'],
+            'barang.*.price_type'      => ['nullable', 'in:one_time,monthly'],
+            'barang.*.ownership'       => ['nullable', 'in:disewa,dipinjamkan,dibeli'],
+
+            // Service (boleh kosong, boleh banyak; baris tanpa nama diabaikan).
+            'services'              => ['nullable', 'array', 'max:20'],
+            'services.*.name'       => ['nullable', 'string', 'max:150'],
+            'services.*.price'      => ['nullable', 'numeric', 'min:0', 'max:9999999999999.99'],
+            'services.*.price_type' => ['nullable', 'in:one_time,monthly'],
         ], [
             'customer_number.required' => 'Nomer Pelanggan wajib diisi.',
             'name.required'            => 'Nama Pelanggan wajib diisi.',
+            'active_date.required'     => 'Tanggal Aktif wajib diisi.',
+            'active_months.required'   => 'Masa Aktif wajib diisi.',
         ]);
 
         // Nomor kontrak: kalau user tidak mengetik apa pun, pakai auto-generate.
@@ -59,17 +79,68 @@ class CustomerController extends Controller
             $contractNumber = $this->nextContractNumber();
         }
 
-        $customer = Customer::create([
-            'user_id'         => Auth::id(),
-            'customer_number' => $data['customer_number'],
-            'name'            => $data['name'],
-            'contract_number' => $contractNumber,
-            'status'          => 'draft',
-        ]);
+        // Tanggal Selesai otomatis: Tanggal Aktif + Masa Aktif (bulan).
+        $finishDate = \Carbon\Carbon::parse($data['active_date'])
+            ->addMonthsNoOverflow((int) $data['active_months'])
+            ->toDateString();
+
+        $customer = DB::transaction(function () use ($data, $contractNumber, $finishDate) {
+            $customer = Customer::create([
+                'user_id'         => Auth::id(),
+                'customer_number' => $data['customer_number'],
+                'name'            => $data['name'],
+                'contract_number' => $contractNumber,
+                'active_date'     => $data['active_date'],
+                'active_months'   => (int) $data['active_months'],
+                'finish_date'     => $finishDate,
+                'status'          => 'draft',
+            ]);
+
+            foreach ($this->cleanItems($data['barang'] ?? []) as $row) {
+                $customer->barang()->create([
+                    'name'       => $row['name'],
+                    'quantity'   => $row['quantity'] ?? 1,
+                    'price'      => $row['price'] ?? 0,
+                    'price_type' => $row['price_type'] ?? 'one_time',
+                    'ownership'  => $row['ownership'] ?? 'dibeli',
+                ]);
+            }
+
+            foreach ($this->cleanItems($data['services'] ?? []) as $row) {
+                $customer->services()->create([
+                    'name'       => $row['name'],
+                    'price'      => $row['price'] ?? 0,
+                    'price_type' => $row['price_type'] ?? 'one_time',
+                ]);
+            }
+
+            return $customer;
+        });
 
         return redirect()
             ->route('documents')
             ->with('success', 'Pelanggan "'.$customer->name.'" berhasil ditambahkan.');
+    }
+
+    /**
+     * Buang baris repeater yang kosong (tanpa nama) supaya input
+     * barang/service yang tidak diisi tidak ikut tersimpan.
+     */
+    private function cleanItems(mixed $items): array
+    {
+        if (! is_array($items)) {
+            return [];
+        }
+
+        return collect($items)
+            ->filter(fn ($row) => trim((string) ($row['name'] ?? '')) !== '')
+            ->map(function ($row) {
+                $row['name'] = trim((string) $row['name']);
+
+                return $row;
+            })
+            ->values()
+            ->all();
     }
 
     public function destroy(Customer $customer)

@@ -25,8 +25,10 @@
             'barangCount' => $customer->barang_count ?? 0,
             'serviceCount' => $customer->services_count ?? 0,
             'status' => $status,
+            'statusUpdated' => $customer->updated_at ? $customer->updated_at->format('d M Y H:i') : null,
             'statusLabel' => $customer->statusLabel(),
-            'studioUrl' => route('studio.customer', $customer->id),
+            // Lanjut langsung ke halaman pilih template (tanpa pilihan upload/baru).
+            'createUrl' => route('documents.create', $customer->id),
             'deleteUrl' => route('customers.destroy', $customer->id),
 
             // Dokumen terbaru milik kontrak — sumber aksi "Revisi".
@@ -58,7 +60,6 @@
             autoContractNumber: window.customerNextContract,
 
             init() {
-                // Notifikasi setelah form pelanggan tersimpan (redirect back).
                 if (window.flashSuccess) {
                     Swal.fire({
                         icon: 'success',
@@ -93,7 +94,6 @@
             countByStatus(status) {
                 return this.customers.filter(c => c.status === status).length;
             },
-            // Form pelanggan: konfirmasi dulu, baru submit ke server.
             async confirmSubmit(event) {
                 const form = event.target;
 
@@ -349,13 +349,13 @@
                 </h2>
 
                 <p class="mt-0.5 text-xs text-slate-warm-500 dark:text-parchment-400">
-                    Isi data pelanggan &amp; nomor kontraknya. Kolom Nama Kontrak, Tanggal Aktif, Masa Aktif, dan
-                    Tanggal Selesai akan terisi otomatis setelah kontrak disusun di Studio Editor.
+                    Isi data pelanggan
                 </p>
             </div>
         </div>
 
         <form method="POST" action="{{ route('customers.store') }}" @submit="confirmSubmit($event)"
+            x-data="customerForm()"
             class="grid grid-cols-1 gap-4 p-5 md:grid-cols-2 xl:grid-cols-4">
             @csrf
 
@@ -398,7 +398,7 @@
                 </label>
 
                 <input id="customer-name" name="name" type="text" required maxlength="150"
-                    value="{{ old('name') }}" placeholder="Contoh: PT Sumber Rejeki"
+                    value="{{ old('name') }}" placeholder="Contoh: Ahmad Junior"
                     class="h-11 w-full rounded-lg border border-parchment-300 bg-white px-3 text-sm text-ink-900 outline-none transition placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 dark:border-slate-warm-700 dark:bg-slate-warm-900 dark:text-parchment-100 dark:focus:border-bronze-500">
 
                 @error('name')
@@ -431,6 +431,59 @@
                 @enderror
             </div>
 
+            {{-- Tanggal Aktif --}}
+            <div>
+                <label for="customer-active-date"
+                    class="mb-1.5 block text-xs font-semibold text-slate-warm-600 dark:text-parchment-300">
+                    Tanggal Aktif <span class="text-red-500">*</span>
+                </label>
+
+                <input id="customer-active-date" type="date" required x-model="activeDate"
+                    class="h-11 w-full rounded-lg border border-parchment-300 bg-white px-3 text-sm text-ink-900 outline-none transition focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 dark:border-slate-warm-700 dark:bg-slate-warm-900 dark:text-parchment-100 dark:focus:border-bronze-500">
+
+                <input type="hidden" name="active_date" :value="activeDate">
+
+                @error('active_date')
+                    <p class="mt-1 text-[11px] font-medium text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- Masa Aktif --}}
+            <div>
+                <label for="customer-active-months"
+                    class="mb-1.5 block text-xs font-semibold text-slate-warm-600 dark:text-parchment-300">
+                    Masa Aktif (bulan) <span class="text-red-500">*</span>
+                </label>
+
+                <input id="customer-active-months" type="number" required min="1" max="120"
+                    x-model="activeMonths" placeholder="12"
+                    class="h-11 w-full rounded-lg border border-parchment-300 bg-white px-3 text-sm text-ink-900 outline-none transition placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 dark:border-slate-warm-700 dark:bg-slate-warm-900 dark:text-parchment-100 dark:focus:border-bronze-500">
+
+                <input type="hidden" name="active_months" :value="activeMonths">
+
+                @error('active_months')
+                    <p class="mt-1 text-[11px] font-medium text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- Tanggal Selesai (otomatis) --}}
+            <div>
+                <label for="customer-finish-date"
+                    class="mb-1.5 block text-xs font-semibold text-slate-warm-600 dark:text-parchment-300">
+                    Tanggal Selesai 
+                </label>
+
+                <input id="customer-finish-date" type="text" readonly tabindex="-1" :value="finishDateLabel"
+                    placeholder="—"
+                    class="h-11 w-full cursor-not-allowed rounded-lg border border-parchment-300 bg-parchment-50 px-3 text-sm text-slate-warm-500 dark:border-slate-warm-700 dark:bg-slate-warm-800/60 dark:text-parchment-400">
+            </div>
+
+            <div class="hidden xl:block"></div>
+
+            @include('partials.customer.barang-input')
+
+            @include('partials.customer.service-input')
+
             <div class="flex items-end md:col-span-2 xl:col-span-4">
                 <button type="submit" class="btn-primary text-xs" :disabled="submitting" :class="submitting ? 'opacity-70' : ''">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -444,6 +497,8 @@
                 </button>
             </div>
         </form>
+
+        @include('partials.customer.form-script')
     </div>
 
 {{-- TABEL PELANGGAN --}}
@@ -526,7 +581,7 @@
                 <tbody>
                     <template x-for="customer in filteredCustomers" :key="customer.databaseId">
                         <tr class="border-b border-parchment-100 transition hover:bg-parchment-50/70 dark:border-slate-warm-800 dark:hover:bg-white/[0.03]">
-<td class="whitespace-nowrap px-4 py-3.5">
+                            <td class="whitespace-nowrap px-4 py-3.5">
                                 <span class="font-mono text-xs font-semibold text-ink-900 dark:text-parchment-100"
                                     x-text="customer.id"></span>
                             </td>
@@ -565,12 +620,15 @@
                                     class="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold"
                                     :class="statusClass(customer.status)"
                                     x-text="customer.statusLabel"></span>
+                                <p x-show="customer.status !== 'draft' && customer.statusUpdated"
+                                    class="mt-1 text-[10px] leading-tight text-slate-warm-400 dark:text-parchment-500"
+                                    x-text="'Update: ' + customer.statusUpdated"></p>
                             </td>
 
                             <td class="whitespace-nowrap px-4 py-3.5">
                                 <div class="flex items-center gap-2">
-                                    {{-- Lanjut → Studio Editor (konteks pelanggan) --}}
-                                    <a :href="customer.studioUrl"
+                                    {{-- Lanjut → pilih template (konteks pelanggan) --}}
+                                    <a :href="customer.createUrl"
                                         class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900">
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                                             stroke="currentColor" stroke-width="2">

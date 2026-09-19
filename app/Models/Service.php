@@ -20,7 +20,11 @@ class Service extends Model
         'document_id',
         'name',
         'price',
+        'price_type',
     ];
+
+    /** Tipe harga: sekali bayar vs bulanan. */
+    public const PRICE_TYPES = ['one_time', 'monthly'];
 
     protected $casts = [
         'price' => 'decimal:2',

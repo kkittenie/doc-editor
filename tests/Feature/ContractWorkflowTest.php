@@ -26,7 +26,33 @@ beforeEach(function () {
     ]);
 });
 
-/** Payload form "Buat Dokumen Baru" (Detail Kontrak + Barang + Service). */
+/** Pelanggan uji: periode + barang/service diisi dari Form Pelanggan. */
+function seedContractCustomer(Customer $customer): Customer
+{
+    $customer->update([
+        'active_date' => '2026-09-01',
+        'active_months' => 3,
+        'finish_date' => '2026-12-01',
+    ]);
+
+    $customer->barang()->create([
+        'name' => 'Router Mikrotik',
+        'quantity' => 2,
+        'price' => 1500000,
+        'price_type' => 'one_time',
+        'ownership' => 'disewa',
+    ]);
+
+    $customer->services()->create([
+        'name' => 'Internet Dedicated 100 Mbps',
+        'price' => 2500000,
+        'price_type' => 'monthly',
+    ]);
+
+    return $customer->refresh();
+}
+
+/** Payload form "Buat Dokumen Baru" (kontrak dibaca dari pelanggan). */
 function contractPayload(Customer $customer, array $overrides = []): array
 {
     return array_merge([
@@ -38,14 +64,23 @@ function contractPayload(Customer $customer, array $overrides = []): array
         ],
         'footer_data' => ['content' => '<p>Footer</p>'],
         'template' => 'kontrak-kemitraan',
+    ], $overrides);
+}
+
+/** Payload Form Pelanggan (periode + barang/service, tanggal selesai auto). */
+function customerPayload(array $overrides = []): array
+{
+    return array_merge([
+        'customer_number' => '081298765432',
+        'name' => 'CV Contoh Mandiri',
         'active_date' => '2026-09-01',
         'active_months' => 3,
-        'items_barang' => [
-            ['name' => 'Router Mikrotik', 'quantity' => 2, 'price' => 1500000],
+        'barang' => [
+            ['name' => 'Router Mikrotik', 'quantity' => 2, 'price' => 1500000, 'price_type' => 'one_time', 'ownership' => 'disewa'],
             ['name' => '', 'quantity' => 1, 'price' => 0], // baris kosong diabaikan
         ],
-        'items_service' => [
-            ['name' => 'Internet Dedicated 100 Mbps', 'price' => 2500000],
+        'services' => [
+            ['name' => 'Internet Dedicated 100 Mbps', 'price' => 2500000, 'price_type' => 'monthly'],
         ],
     ], $overrides);
 }
@@ -63,11 +98,7 @@ test('halaman dokumen saya menampilkan form dan tabel pelanggan', function () {
 
 test('pelanggan baru tersimpan dengan nomor kontrak otomatis dan status draft', function () {
     $this->actingAs($this->user)
-        ->post(route('customers.store'), [
-            'customer_number' => '081298765432',
-            'name' => 'CV Contoh Mandiri',
-            // contract_number sengaja dikosongkan → server memakai auto-generate
-        ])
+        ->post(route('customers.store'), customerPayload())
         ->assertRedirect(route('documents'));
 
     $customer = Customer::where('name', 'CV Contoh Mandiri')->firstOrFail();
@@ -77,52 +108,61 @@ test('pelanggan baru tersimpan dengan nomor kontrak otomatis dan status draft', 
         // (bulan dalam angka Romawi mengikuti bulan berjalan).
         ->and($customer->contract_number)->toMatch('/^KTR\/002\/[IVX]+\/\d{4}$/')
         ->and($customer->contract_name)->toBeNull()
-        ->and($customer->active_date)->toBeNull()
-        ->and($customer->active_months)->toBeNull()
-        ->and($customer->finish_date)->toBeNull();
+        // Periode & tanggal selesai terisi dari Form Pelanggan (auto).
+        ->and($customer->active_date->toDateString())->toBe('2026-09-01')
+        ->and($customer->active_months)->toBe(3)
+        ->and($customer->finish_date->toDateString())->toBe('2026-12-01');
+
+    // Baris kosong dari repeater tidak ikut tersimpan.
+    expect($customer->barang()->count())->toBe(1)
+        ->and($customer->services()->count())->toBe(1);
+
+    expect($customer->barang()->firstOrFail()->ownership)->toBe('disewa')
+        ->and($customer->barang()->firstOrFail()->price_type)->toBe('one_time')
+        ->and($customer->services()->firstOrFail()->price_type)->toBe('monthly');
 });
 
 test('nomor kontrak manual dipakai apa adanya', function () {
     $this->actingAs($this->user)
-        ->post(route('customers.store'), [
+        ->post(route('customers.store'), customerPayload([
             'customer_number' => '081200000001',
             'name' => 'PT Nomor Manual',
             'contract_number' => 'MANUAL/077/X/2026',
-        ])
+        ]))
         ->assertRedirect(route('documents'));
 
     expect(Customer::where('name', 'PT Nomor Manual')->firstOrFail()->contract_number)
         ->toBe('MANUAL/077/X/2026');
 });
 
-test('studio editor menampilkan dua pilihan dan upload masih dinonaktifkan', function () {
+test('tombol lanjut langsung masuk ke halaman pilih template', function () {
     $this->actingAs($this->user)
         ->get(route('studio.customer', $this->customer))
-        ->assertOk()
-        ->assertSee('Susun Kontrak untuk Pelanggan Ini')
-        ->assertSee('Segera Hadir')
-        ->assertSee('PT Uji Coba');
+        ->assertRedirect(route('documents.create', $this->customer));
 
     $this->actingAs($this->user)
         ->get(route('editor.start'))
-        ->assertOk()
-        ->assertSee('Buat Dokumen Baru')
-        ->assertSee('Belum tersedia');
+        ->assertRedirect(route('documents'));
 });
 
-test('halaman buat dokumen baru menampilkan detail kontrak, barang, service, dan template', function () {
+test('halaman buat dokumen baru menampilkan tabel kontrak read-only dan template', function () {
+    seedContractCustomer($this->customer);
+
     $this->actingAs($this->user)
         ->get(route('documents.create', ['customer' => $this->customer->id]))
         ->assertOk()
-        ->assertSee('Detail Kontrak')
         ->assertSee('Data Barang')
         ->assertSee('Data Service')
+        ->assertSee('Total One Time')
+        ->assertSee('Total Bulanan')
         ->assertSee('Pilih Template Dokumen')
-        ->assertSee('Masa Aktif (bulan)')
+        ->assertSee('Router Mikrotik')
         ->assertSee($this->customer->contract_number);
 });
 
-test('tanggal selesai dihitung otomatis dari tanggal aktif dan masa aktif', function () {
+test('tanggal selesai dihitung otomatis dari data pelanggan', function () {
+    seedContractCustomer($this->customer);
+
     $response = $this->actingAs($this->user)
         ->post(route('documents.store'), contractPayload($this->customer));
 
@@ -137,47 +177,55 @@ test('tanggal selesai dihitung otomatis dari tanggal aktif dan masa aktif', func
         ->and($this->customer->active_date->toDateString())->toBe('2026-09-01')
         ->and($this->customer->active_months)->toBe(3)
         ->and($this->customer->finish_date->toDateString())->toBe('2026-12-01')
-        // Status tetap Draft sampai dokumen disimpan di editor.
-        ->and($this->customer->status)->toBe('draft');
+        // Lanjut ke editor langsung menaikkan status ke On Progress.
+        ->and($this->customer->status)->toBe('on_progress')
+        ->and($document->status)->toBe('on_progress');
 });
 
 test('hari akhir bulan di-clamp saat menghitung tanggal selesai', function () {
+    seedContractCustomer($this->customer);
+    $this->customer->update(['active_date' => '2026-01-31', 'active_months' => 1]);
+
     $this->actingAs($this->user)
-        ->post(route('documents.store'), contractPayload($this->customer, [
-            'active_date' => '2026-01-31',
-            'active_months' => 1,
-        ]))
+        ->post(route('documents.store'), contractPayload($this->customer))
         ->assertRedirect();
 
     expect($this->customer->refresh()->finish_date->toDateString())->toBe('2026-02-28');
 });
 
-test('data barang dan service tersimpan serta terhubung ke dokumen', function () {
+test('data barang dan service disalin dari pelanggan ke dokumen', function () {
+    seedContractCustomer($this->customer);
+
     $this->actingAs($this->user)
         ->post(route('documents.store'), contractPayload($this->customer));
 
     $document = Document::firstOrFail();
 
-    // Baris kosong dari form tidak ikut tersimpan.
-    expect(Barang::count())->toBe(1)
-        ->and(Service::count())->toBe(1);
+    // Data master tetap di pelanggan + salinan yang terhubung ke dokumen.
+    expect(Barang::count())->toBe(2)
+        ->and(Service::count())->toBe(2);
 
-    $barang = Barang::firstOrFail();
+    $barang = Barang::where('document_id', $document->id)->firstOrFail();
 
     expect($barang->name)->toBe('Router Mikrotik')
         ->and($barang->quantity)->toBe(2)
         ->and((float) $barang->price)->toBe(1500000.0)
+        ->and($barang->price_type)->toBe('one_time')
+        ->and($barang->ownership)->toBe('disewa')
         ->and($barang->customer_id)->toBe($this->customer->id)
         ->and($barang->document_id)->toBe($document->id);
 
-    $service = Service::firstOrFail();
+    $service = Service::where('document_id', $document->id)->firstOrFail();
 
     expect($service->name)->toBe('Internet Dedicated 100 Mbps')
+        ->and($service->price_type)->toBe('monthly')
         ->and($service->customer_id)->toBe($this->customer->id)
         ->and($service->document_id)->toBe($document->id);
 });
 
 test('save di editor mengubah status dokumen dan pelanggan menjadi on progress', function () {
+    seedContractCustomer($this->customer);
+
     $this->actingAs($this->user)
         ->post(route('documents.store'), contractPayload($this->customer));
 
@@ -200,6 +248,8 @@ test('save di editor mengubah status dokumen dan pelanggan menjadi on progress',
 });
 
 test('status on progress tidak diturunkan saat dokumen disimpan ulang', function () {
+    seedContractCustomer($this->customer);
+
     $this->actingAs($this->user)
         ->post(route('documents.store'), contractPayload($this->customer));
 
@@ -224,6 +274,8 @@ test('status on progress tidak diturunkan saat dokumen disimpan ulang', function
 });
 
 test('kirim untuk review menyinkronkan status pelanggan dan transisi tidak sah ditolak', function () {
+    seedContractCustomer($this->customer);
+
     $this->actingAs($this->user)
         ->post(route('documents.store'), contractPayload($this->customer));
 
@@ -243,7 +295,33 @@ test('kirim untuk review menyinkronkan status pelanggan dan transisi tidak sah d
         ->and($this->customer->refresh()->status)->toBe('on_review');
 });
 
+test('dokumen bisa dibuat tanpa template dengan editor kosong dan status on progress', function () {
+    seedContractCustomer($this->customer);
+
+    $this->actingAs($this->user)
+        ->post(route('documents.store'), contractPayload($this->customer, ['template' => null]))
+        ->assertRedirect();
+
+    $document = Document::firstOrFail();
+
+    expect($document->status)->toBe('on_progress')
+        ->and($this->customer->refresh()->status)->toBe('on_progress')
+        ->and($document->body_content['pages'])->toHaveCount(1);
+});
+
+test('halaman dokumen saya memuat tanggal update untuk penanda progress', function () {
+    $this->customer->update(['status' => 'on_progress']);
+
+    $this->actingAs($this->user)
+        ->get(route('documents'))
+        ->assertOk()
+        ->assertSee('statusUpdated', false)
+        ->assertSee('Update: ', false);
+});
+
 test('menghapus pelanggan ikut menghapus barang dan service', function () {
+    seedContractCustomer($this->customer);
+
     $this->actingAs($this->user)
         ->post(route('documents.store'), contractPayload($this->customer));
 

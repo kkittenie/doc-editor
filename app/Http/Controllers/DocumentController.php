@@ -47,7 +47,11 @@ class DocumentController extends Controller
         // Pelanggan hanya boleh milik user yang sedang login.
         if ($customer) {
             abort_unless($customer->user_id === Auth::id(), 403);
+            $customer->load(['barang', 'services']);
         }
+
+        // Ringkasan total terpisah (one time vs bulanan) untuk tabel read-only.
+        $totals = $customer ? $this->contractTotals($customer) : null;
 
         return view('pages.document-create', [
             'title' => 'Buat Dokumen Baru',
@@ -55,7 +59,40 @@ class DocumentController extends Controller
                 ->orderBy('name')
                 ->get(),
             'selectedCustomer' => $customer,
+            'contractTotals' => $totals,
         ]);
+    }
+
+    /**
+     * Hitung total one time & bulanan dari barang/service pelanggan.
+     * Barang: price × quantity, dikelompokkan per price_type.
+     */
+    private function contractTotals(Customer $customer): array
+    {
+        $oneTime = 0;
+        $monthly = 0;
+
+        foreach ($customer->barang ?? [] as $item) {
+            $line = (float) ($item->price ?? 0) * (int) ($item->quantity ?? 1);
+
+            if (($item->price_type ?? 'one_time') === 'monthly') {
+                $monthly += $line;
+            } else {
+                $oneTime += $line;
+            }
+        }
+
+        foreach ($customer->services ?? [] as $item) {
+            $line = (float) ($item->price ?? 0);
+
+            if (($item->price_type ?? 'one_time') === 'monthly') {
+                $monthly += $line;
+            } else {
+                $oneTime += $line;
+            }
+        }
+
+        return ['one_time' => $oneTime, 'monthly' => $monthly];
     }
 
         public function edit(Document $document)
@@ -99,21 +136,9 @@ class DocumentController extends Controller
             'type' => ['nullable', 'string'],
             'template' => ['nullable', 'string'],
 
-            // --- Detail kontrak (form baru di Studio Editor) ---
+            // Pelanggan sumber kontrak — detail kontrak + barang/service
+            // dibaca dari data pelanggan (form pelanggan), bukan dari request.
             'customer_id' => ['nullable', 'integer', 'exists:customers,id'],
-            'active_date' => ['nullable', 'date'],
-            'active_months' => ['nullable', 'integer', 'min:1', 'max:120'],
-
-            // --- Data barang (nullable, boleh banyak) ---
-            'items_barang' => ['nullable', 'array'],
-            'items_barang.*.name' => ['nullable', 'string', 'max:150'],
-            'items_barang.*.quantity' => ['nullable', 'integer', 'min:0', 'max:1000000'],
-            'items_barang.*.price' => ['nullable', 'numeric', 'min:0'],
-
-            // --- Data service (nullable, boleh banyak) ---
-            'items_service' => ['nullable', 'array'],
-            'items_service.*.name' => ['nullable', 'string', 'max:150'],
-            'items_service.*.price' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         // Pelanggan yang dipilih harus milik user yang sedang login.
@@ -171,7 +196,7 @@ class DocumentController extends Controller
                 'signatureY' => 78,
                 'signatureUrl' => null,
             ],
-            'status' => 'draft',
+            'status' => $customer ? 'on_progress' : 'draft',
         ]);
 
         $this->persistContractData($document, $customer, $data);
@@ -182,62 +207,53 @@ class DocumentController extends Controller
     }
 
     /**
-     * Simpan detail kontrak + data barang/service ke Tabel Pelanggan.
+     * Sinkronkan detail kontrak dari Form Pelanggan ke dokumen baru.
      *
-     * Rumus Tanggal Selesai: Tanggal Aktif + Masa Aktif (bulan). Perhitungan
-     * dilakukan di server (Carbon addMonthsNoOverflow) supaya hasilnya sama
-     * walau input dari klien berbeda — mis. 1 Sep + 3 bulan = 1 Des.
+     * Sumber kebenaran: active_date / active_months / finish_date + daftar
+     * barang & service yang sudah diisi di Form Pelanggan. Tanggal selesai
+     * dihitung ulang di server supaya konsisten (Carbon addMonthsNoOverflow).
      */
     private function persistContractData(Document $document, ?Customer $customer, array $data): void
     {
         if (! $customer) {
+            // Tanpa pelanggan: dokumen mandiri tetap Draft.
             return;
         }
 
-        $activeDate = $data['active_date'] ?? null;
-        $activeMonths = isset($data['active_months']) ? (int) $data['active_months'] : null;
+        $activeDate = $customer->active_date?->toDateString();
+        $activeMonths = $customer->active_months ? (int) $customer->active_months : null;
 
         $customer->update([
             'contract_name' => $document->title,
             'active_date'   => $activeDate,
             'active_months' => $activeMonths,
             'finish_date'   => $this->calculateFinishDate($activeDate, $activeMonths),
+            // Masuk editor = kontrak dikerjakan (tanggal updated_at ikut
+            // tersentuh sebagai penanda progress di Tabel Pelanggan).
+            'status'        => 'on_progress',
         ]);
 
-        // Satu baris pelanggan = satu kontrak, jadi data barang/service lama
-        // diganti dengan isian terbaru dari form (mencegah data ganda saat
-        // form diulang untuk pelanggan yang sama).
-        Barang::where('customer_id', $customer->id)->delete();
-        Service::where('customer_id', $customer->id)->delete();
-
-        foreach ($data['items_barang'] ?? [] as $row) {
-            $name = trim((string) ($row['name'] ?? ''));
-
-            if ($name === '') {
-                continue; // baris kosong dari form dilewati
-            }
-
+        // Salin barang/service milik pelanggan ke dokumen ini (data master
+        // tetap di pelanggan; document_id menandai kontrak yang memakainya).
+        foreach ($customer->barang as $item) {
             Barang::create([
                 'customer_id' => $customer->id,
                 'document_id' => $document->id,
-                'name'        => $name,
-                'quantity'    => max(1, (int) ($row['quantity'] ?? 1)),
-                'price'       => (float) ($row['price'] ?? 0),
+                'name'        => $item->name,
+                'quantity'    => $item->quantity,
+                'price'       => $item->price,
+                'price_type'  => $item->price_type ?? 'one_time',
+                'ownership'   => $item->ownership ?? 'dibeli',
             ]);
         }
 
-        foreach ($data['items_service'] ?? [] as $row) {
-            $name = trim((string) ($row['name'] ?? ''));
-
-            if ($name === '') {
-                continue;
-            }
-
+        foreach ($customer->services as $item) {
             Service::create([
                 'customer_id' => $customer->id,
                 'document_id' => $document->id,
-                'name'        => $name,
-                'price'       => (float) ($row['price'] ?? 0),
+                'name'        => $item->name,
+                'price'       => $item->price,
+                'price_type'  => $item->price_type ?? 'one_time',
             ]);
         }
     }
@@ -1363,32 +1379,15 @@ class DocumentController extends Controller
 
     public function chooseStart(?Customer $customer = null)
     {
-        // Halaman "/" (Studio Editor) hanya untuk admin. Pengunjung / role lain
-        // diarahkan ke Daftar Dokumen mereka (daripada menampilkan 403).
-        if (!auth()->user()->hasRole('admin')) {
-            return redirect()->route('documents');
-        }
-
-        // Konteks pelanggan: dipakai saat user menekan "Lanjut" di Tabel
-        // Pelanggan (Dokumen Saya) → /studio/{customer}.
+        // Alur baru: tombol Lanjut di Tabel Pelanggan langsung masuk ke
+        // halaman pilih template — tanpa pilihan upload / buat baru lagi.
         if ($customer) {
             abort_unless($customer->user_id === Auth::id(), 403);
+
+            return redirect()->route('documents.create', $customer);
         }
 
-        $existingDocument = $customer
-            ? Document::where('user_id', Auth::id())
-                ->where('customer_id', $customer->id)
-                ->latest()
-                ->first()
-            : null;
-
-        return view('pages.editor-start', [
-            'title' => $customer
-                ? 'Studio Editor — ' . $customer->name
-                : 'Mulai dokumen baru',
-            'customer' => $customer,
-            'existingDocument' => $existingDocument,
-        ]);
+        return redirect()->route('documents');
     }
 
     private function sanitizeDocxHeaderFooterStyles(string $sourcePath): string

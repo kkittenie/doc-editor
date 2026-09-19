@@ -21,7 +21,15 @@ class Barang extends Model
         'name',
         'quantity',
         'price',
+        'price_type',
+        'ownership',
     ];
+
+    /** Tipe harga: sekali bayar vs bulanan. */
+    public const PRICE_TYPES = ['one_time', 'monthly'];
+
+    /** Status kepemilikan barang. */
+    public const OWNERSHIPS = ['disewa', 'dipinjamkan', 'dibeli'];
 
     protected $casts = [
         'quantity' => 'integer',

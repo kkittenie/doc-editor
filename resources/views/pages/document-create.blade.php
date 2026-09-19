@@ -14,8 +14,17 @@
         ['key' => 'kontrak-payung', 'code' => 'TPL-KP-09', 'name' => 'Kontrak Payung Metro', 'desc' => 'Kontrak payung berlangganan jasa Metro Fiber Optik.'],
     ];
 
-    $defaultActiveDate = old('active_date', now()->toDateString());
-    $defaultMonths = old('active_months', $selectedCustomer->active_months ?? 12);
+    $contractTotals = $contractTotals ?? ['one_time' => 0, 'monthly' => 0];
+
+    // Periode kontrak read-only (diisi dari Form Pelanggan).
+    $periodLabel = '—';
+
+    if ($selectedCustomer && $selectedCustomer->active_date && $selectedCustomer->finish_date) {
+        $periodLabel = $selectedCustomer->active_date->format('d M Y')
+            . ' — '
+            . $selectedCustomer->finish_date->format('d M Y')
+            . ($selectedCustomer->active_months ? ' (' . $selectedCustomer->active_months . ' bulan)' : '');
+    }
 @endphp
 
 <div x-data="{
@@ -25,115 +34,8 @@
         headerHtml: '<p></p>',
         footerHtml: '<p></p>',
 
-        // --- Detail kontrak ---
-        activeDate: @js($defaultActiveDate),
-        activeMonths: @js((string) $defaultMonths),
-
-        // --- Data barang & service (opsional, boleh banyak) ---
-        itemsBarang: [],
-        itemsService: [],
-        barangDraft: { name: '', quantity: 1, price: null },
-        serviceDraft: { name: '', price: null },
-
-        // Tanggal Selesai dihitung otomatis: Tanggal Aktif + Masa Aktif (bulan).
-        // Hari akhir bulan di-clamp agar hasilnya sama dengan hitungan server
-        // (Carbon addMonthsNoOverflow) — mis. 31 Jan + 1 bulan = 28 Feb.
-        get finishDate() {
-            if (!this.activeDate || !this.activeMonths) return '';
-
-            const parts = String(this.activeDate).split('-').map(Number);
-            const year = parts[0];
-            const month = parts[1];
-            const day = parts[2];
-
-            if (!year || !month || !day) return '';
-
-            const months = parseInt(this.activeMonths, 10);
-            if (!months || months < 1) return '';
-
-            const target = (month - 1) + months;
-            const targetYear = year + Math.floor(target / 12);
-            const targetMonth = ((target % 12) + 12) % 12;
-
-            // Hari terakhir bulan tujuan (clamp).
-            const lastDay = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
-            const safeDay = Math.min(day, lastDay);
-
-            return targetYear + '-'
-                + String(targetMonth + 1).padStart(2, '0') + '-'
-                + String(safeDay).padStart(2, '0');
-        },
-
-        get finishDateLabel() {
-            if (!this.finishDate) return '';
-
-            const parts = this.finishDate.split('-');
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-
-            return parseInt(parts[2], 10) + ' ' + monthNames[parseInt(parts[1], 10) - 1] + ' ' + parts[0];
-        },
-
-        // Rupiah untuk pratinjau tabel (nilai yang dikirim tetap angka murni).
-        formatRupiah(value) {
-            const number = Number(value || 0);
-
-            return 'Rp ' + number.toLocaleString('id-ID', { maximumFractionDigits: 2 });
-        },
-
-        itemCode(prefix, index) {
-            return prefix + '-' + String(index + 1).padStart(5, '0');
-        },
-
-        addBarang() {
-            if (!this.barangDraft.name.trim()) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Nama barang kosong',
-                    text: 'Isi nama barang terlebih dahulu.',
-                    confirmButtonColor: '#1B2A4A',
-                });
-                return;
-            }
-
-            this.itemsBarang.push({
-                uid: 'brg-' + Date.now() + '-' + this.itemsBarang.length,
-                name: this.barangDraft.name.trim(),
-                quantity: Math.max(1, parseInt(this.barangDraft.quantity, 10) || 1),
-                price: Number(this.barangDraft.price || 0),
-            });
-
-            this.barangDraft = { name: '', quantity: 1, price: null };
-        },
-
-        addService() {
-            if (!this.serviceDraft.name.trim()) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Nama service kosong',
-                    text: 'Isi nama service terlebih dahulu.',
-                    confirmButtonColor: '#1B2A4A',
-                });
-                return;
-            }
-
-            this.itemsService.push({
-                uid: 'svc-' + Date.now() + '-' + this.itemsService.length,
-                name: this.serviceDraft.name.trim(),
-                price: Number(this.serviceDraft.price || 0),
-            });
-
-            this.serviceDraft = { name: '', price: null };
-        },
-
-        removeBarang(index) {
-            this.itemsBarang.splice(index, 1);
-        },
-
-        removeService(index) {
-            this.itemsService.splice(index, 1);
-        },
-
-        // Konfirmasi lalu kirim form (data disimpan ke dokumen + pelanggan).
+        // Konfirmasi lalu kirim form (kontrak dibaca dari Form Pelanggan,
+        // template bersifat opsional — tanpa template editor dibuka kosong).
         async submitForm(event) {
             const form = event.target;
 
@@ -141,20 +43,12 @@
 
             event.preventDefault();
 
-            if (!this.selectedTemplate) {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Template belum dipilih',
-                    text: 'Pilih salah satu template dokumen di bagian bawah halaman.',
-                    confirmButtonColor: '#1B2A4A',
-                });
-                return;
-            }
-
             const result = await Swal.fire({
                 icon: 'question',
                 title: 'Simpan & lanjut ke editor?',
-                text: 'Detail kontrak serta data barang/service akan disimpan.',
+                text: this.selectedTemplate
+                    ? 'Data kontrak diambil dari Form Pelanggan.'
+                    : 'Tanpa template, editor dibuka kosong dan status pelanggan menjadi On Progress.',
                 showCancelButton: true,
                 confirmButtonText: 'Ya, lanjut',
                 cancelButtonText: 'Batal',
@@ -280,8 +174,8 @@
         </h1>
 
         <p class="mt-2 text-sm text-slate-warm-600 dark:text-parchment-400">
-            Lengkapi detail kontrak, tambahkan data barang/service bila perlu, lalu pilih template dokumen untuk
-            mulai menyusun di editor.
+            Data kontrak &amp; barang/service sudah diisi di Form Pelanggan (read-only di sini).
+            Pilih template dokumen untuk mulai menyusun di editor.
         </p>
     </div>
 
@@ -312,39 +206,25 @@
                     </h2>
 
                     <p class="text-xs text-slate-warm-500 dark:text-parchment-400">
-                        Tanggal Selesai terhitung otomatis dari Tanggal Aktif + Masa Aktif (bulan).
+                        Periode kontrak dari Form Pelanggan (read-only).
                     </p>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {{-- Pelanggan --}}
-                <div>
-                    <label for="contract-customer" class="mb-1.5 block text-xs font-medium">
-                        Nama Pelanggan <span class="text-red-500">*</span>
+                {{-- Ringkasan pelanggan (read-only dari Form Pelanggan) --}}
+                <div class="sm:col-span-2">
+                    <label class="mb-1.5 block text-xs font-medium">
+                        Nama Pelanggan
                     </label>
 
-                    @if ($selectedCustomer)
-                        <input id="contract-customer" type="text" value="{{ $selectedCustomer->name }}" readonly
-                            class="w-full cursor-not-allowed rounded-xl border border-parchment-300 bg-parchment-50 px-4 py-2.5 text-sm text-slate-warm-500 dark:border-slate-warm-700 dark:bg-slate-warm-800/60 dark:text-parchment-400">
-                        <input type="hidden" name="customer_id" value="{{ $selectedCustomer->id }}">
-                    @else
-                        <select id="contract-customer" name="customer_id" required
-                            class="w-full rounded-xl border border-parchment-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100">
-                            <option value=""> Pilih pelanggan</option>
+                    <input type="text" value="{{ $selectedCustomer->name }}" readonly
+                        class="w-full cursor-not-allowed rounded-xl border border-parchment-300 bg-parchment-50 px-4 py-2.5 text-sm text-slate-warm-500 dark:border-slate-warm-700 dark:bg-slate-warm-800/60 dark:text-parchment-400">
+                    <input type="hidden" name="customer_id" value="{{ $selectedCustomer->id }}">
 
-                            @foreach ($customers as $customerOption)
-                                <option value="{{ $customerOption->id }}">
-                                    {{ $customerOption->name }} — {{ $customerOption->contract_number }}
-                                </option>
-                            @endforeach
-                        </select>
-
-                        <p class="mt-1 text-[11px] text-slate-warm-400">
-                            Belum ada pelanggan? Tambahkan dulu di halaman
-                            <a href="{{ route('documents') }}" class="font-semibold underline">Dokumen Saya</a>.
-                        </p>
-                    @endif
+                    <p class="mt-1 text-[11px] text-slate-warm-400">
+                        Periode kontrak: {{ $periodLabel }}. Ubah lewat Form Pelanggan.
+                    </p>
                 </div>
 
                 {{-- Nama Kontrak (judul dokumen) --}}
@@ -375,35 +255,36 @@
                     </p>
                 </div>
 
-                {{-- Tanggal Aktif + Masa Aktif --}}
-                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div>
-                        <label for="active-date" class="mb-1.5 block text-xs font-medium">
-                            Tanggal Aktif <span class="text-red-500">*</span>
-                        </label>
-
-                        <input type="date" id="active-date" name="active_date" required x-model="activeDate"
-                            class="w-full rounded-xl border border-parchment-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100">
-                    </div>
-
-                    <div>
-                        <label for="active-months" class="mb-1.5 block text-xs font-medium">
-                            Masa Aktif (bulan) <span class="text-red-500">*</span>
-                        </label>
-
-                        <input type="number" id="active-months" name="active_months" required min="1"
-                            max="120" step="1" x-model="activeMonths"
-                            class="w-full rounded-xl border border-parchment-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100">
-                    </div>
-                </div>
-
-                {{-- Tanggal Selesai (otomatis) --}}
-                <div class="sm:col-span-2">
-                    <label for="finish-date" class="mb-1.5 block text-xs font-medium">
-                        Tanggal Selesai <span class="text-[11px] font-normal text-slate-warm-400"></span>
+                {{-- Tanggal Aktif (read-only dari Form Pelanggan) --}}
+                <div>
+                    <label class="mb-1.5 block text-xs font-medium">
+                        Tanggal Aktif
                     </label>
 
-                    <input type="text" id="finish-date" readonly tabindex="-1" :value="finishDateLabel"
+                    <input type="text" readonly tabindex="-1"
+                        value="{{ $selectedCustomer->active_date?->format('d M Y') ?? '—' }}"
+                        class="w-full cursor-not-allowed rounded-xl border border-parchment-300 bg-parchment-50 px-4 py-2.5 text-sm text-slate-warm-500 dark:border-slate-warm-700 dark:bg-slate-warm-800/60 dark:text-parchment-400">
+                </div>
+
+                {{-- Masa Aktif (read-only dari Form Pelanggan) --}}
+                <div>
+                    <label class="mb-1.5 block text-xs font-medium">
+                        Masa Aktif (bulan)
+                    </label>
+
+                    <input type="text" readonly tabindex="-1"
+                        value="{{ $selectedCustomer->active_months ? $selectedCustomer->active_months . ' bulan' : '—' }}"
+                        class="w-full cursor-not-allowed rounded-xl border border-parchment-300 bg-parchment-50 px-4 py-2.5 text-sm text-slate-warm-500 dark:border-slate-warm-700 dark:bg-slate-warm-800/60 dark:text-parchment-400">
+                </div>
+
+                {{-- Tanggal Selesai --}}
+                <div class="sm:col-span-2">
+                    <label class="mb-1.5 block text-xs font-medium">
+                        Tanggal Selesai
+                    </label>
+
+                    <input type="text" readonly tabindex="-1"
+                        value="{{ $selectedCustomer->finish_date?->format('d M Y') ?? '—' }}"
                         placeholder="Terisi setelah Tanggal Aktif & Masa Aktif diisi"
                         class="w-full cursor-not-allowed rounded-xl border border-parchment-300 bg-parchment-50 px-4 py-2.5 text-sm font-semibold text-ink-900 placeholder:font-normal placeholder:text-slate-warm-400 dark:border-slate-warm-700 dark:bg-slate-warm-800/60 dark:text-parchment-100">
                 </div>
@@ -422,109 +303,18 @@
 
                 <div>
                     <h2 class="font-serif text-base font-bold text-ink-900 dark:text-parchment-50">
-                        Data Barang <span class="text-xs font-normal text-slate-warm-400">(opsional)</span>
+                        Data Barang <span class="text-xs font-normal text-slate-warm-400"></span>
                     </h2>
-
-                    <p class="text-xs text-slate-warm-500 dark:text-parchment-400">
-                        Satu pelanggan boleh memiliki beberapa barang. Kosongkan bila kontrak ini tanpa barang.
-                    </p>
                 </div>
             </div>
 
-            {{-- INPUT TAMBAH BARANG --}}
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-12">
-                <div class="sm:col-span-6">
-                    <label class="mb-1.5 block text-xs font-medium">Nama Barang</label>
+            {{-- INPUT TAMBAH BARANG (dipindah ke Form Pelanggan) --}}
+            <p class="text-[11px] text-slate-warm-400">
+                Input barang dipindah ke Form Pelanggan — tabel di bawah hanya tampil (read-only).
+            </p>
 
-                    <input type="text" x-model="barangDraft.name" @keydown.enter.prevent="addBarang()"
-                        placeholder="Contoh: Router Mikrotik RB4011"
-                        class="w-full rounded-xl border border-parchment-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100">
-                </div>
-
-                <div class="sm:col-span-2">
-                    <label class="mb-1.5 block text-xs font-medium">Jumlah</label>
-
-                    <input type="number" min="1" step="1" x-model="barangDraft.quantity"
-                        @keydown.enter.prevent="addBarang()"
-                        class="w-full rounded-xl border border-parchment-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100">
-                </div>
-
-                <div class="sm:col-span-2">
-                    <label class="mb-1.5 block text-xs font-medium">Harga</label>
-
-                    <input type="number" min="0" step="any" x-model="barangDraft.price"
-                        @keydown.enter.prevent="addBarang()" placeholder="0"
-                        class="w-full rounded-xl border border-parchment-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100">
-                </div>
-
-                <div class="flex items-end sm:col-span-2">
-                    <button type="button" @click="addBarang()" class="btn-secondary w-full text-xs">
-                        + Tambah
-                    </button>
-                </div>
-            </div>
-
-            {{-- TABEL BARANG --}}
-            <div class="mt-4 overflow-x-auto rounded-xl border border-parchment-200 dark:border-slate-warm-800">
-                <table class="w-full min-w-[560px] border-collapse text-left">
-                    <thead>
-                        <tr class="bg-parchment-50 dark:bg-slate-warm-800/60">
-                            @foreach (['ID Barang', 'Nama Barang', 'Jumlah', 'Harga', 'Aksi'] as $heading)
-                                <th
-                                    class="border-b border-parchment-200 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-slate-warm-500 dark:border-slate-warm-800 dark:text-parchment-400">
-                                    {{ $heading }}
-                                </th>
-                            @endforeach
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <template x-for="(item, index) in itemsBarang" :key="item.uid">
-                            <tr class="border-b border-parchment-100 dark:border-slate-warm-800">
-                                <td class="whitespace-nowrap px-4 py-3">
-                                    <span class="font-mono text-xs text-slate-warm-500"
-                                        x-text="itemCode('BRG', index)"></span>
-
-                                    {{-- Nilai yang dikirim ke server --}}
-                                    <input type="hidden" :name="'items_barang[' + index + '][name]'"
-                                        :value="item.name">
-                                    <input type="hidden" :name="'items_barang[' + index + '][quantity]'"
-                                        :value="item.quantity">
-                                    <input type="hidden" :name="'items_barang[' + index + '][price]'"
-                                        :value="item.price">
-                                </td>
-
-                                <td class="px-4 py-3 text-sm text-ink-800 dark:text-parchment-200"
-                                    x-text="item.name"></td>
-
-                                <td class="px-4 py-3 text-sm text-ink-800 dark:text-parchment-200"
-                                    x-text="item.quantity"></td>
-
-                                <td class="whitespace-nowrap px-4 py-3 text-sm text-ink-800 dark:text-parchment-200"
-                                    x-text="formatRupiah(item.price)"></td>
-
-                                <td class="px-4 py-3">
-                                    <button type="button" @click="removeBarang(index)"
-                                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-slate-warm-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:hover:border-red-900/40 dark:hover:bg-red-900/20"
-                                        title="Hapus barang">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <polyline points="3 6 5 6 21 6" />
-                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
-                        </template>
-
-                        <tr x-show="itemsBarang.length === 0">
-                            <td colspan="5" class="px-4 py-6 text-center text-xs text-slate-warm-400">
-                                Belum ada barang ditambahkan.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            {{-- TABEL BARANG (read-only dari Form Pelanggan) --}}
+            @include('partials.contract.barang-table', ['selectedCustomer' => $selectedCustomer])
         </div>
 
         {{-- FORM 3: DATA SERVICE (opsional) --}}
@@ -539,95 +329,20 @@
 
                 <div>
                     <h2 class="font-serif text-base font-bold text-ink-900 dark:text-parchment-50">
-                        Data Service <span class="text-xs font-normal text-slate-warm-400">(opsional)</span>
+                        Data Service <span class="text-xs font-normal text-slate-warm-400"></span>
                     </h2>
 
-                    <p class="text-xs text-slate-warm-500 dark:text-parchment-400">
-                        Satu pelanggan boleh memiliki beberapa service sekaligus.
-                    </p>
+                   
                 </div>
             </div>
 
-            {{-- INPUT TAMBAH SERVICE --}}
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-12">
-                <div class="sm:col-span-8">
-                    <label class="mb-1.5 block text-xs font-medium">Nama Service</label>
+            {{-- INPUT TAMBAH SERVICE (dipindah ke Form Pelanggan) --}}
+            <p class="text-[11px] text-slate-warm-400">
+                Input service dipindah ke Form Pelanggan — tabel di bawah hanya tampil (read-only).
+            </p>
 
-                    <input type="text" x-model="serviceDraft.name" @keydown.enter.prevent="addService()"
-                        placeholder="Contoh: Internet Dedicated 100 Mbps"
-                        class="w-full rounded-xl border border-parchment-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100">
-                </div>
-
-                <div class="sm:col-span-2">
-                    <label class="mb-1.5 block text-xs font-medium">Harga</label>
-
-                    <input type="number" min="0" step="any" x-model="serviceDraft.price"
-                        @keydown.enter.prevent="addService()" placeholder="0"
-                        class="w-full rounded-xl border border-parchment-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100">
-                </div>
-
-                <div class="flex items-end sm:col-span-2">
-                    <button type="button" @click="addService()" class="btn-secondary w-full text-xs">
-                        + Tambah
-                    </button>
-                </div>
-            </div>
-
-            {{-- TABEL SERVICE --}}
-            <div class="mt-4 overflow-x-auto rounded-xl border border-parchment-200 dark:border-slate-warm-800">
-                <table class="w-full min-w-[560px] border-collapse text-left">
-                    <thead>
-                        <tr class="bg-parchment-50 dark:bg-slate-warm-800/60">
-                            @foreach (['ID Service', 'Nama Service', 'Harga', 'Aksi'] as $heading)
-                                <th
-                                    class="border-b border-parchment-200 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-slate-warm-500 dark:border-slate-warm-800 dark:text-parchment-400">
-                                    {{ $heading }}
-                                </th>
-                            @endforeach
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <template x-for="(item, index) in itemsService" :key="item.uid">
-                            <tr class="border-b border-parchment-100 dark:border-slate-warm-800">
-                                <td class="whitespace-nowrap px-4 py-3">
-                                    <span class="font-mono text-xs text-slate-warm-500"
-                                        x-text="itemCode('SVC', index)"></span>
-
-                                    <input type="hidden" :name="'items_service[' + index + '][name]'"
-                                        :value="item.name">
-                                    <input type="hidden" :name="'items_service[' + index + '][price]'"
-                                        :value="item.price">
-                                </td>
-
-                                <td class="px-4 py-3 text-sm text-ink-800 dark:text-parchment-200"
-                                    x-text="item.name"></td>
-
-                                <td class="whitespace-nowrap px-4 py-3 text-sm text-ink-800 dark:text-parchment-200"
-                                    x-text="formatRupiah(item.price)"></td>
-
-                                <td class="px-4 py-3">
-                                    <button type="button" @click="removeService(index)"
-                                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-slate-warm-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:hover:border-red-900/40 dark:hover:bg-red-900/20"
-                                        title="Hapus service">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <polyline points="3 6 5 6 21 6" />
-                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
-                        </template>
-
-                        <tr x-show="itemsService.length === 0">
-                            <td colspan="4" class="px-4 py-6 text-center text-xs text-slate-warm-400">
-                                Belum ada service ditambahkan.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            {{-- TABEL SERVICE + TOTAL (read-only dari Form Pelanggan) --}}
+            @include('partials.contract.service-table', ['selectedCustomer' => $selectedCustomer, 'contractTotals' => $contractTotals])
         </div>
 
         {{-- FORM 4: PILIH TEMPLATE DOKUMEN --}}
@@ -640,11 +355,11 @@
 
                 <div>
                     <h2 class="font-serif text-base font-bold text-ink-900 dark:text-parchment-50">
-                        Pilih Template Dokumen
+                        Pilih Template Dokumen (Opsional)
                     </h2>
 
                     <p class="text-xs text-slate-warm-500 dark:text-parchment-400">
-                        Klik template untuk mengisi judul & nomor otomatis, lalu tekan tombol simpan di bawah.
+                        Template bersifat opsional. Tanpa template, editor dibuka kosong - Anda bisa mengetik manual.
                     </p>
                 </div>
             </div>
@@ -706,7 +421,7 @@
                 </p>
 
                 <p class="text-xs text-slate-warm-500 dark:text-parchment-400" x-show="!selectedTemplate">
-                    Belum ada template dipilih. Pilih salah satu template di atas untuk melanjutkan.
+                    Tanpa template: editor dibuka kosong. Anda bisa memilih template di atas atau langsung lanjut.
                 </p>
 
                 <p class="mt-1 text-[11px] text-slate-warm-400">
