@@ -987,11 +987,14 @@ class DocumentController extends Controller
 
         // Aturan transisi status (alur kontrak pelanggan):
         // - draft|on_progress → on_review   (Kirim untuk Review)
-        // - on_review         → disetujui   (Setujui)
         // - on_review         → revisi      (Minta revisi)
         // - revisi            → on_review   (Kirim ulang)
         // - revisi            → on_progress (Lanjut dikerjakan)
         // - draft|on_progress|disetujui → archived (Arsipkan)
+        //
+        // Catatan: on_review → disetujui SENGAJA tidak ada di sini. Status itu
+        // hanya bisa dicapai lewat approve() yang mewajibkan berkas kontrak
+        // di-upload, supaya tidak ada dokumen "Disetujui" tanpa berkas final.
         $allowed = false;
 
         if ($isAdmin && $document->user_id === $user->id) {
@@ -1000,7 +1003,6 @@ class DocumentController extends Controller
                 [
                     ['draft', 'on_review'],
                     ['on_progress', 'on_review'],
-                    ['on_review', 'disetujui'],
                     ['on_review', 'revisi'],
                     ['revisi', 'on_review'],
                     ['revisi', 'on_progress'],
@@ -1061,7 +1063,15 @@ class DocumentController extends Controller
         ]);
     }
 
-        public function exportPdf(Document $document)
+    /**
+     * Unduh berkas PDF dokumen.
+     *
+     * Dokumen yang sudah disetujui lewat upload → berkas final dari user
+     * (nama unduhan = nama asli berkasnya). Dokumen lain (draft / on progress /
+     * on review / dokumen lama) → tetap dirender dari isi terkini seperti
+     * sebelumnya.
+     */
+    public function exportPdf(Document $document)
     {
         // Admin pemilik dokumen boleh ekspor kapan pun.
         $user = Auth::user();
@@ -1069,126 +1079,97 @@ class DocumentController extends Controller
 
         abort_unless($canAccess, 403);
 
+        if ($document->hasFinalFile()
+            && Storage::disk('public')->exists($document->final_file_path)) {
+            return Storage::disk('public')->download(
+                $document->final_file_path,
+                $document->finalFileName()
+            );
+        }
+
         return $this->makeDocumentPdf($document)
             ->download('dokumen-'.$document->id.'-'.now()->format('Ymd').'.pdf');
     }
 
     /**
-     * Selesaikan dokumen (Selesai/Setujui → disetujui) sekaligus membuat &
-     * menyimpan berkas PDF S.O.F.
+     * Setujui dokumen (tahap On Review) dengan berkas kontrak hasil upload user.
      *
-     * Boleh dari tahap mana pun sebelum final (draft, on_progress, on_review,
-     * revisi) — tombol "Selesai" di top bar Studio Editor memang letaknya
-     * sebelah Save. Tombol "Setujui" di Tabel Pelanggan (tahap On Review)
-     * memakai endpoint yang sama; berkas hasilnya diunduh dari Menu S.O.F
-     * (/sof).
+     * Alur: popup "Setujui" di Tabel Pelanggan / Studio Editor → user memilih
+     * berkas (PDF) → berkas disimpan di disk publik → status dokumen + kontrak
+     * menjadi `disetujui`.
      *
-     * Karena berkas PDF adalah syarat terbitnya S.O.F, generate dilakukan
-     * lebih dulu; kalau render/penyimpanan gagal, status dokumen tidak ikut
-     * berubah → tidak ada approval tanpa berkas.
+     * Berkas inilah yang menggantikan isi dokumen di Tabel Pelanggan ("Unduh
+     * PDF" mengambil berkas ini). Karena itu approval ini TIDAK merender maupun
+     * menyimpan berkas S.O.F: Menu S.O.F tetap eksklusif untuk dokumen yang
+     * berkasnya dibuat sistem (lihat SofController).
+     *
+     * Berkas wajib: kalau validasi gagal, status dokumen tidak berubah sama
+     * sekali → tidak ada approval tanpa berkas.
      */
-        public function approve(Document $document)
+    public function approve(Request $request, Document $document)
     {
         $user = Auth::user();
 
         abort_unless($user->hasRole('admin') && $document->user_id === $user->id, 403);
 
-        // Tombol "Selesai" boleh ditekan dari tahap mana pun sebelum final
-        // (draft, on_progress, on_review, revisi). Dokumen yang sudah final
-        // tidak boleh disetujui ulang.
+        // Dokumen yang sudah final tidak boleh disetujui ulang.
         if (in_array($document->status, ['disetujui', 'archived'], true)) {
             return response()->json([
                 'message' => 'Dokumen sudah disetujui/diarsipkan dan tidak dapat disetujui ulang.',
             ], 422);
         }
 
+        $data = $request->validate([
+            'file' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+        ], [
+            'file.required' => 'Pilih berkas kontrak terlebih dahulu.',
+            'file.mimes'    => 'Berkas kontrak harus berformat PDF.',
+            'file.max'      => 'Ukuran berkas kontrak maksimal 10 MB.',
+        ]);
+
+        $file = $data['file'];
         $customer = $document->customer;
 
-        try {
-            $path = $this->regenerateSofPdf($document);
-        } catch (\Throwable $e) {
-            report($e);
+        // Disimpan per dokumen supaya mudah ditelusuri & dibersihkan.
+        $path = $file->store('documents/' . $document->id, 'public');
 
-            return response()->json([
-                'message' => 'Gagal membuat berkas PDF S.O.F. Dokumen belum disetujui.',
-            ], 422);
-        }
+        DB::transaction(function () use ($document, $customer, $path, $file) {
+            // Berkas final lama (kalau ada) dibuang supaya tidak menumpuk.
+            if ($document->hasFinalFile()) {
+                Storage::disk('public')->delete($document->final_file_path);
+            }
 
-        DB::transaction(function () use ($document, $customer, $path) {
             $document->update([
-                'status'           => 'disetujui',
-                'pdf_path'         => $path,
-                'pdf_generated_at' => now(),
+                'status'                 => 'disetujui',
+                'final_file_path'        => $path,
+                'final_file_name'        => $file->getClientOriginalName(),
+                'final_file_uploaded_at' => now(),
             ]);
 
             // Tabel Pelanggan mengikuti status dokumen: kontrak dianggap
-            // disetujui begitu S.O.F-nya terbit.
+            // disetujui begitu berkas finalnya tersimpan.
             if ($customer && in_array('disetujui', Customer::STATUSES, true)) {
                 $customer->update(['status' => 'disetujui']);
             }
         });
 
         return response()->json([
-            'message'     => 'Dokumen disetujui & berkas S.O.F berhasil dibuat.',
+            'message'     => 'Dokumen disetujui & berkas kontrak berhasil di-upload.',
             'status'      => $document->status,
-            'downloadUrl' => $customer ? route('sof.download', $customer->id) : null,
+            'fileName'    => $document->final_file_name,
+            'downloadUrl' => route('documents.export', $document),
         ]);
     }
 
     /**
-     * Revisi dokumen yang sudah disetujui: keluarkan dari Menu S.O.F dan
-     * kembalikan status dokumen + kontrak ke On Progress.
-     *
-     * Dipakai tombol "Revisi" di Tabel Pelanggan (halaman Dokumen Saya).
-     * Berkas PDF S.O.F dihapus dari disk supaya tidak menyisakan artefak
-     * dokumen lama — kalau nanti dokumen disetujui ulang, berkas baru
-     * otomatis dibuat lagi oleh approve().
-     */
-    public function revise(Document $document)
-    {
-        $user = Auth::user();
-
-        abort_unless($user->hasRole('admin') && $document->user_id === $user->id, 403);
-
-        // Hanya dokumen yang sedang tampil di Menu S.O.F yang boleh
-        // dikeluarkan lewat aksi revisi.
-        if ($document->status !== 'disetujui') {
-            return response()->json([
-                'message' => 'Hanya dokumen yang sudah disetujui yang dapat direvisi.',
-            ], 422);
-        }
-
-        $customer = $document->customer;
-
-        DB::transaction(function () use ($document, $customer) {
-            // Berkas S.O.F lama dibuang: dokumen keluar dari Menu S.O.F.
-            if ($document->hasSofPdf()) {
-                Storage::disk('public')->delete($document->pdf_path);
-            }
-
-            $document->update([
-                'status'           => 'on_progress',
-                'pdf_path'         => null,
-                'pdf_generated_at' => null,
-            ]);
-
-            // Kontrak ikut kembali ke On Progress supaya bisa diedit ulang.
-            if ($customer && in_array('on_progress', Customer::STATUSES, true)) {
-                $customer->update(['status' => 'on_progress']);
-            }
-        });
-
-        return response()->json([
-            'message' => 'Dokumen dikeluarkan dari S.O.F dan kembali ke On Progress.',
-            'status'  => $document->status,
-        ]);
-    }
-/**
      * Render + simpan berkas PDF S.O.F tanpa mengubah status dokumen.
      *
-     * Dipakai approve() saat proses persetujuan dan SofController::download()
-     * sebagai backfill: dokumen yang sudah "Disetujui" sebelum fitur S.O.F ada
-     * belum punya berkas, sehingga berkasnya dibuat saat pertama diunduh.
+     * Dipakai SofController::download() sebagai backfill: dokumen yang sudah
+     * "Disetujui" sebelum fitur S.O.F ada belum punya berkas, sehingga
+     * berkasnya dibuat saat pertama diunduh.
+     *
+     * Approval dokumen baru (approve()) tidak lagi memakai method ini — berkas
+     * finalnya berasal dari upload user (lihat kolom final_file_path).
      *
      * @return string path relatif pada disk 'public'.
      */

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Document extends Model
 {
@@ -32,14 +33,18 @@ class Document extends Model
         'status',
         'pdf_path',
         'pdf_generated_at',
+        'final_file_path',
+        'final_file_name',
+        'final_file_uploaded_at',
     ];
 
     protected $casts = [
-        'header_data'      => 'array',
-        'body_content'     => 'array',
-        'footer_data'      => 'array',
-        'signature_data'   => 'array',
-        'pdf_generated_at' => 'datetime',
+        'header_data'           => 'array',
+        'body_content'          => 'array',
+        'footer_data'           => 'array',
+        'signature_data'        => 'array',
+        'pdf_generated_at'      => 'datetime',
+        'final_file_uploaded_at' => 'datetime',
     ];
 
     public function user()
@@ -94,5 +99,32 @@ class Document extends Model
     public function hasSofPdf(): bool
     {
         return ! empty($this->pdf_path);
+    }
+
+    /**
+     * Punya berkas final hasil upload user? (path saja — keberadaan file
+     * dicek pemanggil lewat Storage, sama seperti hasSofPdf().)
+     *
+     * Berkas ini yang menggantikan isi dokumen di Tabel Pelanggan setelah
+     * dokumen disetujui, dan yang diunduh tombol "Unduh PDF".
+     */
+    public function hasFinalFile(): bool
+    {
+        return ! empty($this->final_file_path);
+    }
+
+    /**
+     * Nama berkas saat diunduh: nama asli dari user, dengan fallback dari
+     * judul dokumen supaya unduhan selalu punya nama yang jelas.
+     */
+    public function finalFileName(): string
+    {
+        $name = trim((string) $this->final_file_name);
+
+        if ($name !== '') {
+            return $name;
+        }
+
+        return 'Kontrak-' . (Str::slug((string) $this->title) ?: 'dokumen') . '.pdf';
     }
 }

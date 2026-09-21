@@ -4,12 +4,16 @@ use App\Models\Customer;
 use App\Models\Document;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Tombol "Selesai" di Studio Editor (letaknya sebelah Save): approval boleh
- * dari tahap mana pun sebelum final, berkas PDF S.O.F wajib ikut terbentuk,
- * status pelanggan ikut disetujui, dan dokumen lalu muncul di Menu S.O.F.
+ * Tombol "Setujui" (tabel pelanggan & Studio Editor): user meng-upload berkas
+ * kontrak (PDF) lewat popup, berkas itu disimpan sebagai dokumen final kontrak
+ * (kolom final_file_path) dan dipakai tombol "Unduh PDF".
+ *
+ * Berkas upload bukan berkas S.O.F: Menu S.O.F tetap eksklusif untuk dokumen
+ * yang berkasnya dibuat sistem (pdf_path).
  */
 beforeEach(function () {
     $this->seed(RoleSeeder::class);
@@ -41,42 +45,64 @@ beforeEach(function () {
     Storage::fake('public');
 });
 
-test('selesai dari status draft menyetujui dokumen, pelanggan, dan membuat berkas sof', function () {
+test('setujui dengan berkas upload menyetujui dokumen, pelanggan, dan menyimpan berkas final', function () {
     $this->actingAs($this->user)
-        ->post(route('documents.approve', $this->document))
+        ->post(route('documents.approve', $this->document), [
+            'file' => UploadedFile::fake()->create('kontrak-final.pdf', 20, 'application/pdf'),
+        ])
         ->assertOk()
-        ->assertJsonPath('status', 'disetujui');
+        ->assertJsonPath('status', 'disetujui')
+        ->assertJsonPath('fileName', 'kontrak-final.pdf');
 
     $document = $this->document->refresh();
 
     expect($document->status)->toBe('disetujui')
         ->and($this->customer->refresh()->status)->toBe('disetujui')
-        ->and($document->hasSofPdf())->toBeTrue()
-        ->and(Storage::disk('public')->exists($document->pdf_path))->toBeTrue()
-        ->and($document->pdf_generated_at)->not->toBeNull();
+        ->and($document->hasFinalFile())->toBeTrue()
+        ->and(Storage::disk('public')->exists($document->final_file_path))->toBeTrue()
+        ->and($document->final_file_uploaded_at)->not->toBeNull()
+        // Approval upload tidak menyentuh berkas S.O.F sama sekali.
+        ->and($document->hasSofPdf())->toBeFalse()
+        ->and($document->pdf_path)->toBeNull();
 });
 
-test('selesai juga bisa dilakukan dari status on progress, on review, dan revisi', function () {
-    foreach (['on_progress', 'on_review', 'revisi'] as $status) {
-        $this->document->update(['status' => $status, 'pdf_path' => null, 'pdf_generated_at' => null]);
-        $this->customer->update(['status' => $status]);
+test('setujui tanpa berkas ditolak dan status dokumen tidak berubah', function () {
+    $this->document->update(['status' => 'on_review']);
+    $this->customer->update(['status' => 'on_review']);
 
-        $this->actingAs($this->user)
-            ->post(route('documents.approve', $this->document))
-            ->assertOk()
-            ->assertJsonPath('status', 'disetujui');
+    $this->actingAs($this->user)
+        ->postJson(route('documents.approve', $this->document))
+        ->assertStatus(422);
 
-        expect($this->document->refresh()->status)->toBe('disetujui')
-            ->and($this->customer->refresh()->status)->toBe('disetujui')
-            ->and($this->document->hasSofPdf())->toBeTrue();
-    }
+    expect($this->document->refresh()->status)->toBe('on_review')
+        ->and($this->customer->refresh()->status)->toBe('on_review');
+});
+
+test('setujui menolak berkas yang bukan pdf', function () {
+    $this->document->update(['status' => 'on_review']);
+    $this->customer->update(['status' => 'on_review']);
+
+    $this->actingAs($this->user)
+        ->postJson(route('documents.approve', $this->document), [
+            'file' => UploadedFile::fake()->create('kontrak.docx', 10, 'application/msword'),
+        ])
+        ->assertStatus(422);
+
+    expect($this->document->refresh()->status)->toBe('on_review')
+        ->and($this->customer->refresh()->status)->toBe('on_review');
 });
 
 test('dokumen yang sudah disetujui tidak dapat disetujui ulang', function () {
-    $this->document->update(['status' => 'disetujui']);
+    $this->document->update([
+        'status' => 'disetujui',
+        'final_file_path' => 'documents/1/kontrak-final.pdf',
+        'final_file_name' => 'kontrak-final.pdf',
+    ]);
 
     $this->actingAs($this->user)
-        ->post(route('documents.approve', $this->document))
+        ->post(route('documents.approve', $this->document), [
+            'file' => UploadedFile::fake()->create('kontrak-baru.pdf', 20, 'application/pdf'),
+        ])
         ->assertStatus(422);
 });
 
@@ -99,62 +125,19 @@ test('simpan draf tidak menaikkan status dokumen maupun pelanggan', function () 
         ->and($this->customer->refresh()->status)->toBe('draft');
 });
 
-test('revisi mengeluarkan dokumen dari sof dan mengembalikan status ke on progress', function () {
-    // Setujui dulu supaya berkas S.O.F terbentuk.
+test('unduh pdf dokumen disetujui mengembalikan berkas hasil upload', function () {
     $this->actingAs($this->user)
-        ->post(route('documents.approve', $this->document))
+        ->post(route('documents.approve', $this->document), [
+            'file' => UploadedFile::fake()->create('kontrak-final.pdf', 20, 'application/pdf'),
+        ])
         ->assertOk();
 
-    $document = $this->document->refresh();
-    $pdfPath = $document->pdf_path;
-
-    expect(Storage::disk('public')->exists($pdfPath))->toBeTrue();
-
-    $this->actingAs($this->user)
-        ->post(route('documents.revise', $document))
-        ->assertOk()
-        ->assertJsonPath('status', 'on_progress');
-
-    $document = $document->refresh();
-
-    expect($document->status)->toBe('on_progress')
-        ->and($this->customer->refresh()->status)->toBe('on_progress')
-        ->and($document->hasSofPdf())->toBeFalse()
-        ->and($document->pdf_path)->toBeNull()
-        ->and($document->pdf_generated_at)->toBeNull()
-        ->and(Storage::disk('public')->exists($pdfPath))->toBeFalse();
-});
-
-test('revisi hanya berlaku untuk dokumen yang sudah disetujui', function () {
-    $this->actingAs($this->user)
-        ->post(route('documents.revise', $this->document))
-        ->assertStatus(422);
-});
-
-test('revisi oleh user selain pemilik dokumen ditolak', function () {
-    $this->document->update(['status' => 'disetujui']);
-
-    $other = User::factory()->create();
-    $other->assignRole('admin');
-
-    $this->actingAs($other)
-        ->post(route('documents.revise', $this->document))
-        ->assertForbidden();
-});
-
-test('dokumen yang direvisi tidak lagi tampil di menu sof', function () {
-    $this->actingAs($this->user)
-        ->post(route('documents.approve', $this->document))
+    $response = $this->actingAs($this->user)
+        ->get(route('documents.export', $this->document))
         ->assertOk();
 
-    $this->actingAs($this->user)
-        ->post(route('documents.revise', $this->document))
-        ->assertOk();
-
-    $this->actingAs($this->user)
-        ->get(route('sof.index'))
-        ->assertOk()
-        ->assertDontSee('PT Uji Coba');
+    expect($response->headers->get('content-type'))->toContain('application/pdf')
+        ->and($response->headers->get('content-disposition'))->toContain('kontrak-final.pdf');
 });
 
 test('unduh pdf bisa dilakukan saat dokumen masih on review', function () {
@@ -177,21 +160,22 @@ test('unduh pdf ditolak untuk user yang bukan pemilik dokumen', function () {
         ->assertForbidden();
 });
 
-test('setujui dari tabel pelanggan menyetujui dokumen on review dan menerbitkan sof', function () {
-    $this->document->update(['status' => 'on_review']);
-    $this->customer->update(['status' => 'on_review']);
+test('kontrak yang disetujui lewat upload tidak tampil di menu sof', function () {
+    $this->actingAs($this->user)
+        ->post(route('documents.approve', $this->document), [
+            'file' => UploadedFile::fake()->create('kontrak-final.pdf', 20, 'application/pdf'),
+        ])
+        ->assertOk();
 
     $this->actingAs($this->user)
-        ->post(route('documents.approve', $this->document))
+        ->get(route('sof.index'))
         ->assertOk()
-        ->assertJsonPath('status', 'disetujui');
+        ->assertDontSee('PT Uji Coba');
 
-    $document = $this->document->refresh();
-
-    expect($document->status)->toBe('disetujui')
-        ->and($this->customer->refresh()->status)->toBe('disetujui')
-        ->and($document->hasSofPdf())->toBeTrue()
-        ->and(Storage::disk('public')->exists($document->pdf_path))->toBeTrue();
+    // Berkas finalnya bukan berkas S.O.F → unduhan S.O.F-nya 404.
+    $this->actingAs($this->user)
+        ->get(route('sof.download', $this->customer))
+        ->assertNotFound();
 });
 
 test('minta revisi dari tabel pelanggan mengubah on review menjadi revisi', function () {
@@ -287,7 +271,7 @@ test('dokumen on review bisa dibuka pemiliknya dalam mode lihat', function () {
         ->assertSee($this->document->title);
 });
 
-test('tabel pelanggan menyembunyikan lanjut saat dokumen disetujui', function () {
+test('tabel pelanggan menyembunyikan lanjut dan revisi saat dokumen disetujui', function () {
     $this->document->update(['status' => 'disetujui']);
     $this->customer->update(['status' => 'disetujui']);
 
@@ -296,7 +280,7 @@ test('tabel pelanggan menyembunyikan lanjut saat dokumen disetujui', function ()
         ->assertOk()
         ->assertSee('"canContinue":false', false)
         ->assertSee('Lihat')
-        ->assertSee('Revisi')
+        ->assertDontSee('reviseCustomer(', false)
         ->assertSee('Unduh PDF');
 });
 
@@ -344,12 +328,51 @@ test('tanggal update fallback ke pelanggan saat belum ada dokumen', function () 
         ->assertSee($this->customer->refresh()->updated_at->format('d M Y H:i'), false);
 });
 
-test('setujui dari tabel sekaligus meng-upload sof yang bisa diunduh', function () {
+test('aksi setujui memakai popup upload berkas di tabel dan editor', function () {
+    $this->document->update(['status' => 'on_review']);
+    $this->customer->update(['status' => 'on_review']);
+
+    $this->actingAs($this->user)
+        ->get(route('documents'))
+        ->assertOk()
+        // Popup upload: user memilih berkas kontrak lewat input file PDF.
+        ->assertSee("input: 'file'", false)
+        ->assertSee("accept: 'application/pdf'", false);
+
+    $this->actingAs($this->user)
+        ->get(route('documents.edit', $this->document))
+        ->assertOk()
+        ->assertSee("input: 'file'", false)
+        ->assertSee("accept: 'application/pdf'", false);
+});
+
+test('setujui dari tabel pelanggan memakai berkas upload', function () {
+    $this->document->update(['status' => 'on_review']);
+    $this->customer->update(['status' => 'on_review']);
+
+    $this->actingAs($this->user)
+        ->post(route('documents.approve', $this->document), [
+            'file' => UploadedFile::fake()->create('kontrak-final.pdf', 20, 'application/pdf'),
+        ])
+        ->assertOk()
+        ->assertJsonPath('status', 'disetujui');
+
+    $document = $this->document->refresh();
+
+    expect($document->status)->toBe('disetujui')
+        ->and($this->customer->refresh()->status)->toBe('disetujui')
+        ->and($document->hasFinalFile())->toBeTrue()
+        ->and(Storage::disk('public')->exists($document->final_file_path))->toBeTrue();
+});
+
+test('setujui dari tabel sekaligus menyimpan berkas yang bisa diunduh', function () {
     $this->document->update(['status' => 'on_review']);
     $this->customer->update(['status' => 'on_review']);
 
     $response = $this->actingAs($this->user)
-        ->post(route('documents.approve', $this->document))
+        ->post(route('documents.approve', $this->document), [
+            'file' => UploadedFile::fake()->create('kontrak-final.pdf', 20, 'application/pdf'),
+        ])
         ->assertOk()
         ->assertJsonPath('status', 'disetujui');
 
@@ -357,12 +380,8 @@ test('setujui dari tabel sekaligus meng-upload sof yang bisa diunduh', function 
 
     expect($downloadUrl)->not->toBeNull();
 
-    $document = $this->document->refresh();
-
-    expect(Storage::disk('public')->exists($document->pdf_path))->toBeTrue();
-
-    // Berkas S.O.F hasil satu klik Setujui langsung bisa diunduh.
+    // Berkas upload langsung bisa diunduh lewat tombol "Unduh PDF".
     $this->actingAs($this->user)
-        ->get(route('sof.download', $this->customer))
+        ->get($downloadUrl)
         ->assertOk();
 });

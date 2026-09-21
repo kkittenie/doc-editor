@@ -41,27 +41,20 @@
             'createUrl' => route('documents.create', $customer->id),
             'deleteUrl' => route('customers.destroy', $customer->id),
 
-            // Dokumen terbaru milik kontrak — sumber aksi "Revisi".
+            // Dokumen terbaru milik kontrak.
             'documentId' => $customer->documents->first()?->id,
             'documentStatus' => $customer->documents->first()?->status,
 
-            // Revisi: keluarkan kontrak yang sudah disetujui dari Menu S.O.F
-            // (berkas PDF dihapus) dan kembalikan statusnya ke On Progress.
-            'canRevise' => $customer->documents->first()?->status === 'disetujui',
-            'reviseUrl' => $customer->documents->first()
-                ? route('documents.revise', $customer->documents->first()->id)
-                : null,
-
             // Lanjut tidak dipakai saat dokumen menunggu keputusan review (On Review)
             // maupun sudah final (Disetujui) - dokumen final hanya dibaca lewat
-            // Lihat / diunduh lewat Unduh PDF; pengeditan lewat Revisi.
+            // Lihat / diunduh lewat Unduh PDF.
             'canContinue' => ! in_array($customer->documents->first()?->status, ['on_review', 'disetujui'], true),
             'canView' => $isAdmin && $customer->documents->first() !== null,
             'viewUrl' => $customer->documents->first()
                 ? route('documents.edit', $customer->documents->first()->id)
                 : null,
 
-            // Aksi tahap On Review: Setujui (terbitkan S.O.F), Minta Revisi,
+            // Aksi tahap On Review: Setujui (upload berkas kontrak), Minta Revisi,
             // dan Unduh PDF. Semua hanya untuk admin pemilik dokumen karena
             // endpoint-nya memakai guard role:admin.
             'canApprove' => $isAdmin && $customer->documents->first()?->status === 'on_review',
@@ -195,73 +188,53 @@
                 }
             },
 
-            // Revisi dokumen kontrak yang sudah disetujui: keluarkan dari
-            // Menu S.O.F (berkas PDF dihapus) dan kembalikan status kontrak
-            // ke On Progress supaya bisa diedit ulang di Studio Editor.
-            async reviseCustomer(customer) {
-                const result = await Swal.fire({
-                    icon: 'question',
-                    title: 'Ingin merevisi dokumen?',
-                    text: 'Dokumen akan dikeluarkan dari Menu S.O.F dan status kontrak kembali menjadi On Progress agar dapat diedit ulang di Studio Editor.',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, revisi',
-                    cancelButtonText: 'Batal',
-                    confirmButtonColor: '#ea580c',
-                });
-
-                if (!result.isConfirmed) return;
-
-                try {
-                    await window.axios.post(customer.reviseUrl);
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Siap direvisi',
-                        text: 'Dokumen dikeluarkan dari S.O.F. Status kontrak kembali ke On Progress.',
-                        confirmButtonColor: '#1B2A4A',
-                        timer: 1800,
-                        showConfirmButton: false,
-                    });
-
-                    // Muat ulang supaya badge status, kartu ringkasan, dan isi
-                    // Menu S.O.F ikut terbarui.
-                    setTimeout(() => window.location.reload(), 1200);
-                } catch (error) {
-                    console.error(error);
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: error?.response?.data?.message || 'Dokumen gagal direvisi.',
-                        confirmButtonColor: '#1B2A4A',
-                    });
-                }
-            },
-
-            // Setujui dokumen On Review: berkas PDF S.O.F ikut terbit dan
-            // dokumen muncul di Menu S.O.F.
+            // Setujui dokumen On Review dengan popup upload: user memilih berkas
+            // kontrak (PDF, maks 10 MB). Berkas itu disimpan sebagai dokumen
+            // final kontrak ini dan dipakai tombol "Unduh PDF" (bukan dikirim
+            // sebagai berkas S.O.F ke Menu S.O.F).
             async approveCustomer(customer) {
-                const result = await Swal.fire({
+                const konfirmasi = await Swal.fire({
                     icon: 'question',
-                    title: 'Apakah kamu sudah yakin?',
-                    text: 'Dokumen akan disetujui dan berkas S.O.F di-upload ke Menu S.O.F.',
+                    title: 'Setujui dokumen',
+                    html: '<div style="text-align:left;font-size:13px;line-height:1.7">' +
+                        '<p>Upload berkas kontrak final (PDF, maks 10 MB). Berkas ini ' +
+                        'menggantikan dokumen kontrak pelanggan dan dipakai saat Unduh PDF.</p>' +
+                        '</div>',
+                    input: 'file',
+                    inputAttributes: {
+                        accept: 'application/pdf',
+                        'aria-label': 'Pilih berkas kontrak (PDF)',
+                    },
+                    inputValidator: (file) => {
+                        if (!file) return 'Pilih berkas kontrak terlebih dahulu.';
+                        if (file.type && file.type !== 'application/pdf') {
+                            return 'Berkas kontrak harus berformat PDF.';
+                        }
+                        if (file.size > 10 * 1024 * 1024) {
+                            return 'Ukuran berkas kontrak maksimal 10 MB.';
+                        }
+                        return null;
+                    },
                     showCancelButton: true,
-                    confirmButtonText: 'Setuju & Upload',
+                    confirmButtonText: 'Setujui & Upload',
                     cancelButtonText: 'Batal',
                     confirmButtonColor: '#16a34a',
                 });
 
-                if (!result.isConfirmed) return;
+                if (!konfirmasi.isConfirmed || !konfirmasi.value) return;
 
                 try {
-                    const { data } = await window.axios.post(customer.approveUrl);
+                    const formData = new FormData();
+                    formData.append('file', konfirmasi.value);
+
+                    const { data } = await window.axios.post(customer.approveUrl, formData);
 
                     Swal.fire({
                         icon: 'success',
                         title: 'Disetujui',
-                        html: 'Dokumen disetujui. Berkas S.O.F sudah ter-upload ke Menu S.O.F.' +
+                        html: 'Dokumen disetujui & berkas kontrak tersimpan.' +
                             (data?.downloadUrl
-                                ? ' <a href="' + data.downloadUrl + '" style="color:#1B2A4A;font-weight:600;text-decoration:underline;">Unduh S.O.F</a>'
+                                ? ' <a href="' + data.downloadUrl + '" target="_blank" style="color:#1B2A4A;font-weight:600;text-decoration:underline;">Unduh PDF</a>'
                                 : ''),
                         confirmButtonColor: '#1B2A4A',
                         timer: 1800,
@@ -765,9 +738,8 @@
                                     </a>
                                     </template>
 
-                                    {{-- Lihat: buka dokumen On Review dalam mode
-                                         Lihat (read-only) supaya reviewer bisa membaca
-                                         isinya sebelum memutuskan Setujui / Revisi. --}}
+                                    {{-- Lihat: buka dokumen dalam mode Lihat (read-only) supaya
+                                         reviewer bisa membaca isinya sebelum memutuskan. --}}
                                     <template x-if="customer.canView">
                                         <a :href="customer.viewUrl"
                                             class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900"
@@ -782,11 +754,12 @@
                                         </a>
                                     </template>
 
-                                    {{-- Setujui: dokumen On Review disetujui & berkas S.O.F terbit. --}}
+                                    {{-- Setujui: dokumen On Review disetujui dengan popup upload
+                                         berkas kontrak (PDF). --}}
                                     <template x-if="customer.canApprove">
                                         <button type="button" @click="approveCustomer(customer)"
                                             class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-green-500 bg-green-600 px-2.5 text-[11px] font-semibold text-white transition hover:bg-green-700 dark:border-green-500/60 dark:bg-green-600 dark:hover:bg-green-500"
-                                            title="Setujui dokumen &amp; terbitkan berkas S.O.F">
+                                            title="Setujui dokumen & upload berkas kontrak final">
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                                                 stroke="currentColor" stroke-width="2">
                                                 <path d="m20 6-11 11-5-5" />
@@ -811,7 +784,8 @@
                                         </button>
                                     </template>
 
-                                    {{-- Unduh PDF: render dari isi terkini, status tidak berubah. --}}
+                                    {{-- Unduh PDF: berkas kontrak hasil upload (dokumen
+                                         disetujui) atau render dari isi terkini. --}}
                                     <template x-if="customer.canExportPdf">
                                         <a :href="customer.exportUrl" target="_blank"
                                             class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900"
@@ -825,21 +799,6 @@
 
                                             Unduh PDF
                                         </a>
-                                    </template>
-
-                                    {{-- Revisi: keluarkan kontrak disetujui dari S.O.F & kembalikan ke On Progress --}}
-                                    <template x-if="customer.canRevise">
-                                        <button type="button" @click="reviseCustomer(customer)"
-                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-orange-400 bg-white px-2.5 text-[11px] font-semibold text-orange-700 transition hover:bg-orange-50 dark:border-orange-500/60 dark:bg-transparent dark:text-orange-300 dark:hover:bg-orange-500/10"
-                                            title="Keluarkan dari S.O.F &amp; kembalikan ke On Progress">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                                                stroke="currentColor" stroke-width="2">
-                                                <path d="M12 20h9" />
-                                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                                            </svg>
-
-                                            Revisi
-                                        </button>
                                     </template>
 
                                     {{-- Hapus pelanggan --}}

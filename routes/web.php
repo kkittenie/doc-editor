@@ -17,11 +17,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
     Route::patch('/documents/{document}/status', [DocumentController::class, 'updateStatus'])->name('documents.Status');
-    // Approval dokumen (status pra-final → disetujui) + generate & simpan PDF S.O.F.
+    // Approval dokumen (on_review → disetujui) yang mewajibkan upload berkas
+    // kontrak; berkas itulah yang dipakai tombol "Unduh PDF" di Tabel Pelanggan.
     Route::post('/documents/{document}/approve', [DocumentController::class, 'approve'])->name('documents.approve');
-    // Revisi dokumen yang sudah disetujui: keluarkan dari Menu S.O.F
-    // (berkas PDF dihapus) dan kembalikan status dokumen + kontrak ke On Progress.
-    Route::post('/documents/{document}/revise', [DocumentController::class, 'revise'])->name('documents.revise');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
     Route::delete('/documents', [DocumentController::class, 'deleteAll'])->name('documents.deleteAll');
     Route::get('/documents/{document}/export', [DocumentController::class, 'exportPdf'])->name('documents.export');

@@ -11,9 +11,10 @@ use Illuminate\Support\Str;
 /**
  * Menu S.O.F — repositori berkas Surat Order Formulir.
  *
- * Berkas S.O.F dibuat otomatis saat dokumen disetujui di Studio Editor
- * (DocumentController::approve()). Halaman ini hanya menampilkan kontrak yang
- * sudah disetujui beserta berkas PDF-nya, plus tombol unduh.
+ * Isinya KHUSUS kontrak yang berkas S.O.F-nya dibuat sistem (kolom `pdf_path`).
+ * Approval dokumen terbaru memakai berkas kontrak hasil upload user
+ * (DocumentController::approve) yang peruntukannya menggantikan isi dokumen di
+ * Tabel Pelanggan — berkas upload itu sengaja tidak masuk ke sini.
  *
  * Dokumen yang disetujui SEBELUM fitur ini ada belum punya berkas; berkasnya
  * dibuat sekali saat pertama kali diunduh (lihat download()).
@@ -34,12 +35,23 @@ class SofController extends Controller
 
         // Dokumen disetujui terbaru untuk tiap pelanggan — dipakai sebagai
         // sumber berkas S.O.F dan tautan "Lihat Dokumen".
+        //
+        // Hanya dokumen yang punya berkas S.O.F hasil render sistem
+        // (`pdf_path` terisi) yang dihitung. Kontrak yang disetujui lewat
+        // upload berkas user tidak masuk Menu S.O.F: berkas finalnya dipakai
+        // sebagai dokumen di Tabel Pelanggan (lihat DocumentController::approve).
         $approvedDocuments = Document::where('user_id', Auth::id())
             ->where('status', 'disetujui')
+            ->whereNotNull('pdf_path')
             ->whereIn('customer_id', $customers->pluck('id'))
             ->orderByDesc('id')
             ->get()
             ->keyBy('customer_id');
+
+        // Buang pelanggan yang tidak punya berkas S.O.F sistem.
+        $customers = $customers
+            ->filter(fn (Customer $customer) => $approvedDocuments->has($customer->id))
+            ->values();
 
         $sofData = $customers->map(function (Customer $customer) use ($approvedDocuments) {
             $document = $approvedDocuments->get($customer->id);
@@ -129,11 +141,16 @@ class SofController extends Controller
 
     /**
      * Dokumen disetujui terbaru milik pelanggan (sumber berkas S.O.F).
+     *
+     * Wajib punya `pdf_path`: kontrak yang disetujui lewat upload berkas user
+     * tidak pernah menyimpan berkas S.O.F, sehingga unduhan S.O.F-nya 404
+     * (berkas finalnya diunduh dari tombol "Unduh PDF" di Tabel Pelanggan).
      */
     private function approvedDocument(Customer $customer): ?Document
     {
         return $customer->documents()
             ->where('status', 'disetujui')
+            ->whereNotNull('pdf_path')
             ->orderByDesc('id')
             ->first();
     }

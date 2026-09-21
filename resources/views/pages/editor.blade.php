@@ -55,13 +55,12 @@
                 @endunless
 
                 @if(($document->status ?? '') === 'disetujui')
-                {{-- Dokumen sudah masuk S.O.F: tawarkan aksi revisi supaya bisa
-                     diedit ulang (mengeluarkannya dari Menu S.O.F). --}}
-                <button type="button" @click="reviseDocument()"
-                    class="rounded-xl border border-orange-400 bg-white px-5 py-2.5 text-sm font-semibold text-orange-700 transition hover:bg-orange-50 dark:border-orange-500/60 dark:bg-transparent dark:text-orange-300 dark:hover:bg-orange-500/10"
-                    title="Keluarkan dari S.O.F &amp; kembalikan ke On Progress">
-                    ✏️ Revisi
-                </button>
+                {{-- Dokumen sudah final (berkas kontrak hasil upload user):
+                     unduhan mengambil berkas itu, bukan render ulang template. --}}
+                <a href="{{ route('documents.export', $document) }}" target="_blank"
+                    class="rounded-xl border border-parchment-300 bg-white px-5 py-2.5 text-sm font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:bg-transparent dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900">
+                    ⬇️ Unduh PDF
+                </a>
                 @endif
 
                 {{-- TAHAP REVIEW: tombol keputusan admin. Sengaja diletakkan di
@@ -73,7 +72,7 @@
                     ✏️ Minta Revisi
                 </button>
 
-                <button type="button" @click="approveDocument()" title="Setujui dokumen &amp; terbitkan berkas S.O.F"
+                <button type="button" @click="approveDocument()" title="Setujui dokumen &amp; upload berkas kontrak final"
                     class="rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 dark:bg-green-600 dark:text-white">
                     ✅ Setujui
                 </button>
@@ -93,10 +92,10 @@
                 @if(in_array($document->status, ['draft', 'on_progress', 'revisi'], true))
                 {{-- Selesai: simpan isi terbaru lalu kirim dokumen untuk review.
                      Status naik ke On Review (bukan langsung Disetujui) dan
-                     editor berikutnya terbuka dalam mode Lihat (read-only). --}}
+                     user diarahkan kembali ke halaman Dokumen Saya. --}}
                 <button type="button" @click="submitForReview()" title="Selesai &amp; kirim untuk review"
                     class="rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 dark:bg-green-600 dark:text-white">
-                    ✅ Selesai
+                    <i class="bi bi-check2-circle"></i>Selesai
                 </button>
                 @endif
                 @endunless
@@ -1463,6 +1462,10 @@
 
             documentId: @js($document -> id),
 
+            // Tujuan tombol "Selesai": kembali ke halaman Dokumen Saya
+            // (route('documents')) — bukan memuat ulang editor.
+            documentsUrl: @js(route('documents')),
+
             // Mode baca: marketer tidak bisa mengedit, hanya melihat &
             // (jika berstatus review_marketing) menyetujui/minta revisi.
             readOnly: @js($readOnly ?? false),
@@ -2148,52 +2151,9 @@
                 setTimeout(() => clearInterval(timer), 10000);
             },
 
-            // Dokumen yang sudah disetujui (read-only, ada di Menu S.O.F):
-            // keluarkan dari S.O.F dan kembalikan status ke On Progress agar
-            // bisa diedit ulang. Setelah sukses, editor dimuat ulang dan
-            // dokumen otomatis tidak lagi read-only.
-            async reviseDocument() {
-
-                const konfirmasi = await Swal.fire({
-                    icon: 'question',
-                    title: 'Ingin merevisi dokumen?',
-                    text: 'Dokumen akan dikeluarkan dari Menu S.O.F dan status kembali menjadi On Progress agar dapat diedit ulang.',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, revisi',
-                    cancelButtonText: 'Batal',
-                    confirmButtonColor: '#ea580c',
-                });
-
-                if (!konfirmasi.isConfirmed) return;
-
-                try {
-                    await window.axios.post(`/documents/${this.documentId}/revise`);
-
-                    await Swal.fire({
-                        icon: 'success',
-                        title: 'Siap direvisi',
-                        text: 'Dokumen dikeluarkan dari S.O.F. Status kembali ke On Progress.',
-                        timer: 1800,
-                        showConfirmButton: false,
-                    });
-
-                    // Muat ulang editor: dokumen kini tidak lagi read-only.
-                    window.hasUnsavedChanges = false;
-                    window.location.href = `/documents/${this.documentId}/edit`;
-                } catch (error) {
-                    console.error(error);
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: this.serverMessage(error, 'Dokumen gagal direvisi.'),
-                    });
-                }
-            },
-
             // ADMIN: kirim dokumen untuk review (tombol "Selesai" di tahap
             // draft/on_progress/revisi). Isi disimpan dulu, lalu status naik
-            // ke On Review dan editor dimuat ulang dalam mode Lihat (read-only).
+            // ke On Review dan user diarahkan kembali ke halaman Dokumen Saya.
             async submitForReview() {
 
                 const konfirmasi = await Swal.fire({
@@ -2233,10 +2193,11 @@
                         showConfirmButton: false,
                     });
 
-                    // Muat ulang editor supaya mode baca aktif dan tombol
-                    // keputusan review tampil.
+                    // Kembali ke halaman Dokumen Saya: dokumen kini On Review
+                    // (read-only) dan keputusan Setujui / Minta Revisi bisa
+                    // diambil dari tabel di sana.
                     window.hasUnsavedChanges = false;
-                    window.location.href = `/documents/${this.documentId}/edit`;
+                    window.location.href = this.documentsUrl;
                 } catch (error) {
                     console.error(error);
 
@@ -2250,29 +2211,48 @@
                 }
             },
 
-            // ADMIN: setujui dokumen On Review (tombol "Setujui") → server
-            // membuat & menyimpan berkas PDF S.O.F, status menjadi Disetujui,
-            // lalu dokumen muncul di Menu S.O.F.
+            // ADMIN: setujui dokumen On Review (tombol "Setujui") — user memilih
+            // berkas kontrak (PDF) lewat popup; berkas itu disimpan sebagai
+            // dokumen final kontrak ini dan menggantikan isi dokumen di Tabel
+            // Pelanggan (bukan diterbitkan sebagai berkas S.O.F).
             // TIDAK ada guard readOnly di sini — dokumen On Review memang
             // read-only, tapi keputusan approval harus tetap bisa diambil.
             async approveDocument() {
 
                 const konfirmasi = await Swal.fire({
                     icon: 'question',
-                    title: 'Setujui dokumen ini?',
-                    text: 'Status akan menjadi Disetujui dan berkas PDF S.O.F dibuat otomatis.',
+                    title: 'Setujui dokumen',
+                    html: '<div style="text-align:left;font-size:13px;line-height:1.7">' +
+                        '<p>Upload berkas kontrak final (PDF, maks 10 MB). Berkas ini ' +
+                        'menggantikan dokumen kontrak pelanggan dan dipakai saat Unduh PDF.</p>' +
+                        '</div>',
+                    input: 'file',
+                    inputAttributes: {
+                        accept: 'application/pdf',
+                        'aria-label': 'Pilih berkas kontrak (PDF)',
+                    },
+                    inputValidator: (file) => {
+                        if (!file) return 'Pilih berkas kontrak terlebih dahulu.';
+                        if (file.type && file.type !== 'application/pdf') {
+                            return 'Berkas kontrak harus berformat PDF.';
+                        }
+                        if (file.size > 10 * 1024 * 1024) {
+                            return 'Ukuran berkas kontrak maksimal 10 MB.';
+                        }
+                        return null;
+                    },
                     showCancelButton: true,
-                    confirmButtonText: 'Ya, setujui',
+                    confirmButtonText: 'Setujui & Upload',
                     cancelButtonText: 'Batal',
                     confirmButtonColor: '#16a34a',
                 });
 
-                if (!konfirmasi.isConfirmed) return;
+                if (!konfirmasi.isConfirmed || !konfirmasi.value) return;
 
                 try {
                     // Dokumen yang masih bisa diedit disimpan dulu supaya isi
-                    // terbaru ikut tercetak di S.O.F (intent 'draft' → status
-                    // tidak diubah di sini, langsung dilempar ke approve).
+                    // terbaru tidak hilang (intent 'draft' → status tidak
+                    // diubah di sini, langsung dilempar ke approve).
                     // Dokumen On Review (read-only) dilewati karena tidak ada
                     // perubahan yang bisa disimpan.
                     if (!this.readOnly) {
@@ -2285,18 +2265,23 @@
                         }
                     }
 
-                    await window.axios.post(`/documents/${this.documentId}/approve`);
+                    const formData = new FormData();
+                    formData.append('file', konfirmasi.value);
+
+                    await window.axios.post(`/documents/${this.documentId}/approve`, formData);
 
                     await Swal.fire({
                         icon: 'success',
                         title: 'Disetujui',
-                        text: 'Dokumen disetujui. Berkas S.O.F bisa diunduh di Menu S.O.F.',
+                        text: 'Dokumen disetujui & berkas kontrak tersimpan.',
                         timer: 1800,
                         showConfirmButton: false,
                     });
 
+                    // Kembali ke halaman Dokumen Saya: kontrak kini tampil
+                    // Disetujui dengan berkas hasil upload sebagai dokumennya.
                     window.hasUnsavedChanges = false;
-                    window.location.href = '/sof';
+                    window.location.href = this.documentsUrl;
                 } catch (error) {
                     console.error(error);
 
