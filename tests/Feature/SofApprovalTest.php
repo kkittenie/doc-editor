@@ -156,3 +156,133 @@ test('dokumen yang direvisi tidak lagi tampil di menu sof', function () {
         ->assertOk()
         ->assertDontSee('PT Uji Coba');
 });
+
+test('unduh pdf bisa dilakukan saat dokumen masih on review', function () {
+    $this->document->update(['status' => 'on_review']);
+    $this->customer->update(['status' => 'on_review']);
+
+    $response = $this->actingAs($this->user)
+        ->get(route('documents.export', $this->document))
+        ->assertOk();
+
+    expect($response->headers->get('content-type'))->toContain('application/pdf');
+});
+
+test('unduh pdf ditolak untuk user yang bukan pemilik dokumen', function () {
+    $other = User::factory()->create();
+    $other->assignRole('admin');
+
+    $this->actingAs($other)
+        ->get(route('documents.export', $this->document))
+        ->assertForbidden();
+});
+
+test('setujui dari tabel pelanggan menyetujui dokumen on review dan menerbitkan sof', function () {
+    $this->document->update(['status' => 'on_review']);
+    $this->customer->update(['status' => 'on_review']);
+
+    $this->actingAs($this->user)
+        ->post(route('documents.approve', $this->document))
+        ->assertOk()
+        ->assertJsonPath('status', 'disetujui');
+
+    $document = $this->document->refresh();
+
+    expect($document->status)->toBe('disetujui')
+        ->and($this->customer->refresh()->status)->toBe('disetujui')
+        ->and($document->hasSofPdf())->toBeTrue()
+        ->and(Storage::disk('public')->exists($document->pdf_path))->toBeTrue();
+});
+
+test('minta revisi dari tabel pelanggan mengubah on review menjadi revisi', function () {
+    $this->document->update(['status' => 'on_review']);
+    $this->customer->update(['status' => 'on_review']);
+
+    $this->actingAs($this->user)
+        ->patch(route('documents.Status', $this->document), ['status' => 'revisi'])
+        ->assertOk()
+        ->assertJsonPath('status', 'revisi');
+
+    expect($this->document->refresh()->status)->toBe('revisi')
+        ->and($this->customer->refresh()->status)->toBe('revisi');
+});
+
+test('halaman dokumen saya menampilkan tiga aksi tahap on review untuk admin', function () {
+    $this->document->update(['status' => 'on_review']);
+    $this->customer->update(['status' => 'on_review']);
+
+    $this->actingAs($this->user)
+        ->get(route('documents'))
+        ->assertOk()
+        ->assertSee('canApprove', false)
+        ->assertSee('canRequestRevision', false)
+        ->assertSee('canExportPdf', false)
+        ->assertSee('Unduh PDF')
+        ->assertSee('Setujui')
+        ->assertSee('Lihat')
+        ->assertSee('"canContinue":false', false)
+        ->assertSee('"canView":true', false);
+});
+
+test('editor menampilkan tiga aksi tahap on review meski dokumen terkunci', function () {
+    $this->document->update(['status' => 'on_review']);
+    $this->customer->update(['status' => 'on_review']);
+
+    $this->actingAs($this->user)
+        ->get(route('documents.edit', $this->document))
+        ->assertOk()
+        ->assertSee('Minta Revisi')
+        ->assertSee('Setujui')
+        ->assertSee('Unduh PDF')
+        ->assertSee(route('documents.export', $this->document), false);
+});
+
+test('selesai di editor mengirim dokumen untuk review, bukan menyetujui', function () {
+    $this->actingAs($this->user)
+        ->put(route('documents.update', $this->document), [
+            'title' => $this->document->title,
+            'header_data' => [
+                'nomorSurat' => $this->customer->contract_number,
+                'content' => '<p>Kop surat</p>',
+            ],
+            'body_content' => ['pages' => ['<p>Isi kontrak</p>']],
+            'footer_data' => ['content' => '<p>Footer</p>'],
+            'intent' => 'draft',
+        ])
+        ->assertOk()
+        ->assertJsonPath('status', 'draft');
+
+    $this->actingAs($this->user)
+        ->patch(route('documents.Status', $this->document), ['status' => 'on_review'])
+        ->assertOk()
+        ->assertJsonPath('status', 'on_review');
+
+    $document = $this->document->refresh();
+
+    expect($document->status)->toBe('on_review')
+        ->and($this->customer->refresh()->status)->toBe('on_review')
+        ->and($document->hasSofPdf())->toBeFalse()
+        ->and($document->pdf_generated_at)->toBeNull();
+});
+
+test('editor menampilkan tombol setujui saat on review', function () {
+    $this->document->update(['status' => 'on_review']);
+    $this->customer->update(['status' => 'on_review']);
+
+    $this->actingAs($this->user)
+        ->get(route('documents.edit', $this->document))
+        ->assertOk()
+        ->assertSee('Setujui')
+        ->assertSee('Minta Revisi')
+        ->assertSee('Unduh PDF');
+});
+
+test('dokumen on review bisa dibuka pemiliknya dalam mode lihat', function () {
+    $this->document->update(['status' => 'on_review']);
+    $this->customer->update(['status' => 'on_review']);
+
+    $this->actingAs($this->user)
+        ->get(route('documents.edit', $this->document))
+        ->assertOk()
+        ->assertSee($this->document->title);
+});

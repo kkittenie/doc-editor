@@ -75,8 +75,13 @@
 
                 <button type="button" @click="approveDocument()" title="Setujui dokumen &amp; terbitkan berkas S.O.F"
                     class="rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 dark:bg-green-600 dark:text-white">
-                    ✅ Selesai
+                    ✅ Setujui
                 </button>
+                {{-- Unduh PDF: render dari isi terkini, tanpa mengubah status. --}}
+                <a href="{{ route('documents.export', $document) }}" target="_blank"
+                    class="rounded-xl border border-parchment-300 bg-white px-5 py-2.5 text-sm font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:bg-transparent dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900">
+                    ⬇️ Unduh PDF
+                </a>
                 @endif
 
                 @unless($readOnly ?? false)
@@ -86,10 +91,10 @@
                 </button>
 
                 @if(in_array($document->status, ['draft', 'on_progress', 'revisi'], true))
-                {{-- Selesai: setujui dokumen & terbitkan berkas S.O.F langsung,
-                     tanpa wajib melewati tahap review. Isi terbaru otomatis
-                     disimpan dulu oleh approveDocument(). --}}
-                <button type="button" @click="approveDocument()" title="Setujui dokumen &amp; terbitkan berkas S.O.F"
+                {{-- Selesai: simpan isi terbaru lalu kirim dokumen untuk review.
+                     Status naik ke On Review (bukan langsung Disetujui) dan
+                     editor berikutnya terbuka dalam mode Lihat (read-only). --}}
+                <button type="button" @click="submitForReview()" title="Selesai &amp; kirim untuk review"
                     class="rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 dark:bg-green-600 dark:text-white">
                     ✅ Selesai
                 </button>
@@ -2186,21 +2191,78 @@
                 }
             },
 
-            // ADMIN: selesaikan dokumen (tombol "Selesai" / Selesai-Setujui) → server
+            // ADMIN: kirim dokumen untuk review (tombol "Selesai" di tahap
+            // draft/on_progress/revisi). Isi disimpan dulu, lalu status naik
+            // ke On Review dan editor dimuat ulang dalam mode Lihat (read-only).
+            async submitForReview() {
+
+                const konfirmasi = await Swal.fire({
+                    icon: 'question',
+                    title: 'Selesaikan & kirim untuk review?',
+                    text: 'Dokumen dikunci (read-only) dan menunggu keputusan Setujui / Minta Revisi.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, kirim',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#2563eb',
+                });
+
+                if (!konfirmasi.isConfirmed) return;
+
+                try {
+                    // Simpan isi terbaru dulu — intent 'draft' agar status tidak
+                    // melompat ke On Progress sebelum PATCH di bawah.
+                    if (!this.readOnly) {
+                        await this.saveDocument('draft');
+
+                        // Batalkan pengiriman kalau penyimpanan gagal, supaya
+                        // status tidak berubah sementara isi belum tersimpan.
+                        if (this.saveStatus === 'error') {
+                            throw new Error('save-failed');
+                        }
+                    }
+
+                    await window.axios.patch(`/documents/${this.documentId}/status`, {
+                        status: 'on_review',
+                    });
+
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Terkirim untuk review',
+                        text: 'Dokumen menunggu keputusan Setujui atau Minta Revisi.',
+                        timer: 1600,
+                        showConfirmButton: false,
+                    });
+
+                    // Muat ulang editor supaya mode baca aktif dan tombol
+                    // keputusan review tampil.
+                    window.hasUnsavedChanges = false;
+                    window.location.href = `/documents/${this.documentId}/edit`;
+                } catch (error) {
+                    console.error(error);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: error instanceof Error && error.message === 'save-failed'
+                            ? 'Dokumen gagal disimpan, pengiriman review dibatalkan.'
+                            : this.serverMessage(error, 'Dokumen gagal dikirim untuk review.'),
+                    });
+                }
+            },
+
+            // ADMIN: setujui dokumen On Review (tombol "Setujui") → server
             // membuat & menyimpan berkas PDF S.O.F, status menjadi Disetujui,
             // lalu dokumen muncul di Menu S.O.F.
-            // Bisa ditekan dari tahap mana pun sebelum final (draft, on_progress,
-            // on_review, revisi). TIDAK ada guard readOnly di sini — dokumen On
-            // Review memang read-only, tapi keputusan approval harus tetap bisa
-            // diambil.
+            // TIDAK ada guard readOnly di sini — dokumen On Review memang
+            // read-only, tapi keputusan approval harus tetap bisa diambil.
             async approveDocument() {
 
                 const konfirmasi = await Swal.fire({
                     icon: 'question',
-                    title: 'Selesaikan & setujui dokumen ini?',
+                    title: 'Setujui dokumen ini?',
                     text: 'Status akan menjadi Disetujui dan berkas PDF S.O.F dibuat otomatis.',
                     showCancelButton: true,
-                    confirmButtonText: 'Ya, selesaikan',
+                    confirmButtonText: 'Ya, setujui',
                     cancelButtonText: 'Batal',
                     confirmButtonColor: '#16a34a',
                 });

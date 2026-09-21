@@ -3,7 +3,11 @@
 @section('content')
 
 @php
-    $customerData = $customers->map(function ($customer) {
+    // Hanya admin yang boleh menyetujui / meminta revisi / mengunduh PDF:
+    // endpoint terkait memakai guard role:admin + kepemilikan dokumen.
+    $isAdmin = auth()->user()->hasRole('admin');
+
+    $customerData = $customers->map(function ($customer) use ($isAdmin) {
         $status = strtolower($customer->status ?? 'draft');
 
         return [
@@ -41,6 +45,31 @@
             'reviseUrl' => $customer->documents->first()
                 ? route('documents.revise', $customer->documents->first()->id)
                 : null,
+
+            // Lanjut tidak dipakai saat dokumen menunggu keputusan review -
+            // aksi yang benar adalah Setujui, dan isi dibaca lewat tombol Lihat.
+            'canContinue' => $customer->documents->first()?->status !== 'on_review',
+            'canView' => $isAdmin && $customer->documents->first() !== null,
+            'viewUrl' => $customer->documents->first()
+                ? route('documents.edit', $customer->documents->first()->id)
+                : null,
+
+            // Aksi tahap On Review: Setujui (terbitkan S.O.F), Minta Revisi,
+            // dan Unduh PDF. Semua hanya untuk admin pemilik dokumen karena
+            // endpoint-nya memakai guard role:admin.
+            'canApprove' => $isAdmin && $customer->documents->first()?->status === 'on_review',
+            'canRequestRevision' => $isAdmin && $customer->documents->first()?->status === 'on_review',
+            'canExportPdf' => $isAdmin && $customer->documents->first() !== null,
+            'approveUrl' => $customer->documents->first()
+                ? route('documents.approve', $customer->documents->first()->id)
+                : null,
+            'statusUrl' => $customer->documents->first()
+                ? route('documents.Status', $customer->documents->first()->id)
+                : null,
+            'exportUrl' => $customer->documents->first()
+                ? route('documents.export', $customer->documents->first()->id)
+                : null,
+
         ];
     })->toArray();
 @endphp
@@ -197,6 +226,87 @@
                         icon: 'error',
                         title: 'Gagal',
                         text: error?.response?.data?.message || 'Dokumen gagal direvisi.',
+                        confirmButtonColor: '#1B2A4A',
+                    });
+                }
+            },
+
+            // Setujui dokumen On Review: berkas PDF S.O.F ikut terbit dan
+            // dokumen muncul di Menu S.O.F.
+            async approveCustomer(customer) {
+                const result = await Swal.fire({
+                    icon: 'question',
+                    title: 'Selesaikan & setujui dokumen ini?',
+                    text: 'Status menjadi Disetujui dan berkas PDF S.O.F dibuat otomatis.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, selesaikan',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#16a34a',
+                });
+
+                if (!result.isConfirmed) return;
+
+                try {
+                    await window.axios.post(customer.approveUrl);
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Disetujui',
+                        text: 'Dokumen disetujui. Berkas S.O.F bisa diunduh di Menu S.O.F.',
+                        confirmButtonColor: '#1B2A4A',
+                        timer: 1800,
+                        showConfirmButton: false,
+                    });
+
+                    // Muat ulang supaya badge status + kartu ringkasan terbarui.
+                    setTimeout(() => window.location.reload(), 1200);
+                } catch (error) {
+                    console.error(error);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: error?.response?.data?.message || 'Dokumen gagal disetujui.',
+                        confirmButtonColor: '#1B2A4A',
+                    });
+                }
+            },
+
+            // Minta revisi: dokumen On Review dikembalikan ke status Revisi
+            // supaya bisa diperbaiki lagi di Studio Editor.
+            async requestRevision(customer) {
+                const result = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Minta revisi?',
+                    text: 'Dokumen akan dikembalikan ke status Revisi agar dapat diperbaiki.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, minta revisi',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#ea580c',
+                });
+
+                if (!result.isConfirmed) return;
+
+                try {
+                    await window.axios.patch(customer.statusUrl, { status: 'revisi' });
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Revisi diminta',
+                        text: 'Dokumen kembali ke status Revisi.',
+                        confirmButtonColor: '#1B2A4A',
+                        timer: 1600,
+                        showConfirmButton: false,
+                    });
+
+                    setTimeout(() => window.location.reload(), 1200);
+                } catch (error) {
+                    console.error(error);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: error?.response?.data?.message || 'Tidak dapat meminta revisi dokumen.',
                         confirmButtonColor: '#1B2A4A',
                     });
                 }
@@ -627,7 +737,10 @@
 
                             <td class="whitespace-nowrap px-4 py-3.5">
                                 <div class="flex items-center gap-2">
-                                    {{-- Lanjut → pilih template (konteks pelanggan) --}}
+                                    {{-- Lanjut → pilih template (konteks pelanggan).
+                                         Tidak dipakai saat dokumen On Review: aksi
+                                         yang benar adalah Setujui, isi dibaca lewat Lihat. --}}
+                                    <template x-if="customer.canContinue">
                                     <a :href="customer.createUrl"
                                         class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900">
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
@@ -638,9 +751,71 @@
 
                                         Lanjut
                                     </a>
+                                    </template>
 
-                                    {{-- Revisi — keluarkan kontrak yang sudah disetujui dari S.O.F
-                                         & kembalikan statusnya ke On Progress --}}
+                                    {{-- Lihat: buka dokumen On Review dalam mode
+                                         Lihat (read-only) supaya reviewer bisa membaca
+                                         isinya sebelum memutuskan Setujui / Revisi. --}}
+                                    <template x-if="customer.canView">
+                                        <a :href="customer.viewUrl"
+                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900"
+                                            title="Lihat dokumen (read-only)">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                                <circle cx="12" cy="12" r="3" />
+                                            </svg>
+
+                                            Lihat
+                                        </a>
+                                    </template>
+
+                                    {{-- Setujui: dokumen On Review disetujui & berkas S.O.F terbit. --}}
+                                    <template x-if="customer.canApprove">
+                                        <button type="button" @click="approveCustomer(customer)"
+                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-green-500 bg-green-600 px-2.5 text-[11px] font-semibold text-white transition hover:bg-green-700 dark:border-green-500/60 dark:bg-green-600 dark:hover:bg-green-500"
+                                            title="Setujui dokumen &amp; terbitkan berkas S.O.F">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path d="m20 6-11 11-5-5" />
+                                            </svg>
+
+                                            Setujui
+                                        </button>
+                                    </template>
+
+                                    {{-- Minta revisi: dokumen On Review kembali ke status Revisi. --}}
+                                    <template x-if="customer.canRequestRevision">
+                                        <button type="button" @click="requestRevision(customer)"
+                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-orange-400 bg-white px-2.5 text-[11px] font-semibold text-orange-700 transition hover:bg-orange-50 dark:border-orange-500/60 dark:bg-transparent dark:text-orange-300 dark:hover:bg-orange-500/10"
+                                            title="Kembalikan dokumen ke status Revisi">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path d="M12 20h9" />
+                                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                                            </svg>
+
+                                            Revisi
+                                        </button>
+                                    </template>
+
+                                    {{-- Unduh PDF: render dari isi terkini, status tidak berubah. --}}
+                                    <template x-if="customer.canExportPdf">
+                                        <a :href="customer.exportUrl" target="_blank"
+                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900"
+                                            title="Unduh berkas PDF dokumen">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                <polyline points="7 10 12 15 17 10" />
+                                                <line x1="12" y1="15" x2="12" y2="3" />
+                                            </svg>
+
+                                            Unduh PDF
+                                        </a>
+                                    </template>
+
+                                    {{-- Revisi: keluarkan kontrak disetujui dari S.O.F & kembalikan ke On Progress --}}
                                     <template x-if="customer.canRevise">
                                         <button type="button" @click="reviseCustomer(customer)"
                                             class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-orange-400 bg-white px-2.5 text-[11px] font-semibold text-orange-700 transition hover:bg-orange-50 dark:border-orange-500/60 dark:bg-transparent dark:text-orange-300 dark:hover:bg-orange-500/10"

@@ -13,11 +13,6 @@ class MenuHelper
                 'path' => '/dashboard',
             ],
             [
-                'icon' => 'editor',
-                'name' => 'Studio Editor',
-                'path' => '/',
-            ],
-            [
                 'icon' => 'documents',
                 'name' => 'Dokumen Saya',
                 'path' => '/documents',
