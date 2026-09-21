@@ -10,6 +10,12 @@
     $customerData = $customers->map(function ($customer) use ($isAdmin) {
         $status = strtolower($customer->status ?? 'draft');
 
+        // "Terakhir diubah" = dokumen terbaru yang diubah (max updated_at) -
+        // bukan updated_at pelanggan, supaya Save di editor selalu tercermin
+        // meski status tidak ikut berubah. Fallback ke updated_at pelanggan
+        // untuk baris yang belum punya dokumen.
+        $lastDocumentUpdate = $customer->documents->max('updated_at') ?? $customer->updated_at;
+
         return [
             'id' => 'PLG-' . str_pad($customer->id, 5, '0', STR_PAD_LEFT),
             'databaseId' => $customer->id,
@@ -29,7 +35,7 @@
             'barangCount' => $customer->barang_count ?? 0,
             'serviceCount' => $customer->services_count ?? 0,
             'status' => $status,
-            'statusUpdated' => $customer->updated_at ? $customer->updated_at->format('d M Y H:i') : null,
+            'statusUpdated' => $lastDocumentUpdate ? $lastDocumentUpdate->format('d M Y H:i') : null,
             'statusLabel' => $customer->statusLabel(),
             // Lanjut langsung ke halaman pilih template (tanpa pilihan upload/baru).
             'createUrl' => route('documents.create', $customer->id),
@@ -46,9 +52,10 @@
                 ? route('documents.revise', $customer->documents->first()->id)
                 : null,
 
-            // Lanjut tidak dipakai saat dokumen menunggu keputusan review -
-            // aksi yang benar adalah Setujui, dan isi dibaca lewat tombol Lihat.
-            'canContinue' => $customer->documents->first()?->status !== 'on_review',
+            // Lanjut tidak dipakai saat dokumen menunggu keputusan review (On Review)
+            // maupun sudah final (Disetujui) - dokumen final hanya dibaca lewat
+            // Lihat / diunduh lewat Unduh PDF; pengeditan lewat Revisi.
+            'canContinue' => ! in_array($customer->documents->first()?->status, ['on_review', 'disetujui'], true),
             'canView' => $isAdmin && $customer->documents->first() !== null,
             'viewUrl' => $customer->documents->first()
                 ? route('documents.edit', $customer->documents->first()->id)
@@ -236,10 +243,10 @@
             async approveCustomer(customer) {
                 const result = await Swal.fire({
                     icon: 'question',
-                    title: 'Selesaikan & setujui dokumen ini?',
-                    text: 'Status menjadi Disetujui dan berkas PDF S.O.F dibuat otomatis.',
+                    title: 'Apakah kamu sudah yakin?',
+                    text: 'Dokumen akan disetujui dan berkas S.O.F di-upload ke Menu S.O.F.',
                     showCancelButton: true,
-                    confirmButtonText: 'Ya, selesaikan',
+                    confirmButtonText: 'Setuju & Upload',
                     cancelButtonText: 'Batal',
                     confirmButtonColor: '#16a34a',
                 });
@@ -247,12 +254,15 @@
                 if (!result.isConfirmed) return;
 
                 try {
-                    await window.axios.post(customer.approveUrl);
+                    const { data } = await window.axios.post(customer.approveUrl);
 
                     Swal.fire({
                         icon: 'success',
                         title: 'Disetujui',
-                        text: 'Dokumen disetujui. Berkas S.O.F bisa diunduh di Menu S.O.F.',
+                        html: 'Dokumen disetujui. Berkas S.O.F sudah ter-upload ke Menu S.O.F.' +
+                            (data?.downloadUrl
+                                ? ' <a href="' + data.downloadUrl + '" style="color:#1B2A4A;font-weight:600;text-decoration:underline;">Unduh S.O.F</a>'
+                                : ''),
                         confirmButtonColor: '#1B2A4A',
                         timer: 1800,
                         showConfirmButton: false,
@@ -738,8 +748,10 @@
                             <td class="whitespace-nowrap px-4 py-3.5">
                                 <div class="flex items-center gap-2">
                                     {{-- Lanjut → pilih template (konteks pelanggan).
-                                         Tidak dipakai saat dokumen On Review: aksi
-                                         yang benar adalah Setujui, isi dibaca lewat Lihat. --}}
+                                         Tidak dipakai saat dokumen On Review maupun
+                                         Disetujui: aksi yang benar adalah Setujui
+                                         (review) / Revisi (final), isi dibaca
+                                         lewat Lihat. --}}
                                     <template x-if="customer.canContinue">
                                     <a :href="customer.createUrl"
                                         class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900">

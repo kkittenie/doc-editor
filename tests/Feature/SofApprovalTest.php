@@ -286,3 +286,83 @@ test('dokumen on review bisa dibuka pemiliknya dalam mode lihat', function () {
         ->assertOk()
         ->assertSee($this->document->title);
 });
+
+test('tabel pelanggan menyembunyikan lanjut saat dokumen disetujui', function () {
+    $this->document->update(['status' => 'disetujui']);
+    $this->customer->update(['status' => 'disetujui']);
+
+    $this->actingAs($this->user)
+        ->get(route('documents'))
+        ->assertOk()
+        ->assertSee('"canContinue":false', false)
+        ->assertSee('Lihat')
+        ->assertSee('Revisi')
+        ->assertSee('Unduh PDF');
+});
+
+test('tabel pelanggan tetap menampilkan lanjut saat dokumen draft', function () {
+    $this->actingAs($this->user)
+        ->get(route('documents'))
+        ->assertOk()
+        ->assertSee('"canContinue":true', false);
+});
+
+test('tanggal update mengikuti perubahan dokumen walau status tidak berubah', function () {
+    $this->document->update(['status' => 'on_review']);
+    $this->customer->update(['status' => 'on_review']);
+
+    // Save saat status On Review: dokumen berubah, pelanggan tidak tersentuh.
+    $this->actingAs($this->user)
+        ->put(route('documents.update', $this->document), [
+            'title' => $this->document->title,
+            'header_data' => [
+                'nomorSurat' => $this->customer->contract_number,
+                'content' => '<p>Kop surat</p>',
+            ],
+            'body_content' => ['pages' => ['<p>Isi kontrak diperbarui</p>']],
+            'footer_data' => ['content' => '<p>Footer</p>'],
+        ])
+        ->assertOk();
+
+    $document = $this->document->refresh();
+
+    expect($document->status)->toBe('on_review');
+
+    $this->actingAs($this->user)
+        ->get(route('documents'))
+        ->assertOk()
+        ->assertSee($document->updated_at->format('d M Y H:i'), false);
+});
+
+test('tanggal update fallback ke pelanggan saat belum ada dokumen', function () {
+    // Lepas tautan dokumen supaya pelanggan tidak punya dokumen.
+    $this->document->update(['customer_id' => null]);
+
+    $this->actingAs($this->user)
+        ->get(route('documents'))
+        ->assertOk()
+        ->assertSee($this->customer->refresh()->updated_at->format('d M Y H:i'), false);
+});
+
+test('setujui dari tabel sekaligus meng-upload sof yang bisa diunduh', function () {
+    $this->document->update(['status' => 'on_review']);
+    $this->customer->update(['status' => 'on_review']);
+
+    $response = $this->actingAs($this->user)
+        ->post(route('documents.approve', $this->document))
+        ->assertOk()
+        ->assertJsonPath('status', 'disetujui');
+
+    $downloadUrl = $response->json('downloadUrl');
+
+    expect($downloadUrl)->not->toBeNull();
+
+    $document = $this->document->refresh();
+
+    expect(Storage::disk('public')->exists($document->pdf_path))->toBeTrue();
+
+    // Berkas S.O.F hasil satu klik Setujui langsung bisa diunduh.
+    $this->actingAs($this->user)
+        ->get(route('sof.download', $this->customer))
+        ->assertOk();
+});
