@@ -68,14 +68,18 @@
                 const res = await window.axios.get('/documents/template/' + key);
                 const t = res.data;
 
+                // Nama & Nomor Kontrak milik user dipertahankan selama kolomnya
+                // tidak kosong — template hanya mengisi fallback saat kosong,
+                // supaya ketikan user tidak tertimpa placeholder template
+                // seperti '[Nomor Perjanjian]'.
                 if (t.title) {
                     const titleInput = document.getElementById('header-judul');
-                    if (titleInput) titleInput.value = t.title;
+                    if (titleInput && titleInput.value.trim() === '') titleInput.value = t.title;
                 }
 
                 if (t.header_data?.nomorSurat) {
                     const nomorInput = document.getElementById('header-nomor');
-                    if (nomorInput) nomorInput.value = t.header_data.nomorSurat;
+                    if (nomorInput && nomorInput.value.trim() === '') nomorInput.value = t.header_data.nomorSurat;
                 }
 
                 if (t.body_html) {
@@ -100,9 +104,9 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Template dimuat',
-                    text: 'Judul, nomor, ikon, isi, & footer dokumen sudah diisi otomatis.',
+                    text: 'Isi, ikon, & footer dimuat. Nama & nomor kontrak Anda dipertahankan.',
                     confirmButtonColor: '#1B2A4A',
-                    timer: 1200,
+                    timer: 1500,
                     showConfirmButton: false,
                 });
 
