@@ -26,9 +26,16 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/documents', [CustomerController::class, 'index'])->name('documents');
 
-    // Menu S.O.F — repositori berkas PDF dari kontrak yang sudah disetujui.
+        // Menu S.O.F — repositori berkas Order Formulir (entitas mandiri, CRUD + upload).
     Route::get('/sof', [SofController::class, 'index'])->name('sof.index');
-    Route::get('/sof/{customer}/download', [SofController::class, 'download'])->name('sof.download');
+    Route::get('/sof/create', [SofController::class, 'create'])->name('sof.create');
+    Route::post('/sof', [SofController::class, 'store'])->name('sof.store');
+    Route::post('/sof/upload', [SofController::class, 'uploadFile'])->name('sof.upload');
+    Route::get('/sof/{sof}', [SofController::class, 'show'])->name('sof.show');
+    Route::get('/sof/{sof}/edit', [SofController::class, 'edit'])->name('sof.edit');
+    Route::put('/sof/{sof}', [SofController::class, 'update'])->name('sof.update');
+    Route::delete('/sof/{sof}', [SofController::class, 'destroy'])->name('sof.destroy');
+    Route::get('/sof/{sof}/download', [SofController::class, 'download'])->name('sof.download');
     Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
 
