@@ -312,7 +312,8 @@
         <div class="mx-auto w-full max-w-[794px]">
 
             {{-- SATU EDITOR UNTUK SEMUA KERTAS --}}
-            <div id="document-editor" class="document-editor-canvas"></div>
+            <div id="document-editor"
+                class="document-editor-canvas @if($document->body_content['contractTemplate'] ?? false) contract-template-canvas @endif"></div>
 
             @unless($readOnly ?? false)
             {{-- TAMBAH HALAMAN --}}
@@ -1154,6 +1155,82 @@
 
     .doc-sheet .ql-editor p {
         margin: 0 0 10px 0;
+    }
+
+    /* Lima template kontrak resmi: mengikuti kertas sumber A4 (Times New
+       Roman, hitam, margin Word formal, dan ritme rapat). Di-scope ke marker
+       template agar tampilan dokumen umum tidak ikut berubah. */
+    .contract-template-canvas .doc-sheet {
+        padding: 19mm 21mm;
+        font-family: "Times New Roman", Times, serif;
+        font-size: 12pt;
+        line-height: 1.15;
+        color: #000;
+    }
+
+    .contract-template-canvas .doc-sheet-header {
+        min-height: 0;
+        padding-bottom: 4mm;
+        border-bottom: 1px solid #000;
+    }
+
+    .contract-template-canvas .doc-sheet-footer {
+        min-height: 0;
+        padding-top: 4mm;
+    }
+
+    .contract-template-canvas .doc-sheet .ql-container,
+    .contract-template-canvas .doc-sheet .ql-editor {
+        font-family: "Times New Roman", Times, serif;
+        font-size: 12pt;
+        line-height: 1.15;
+        color: #000;
+    }
+
+    .contract-template-canvas .doc-sheet .ql-editor p {
+        margin: 0 0 4pt;
+        text-align: justify;
+    }
+
+    .contract-template-canvas .doc-sheet .ql-editor p[style*="text-align:center"] {
+        text-align: center;
+    }
+
+    .contract-template-canvas .doc-sheet .ql-editor ol,
+    .contract-template-canvas .doc-sheet .ql-editor ul {
+        margin: 0 0 4pt;
+        padding-left: 7mm;
+    }
+
+    .contract-template-canvas .doc-sheet .ql-editor li {
+        margin-bottom: 2pt;
+        padding-left: 1.5mm;
+        text-align: justify;
+    }
+
+    .contract-template-canvas .doc-sheet .ql-editor table {
+        margin: 5pt 0;
+    }
+
+    .contract-template-canvas .doc-sheet .ql-editor table td,
+    .contract-template-canvas .doc-sheet .ql-editor table th {
+        min-width: 0;
+        height: auto;
+        border: 1px solid #000 !important;
+        padding: 3pt 4pt !important;
+        font-family: "Times New Roman", Times, serif;
+        font-size: 10pt;
+        line-height: 1.12;
+        color: #000;
+    }
+
+    .contract-template-canvas .doc-sheet .ql-editor table th {
+        background: transparent;
+    }
+
+    .contract-template-canvas .doc-sheet .ql-editor table.contract-table-unstyled td,
+    .contract-template-canvas .doc-sheet .ql-editor table.contract-table-unstyled th {
+        border: none !important;
     }
 
     /*
@@ -2401,7 +2478,9 @@
                         content: headerContent,
                     },
                     body_content: {
-                        pages: pagesHtml
+                        pages: pagesHtml,
+                        coverPages: this.coverPages,
+                        contractTemplate: @js($document -> body_content['contractTemplate'] ?? false),
                     },
                     footer_data: {
                         content: footerContent,
@@ -2445,7 +2524,9 @@
                         content: headerRegion ? window.DocQuill.getHtml(headerRegion) : (this.headerHtml || ''),
                     },
                     body_content: {
-                        pages: pagesHtml
+                        pages: pagesHtml,
+                        coverPages: this.coverPages,
+                        contractTemplate: @js($document -> body_content['contractTemplate'] ?? false),
                     },
                     footer_data: {
                         content: footerRegion

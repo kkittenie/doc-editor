@@ -2089,7 +2089,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                 'source_layout' => [
                     'page_count' => 18,
                     'paper' => 'A4',
-                    'source' => 'DOCX sumber',
+                    'source' => 'PDF sumber',
                     'cover_page' => 1,
                     'appendix_pages' => [
                         15,
@@ -3229,7 +3229,7 @@ Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjala
                 'source_layout' => [
                     'page_count' => 19,
                     'paper' => 'A4',
-                    'source' => 'DOCX sumber',
+                    'source' => 'PDF sumber',
                     'cover_page' => 1,
                     'appendix_pages' => [
                         18,
@@ -4141,7 +4141,7 @@ Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, ma
                 'source_layout' => [
                     'page_count' => 11,
                     'paper' => 'A4',
-                    'source' => 'DOCX sumber',
+                    'source' => 'PDF sumber',
                     'cover_page' => 1,
                     'appendix_pages' => [
                         10,
@@ -4931,7 +4931,7 @@ Manager Area Bandung',
                 'source_layout' => [
                     'page_count' => 10,
                     'paper' => 'A4',
-                    'source' => 'DOCX sumber',
+                    'source' => 'PDF sumber',
                     'cover_page' => 1,
                     'appendix_pages' => [
                         10,
@@ -5978,7 +5978,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                 'source_layout' => [
                     'page_count' => 13,
                     'paper' => 'A4',
-                    'source' => 'DOCX sumber',
+                    'source' => 'PDF sumber',
                     'cover_page' => 1,
                     'appendix_pages' => [
                         12,

@@ -4,6 +4,29 @@ import QuillTableBetter, { ToolbarTable } from 'quill-table-better';
 import 'quill-table-better/dist/quill-table-better.css';
 
 QuillTableBetter.register();
+// ---- Guard: blot tabel (core & table-better) adalah Container TANPA
+// formats(); saat HTML berisi struktur tabel tak didukung (tabel di dalam
+// sel / campuran blot core+table-better) optimize() pihak ketiga memanggil
+// child.formats() -> "i.formats is not a function" dan SELURUH region gagal
+// dipasang (error berulang tiap paginasi/mirror). Wrapper ini membuat
+// optimize tahan-gagal agar editor tetap hidup.
+const __guardBlotOptimize = (blotName) => {
+    const BlotClass = Quill.import(blotName);
+    if (!BlotClass || !BlotClass.prototype || typeof BlotClass.prototype.optimize !== 'function') return;
+    if (BlotClass.prototype.__docQuillGuard) return;
+    const __originalOptimize = BlotClass.prototype.optimize;
+    BlotClass.prototype.optimize = function (context) {
+        try {
+            return __originalOptimize.call(this, context);
+        } catch (err) {
+            return undefined; // struktur blot campuran - jangan matikan editor
+        }
+    };
+    BlotClass.prototype.__docQuillGuard = true;
+};
+['formats/table-cell', 'formats/table-th', 'formats/table-row', 'formats/table',
+ 'formats/table-container', 'formats/table-body', 'formats/list-container']
+    .forEach(__guardBlotOptimize);
 
 const noop = () => {};
 const tableBetterStub = {
@@ -2440,6 +2463,35 @@ const attachQuillToRegion = (regionEl) => {
             }
             return delta;
         });
+
+        // Pra-cek: struktur tabel yang TIDAK didukung (tabel di dalam sel)
+        // atau HTML ZONA ber-tabel (header/footer dokumen kontrak) membentuk
+        // blot campuran -> optimize() melempar "formats is not a function".
+        // Zona memang non-editable (cermin): simpan HTML apa adanya, pakai
+        // paginasi DOM.
+        {
+            const __role = regionEl.dataset ? regionEl.dataset.region : null;
+            const __nestedTable = /<(?:td|th)\b[^>]*>[\s\S]*?<table/i.test(existingHtml);
+            const __zoneWithTable = (__role === 'header' || __role === 'footer')
+                && /<table/i.test(existingHtml);
+            if (existingHtml.trim() && (__nestedTable || __zoneWithTable)) {
+                try { q.disable && q.disable(); } catch (err) { /* noop */ }
+                try { q.off && q.off('text-change'); } catch (err) { /* noop */ }
+                try { q.off && q.off('selection-change'); } catch (err) { /* noop */ }
+                quillsByRegion.delete(regionEl);
+                regionEl.dataset.quillReady = '';
+                regionEl.innerHTML = existingHtml;
+                regionEl.setAttribute('contenteditable', 'true');
+                regionEl.classList.add('ql-editor');
+                if (__role === 'body') {
+                    regionEl.dataset.domFlow = '1';
+                    bindDomPageOverflowWatch(regionEl);
+                } else {
+                    console.info('[DocQuill] Zona ber-tabel disimpan sebagai HTML asli (mode cermin).');
+                }
+                return null;
+            }
+        }
 
         if (existingHtml.trim()) {
     

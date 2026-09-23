@@ -267,6 +267,55 @@ test('save di editor mengubah status dokumen dan pelanggan menjadi on progress',
         ->and($this->customer->refresh()->status)->toBe('on_progress');
 });
 
+test('template kontrak memakai halaman pertama sumber tanpa sampul placeholder', function () {
+    seedContractCustomer($this->customer);
+
+    $this->actingAs($this->user)
+        ->post(route('documents.store'), contractPayload($this->customer, [
+            'template' => 'kontrak-colocation',
+        ]))
+        ->assertRedirect();
+
+    $document = Document::firstOrFail();
+
+    expect($document->body_content['contractTemplate'])->toBeTrue()
+        ->and($document->body_content['coverPages'])->toBe(0)
+        ->and($document->body_content['pages'])->toHaveCount(1)
+        ->and($document->body_content['pages'][0])->toContain('PERJANJIAN BERLANGGANAN')
+        ->and($document->body_content['pages'][0])->toContain('JASA COLOCATION')
+        ->and($document->header_data['content'])->toContain('Paraf PIHAK PERTAMA')
+        ->and($document->header_data['content'])->toContain('info@fibertrust.id')
+        ->and($document->header_data['content'])->not->toContain('[ Foto / Ikon Pihak Pertama ]');
+});
+
+test('dokumen template lama dengan sampul placeholder dirapikan saat dibuka', function () {
+    seedContractCustomer($this->customer);
+
+    $this->actingAs($this->user)
+        ->post(route('documents.store'), contractPayload($this->customer, [
+            'template' => 'kontrak-colocation',
+        ]));
+
+    $document = Document::firstOrFail();
+    $content = $document->body_content;
+    $content['pages'] = [
+        '<p>[Ketik nama pihak pertama di sini]</p><p>[Ketik nama pihak kedua di sini]</p>',
+        $content['pages'][0],
+    ];
+    $content['coverPages'] = 1;
+    $document->update(['body_content' => $content]);
+
+    $this->actingAs($this->user)
+        ->get(route('documents.edit', $document))
+        ->assertOk();
+
+    $document->refresh();
+    expect($document->body_content['coverPages'])->toBe(0)
+        ->and($document->body_content['pages'])->toHaveCount(1)
+        ->and($document->body_content['templateKey'])->toBe('kontrak-colocation')
+        ->and($document->header_data['content'])->toContain('Paraf PIHAK KEDUA');
+});
+
 test('status on progress tidak diturunkan saat dokumen disimpan ulang', function () {
     seedContractCustomer($this->customer);
 

@@ -230,10 +230,67 @@
         .nip-ttd {
             font-size: 9px;
         }
+
+        /* Presentasi khusus lima template kontrak resmi. Tidak diterapkan
+           kepada dokumen bebas, surat, maupun S.O.F. */
+        .contract-document {
+            font-family: 'Times-Roman', 'DejaVu Serif', serif;
+            font-size: 12px;
+            line-height: 1.15;
+            color: #000;
+        }
+
+        .contract-document .header-table {
+            border-bottom: 1px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+        }
+
+        .contract-document .body-content {
+            font-size: 12px;
+            line-height: 1.15;
+            margin-top: 0;
+        }
+
+        .contract-document .body-content p {
+            margin: 0 0 4px;
+            text-align: justify;
+        }
+
+        .contract-document .body-content p[style*="text-align:center"] {
+            text-align: center;
+        }
+
+        .contract-document .body-content ol,
+        .contract-document .body-content ul {
+            margin: 0 0 4px 20px;
+        }
+
+        .contract-document .body-content li {
+            margin-bottom: 2px;
+            text-align: justify;
+        }
+
+        .contract-document .body-content table {
+            margin: 5px 0;
+        }
+
+        .contract-document .body-content table td,
+        .contract-document .body-content table th {
+            border: 1px solid #000;
+            padding: 3px 4px;
+            font-size: 10px;
+            line-height: 1.12;
+        }
+
+        .contract-document .body-content table.contract-table-unstyled td,
+        .contract-document .body-content table.contract-table-unstyled th {
+            border: none;
+        }
     </style>
 </head>
 
-<body>
+<body class="@if($document->body_content['contractTemplate'] ?? false) contract-document @endif">
 
         <div class="header-table">
             {!! $headerHtml ?? '' !!}

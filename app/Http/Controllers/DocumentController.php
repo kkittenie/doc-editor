@@ -109,7 +109,7 @@ class DocumentController extends Controller
         return ['one_time' => $oneTime, 'monthly' => $monthly];
     }
 
-        public function edit(Document $document)
+    public function edit(Document $document)
     {
         $user = Auth::user();
 
@@ -123,6 +123,8 @@ class DocumentController extends Controller
             && $document->user_id === $user->id;
 
         abort_unless($canView, 403);
+
+        $this->repairLegacyContractTemplateLayout($document);
 
         return view('pages.editor', [
             'title' => ($canEdit ? 'Edit: ' : 'Lihat: ') . $document->title,
@@ -175,11 +177,22 @@ class DocumentController extends Controller
                 ?? $this->buildTemplateBodyHtml($template['body_content'] ?? [], $useCenter);
         }
 
-        $bodyHtml = $this->normalizePasalNumbering([$bodyHtml])[0];
+                $bodyHtml = $this->normalizePasalNumbering([$bodyHtml])[0];
 
+        // Isi placeholder body template dengan data nyata (kontrak & pelanggan).
+        $bodyHtml = $this->applyTemplateReplacements($bodyHtml, $customer, $nomorSurat);
+
+        $isContractTemplate = \App\Data\ContractTemplates::find((string) $templateKey) !== null;
         $coverPages = 0;
 
-        if ($templateKey && in_array($templateKey, $this->coverTemplateKeys(), true)) {
+        // Lima kontrak sumber sudah memiliki halaman pertama lengkap (kop,
+        // judul, pihak, dan nomor). Jangan tambahkan sampul placeholder baru
+        // karena itu menggeser seluruh tata letak dan menggandakan judul.
+        if ($isContractTemplate) {
+            $headerContent = $this->buildContractLetterheadHtml((string) $templateKey);
+            $footerContent = '';
+            $pages = [$bodyHtml];
+        } elseif ($templateKey && in_array($templateKey, $this->coverTemplateKeys(), true)) {
             $headerContent = $this->buildCoverHeaderHtml();
             $footerContent = $this->buildCoverFooterHtml();
             $pages = [$this->buildCoverPageHtml($title, $nomorSurat), $bodyHtml];
@@ -200,6 +213,10 @@ class DocumentController extends Controller
             'body_content' => [
                 'pages' => $pages,
                 'coverPages' => $coverPages,
+                // Penanda presentasi: hanya lima template kontrak resmi yang
+                // memakai gaya kertas kontrak (bukan dokumen umum di editor).
+                'contractTemplate' => $isContractTemplate,
+                'templateKey' => $isContractTemplate ? $templateKey : null,
             ],
             'footer_data' => [
                 'content' => $footerContent,
@@ -309,18 +326,89 @@ class DocumentController extends Controller
         return [
             'perjanjian-kerja-sama',
             'kontrak-kerja',
-            // Template kontrak (kunci dipakai create page / ContractTemplates).
-            'kontrak-kemitraan',
-            'kontrak-colocation',
-            'kontrak-managed-service',
-            'kontrak-soho',
-            'kontrak-payung',
             // Legasi (dipertahankan untuk kompatibilitas).
             'kemitraan',
             'colocation',
             'managed-service',
             'soho',
         ];
+    }
+
+    /**
+     * Kop formal yang muncul pada PDF sumber. Judul perjanjian sendiri ada di
+     * body template, sehingga tidak diulang pada header editor.
+     */
+    private function buildContractLetterheadHtml(string $templateKey): string
+    {
+        $isBandung = $templateKey === 'kontrak-managed-service';
+        $company = $isBandung ? 'PT Bina Informatika Solusindo' : 'PT Bina Informatika Solusi';
+        $address = $isBandung
+            ? 'Gedung Wisma Bumiputera, Lantai 7 Suite #701B<br>Jl. Asia Afrika No. 141-149, Kota Bandung, Jawa Barat 40112'
+            : 'Jl. Prakarsa Muda No. 258, Kelurahan Pekiringan, Kec. Kesambi<br>Kota Cirebon, Jawa Barat 45131';
+        $contact = $isBandung
+            ? 'Tlp. 022-30501300 | email: info@fiberconnect.id | www.fiberconnect.id'
+            : 'Tlp. 0231-247618 | email: info@fibertrust.id | www.fibertrust.id';
+
+        return '<table style="width:100%; border-collapse:collapse; margin:0 0 8px;">'
+            .'<tr>'
+            .'<td style="width:50%; border:none; padding:0; text-align:left; font-size:9px;"><strong>Paraf PIHAK PERTAMA:</strong> _______</td>'
+            .'<td style="width:50%; border:none; padding:0; text-align:right; font-size:9px;"><strong>Paraf PIHAK KEDUA:</strong> _______</td>'
+            .'</tr>'
+            .'</table>'
+            .'<p style="text-align:center; margin:0;"><strong>'.$company.'</strong></p>'
+            .'<p style="text-align:center; margin:0; font-size:9px;">'.$address.'</p>'
+            .'<p style="text-align:center; margin:0; font-size:9px;">'.$contact.'</p>';
+    }
+
+    /**
+     * Dokumen yang dibuat sebelum perbaikan ini memiliki sampul placeholder
+     * tambahan di depan halaman pertama sumber. Hanya pola placeholder yang
+     * persis sama yang diubah, sehingga halaman sampul yang sudah diedit user
+     * tidak pernah disentuh.
+     */
+    private function repairLegacyContractTemplateLayout(Document $document): void
+    {
+        $content = $document->body_content ?? [];
+        $pages = $content['pages'] ?? [];
+
+        if ((int) ($content['coverPages'] ?? 0) !== 1 || count($pages) < 2) {
+            return;
+        }
+
+        $legacyCover = (string) ($pages[0] ?? '');
+        if (!str_contains($legacyCover, '[Ketik nama pihak pertama di sini]')
+            || !str_contains($legacyCover, '[Ketik nama pihak kedua di sini]')) {
+            return;
+        }
+
+        $sourcePage = (string) ($pages[1] ?? '');
+        $templateKey = match (true) {
+            str_contains($sourcePage, 'JASA COLOCATION') => 'kontrak-colocation',
+            str_contains($sourcePage, 'JASA MANAGED SERVICE') => 'kontrak-managed-service',
+            str_contains($sourcePage, 'JASA SOHO') => 'kontrak-soho',
+            str_contains($sourcePage, 'KONTRAK PAYUNG') => 'kontrak-payung',
+            str_contains($sourcePage, 'JUAL KEMBALI JASA LAYANAN AKSES INTERNET') => 'kontrak-kemitraan',
+            default => null,
+        };
+
+        if ($templateKey === null) {
+            return;
+        }
+
+        $content['pages'] = array_values(array_slice($pages, 1));
+        $content['coverPages'] = 0;
+        $content['contractTemplate'] = true;
+        $content['templateKey'] = $templateKey;
+
+        $headerData = $document->header_data ?? [];
+        $headerData['content'] = $this->buildContractLetterheadHtml($templateKey);
+
+        $document->update([
+            'body_content' => $content,
+            'header_data' => $headerData,
+            'footer_data' => ['content' => ''],
+        ]);
+        $document->refresh();
     }
 
     /**
@@ -398,6 +486,32 @@ class DocumentController extends Controller
 
         <p style="text-align:center; font-size:11pt; margin:8px 0 0;"><strong>Nomor:</strong> {$nomor}</p>
         HTML;
+    }
+
+    /**
+     * Isi placeholder body template ([PIHAK KEDUA], [Nomor Perjanjian],
+     * [Hari], [Tanggal], [Tempat]) dengan data nyata supaya dokumen jadi
+     * tidak lagi memuat placeholder mentah. Dipanggil di store() (dengan
+     * data pelanggan) dan createFromTemplate() (tanpa pelanggan).
+     */
+    private function applyTemplateReplacements(string $bodyHtml, ?Customer $customer, string $nomorSurat): string
+    {
+        $placeholders = [
+            '[Nomor Perjanjian]' => trim($nomorSurat),
+            '[Hari]'             => now()->translatedFormat('l'),
+            '[Tanggal]'          => now()->translatedFormat('d F Y'),
+            '[Tempat]'           => 'Cirebon',
+        ];
+
+        if ($customer) {
+            $placeholders['[PIHAK KEDUA]'] = trim((string) ($customer->name ?? ''));
+            $placeholders['[Nomer Pelanggan]'] = trim((string) ($customer->customer_number ?? ''));
+        }
+
+        // Hanya ganti placeholder yang punya nilai (jangan menelan text asli).
+        $replacements = array_filter($placeholders, fn ($v) => $v !== '');
+
+        return str_ireplace(array_keys($replacements), array_values($replacements), $bodyHtml);
     }
 
     private function normalizePasalNumbering(array $pages): array
@@ -936,6 +1050,10 @@ class DocumentController extends Controller
         // paginasi balik setiap kali dokumen disimpan.
         if (isset($data['body_content']) && is_array($data['body_content'])) {
             $data['body_content']['coverPages'] = (int) ($document->body_content['coverPages'] ?? 0);
+            // Flag tampilan adalah properti template, bukan input yang dapat
+            // diubah browser. Pertahankan saat editor menyimpan ulang.
+            $data['body_content']['contractTemplate'] = (bool) ($document->body_content['contractTemplate'] ?? false);
+            $data['body_content']['templateKey'] = $document->body_content['templateKey'] ?? null;
         }
 
         // Dokumen cover tidak boleh kehilangan footer tabelnya: kalau payload
@@ -1204,6 +1322,7 @@ class DocumentController extends Controller
      */
     private function makeDocumentPdf(Document $document, array $extraData = [])
     {
+        $this->repairLegacyContractTemplateLayout($document);
         $signaturePath = $this->resolvePublicPath($document->signature_data['signatureUrl'] ?? null);
         // Renumber di saat ekspor juga, supaya dokumen lama (tersimpan sebelum
         // ada normalisasi) tetap dicetak dengan PASAL 1, 2, 3, ... yang urut.
@@ -1301,6 +1420,12 @@ class DocumentController extends Controller
         // Pastikan judul "PASAL n" berurutan pada pratinjau template juga.
         if (!empty($data['body_html'])) {
             $data['body_html'] = $this->normalizePasalNumbering([$data['body_html']])[0];
+            // Isi placeholder yang tidak butuh data pelanggan (nomor & tanggal hari ini).
+            $data['body_html'] = $this->applyTemplateReplacements(
+                $data['body_html'],
+                null,
+                (string) ($data['header_data']['nomorSurat'] ?? '')
+            );
         }
 
         return response()->json($data);
