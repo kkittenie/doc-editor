@@ -126,6 +126,10 @@ class DocumentController extends Controller
 
         $this->repairLegacyContractTemplateLayout($document);
 
+        // Jaring pengaman urutan pasal: heading "PASAL n" dinormalkan jadi
+        // 1..N setiap dokumen dibuka — dokumen lama langsung rapi di editor.
+        $this->normalizeDocumentPasalOnOpen($document);
+
         return view('pages.editor', [
             'title' => ($canEdit ? 'Edit: ' : 'Lihat: ') . $document->title,
             'document' => $document,
@@ -514,38 +518,109 @@ class DocumentController extends Controller
         return str_ireplace(array_keys($replacements), array_values($replacements), $bodyHtml);
     }
 
+    /**
+     * Normalisasi penomoran heading "PASAL n" menjadi 1..N berurutan lintas
+     * halaman. Hanya paragraf heading yang berdiri sendiri:
+     *
+     *   - 'PASAL 5' (nomor salah urut, mis. 1 lalu 15 → 1,2)
+     *   - 'PASAL 5&nbsp;' / 'PASAL&nbsp;5' (entity non-breaking space)
+     *   - 'PASAL 3 — JUDUL' / 'PASAL 3, JUDUL' (judul berpemisah tanda)
+     *   - 'PASAL 3 BIAYA DAN BEBAN' (judul huruf besar tanpa tanda)
+     *   - 'PASAL 8Judul menempel' (heading nempel ke isi — nomornya diikat,
+     *     sisanya tetap utuh)
+     *
+     * Paragraf isi yang diawali rujukan ('Pasal 1266 KUHPerdata…',
+     * 'Pasal 5 ayat (5)…') TIDAK disentuh — jumlah heading dijaga lewat
+     * bentuk paragrafnya, bukan hanya teksnya.
+     */
     private function normalizePasalNumbering(array $pages): array
     {
         $counter = 0;
+
+        // Nomor: 'pasal' + (spasi | 0xA0 | &nbsp; | &#160;)* + angka.
+        // Sufiks [a-z] sengaja TIDAK ada: dengan /i ia ikut menelan kata
+        // pertama judul ('PASAL 7Judul' → mematahkan deteksi heading menempel).
+        $num = 'pasal(?:\s|\x{00A0}|&nbsp;|&#160;)*\d+';
 
         // Hanya ubah heading pasal yang benar-benar berdiri sendiri di tag
         // <p> / <hN> — bukan teks isi biasa seperti "Dalam pasal 4 ayat (1)"
         // yang muncul di template colocation dan template lain.
         $pattern = '/(<(?:p|h[1-6])\b[^>]*>\s*(?:<(?!\/(?:p|h[1-6])\b)[^>]+>\s*)*)'
-            . '(pasal\s+\d+)'
-            . '(?:\s*[\x{2013}\x{2014}.;,:-][^<]*)?'
-            . '(?:\s*(?:<(?!\/(?:p|h[1-6])\b)[^>]+>\s*)*)'
-            . '<\/(?:p|h[1-6])>/iu';
+            . '(' . $num . ')'
+            . '([^<]*)'
+            . '((?:<(?!\/(?:p|h[1-6])\b)[^>]+>\s*)*)'
+            . '(<\/(?:p|h[1-6])>)/iu';
 
         foreach ($pages as $key => $html) {
             $pages[$key] = preg_replace_callback(
                 $pattern,
                 function ($m) use (&$counter) {
+                    $suffixRaw = $m[3];
+                    $suffixVis = html_entity_decode(
+                        preg_replace('/<(?!\/(?:p|h[1-6])\b)[^>]+>/', '', $suffixRaw),
+                        ENT_QUOTES | ENT_HTML5,
+                        'UTF-8'
+                    );
+                    $suffixVis = str_replace(["\xC2\xA0", '&nbsp;'], ' ', $suffixVis);
+
+                    // Bentuk heading:
+                    $empty = trim($suffixVis) === '';
+                    $sepLed = preg_match('/^\s*[\x{2013}\x{2014}.;,:-]/u', $suffixVis) === 1;
+                    // Judul huruf besar tanpa tanda: kata pertama seluruhnya
+                    // kapital ('BIAYA…'); 'KUHPerdata' sengaja TIDAK cocok.
+                    $lead = ltrim($suffixVis);
+                    $upperTitle = preg_match('/^[A-Z]/u', $lead) === 1
+                        && preg_match('/^[A-Z][A-Z0-9]*\b/u', $lead) === 1;
+                    // Heading menempel: huruf langsung menempel di angka ('PASAL 8Jika').
+                    $glued = preg_match('/\d$/u', $m[2]) === 1
+                        && preg_match('/^[A-Za-z]/', $suffixRaw) === 1;
+
+                    if (!($empty || $sepLed || $upperTitle || $glued)) {
+                        return $m[0]; // paragraf isi/rujukan — biarkan apa adanya
+                    }
+
                     $counter++;
-                    $replacement = $m[1] . 'PASAL ' . $counter;
 
-                    // Pertahankan trailing judul/teks yang mengikutinya setelah nomor,
-                    // mis. 'PASAL 3 — HAK DAN KEWAJIBAN'.
-                    $suffix = substr($m[0], strlen($m[1]) + strlen($m[2]));
-                    $suffix = preg_replace('/^\s*[:\-.;,\s]*/u', '', $suffix, 1);
+                    // Pertahankan trailing judul/teks setelah nomor,
+                    // mis. 'PASAL 3 — HAK DAN KEWAJIBAN' (perilaku lama: tanda
+                    // pemisah di depan dibuang, judulnya sendiri dipertahankan).
+                    $suffix = $suffixRaw;
+                    if ($sepLed) {
+                        $suffix = preg_replace('/^\s*[:\-.;,\s]*/u', '', $suffix, 1);
+                    }
 
-                    return $replacement . $suffix;
+                    return $m[1] . 'PASAL ' . $counter . $suffix . $m[4] . $m[5];
                 },
                 (string) $html
             );
         }
 
         return $pages;
+    }
+
+    /**
+     * Jaring pengaman urutan pasal: dinormalkan setiap kali dokumen dibuka
+     * di editor (bukan hanya saat simpan/export) sehingga lompatan nomor
+     * pada dokumen lama langsung rapi begitu dilihat. Tidak menulis apa pun
+     * bila tidak ada perubahan.
+     */
+    private function normalizeDocumentPasalOnOpen(Document $document): void
+    {
+        $content = $document->body_content ?? [];
+
+        if (empty($content['pages']) || ! is_array($content['pages'])) {
+            return;
+        }
+
+        $normalized = $this->normalizePasalNumbering($content['pages']);
+
+        if ($normalized === $content['pages']) {
+            return;
+        }
+
+        $content['pages'] = $normalized;
+        $document->update(['body_content' => $content]);
+        $document->refresh();
     }
 
     private function buildTemplateBodyHtml(array $body, bool $centerPasalHeadings = false): string

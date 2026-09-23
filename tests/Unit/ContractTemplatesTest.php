@@ -203,6 +203,34 @@ test('normalisasi pasal hanya mengubah judul pasal, bukan referensi di isi parag
     expect($normalized)->not->toContain('Dalam <strong>PASAL');
 });
 
+test('normalisasi pasal tahan nbsp, judul tanpa tanda hubung, dan heading menempel', function () {
+    $html = '<p><strong>PASAL&nbsp;5</strong></p>'
+        . '<p><strong>PASAL 6 BIAYA DAN BEBAN</strong></p>'
+        . '<p>PASAL 7Judul yang menempel langsung pada nomor</p>'
+        . '<p>Pasal 1266 KUHPerdata dikecualikan sehingga Pasal ini tetap berlaku.</p>';
+
+    $normalized = contractNormalizePasal($html);
+
+    // Nomor heading diurutkan ulang 1..3 (5,6,7 → 1,2,3).
+    expect($normalized)->toContain('<strong>PASAL 1');
+    expect($normalized)->toContain('<strong>PASAL 2 BIAYA DAN BEBAN');
+    expect($normalized)->toContain('PASAL 3Judul yang menempel');
+    // Rujukan isi paragraf TIDAK ikut dinomori (1266 tetap 1266).
+    expect($normalized)->toContain('Pasal 1266 KUHPerdata');
+    expect($normalized)->not->toContain('PASAL 4');
+});
+
+test('normalisasi memperbaiki lompatan heading: PASAL 1 lalu PASAL 15 jadi 1,2', function () {
+    $html = '<p><strong>PASAL 1</strong></p><p>isi satu</p>'
+        . '<p><strong>PASAL 15</strong></p><p>isi dua</p>';
+
+    $normalized = contractNormalizePasal($html);
+
+    expect($normalized)->toContain('<strong>PASAL 1');
+    expect($normalized)->toContain('<strong>PASAL 2');
+    expect($normalized)->not->toContain('PASAL 15');
+});
+
 test('render buildTemplateBodyHtml menormalisasi PASAL menjadi 1..N berurutan', function () use ($keys) {
     foreach ($keys as $key) {
         $tpl  = ContractTemplates::find($key);

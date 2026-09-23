@@ -405,3 +405,38 @@ test('menghapus pelanggan ikut menghapus barang dan service', function () {
     // Dokumen tetap ada, hanya tautannya yang dilepas.
     expect(Document::firstOrFail()->customer_id)->toBeNull();
 });
+
+test('membuka editor menormalkan lompatan nomor pasal (PASAL 1 lalu 15 jadi 1,2)', function () {
+    seedContractCustomer($this->customer);
+
+    $this->actingAs($this->user)
+        ->post(route('documents.store'), contractPayload($this->customer))
+        ->assertRedirect();
+
+    $document = Document::where('title', 'Perjanjian Kerjasama Uji')->firstOrFail();
+
+    // Sengaja rusak seperti dokumen lama: heading kedua jadi "PASAL 15".
+    $content = $document->body_content;
+    $content['pages'][0] = str_replace(
+        '<strong>PASAL 2</strong>',
+        '<strong>PASAL 15</strong>',
+        (string) $content['pages'][0]
+    );
+    $document->update(['body_content' => $content]);
+    expect(implode("\n", $document->body_content['pages']))->toContain('PASAL 15');
+
+    // Buka editor → jaring pengaman menormalkan heading kembali 1..N.
+    $this->actingAs($this->user)
+        ->get(route('documents.edit', $document))
+        ->assertOk();
+
+    $document->refresh();
+    preg_match_all(
+        '/<p[^>]*>\s*<strong>PASAL (\d+)<\/strong>\s*<\/p>/u',
+        implode("\n", $document->body_content['pages']),
+        $m
+    );
+
+    // kemitraan: 18 pasal; heading lompat (…,2,15,…) harus kembali …,2,3,…
+    expect(array_map('intval', $m[1]))->toBe(range(1, 18));
+});
