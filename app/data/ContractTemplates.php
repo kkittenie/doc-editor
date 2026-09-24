@@ -37,8 +37,6 @@ TENTANG
 
 JUAL KEMBALI JASA LAYANAN AKSES INTERNET
 
-NOMOR: 196/FBT/PKS/III/2026
-
 Nomor: [Nomor Perjanjian]
 
 Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Kerja Sama tentang Jual Kembali Jasa Layanan Akses Internet (selanjutnya disebut “Perjanjian”), oleh dan antara:
@@ -1388,13 +1386,13 @@ PIHAK KEDUA
                             'judul' => 'LAMPIRAN I PERJANJIAN',
                             'text' => 'DESKRIPSI LAYANAN DAN KONFIGURASI
 
-NOMOR: 196/FBT/PKS/III/2026',
+NOMOR: [Nomor Perjanjian]',
                             'blocks' => [
                                 [
                                     'p' => 'DESKRIPSI LAYANAN DAN KONFIGURASI',
                                 ],
                                 [
-                                    'p' => 'NOMOR: 196/FBT/PKS/III/2026',
+                                    'p' => 'NOMOR: [Nomor Perjanjian]',
                                 ],
                                 [
                                     'table' => [
@@ -1570,7 +1568,7 @@ NOMOR: 196/FBT/PKS/III/2026',
                             'judul' => 'LAMPIRAN II PERJANJIAN',
                             'text' => 'PAKET LAYANAN
 
-NOMOR: 196/FBT/PKS/III/2026
+NOMOR: [Nomor Perjanjian]
 
 Paket layanan meliputi persyaratan sebagai berikut:
 
@@ -1586,7 +1584,7 @@ Paket Layanan yang dibuat harus diinformasikan ke Pihak Pertama untuk persetujua
                                     'p' => 'PAKET LAYANAN',
                                 ],
                                 [
-                                    'p' => 'NOMOR: 196/FBT/PKS/III/2026',
+                                    'p' => 'NOMOR: [Nomor Perjanjian]',
                                 ],
                                 [
                                     'p' => 'Paket layanan meliputi persyaratan sebagai berikut:',
@@ -1609,7 +1607,7 @@ Paket Layanan yang dibuat harus diinformasikan ke Pihak Pertama untuk persetujua
                             'judul' => 'LAMPIRAN III PERJANJIAN',
                             'text' => 'PENGADUAN PELANGGAN
 
-NOMOR: 196/FBT/PKS/III/2026
+NOMOR: [Nomor Perjanjian]
 
 Penanganan gangguan selama operasional, dilayanani sbb:
 
@@ -1625,7 +1623,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                                     'p' => 'PENGADUAN PELANGGAN',
                                 ],
                                 [
-                                    'p' => 'NOMOR: 196/FBT/PKS/III/2026',
+                                    'p' => 'NOMOR: [Nomor Perjanjian]',
                                 ],
                                 [
                                     'p' => 'Penanganan gangguan selama operasional, dilayanani sbb:',
@@ -1976,13 +1974,13 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                             'judul' => 'LAMPIRAN IV PERJANJIAN',
                             'text' => 'PERANGKAT
 
-NOMOR: 196/FBT/PKS/III/2026',
+NOMOR: [Nomor Perjanjian]',
                             'blocks' => [
                                 [
                                     'p' => 'PERANGKAT',
                                 ],
                                 [
-                                    'p' => 'NOMOR: 196/FBT/PKS/III/2026',
+                                    'p' => 'NOMOR: [Nomor Perjanjian]',
                                 ],
                                 [
                                     'table' => [
@@ -2190,8 +2188,6 @@ PT BINA INFORMATIKA SOLUSI
 DENGAN
 
 [PIHAK KEDUA]
-
-NOMOR: 239/FBT/J.C/VII/2026
 
 Nomor: [Nomor Perjanjian]
 
@@ -3322,8 +3318,6 @@ DENGAN
 
 [PIHAK KEDUA]
 
-NOMOR: 335/FBC/J.MS/IV/2026
-
 Nomor: [Nomor Perjanjian]
 
 Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Berlangganan Jasa Dedicated, Metro, dan Managed Service (selanjutnya disebut “Perjanjian”), oleh dan antara:
@@ -3869,7 +3863,7 @@ Direktur Utama',
                                                 ],
                                                 [
                                                     'c' => [
-                                                        '335/FBC/J.MS/IV/2026',
+                                                        '[Nomor Perjanjian]',
                                                     ],
                                                     's' => 1,
                                                     'v' => null,
@@ -4226,8 +4220,6 @@ PT BINA INFORMATIKA SOLUSI
 DENGAN
 
 [PIHAK KEDUA]
-
-NOMOR: 152/FBT/J.S/IX/2025
 
 Nomor: [Nomor Perjanjian]
 
@@ -4729,7 +4721,7 @@ Manager Area Bandung',
                                                 ],
                                                 [
                                                     'c' => [
-                                                        '152/FBT/J.S/IX/2025',
+                                                        '[Nomor Perjanjian]',
                                                     ],
                                                     's' => 1,
                                                     'v' => null,
@@ -5012,8 +5004,6 @@ PT BINA INFORMATIKA SOLUSI
 DENGAN
 
 [PIHAK KEDUA]
-
-NOMOR: 238/FBT/J.M/VI/2026
 
 Nomor: [Nomor Perjanjian]
 
@@ -5620,7 +5610,7 @@ Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, ma
 
 D. 	KETENTUAN
 
-Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ketentuan Kontrak Payung Nomor:238/FBT/J.M/VI/2026.',
+Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ketentuan Kontrak Payung Nomor: [Nomor Perjanjian].',
                             'blocks' => [
                                 [
                                     'p' => 'IDENTITAS PELANGGAN',
@@ -5925,7 +5915,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                                     'p' => 'D. 	KETENTUAN',
                                 ],
                                 [
-                                    'p' => 'Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ketentuan Kontrak Payung Nomor:238/FBT/J.M/VI/2026.',
+                                    'p' => 'Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ketentuan Kontrak Payung Nomor: [Nomor Perjanjian].',
                                 ],
                                 [
                                     'table' => [

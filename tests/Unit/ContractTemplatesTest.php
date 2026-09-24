@@ -155,7 +155,8 @@ test('numeral & klaim untuk setiap template dipertahankan', function () use ($ke
     // Kemitraan
     $tpl = ContractTemplates::find('kontrak-kemitraan');
     expect($tpl['title'])->toBe('Perjanjian Kerjasama Jual Kembali Jasa Layanan Akses Internet');
-    expect($tpl['body_content']['preamble'])->toContain('NOMOR: 196/FBT/PKS/III/2026');
+    expect($tpl['body_content']['preamble'])->toContain('Nomor: [Nomor Perjanjian]');
+    expect($tpl['body_content']['preamble'])->not->toContain('NOMOR: 196/FBT/PKS/III/2026');
     expect($tpl['body_content']['isi'][0]['judul'])->toBe('DEFINISI');
     expect(implode("\n", array_column($tpl['body_content']['isi'], 'text')))
         ->toContain('Perjanjian adalah Perjanjian Kerja Sama Jual Kembali Jasa Layanan Akses Internet');
@@ -163,7 +164,8 @@ test('numeral & klaim untuk setiap template dipertahankan', function () use ($ke
 
     // Colocation
     $tpl = ContractTemplates::find('kontrak-colocation');
-    expect($tpl['body_content']['preamble'])->toContain('239/FBT/J.C/VII/2026');
+    expect($tpl['body_content']['preamble'])->toContain('Nomor: [Nomor Perjanjian]');
+    expect($tpl['body_content']['preamble'])->not->toContain('239/FBT/J.C/VII/2026');
     expect($tpl['body_content']['isi'][3]['judul'])
         ->toBe('JANGKA WAKTU PERJANJIAN, BERITA ACARA AKTIVASI, SUSPENSI LAYANAN DAN PEMBERHENTIAN');
     expect($tpl['body_content']['lampiran'][0]['judul'])->toBe('DESKRIPSI LAYANAN');
@@ -171,13 +173,15 @@ test('numeral & klaim untuk setiap template dipertahankan', function () use ($ke
 
     // Managed Service
     $tpl = ContractTemplates::find('kontrak-managed-service');
-    expect($tpl['body_content']['preamble'])->toContain('335/FBC/J.MS/IV/2026');
+    expect($tpl['body_content']['preamble'])->toContain('Nomor: [Nomor Perjanjian]');
+    expect($tpl['body_content']['preamble'])->not->toContain('335/FBC/J.MS/IV/2026');
     expect(count($tpl['body_content']['isi']))->toBe(14);
     expect($tpl['body_content']['lampiran'][1]['judul'])->toBe('LAMPIRAN B');
 
     // SOHO
     $tpl = ContractTemplates::find('kontrak-soho');
-    expect($tpl['body_content']['preamble'])->toContain('152/FBT/J.S/IX/2025');
+    expect($tpl['body_content']['preamble'])->toContain('Nomor: [Nomor Perjanjian]');
+    expect($tpl['body_content']['preamble'])->not->toContain('152/FBT/J.S/IX/2025');
     expect(implode("\n", array_column($tpl['body_content']['isi'], 'text')))->toContain('(isolir) dalam');
     expect(count($tpl['body_content']['isi']))->toBe(14);
 
@@ -185,7 +189,8 @@ test('numeral & klaim untuk setiap template dipertahankan', function () use ($ke
     $tpl = ContractTemplates::find('kontrak-payung');
     expect($tpl['body_content']['preamble'])
         ->toContain("(KONTRAK PAYUNG)\nBERLANGGANAN JASA METRO FIBER OPTIK");
-    expect($tpl['body_content']['preamble'])->toContain('238/FBT/J.M/VI/2026');
+    expect($tpl['body_content']['preamble'])->toContain('Nomor: [Nomor Perjanjian]');
+    expect($tpl['body_content']['preamble'])->not->toContain('238/FBT/J.M/VI/2026');
     expect(count($tpl['body_content']['isi']))->toBe(15);
     expect($tpl['body_content']['lampiran'][0]['judul'])->toBe('LAMPIRAN BERLANGGANAN JASA I');
 });
@@ -247,14 +252,16 @@ test('isi render HTML memuat teks asli verbatim', function () {
     $tpl  = ContractTemplates::find('kontrak-kemitraan');
     $html = contractBuildBodyHtml($tpl, true);
 
-    expect($html)->toContain('NOMOR: 196/FBT/PKS/III/2026');
+    expect($html)->toContain('NOMOR: [Nomor Perjanjian]');
+    expect($html)->not->toContain('196/FBT/PKS/III/2026');
     expect($html)->toContain('Jual Kembali Jasa Layanan Akses Internet');
 
     $tpl  = ContractTemplates::find('kontrak-payung');
     $html = contractBuildBodyHtml($tpl, true);
 
     expect($html)->toContain('PERJANJIAN KERJA SAMA (KONTRAK PAYUNG)');
-    expect($html)->toContain('238/FBT/J.M/VI/2026');
+    expect($html)->toContain('Kontrak Payung Nomor: [Nomor Perjanjian]');
+    expect($html)->not->toContain('238/FBT/J.M/VI/2026');
 });
 
 test('render HTML memunculkan tabel asli dengan border & posisi yang benar', function () use ($keys) {
@@ -289,8 +296,9 @@ test('render HTML memunculkan tabel asli dengan border & posisi yang benar', fun
     expect($tblPos)->toBeInt();
     expect($tblPos)->toBeGreaterThan($pos);
 
-    // sel tanda tangan mempertahankan baris paragraf (<br>)
-    expect($html)->toContain('PIHAK PERTAMA<br>');
+    // sel tanda tangan mempertahankan baris paragraf (<br>) — penanda pihak
+    // ditebalkan renderer (styleContractPartyNames) sehingga ber <strong>.
+    expect($html)->toContain('<strong>PIHAK PERTAMA</strong><br>');
 
     // vertical merge dirender sebagai rowspan (bukan kolom kosong tambahan):
     // tabel deskripsi layanan colocation = 5 kolom, sel jangka waktu rowspan=5
@@ -301,6 +309,19 @@ test('render HTML memunculkan tabel asli dengan border & posisi yang benar', fun
     expect(strpos($html, 'rowspan="5"', (int) $pos))->toBeInt();
     // tidak ada lagi sel kosong ekstra pada baris data (kolom hantu hilang)
     expect(substr_count($html, '<td></td>'))->toBe(0);
+});
+
+test('tabel formula satu baris ditandai atomik agar tidak berkedip di batas halaman', function () {
+    // Regresi bug "teks blink/kelap-kelip" di akhir Managed Service:
+    // tabel formula satu baris harus membawa penanda blok atomik paginasi.
+    foreach (['kontrak-managed-service', 'kontrak-payung'] as $key) {
+        $tpl  = ContractTemplates::find($key);
+        $html = contractBuildBodyHtml($tpl, true);
+
+        expect($html)->toContain('Service Level Guarantee');
+        expect($html)->toContain('Monthly Cost.');
+        expect($html)->toContain('data-flow-atomic="1"');
+    }
 });
 test('render numbering selektif: blok yang memang list me-render menjadi <ol>', function () use ($keys) {
     // kemitraan: definisi + hak/kewajiban secara selektif jadi daftar bernomor
@@ -322,4 +343,78 @@ test('render numbering selektif: blok yang memang list me-render menjadi <ol>', 
 
     // lampiran: Syarat (decimal) + Fasilitas (A..D nested decimal)
     expect($html)->toContain('<li>Harga diatas belum termasuk PPN');
+});
+
+test('house style kanonik: heading, judul, body, list & tabel dari token ContractStyle', function () use ($keys) {
+    $cs = \App\Data\ContractStyle::class;
+
+    foreach ($keys as $key) {
+        $tpl  = ContractTemplates::find($key);
+        $html = contractNormalizePasal(contractBuildBodyHtml($tpl, true));
+
+        // Heading PASAL: center + 11pt bold + jarak 16pt atas / 4pt bawah.
+        expect($html)->toContain(
+            'text-align:' . $cs::ALIGN_HEADING
+            . '; font-size:' . $cs::SIZE_HEADING
+            . '; font-weight:bold;'
+            . ' margin-top:' . $cs::HEADING_SPACE_BEFORE
+            . '; margin-bottom:' . $cs::HEADING_SPACE_AFTER . ';'
+        );
+
+        // Blok judul preamble: 16pt bold center, space-bawah 12pt.
+        expect($html)->toContain(
+            'text-align:' . $cs::ALIGN_TITLE
+            . '; font-size:' . $cs::SIZE_TITLE
+            . '; font-weight:bold;'
+            . ' margin-top:' . $cs::TITLE_SPACE_BEFORE
+            . '; margin-bottom:' . $cs::TITLE_SPACE_AFTER . ';'
+        );
+
+        // Sel tabel: ukuran & border dari token tabel.
+        expect($html)->toContain('font-size:' . $cs::SIZE_TABLE . ';');
+        expect($html)->toContain('border:' . $cs::TABLE_BORDER . ';');
+
+        // Body justify & ukuran TIDAK ditulis inline — disediakan CSS
+        // partials/contract-style.blade.php supaya alignment pilihan user
+        // (ql-align-*) tidak tertimpa.
+        expect($html)->not->toContain('<p style="text-align:' . $cs::ALIGN_BODY);
+    }
+
+    // Semua <ol> kontrak memakai penanda LIST_CLASS + kelas ql-liststyle
+    // bertoken tunggal (tanpa tanda hubung) agar tipe numbering selamat
+    // dari round-trip Quill (ClassAttributor.keys() memotong segmen '-').
+    $html = contractBuildBodyHtml(ContractTemplates::find('kontrak-colocation'), false);
+    expect($html)->toContain('<ol class="' . $cs::LIST_CLASS . ' ql-liststyle-decimal"');
+    expect($html)->toContain('ql-liststyle-upperalpha');
+    expect($html)->toContain('list-style-type:' . $cs::listCssType('A'));
+    expect($html)->toContain('padding-left:' . $cs::listIndent(1));
+
+    $html = contractBuildBodyHtml(ContractTemplates::find('kontrak-kemitraan'), false);
+    expect($html)->toContain('ql-liststyle-alpha');
+    expect($html)->toContain('class="' . $cs::LIST_CLASS . ' ');
+});
+
+test('template kontrak bebas nomor kontrak hardcode', function () use ($keys) {
+    // Nomor dokumen hanya boleh datang dari form (header_data.nomorSurat)
+    // lewat placeholder [Nomor Perjanjian] yang diganti
+    // DocumentController::applyTemplateReplacements() saat pembuatan dokumen.
+    $stale = [
+        '196/FBT/PKS/III/2026',
+        '239/FBT/J.C/VII/2026',
+        '335/FBC/J.MS/IV/2026',
+        '152/FBT/J.S/IX/2025',
+        '238/FBT/J.M/VI/2026',
+    ];
+
+    foreach ($keys as $key) {
+        $tpl  = ContractTemplates::find($key);
+        $html = contractNormalizePasal(contractBuildBodyHtml($tpl, true));
+
+        foreach ($stale as $nomor) {
+            expect($html)->not->toContain($nomor);
+        }
+
+        // Tiap template tetap memuat placeholder untuk diisi form.
+        expect($tpl['body_content']['preamble'])->toContain('[Nomor Perjanjian]');
+    }
 });

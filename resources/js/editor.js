@@ -64,20 +64,31 @@ const LineHeightStyle = new Parchment.StyleAttributor('lineheight', 'line-height
 });
 Quill.register(LineHeightStyle, true);
 
-// Jarak judul template kontrak (PASAL, DEFINISI, SPESIFIKASI, MENIMBANG,
-// MENGINGAT, LAMPIRAN): DocumentController merender judul dengan
-// style inline margin-top (konstanta CONTRACT_HEADING_TOP_MARGIN). Tanpa
-// attributor ini, Quill membuang margin-top saat clipboard.convert ->
+// Jarak paragraf template kontrak (PASAL, DEFINISI, SPESIFIKASI, MENIMBANG,
+// MENGINGAT, LAMPIRAN, judul & baris display): DocumentController merender
+// blok itu dengan style inline margin-top/margin-bottom dari
+// App\Data\ContractStyle (headingStyle/titleStyle/displayStyle). Tanpa
+// kedua attributor berikut, Quill membuang margin saat clipboard.convert ->
 // jarak judul hilang di editor dan di HTML tersimpan (ikut ke PDF).
 const ParaHeadMargin = new Parchment.StyleAttributor('phead', 'margin-top', {
     scope: Parchment.Scope.BLOCK,
-    whitelist: null, // terima nilai px apa pun (pola sama dengan SizeAttributor)
+    whitelist: null, // terima nilai pt/px apa pun (pola sama dengan SizeAttributor)
 });
 Quill.register(ParaHeadMargin, true);
 
+const ParaHeadBottomMargin = new Parchment.StyleAttributor('pbb', 'margin-bottom', {
+    scope: Parchment.Scope.BLOCK,
+    whitelist: null,
+});
+Quill.register(ParaHeadBottomMargin, true);
+
 const ListStyleAttributor = new Parchment.ClassAttributor('liststyle', 'ql-liststyle', {
     scope: Parchment.Scope.BLOCK,
-    whitelist: ['alpha'],
+    // Nilai WAJIB satu token tanpa tanda hubung — sama dengan
+    // ContractStyle::listQuillValue() — karena ClassAttributor.keys()
+    // memotong segmen terakhir nama class ('ql-liststyle-upper-alpha'
+    // terbaca sebagai 'ql-liststyle-upper' dan gugur dari whitelist).
+    whitelist: ['decimal', 'alpha', 'upperalpha', 'lowerroman', 'roman'],
 });
 Quill.register(ListStyleAttributor, true);
 
@@ -128,7 +139,7 @@ const ALLOWED_FORMATS = [
     'ul',
     'script', 'list', 'align', 'indent',
     'blockquote', 'link', 'image', 'hr',
-    'font', 'size', 'color', 'background', 'lineheight', 'liststyle', 'phead',
+    'font', 'size', 'color', 'background', 'lineheight', 'liststyle', 'phead', 'pbb',
     'table', 'table-header', 'table-cell', 'table-cell-block',
     'table-th', 'table-th-block', 'table-row', 'table-th-row',
     'table-body', 'table-thead', 'table-temporary', 'table-col',
@@ -2311,6 +2322,18 @@ const preprocessContractTables = (html) => {
         normalizeTableGrid(table);
         table.querySelectorAll('caption').forEach((el) => el.remove());
 
+        // Pertahankan penanda blok atomik paginasi (data-flow-atomic) saat
+        // tabel dinormalisasi sebelum masuk Quill. Tanpa ini, tabel formula
+        // satu baris kehilangan penandanya dan bisa berkedip di batas halaman.
+        try {
+            if (table.querySelectorAll(':scope > tbody > tr, :scope > tr').length <= 1) {
+                const src = table.outerHTML || '';
+                if (src.indexOf('data-flow-atomic="1"') < 0) {
+                    table.setAttribute('data-flow-atomic', '1');
+                }
+            }
+        } catch (err) { /* penanda atomik opsional */ }
+
         const allCells = Array.from(table.querySelectorAll('td, th'));
 
 
@@ -2617,12 +2640,44 @@ const attachQuillToRegion = (regionEl) => {
 let autoPaginationApi = null;
 
 const PAGE_FLOW_TOL = 4;        // toleransi ukur (px)
+const PAGE_FLOW_PULL_MARGIN = 10; // hysteresis tarik-balik (px): blok hanya
+                                  // ditarik balik bila muat dengan sisa ruang
+                                  // lega, supaya tidak langsung meluap lagi
+                                  // dan memicu ping-pong push<->pull yang
+                                  // terlihat seperti teks berkedip.
 const PAGE_FLOW_MAX_STEPS = 24; // pengaman anti-loop per kali jalan
 const PAGE_FLOW_MAX_REQUEUES = 200; // pengaman antre-ulang (dokumen panjang)
 const PAGE_FLOW_MAX_TOTAL    = 50;  // batas total iterasi paginasi per siklus
 let   pageFlowTotalRuns      = 0;
 let   pageFlowHalted         = false; // kunci keras: berhenti total sampai sesi paginasi baru
-const pageFlowJustPushed     = new WeakMap(); // sheet -> blok yang barusan didorong ke kertas berikut
+let   pageFlowJustPushed     = new WeakMap(); // sheet -> blok yang barusan didorong ke kertas berikut
+const pageFlowJustPushedSig  = new Map(); // pageUid -> sidik konten blok terakhir
+
+// Sesi paginasi baru (edit user / resize): memori anti-flip lama dibuang
+// agar tidak menghalangi pemindahan yang sah setelah konten berubah.
+function __resetPushMemory() {
+    pageFlowJustPushed = new WeakMap();
+    pageFlowJustPushedSig.clear();
+}
+
+function __pushedSigKey(sheet) {
+    try {
+        return (sheet && sheet.dataset && sheet.dataset.pageUid)
+            ? sheet.dataset.pageUid + '::sig'
+            : '';
+    } catch (err) { return ''; }
+}
+
+function __pushedSigFor(sheet) {
+    const key = __pushedSigKey(sheet);
+    return key ? (pageFlowJustPushedSig.get(key) || '') : '';
+}
+
+function __rememberPushedBlock(sheet, blockEl) {
+    try { pageFlowJustPushed.set(sheet, blockEl); } catch (err) { /* noop */ }
+    const key = __pushedSigKey(sheet);
+    if (key) pageFlowJustPushedSig.set(key, __flowSig(blockEl));
+}
 
 const pageFlowTimers = new WeakMap();
 const pageFlowRequeues = new WeakMap(); // bodyEl -> jumlah antre-ulang aktif
@@ -2709,6 +2764,43 @@ function __headingGroupStart(kids, idx) {
         return start;
     } catch (err) { return idx; }
 }
+
+// Blok atomik paginasi (mis. tabel formula satu baris di akhir LAMPIRAN B):
+// tidak boleh dipindah/dibelah bolak-balik di batas halaman. Blok ini hanya
+// berpindah bila jelas meluap penuh ke halaman berikutnya, sehingga tabel
+// akhir tidak berkedip.
+function __isAtomicFlowKid(kid) {
+    try {
+        if (kid && kid.dataset && kid.dataset.flowAtomic === '1') return true;
+        return __atomicProbeHtml(kid);
+    } catch (err) { return false; }
+}
+
+// Blok atomik Quill menyimpan atribut data-flow-atomic di dalam delta,
+// sehingga node hasil konversi Quill kadang tidak membawa dataset-nya.
+// Gunakan probe HTML mentah sebagai fallback agar tabel formula satu baris
+// tetap dikenali sebagai blok atomik di semua jalur paginasi.
+function __atomicProbeHtml(kid) {
+    try {
+        if (kid && typeof kid.getAttribute === 'function'
+            && kid.getAttribute('data-flow-atomic') === '1') return true;
+        const html = (kid && kid.outerHTML) || '';
+        return html.indexOf('data-flow-atomic="1"') >= 0;
+    } catch (err) { return false; }
+}
+
+// Sidik konten blok untuk anti-flip paginasi: pemindahan jalur Quill
+// menyalin delta ke kertas berikut sebagai node DOM BARU, sehingga
+// perbandingan identitas objek saja tidak cukup untuk mengenali blok
+// yang barusan didorong (push -> pull -> push berulang = teks berkedip).
+function __flowSig(el) {
+    try {
+        if (!el || !el.tagName) return '';
+        const txt = (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+        return el.tagName + '|' + (el.children ? el.children.length : 0) + '|' + txt;
+    } catch (err) { return ''; }
+}
+
 
 function __isFloatingKid(kid) {
     try {
@@ -3043,6 +3135,13 @@ async function __domFlowPass(bodyEl) {
     }
     if (idx < 0) return false;
     const overKid = kids[idx];
+    // Tabel formula atomik satu baris hanya boleh pindah bila seluruh tabel
+    // benar-benar keluar dari kertas (bukan sekadar menyentuh batas beberapa
+    // piksel). Ini mencegah tabel akhir berkedip di batas halaman.
+    if (__isAtomicFlowKid(overKid)) {
+        const top = overKid.getBoundingClientRect().top;
+        if (top + PAGE_FLOW_TOL <= effBottom) return false;
+    }
     const targetBody = await __domResolveTargetBody(sheet);
     if (!targetBody || targetBody === bodyEl) return false;
     const targetQ = quillsByRegion.get(targetBody);
@@ -3055,7 +3154,7 @@ async function __domFlowPass(bodyEl) {
         if (targetIsDom) {
             const movedRows = __domSplitTable(overKid, effBottom, targetBody);
             if (movedRows > 0) {
-                pageFlowJustPushed.set(sheet, overKid);
+                __rememberPushedBlock(sheet, overKid);
                 notifyDirty();
                 __runDomFlow(targetBody);
                 return true;
@@ -3071,7 +3170,7 @@ async function __domFlowPass(bodyEl) {
                 if (__takeoverBodyAsDom(targetBody)) {
                     const movedRows = __domSplitTable(overKid, effBottom, targetBody);
                     if (movedRows > 0) {
-                        pageFlowJustPushed.set(sheet, overKid);
+                        __rememberPushedBlock(sheet, overKid);
                         notifyDirty();
                         __runDomFlow(targetBody);
                         return true;
@@ -3085,7 +3184,7 @@ async function __domFlowPass(bodyEl) {
     if ((overKid.tagName === 'OL' || overKid.tagName === 'UL') && targetIsDom) {
         const movedItems = __domSplitList(overKid, effBottom, targetBody);
         if (movedItems > 0) {
-            pageFlowJustPushed.set(sheet, overKid);
+            __rememberPushedBlock(sheet, overKid);
             notifyDirty();
             __runDomFlow(targetBody);
             return true;
@@ -3096,7 +3195,7 @@ async function __domFlowPass(bodyEl) {
     if ((overKid.tagName === 'OL' || overKid.tagName === 'UL') && targetQ) {
         const movedItems = __domSplitListToQuill(overKid, effBottom, targetQ);
         if (movedItems > 0) {
-            pageFlowJustPushed.set(sheet, overKid);
+            __rememberPushedBlock(sheet, overKid);
             notifyDirty();
             __runFlow(targetQ, targetBody);
             return true;
@@ -3175,7 +3274,7 @@ async function __domFlowPass(bodyEl) {
         }
         moving.forEach((kid) => kid.remove());
     }
-    pageFlowJustPushed.set(sheet, overKid);
+    __rememberPushedBlock(sheet, overKid);
     notifyDirty();
     if (targetIsDom) __runDomFlow(targetBody);
     else if (targetQ) __runFlow(targetQ, targetBody);
@@ -3240,6 +3339,7 @@ function bindDomPageOverflowWatch(bodyEl) {
         timer = setTimeout(() => {
             pageFlowHalted = false;
             pageFlowTotalRuns = 0;
+            __resetPushMemory();
             __runDomFlow(bodyEl);
         }, 140);
     };
@@ -3338,6 +3438,17 @@ async function __flowPass(quill, bodyEl) {
     if (idx < 0 || idx >= kids.length) return false; // tak bisa dipetakan aman
     if (!__hasMeaningfulTextNode(kids[idx])) return false;
 
+    // Tabel formula atomik tidak boleh dibelah baris-per-baris dan hanya
+    // boleh pindah bila seluruh tabel benar-benar keluar dari kertas, supaya
+    // tabel akhir tidak berkedip di batas halaman.
+    if (__isAtomicFlowKid(kids[idx])) {
+        const boxRect = bodyEl.getBoundingClientRect();
+        const padT = parseFloat(getComputedStyle(bodyEl).paddingTop || '0');
+        const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
+        const top = kids[idx].getBoundingClientRect().top;
+        if (top + PAGE_FLOW_TOL <= effBottom) return false;
+    }
+
     const targetBody = await __resolveTargetBody(sheet,
         autoPaginationApi && autoPaginationApi.createPageAfter);
     if (!targetBody || targetBody === bodyEl) return false;
@@ -3355,7 +3466,7 @@ async function __flowPass(quill, bodyEl) {
             const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
             const movedRows = __domSplitTable(kids[idx], effBottom, targetBody);
             if (movedRows > 0) {
-                pageFlowJustPushed.set(sheet, kids[idx]);
+                __rememberPushedBlock(sheet, kids[idx]);
                 notifyDirty();
                 __runDomFlow(targetBody);
                 return true;
@@ -3395,7 +3506,7 @@ async function __flowPass(quill, bodyEl) {
             quill.deleteText(firstRange.start,
                 Math.max(firstRange.len, quill.getLength() - firstRange.start), 'silent');
         }
-        pageFlowJustPushed.set(sheet, moving[0]);
+        __rememberPushedBlock(sheet, moving[0]);
         notifyDirty();
         __runDomFlow(targetBody);
         return true;
@@ -3412,7 +3523,7 @@ async function __flowPass(quill, bodyEl) {
         const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
         const movedRows = __quillSplitTable(quill, kids[idx], effBottom, targetBody, targetQ);
         if (movedRows > 0) {
-            pageFlowJustPushed.set(sheet, kids[idx]);
+            __rememberPushedBlock(sheet, kids[idx]);
             notifyDirty();
             if (autoPaginationApi) __runFlow(targetQ, targetBody);
             return true;
@@ -3440,7 +3551,7 @@ async function __flowPass(quill, bodyEl) {
         const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
         const movedItems = __quillSplitList(quill, kids[idx], effBottom, targetQ);
         if (movedItems > 0) {
-            pageFlowJustPushed.set(sheet, kids[idx]);
+            __rememberPushedBlock(sheet, kids[idx]);
             notifyDirty();
             if (autoPaginationApi) __runFlow(targetQ, targetBody);
             return true;
@@ -3561,7 +3672,10 @@ async function __flowPass(quill, bodyEl) {
 
     // Catat blok yang barusan didorong ke kertas berikutnya; dipakai
     // __pullBackPass untuk menolak menariknya balik (anti-flip A<->B).
-    pageFlowJustPushed.set(sheet, kids[idx]);
+    // WeakMap hanya bisa memakai objek sebagai kunci, jadi identitas objek
+    // disimpan di WeakMap, sedangkan sidik konten disimpan di Map biasa
+    // karena target Quill menerima node DOM baru.
+    __rememberPushedBlock(sheet, kids[idx]);
 
     notifyDirty();
     return true;
@@ -3602,7 +3716,13 @@ function __pullBackPass(quill, bodyEl) {
     // Anti-flip: jangan langsung menarik balik blok yang barusan didorong
     // oleh __flowPass di siklus yang sama - memicu getar abadi (push -> pull
     // -> push -> ...) yang membuat kertas terasa "berjalan sendiri".
-    if (pageFlowJustPushed.get(sheet) === k2) return false;
+    // Jalur Quill menyalin delta sebagai node DOM BARU, jadi bandingkan
+    // juga sidik konten (bukan hanya identitas objek). WeakMap tidak bisa
+    // memakai string sebagai kunci, sehingga sidik disimpan di Map biasa.
+    const pushed = pageFlowJustPushed.get(sheet);
+    const pushedSig = __pushedSigFor(sheet);
+    if (pushed && pushed === k2) return false;
+    if (pushedSig && pushedSig === __flowSig(k2)) return false;
 
     let k2Len = 0;
     try {
@@ -3628,7 +3748,10 @@ function __pullBackPass(quill, bodyEl) {
 
     
     const h2 = k2.getBoundingClientRect().height;
-    if (baseBottom + h2 > effBottom - PAGE_FLOW_TOL) return false;
+    // Hysteresis tarik-balik: blok yang pas-pasan di batas halaman tidak
+    // ditarik balik, karena pengukuran berikutnya hampir pasti menilai
+    // halaman penuh lagi lalu mendorongnya maju (getar push<->pull).
+    if (baseBottom + h2 > effBottom - PAGE_FLOW_TOL - PAGE_FLOW_PULL_MARGIN) return false;
 
     const range = __blockRangeOf(nextQ, k2);
     if (!range) return false;
@@ -3725,6 +3848,7 @@ function bindPageOverflowWatch(quill, regionEl) {
         timer = setTimeout(() => {
             pageFlowHalted = false; // sesi paginasi baru (edit/resize) -> buka latch
             pageFlowTotalRuns = 0;
+            __resetPushMemory();
             __runFlow(quill, regionEl);
         }, 140);
     };

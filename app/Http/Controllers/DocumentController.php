@@ -14,17 +14,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Data\DocumentTemplates;
+use App\Data\ContractStyle;
 
 class DocumentController extends Controller
 {
     /**
      * Jarak (margin-top) setiap judul template kontrak (PASAL, DEFINISI,
-     * SPESIFIKASI, MENIMBANG, MENGINGAT, LAMPIRAN) dari teks yang
-     * mendahuluinya. Dirender sebagai style inline pada <p> judul dan
-     * selamat dari round-trip Quill karena margin-top terdaftar sebagai
-     * Parchment attributor 'phead' di resources/js/editor.js.
+     * SPESIFIKASI, MENIMBANG, MENGINGAT, LAMPIRAN) berasal dari one source of
+     * truth: App\Data\ContractStyle::HEADING_TOP_MARGIN. Dirender sebagai
+     * style inline pada <p> judul dan selamat dari round-trip Quill karena
+     * margin-top terdaftar sebagai Parchment attributor 'phead' di
+     * resources/js/editor.js.
      */
-    private const CONTRACT_HEADING_TOP_MARGIN = '30px';
 
         public function index()
     {
@@ -353,15 +354,17 @@ class DocumentController extends Controller
             ? 'Tlp. 022-30501300 | email: info@fiberconnect.id | www.fiberconnect.id'
             : 'Tlp. 0231-247618 | email: info@fibertrust.id | www.fibertrust.id';
 
+        $fs = ContractStyle::SIZE_LETTERHEAD;
+
         return '<table style="width:100%; border-collapse:collapse; margin:0 0 8px;">'
             .'<tr>'
-            .'<td style="width:50%; border:none; padding:0; text-align:left; font-size:9px;"><strong>Paraf PIHAK PERTAMA:</strong> _______</td>'
-            .'<td style="width:50%; border:none; padding:0; text-align:right; font-size:9px;"><strong>Paraf PIHAK KEDUA:</strong> _______</td>'
+            .'<td style="width:50%; border:none; padding:0; text-align:left; font-size:'.$fs.';"><strong>Paraf PIHAK PERTAMA:</strong> _______</td>'
+            .'<td style="width:50%; border:none; padding:0; text-align:right; font-size:'.$fs.';"><strong>Paraf PIHAK KEDUA:</strong> _______</td>'
             .'</tr>'
             .'</table>'
             .'<p style="text-align:center; margin:0;"><strong>'.$company.'</strong></p>'
-            .'<p style="text-align:center; margin:0; font-size:9px;">'.$address.'</p>'
-            .'<p style="text-align:center; margin:0; font-size:9px;">'.$contact.'</p>';
+            .'<p style="text-align:center; margin:0; font-size:'.$fs.';">'.$address.'</p>'
+            .'<p style="text-align:center; margin:0; font-size:'.$fs.';">'.$contact.'</p>';
     }
 
     /**
@@ -627,10 +630,10 @@ class DocumentController extends Controller
     {
         $parts = [];
 
-        // 1) Pembuka
+        // 1) Pembuka — blok judul (center, 18pt) + paragraf naratif (justify).
         $preamble = $body['preamble'] ?? $body['tujuanSurat'] ?? null;
         if (!empty($preamble)) {
-            $parts[] = $this->contractPara($preamble);
+            $parts[] = $this->contractPreambleHtml((string) $preamble);
         }
 
         // 2) Para pihak (identitas pihak biasanya langsung setelah pembuka)
@@ -657,13 +660,13 @@ class DocumentController extends Controller
         // 3) Konsideran Menimbang
         if (!empty($body['menimbang'])) {
             $parts[] = $this->contractHeadingHtml('MENIMBANG:');
-            $parts[] = $this->contractRecitals($body['menimbang'], 'lower-alpha');
+            $parts[] = $this->contractRecitals($body['menimbang'], 'a');
         }
 
         // 4) Konsideran Mengingat
         if (!empty($body['mengingat'])) {
             $parts[] = $this->contractHeadingHtml('MENGINGAT:');
-            $parts[] = $this->contractRecitals($body['mengingat'], 'decimal');
+            $parts[] = $this->contractRecitals($body['mengingat'], '1');
         }
 
         // 5) Pasal-pasal
@@ -681,16 +684,12 @@ class DocumentController extends Controller
         $number = 1;
         foreach ($pasals as $pasal) {
             $judul = strtoupper(trim($pasal['judul'] ?? ''));
-            if ($centerPasalHeadings) {
-                // Baris PASAL diberi jarak dari pasal sebelumnya; baris judul
-                // pasal di bawahnya tetap rapat (tanpa margin-top tambahan).
-                $parts[] = $this->contractHeadingHtml('PASAL '.$number, true);
-                if ($judul !== '') {
-                    $parts[] = '<p style="text-align:center;"><strong>'.$judul.'</strong></p>';
-                }
-            } else {
-                $heading = 'PASAL '.$number.($judul !== '' ? ' — '.$judul : '');
-                $parts[] = $this->contractHeadingHtml($heading);
+            // Seragam untuk kelima template: baris PASAL n diikuti baris judul
+            // pasal, keduanya center 12pt (lihat App\Data\ContractStyle).
+            $parts[] = $this->contractHeadingHtml('PASAL '.$number, true);
+            if ($judul !== '') {
+                $parts[] = '<p style="'.ContractStyle::displayStyle().'"><strong>'
+                    .e($judul).'</strong></p>';
             }
             if (!empty($pasal['blocks']) && is_array($pasal['blocks'])) {
                 $parts[] = $this->renderBlocks($pasal['blocks']);
@@ -791,32 +790,144 @@ class DocumentController extends Controller
     }
 
     /**
-     * Ubah teks yang mungkin berisi beberapa paragraf (dipisah baris kosong)
-     * menjadi satu atau lebih tag <p> yang sudah di-escape dan dijaga barisnya.
+     * Tebalkan penanda pihak secara konsisten (PARA PIHAK, PIHAK PERTAMA,
+     * PIHAK KEDUA). Hanya menyentuh simpul teks — markup yang sudah ada
+     * (mis. <strong> hasil render sebelumnya) tidak dibungkus ulang.
      */
     private function styleContractPartyNames(string $text): string
     {
-        return preg_replace('/\bPIHAK KEDUA\b/i', '<strong>$0</strong>', $text) ?? $text;
+        if (stripos($text, 'pihak') === false) {
+            return $text;
+        }
+
+        $parts = preg_split('/(<[^>]+>)/u', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
+        if ($parts === false) {
+            return $text;
+        }
+
+        $out = '';
+        foreach ($parts as $part) {
+            if ($part === '') {
+                continue;
+            }
+            if ($part[0] === '<') {           // tag: lewati apa adanya
+                $out .= $part;
+                continue;
+            }
+            $out .= preg_replace(
+                '/\b(PARA PIHAK|PIHAK PERTAMA|PIHAK KEDUA)\b/iu',
+                '<strong>$1</strong>',
+                $part
+            ) ?? $part;
+        }
+
+        return $out;
     }
 
     /**
      * Judul/heading template kontrak (PASAL N, DEFINISI, SPESIFIKASI,
-     * MENIMBANG, MENGINGAT, LAMPIRAN) dengan jarak dari teks sebelumnya
-     * (margin-top inline — lihat CONTRACT_HEADING_TOP_MARGIN). Varian
-     * $center dipakai heading pasal rata-tengah (template kontrak modern).
-     * Style inline ini selamat dari konversi Quill karena margin-top
-     * terdaftar sebagai attributor 'phead' di resources/js/editor.js.
+     * MENIMBANG, MENGINGAT, LAMPIRAN). Semua nilai format diambil dari
+     * App\Data\ContractStyle supaya kelima template identik.
+     * Style inline ini selamat dari konversi Quill karena text-align dipetakan
+     * ke class ql-align-* dan margin-top terdaftar sebagai attributor 'phead'.
      */
-    private function contractHeadingHtml(string $inner, bool $center = false): string
+    private function contractHeadingHtml(string $inner, bool $center = true): string
     {
-        $style = 'margin-top:'.self::CONTRACT_HEADING_TOP_MARGIN;
-        if ($center) {
-            $style = 'text-align:center; '.$style;
-        }
-
-        return '<p style="'.$style.';"><strong>'.e($inner).'</strong></p>';
+        return '<p style="'.ContractStyle::headingStyle($center).'">'
+            .'<strong>'.e($inner).'</strong></p>';
     }
 
+    /**
+     * Blok judul dokumen (baris pertama preamble): 18pt bold center.
+     */
+    private function contractTitleHtml(string $text): string
+    {
+        return '<p style="'.ContractStyle::titleStyle().'">'
+            .'<strong>'.e($text).'</strong></p>';
+    }
+
+    /**
+     * Baris display di dalam blok judul (nama pihak, DENGAN, NOMOR dokumen):
+     * 12pt center.
+     */
+    private function contractDisplayHtml(string $text): string
+    {
+        return '<p style="'.ContractStyle::displayStyle().'">'
+            .$this->styleContractPartyNames(e($text)).'</p>';
+    }
+
+    /**
+     * Baris preamble dianggap bagian blok judul bila pendek dan berupa baris
+     * display (huruf kapital seluruhnya, atau diawali "NOMOR"). Selain itu
+     * dianggap paragraf naratif biasa.
+     */
+    private function isContractDisplayLine(string $line): bool
+    {
+        $line = trim($line);
+        if ($line === '' || mb_strlen($line) > 120) {
+            return false;
+        }
+
+        if (preg_match('/^nomor\b/iu', $line) === 1) {
+            return true;
+        }
+
+        // Tanpa huruf kecil sama sekali → baris display (judul, pihak, DENGAN).
+        return preg_match('/\p{Ll}/u', $line) !== 1;
+    }
+
+    /**
+     * Render preamble: blok judul (center, baris pertama 18pt) lalu paragraf
+     * naratif (justify). Menggantikan perlakuan lama yang menjadikan seluruh
+     * preamble paragraf 12pt biasa sehingga judul kehilangan ukurannya.
+     */
+    private function contractPreambleHtml(string $preamble): string
+    {
+        $blocks = preg_split('/(\r?\n){2,}/', trim($preamble));
+        $out    = [];
+        $titleShown = false;
+        $inHeader   = true;
+
+        foreach ($blocks as $block) {
+            $block = trim((string) $block);
+            if ($block === '') {
+                continue;
+            }
+
+            $lines = preg_split('/\r?\n/', $block);
+            $lines = array_values(array_filter(array_map('trim', $lines), fn ($l) => $l !== ''));
+
+            if ($inHeader && $lines !== [] && $this->isContractDisplayLine($lines[0])) {
+                foreach ($lines as $line) {
+                    if (!$titleShown) {
+                        $out[] = $this->contractTitleHtml($line);
+                        $titleShown = true;
+                        continue;
+                    }
+                    $out[] = $this->contractDisplayHtml($line);
+                }
+                continue;
+            }
+
+            // Blok naratif pertama menutup blok judul.
+            $inHeader = false;
+            $paragraph = implode("\n", $lines);
+            $rendered  = $this->contractPara($paragraph);
+            if ($rendered !== '') {
+                $out[] = $rendered;
+            }
+        }
+
+        return implode("\n", $out);
+    }
+
+    /**
+     * Paragraf body kontrak. Alignment (justify) & ukuran (12pt) TIDAK
+     * ditulis inline di sini: keduanya disediakan CSS kontrak
+     * (partials/contract-style.blade.php) yang hanya berlaku bila pengguna
+     * belum mengubah alignment paragraf tersebut. Dengan begitu perubahan
+     * alignment oleh user (ql-align-*) tidak tertimpa.
+     */
     private function contractPara(string $text): string
     {
         $text = trim($text);
@@ -840,25 +951,26 @@ class DocumentController extends Controller
 
     /**
      * Render satu daftar bernomor kontrak menjadi <ol>.
-     * Bentuk data: ['type' => '1|a|A', 'start' => n, 'items' => [...]].
+     * Bentuk data: ['type' => '1|a|A|i|I', 'start' => n, 'items' => [...]].
      * Setiap item berupa string (satu <li>) atau array nested satu level:
      * ['text' => '...', 'children' => ['type' => 'a', 'items' => [...]]].
+     *
+     * Tipe numbering & indent diambil dari App\Data\ContractStyle supaya
+     * kelima template identik; kelas ql-liststyle-* menjaga tipe tetap
+     * terbaca setelah round-trip Quill (Quill membuang atribut type/start).
      */
-    private function contractListHtml(array $list): string
+    private function contractListHtml(array $list, int $level = 1): string
     {
-        $type  = $list['type'] ?? '1';
+        $type  = (string) ($list['type'] ?? '1');
         $start = (int) ($list['start'] ?? 1);
         $items = $list['items'] ?? [];
 
-        $styleType = match ($type) {
-            'a'     => 'lower-alpha',
-            'A'     => 'upper-alpha',
-            default => 'decimal',
-        };
+        $quillClass = 'ql-liststyle-'.ContractStyle::listQuillValue($type);
+        $startAttr  = $start > 1 ? ' start="'.$start.'"' : '';
 
-        $startAttr = $start > 1 ? ' start="'.$start.'"' : '';
-
-        $html = '<ol'.$startAttr.' style="list-style-type:'.$styleType.'; padding-left:2rem; margin:0 0 0.75rem;">';
+        $html = '<ol'.$startAttr
+            .' class="'.ContractStyle::LIST_CLASS.' '.$quillClass.'"'
+            .' style="'.ContractStyle::listStyle($type, $level).'">';
         $hasItems = false;
 
         foreach ($items as $item) {
@@ -879,7 +991,7 @@ class DocumentController extends Controller
                 }
                 $html .= '<li>'.$this->styleContractPartyNames(e($text));
                 if (!empty($item['children']) && is_array($item['children'])) {
-                    $nested = $this->contractListHtml($item['children']);
+                    $nested = $this->contractListHtml($item['children'], $level + 1);
                     if (trim(strip_tags($nested)) !== '') {
                         $html .= $nested;
                     }
@@ -937,12 +1049,6 @@ class DocumentController extends Controller
         $head     = (bool) ($table['head'] ?? false);
         $rows     = $table['rows'] ?? [];
 
-        $borderStyle  = $bordered ? 'border:1px solid #000;' : 'border:none;';
-        $cellBaseStyle = $borderStyle.' padding:4px 6px; vertical-align:top;';
-
-        $tableStyle = 'border-collapse:collapse; '.($bordered ? 'width:100%;' : 'width:auto;').' margin:0.5rem 0;';
-
-
         $pending = [];
         $byRow   = [];
         $totalRows = count($rows);
@@ -969,8 +1075,6 @@ class DocumentController extends Controller
         }
 
         $tableClass = $bordered ? 'contract-table-bordered' : 'contract-table-unstyled';
-
-        $html = '<table class="'.$tableClass.'" style="border-collapse:collapse; table-layout:fixed; width:100%; margin:0.5rem 0;">';
 
         foreach ($rows as $r => $row) {
             $col    = 0;
@@ -1032,7 +1136,17 @@ class DocumentController extends Controller
             $byRow[$r] = $rowOut;
         }
 
-        $html = '<table style="'.$tableStyle.' table-layout:fixed; word-break:break-word;">';
+        $html = '<table class="'.$tableClass.'" style="'.ContractStyle::tableStyle($bordered).'"';
+
+        // Tabel formula satu baris (mis. LAMPIRAN B Managed Service /
+        // Kontrak Payung): tandai sebagai blok atomik agar paginasi editor
+        // tidak memindahkannya bolak-balik di batas halaman, yang terlihat
+        // seperti teks berkedip di akhir dokumen.
+        if (count($byRow) === 1) {
+            $html .= ' data-flow-atomic="1"';
+        }
+
+        $html .= '>';
 
         foreach ($rows as $r => $row) {
             $html .= '<tr>';
@@ -1049,12 +1163,7 @@ class DocumentController extends Controller
 
                 $isHeadCell = $head && $r === 0;
                 $tag   = $isHeadCell ? 'th' : 'td';
-                // word-break/overflow-wrap: sel tabel template (mis. nomor
-                // perjanjian / URL panjang tanpa spasi) TIDAK BOLEH melebar
-                // keluar kolom & keluar kertas secara horizontal.
-                $style = $cellBaseStyle.($isHeadCell ? ' font-weight:bold; text-align:center;' : '')
-                    .' width:'.round($span * $colWidth, 2).'%;'
-                    .' word-break:break-word; overflow-wrap:anywhere;';
+                $style = ContractStyle::cellStyle($isHeadCell, $span * $colWidth, $bordered);
 
                 $html .= '<'.$tag.$spanAttr.' style="'.$style.'">'.$content.'</'.$tag.'>';
             }
@@ -1068,25 +1177,28 @@ class DocumentController extends Controller
     }
 
     /**
-     * Ubah daftar poin (satu poin per baris) menjadi daftar <ol>.
-     * $listStyle: 'decimal' atau 'lower-alpha'.
+     * Ubah daftar poin (satu poin per baris) menjadi daftar <ol> dengan tipe
+     * numbering dari App\Data\ContractStyle. Parameter $type memakai nilai
+     * data ('1|a|A|i|I') — sama seperti contractListHtml().
      */
-    private function contractRecitals(string $text, string $listStyle): string
+    private function contractRecitals(string $text, string $type): string
     {
         $lines = preg_split('/\r?\n/', $text);
         $lines = array_values(array_filter(array_map('trim', $lines), fn ($l) => $l !== ''));
 
         // Hanya satu poin → cukup satu paragraf.
         if (count($lines) <= 1) {
-            return '<p>'.e($lines[0] ?? '').'</p>';
+            return '<p>'.$this->styleContractPartyNames(e($lines[0] ?? '')).'</p>';
         }
 
         $items = '';
         foreach ($lines as $line) {
-            $items .= '<li>'.e($line).'</li>';
+            $items .= '<li>'.$this->styleContractPartyNames(e($line)).'</li>';
         }
 
-        return '<ol style="list-style-type:'.$listStyle.'; padding-left:2rem; margin:0 0 0.75rem;">'.$items.'</ol>';
+        return '<ol class="'.ContractStyle::LIST_CLASS.' ql-liststyle-'
+            .ContractStyle::listQuillValue($type).'" style="'
+            .ContractStyle::listStyle($type).'">'.$items.'</ol>';
     }
 
     public function update(Request $request, Document $document)

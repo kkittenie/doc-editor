@@ -1072,23 +1072,9 @@
         content: counter(list-8, decimal) '. ';
     }
 
-    .doc-sheet .ql-editor li[data-list=ordered].ql-liststyle-alpha>.ql-ui:before {
-        content: counter(list-0, lower-alpha) '. ';
-    }
-
-    .doc-sheet .ql-editor li[data-list=ordered].ql-liststyle-alpha.ql-indent-1>.ql-ui:before {
-        content: counter(list-1, lower-alpha) '. ';
-    }
-
-    .doc-sheet .ql-editor li[data-list=ordered].ql-liststyle-alpha.ql-indent-2>.ql-ui:before {
-        content: counter(list-2, lower-alpha) '. ';
-    }
-
-    .doc-sheet .ql-editor li[data-list=ordered].ql-liststyle-alpha.ql-indent-3>.ql-ui:before {
-        content: counter(list-3, lower-alpha) '. ';
-    }
-
-
+    /* Aturan counter ql-liststyle-* (decimal/alpha/upperalpha/lowerroman/
+       roman × indent 0..8) kini digenerate dari token App\Data\ContractStyle
+       di partials/contract-style.blade.php — satu sumber nilai format. */
 
     /* Garis pemisah antar kertas (hanya di layar) */
     .doc-sheet+.doc-sheet {
@@ -1157,89 +1143,10 @@
         margin: 0 0 10px 0;
     }
 
-    /* Lima template kontrak resmi: mengikuti kertas sumber A4 (Times New
-       Roman, hitam, margin Word formal, dan ritme rapat). Di-scope ke marker
-       template agar tampilan dokumen umum tidak ikut berubah. */
-    .contract-template-canvas .doc-sheet {
-        padding: 19mm 21mm;
-        font-family: "Times New Roman", Times, serif;
-        font-size: 12pt;
-        line-height: 1.15;
-        color: #000;
-    }
+    /* House style lima template kontrak (Times New Roman; ukuran font &
+       ritme spasi dari token App\Data\ContractStyle) ada di
+       partials/contract-style.blade.php — include-nya setelah </style>. */
 
-    .contract-template-canvas .doc-sheet-header {
-        min-height: 0;
-        padding-bottom: 4mm;
-        border-bottom: 1px solid #000;
-    }
-
-    .contract-template-canvas .doc-sheet-footer {
-        min-height: 0;
-        padding-top: 4mm;
-    }
-
-    .contract-template-canvas .doc-sheet .ql-container,
-    .contract-template-canvas .doc-sheet .ql-editor {
-        font-family: "Times New Roman", Times, serif;
-        font-size: 12pt;
-        line-height: 1.15;
-        color: #000;
-    }
-
-    .contract-template-canvas .doc-sheet .ql-editor p {
-        margin: 0 0 4pt;
-        text-align: justify;
-    }
-
-    .contract-template-canvas .doc-sheet .ql-editor p[style*="text-align:center"] {
-        text-align: center;
-    }
-
-    .contract-template-canvas .doc-sheet .ql-editor ol,
-    .contract-template-canvas .doc-sheet .ql-editor ul {
-        margin: 0 0 4pt;
-        padding-left: 7mm;
-    }
-
-    .contract-template-canvas .doc-sheet .ql-editor li {
-        margin-bottom: 2pt;
-        padding-left: 1.5mm;
-        text-align: justify;
-    }
-
-    .contract-template-canvas .doc-sheet .ql-editor table {
-        margin: 5pt 0;
-    }
-
-    .contract-template-canvas .doc-sheet .ql-editor table td,
-    .contract-template-canvas .doc-sheet .ql-editor table th {
-        min-width: 0;
-        height: auto;
-        border: 1px solid #000 !important;
-        padding: 3pt 4pt !important;
-        font-family: "Times New Roman", Times, serif;
-        font-size: 10pt;
-        line-height: 1.12;
-        color: #000;
-    }
-
-    .contract-template-canvas .doc-sheet .ql-editor table th {
-        background: transparent;
-    }
-
-    .contract-template-canvas .doc-sheet .ql-editor table.contract-table-unstyled td,
-    .contract-template-canvas .doc-sheet .ql-editor table.contract-table-unstyled th {
-        border: none !important;
-    }
-
-    /*
-        Halaman SAMPUL (cover): blok judul + pihak lebih ditengahkan ke
-        kertas dan jarak antar baris dijadikan lebih lega.
-        Catatan: Quill membuang style inline (margin/font-size) pada <p>/<h1>,
-        jadi tata letak cover dipaksa lewat CSS stylesheet yang scoped ke
-        kertas sampul (.doc-cover).
-    */
     .doc-sheet.doc-cover .doc-sheet-body .ql-editor {
         display: flex;
         flex-direction: column;
@@ -1529,6 +1436,7 @@
         }
     }
 </style>
+@include('partials.contract-style')
 @endpush
 
 @push('scripts')

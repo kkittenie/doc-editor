@@ -95,6 +95,14 @@
             margin-top: 8px;
         }
 
+        /* Alignment Quill disimpan sebagai class ql-align-*, bukan style
+           inline. Tanpa rule ini alignment hasil editor (termasuk center
+           pada judul & halaman sampul) jatuh ke default di PDF. */
+        .body-content .ql-align-left { text-align: left; }
+        .body-content .ql-align-center { text-align: center; }
+        .body-content .ql-align-right { text-align: right; }
+        .body-content .ql-align-justify { text-align: justify; }
+
         /* Halaman SAMPUL (cover): judul melekat di atas (dekat kop),
            baris-baris pihak direntangkan dengan jarak lega hingga
            "Dengan" berada di sekitar tengah-ke-atas kertas.
@@ -231,12 +239,17 @@
             font-size: 9px;
         }
 
-        /* Presentasi khusus lima template kontrak resmi. Tidak diterapkan
-           kepada dokumen bebas, surat, maupun S.O.F. */
+        /* Presentasi khusus lima template kontrak resmi — seluruh nilai
+           diambil dari token App\Data\ContractStyle (satu sumber format
+           bersama renderer DocumentController & CSS editor
+           partials/contract-style.blade.php). Tidak diterapkan kepada
+           dokumen bebas, surat, maupun S.O.F.
+           Catatan Dompdf: semua satuan pt — jangan rem. */
+        @php $cs = \App\Data\ContractStyle::class; @endphp
         .contract-document {
-            font-family: 'Times-Roman', 'DejaVu Serif', serif;
-            font-size: 12px;
-            line-height: 1.15;
+            font-family: {!! $cs::FONT_FAMILY !!};
+            font-size: {!! $cs::SIZE_BODY !!};
+            line-height: {!! $cs::LINE_HEIGHT !!};
             color: #000;
         }
 
@@ -247,15 +260,22 @@
         }
 
         .contract-document .body-content {
-            font-size: 12px;
-            line-height: 1.15;
+            font-size: {!! $cs::SIZE_BODY !!};
+            line-height: {!! $cs::LINE_HEIGHT !!};
             margin-top: 0;
         }
 
         .contract-document .body-content p {
-            margin: 0 0 4px;
-            text-align: justify;
+            margin: 0 0 {!! $cs::PARA_SPACE_AFTER !!};
+            text-align: {!! $cs::ALIGN_BODY !!};
         }
+
+        /* Alignment pilihan user & heading hasil round-trip Quill
+           (class ql-align-*) harus mengalahkan justify bawaan di atas. */
+        .contract-document .body-content .ql-align-left { text-align: left; }
+        .contract-document .body-content .ql-align-center { text-align: center; }
+        .contract-document .body-content .ql-align-right { text-align: right; }
+        .contract-document .body-content .ql-align-justify { text-align: justify; }
 
         .contract-document .body-content p[style*="text-align:center"] {
             text-align: center;
@@ -263,24 +283,46 @@
 
         .contract-document .body-content ol,
         .contract-document .body-content ul {
-            margin: 0 0 4px 20px;
+            margin: 0;
+            padding-left: {!! $cs::listIndent(1) !!};
         }
 
         .contract-document .body-content li {
-            margin-bottom: 2px;
-            text-align: justify;
+            margin-bottom: {!! $cs::PARA_SPACE_AFTER !!};
+            text-align: {!! $cs::ALIGN_BODY !!};
         }
 
+        /* Tipe numbering: sebelum dokumen diedit tipe masih style inline di
+           <ol>; sesudah round-trip Quill pindah ke class ql-liststyle-<token>
+           di <ol>/<li>. Aturan base menjaga nested list tetap decimal bila
+           induknya ber-type huruf. */
+        .contract-document .body-content ol > li {
+            list-style-type: decimal;
+        }
+        @foreach (['1', 'a', 'A', 'i', 'I'] as $ctType)
+        .contract-document .body-content .ql-liststyle-{{ $cs::listQuillValue($ctType) }},
+        .contract-document .body-content .ql-liststyle-{{ $cs::listQuillValue($ctType) }} > li {
+            list-style-type: {!! $cs::listCssType($ctType) !!};
+        }
+        @endforeach
+
+        /* Indentasi level daftar (token LIST_INDENT, satuan pt). */
+        @for ($lv = 1; $lv <= 4; $lv++)
+        .contract-document .body-content li.ql-indent-{{ $lv }} {
+            padding-left: {!! $cs::listIndent($lv) !!};
+        }
+        @endfor
+
         .contract-document .body-content table {
-            margin: 5px 0;
+            margin: {!! $cs::TABLE_SPACE !!};
         }
 
         .contract-document .body-content table td,
         .contract-document .body-content table th {
             border: 1px solid #000;
-            padding: 3px 4px;
-            font-size: 10px;
-            line-height: 1.12;
+            padding: {!! $cs::CELL_PADDING !!};
+            font-size: {!! $cs::SIZE_TABLE !!};
+            line-height: {!! $cs::LINE_HEIGHT !!};
         }
 
         .contract-document .body-content table.contract-table-unstyled td,
