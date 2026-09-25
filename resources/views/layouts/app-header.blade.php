@@ -37,8 +37,9 @@
                 <span class="font-serif font-bold text-ink-900 dark:text-parchment-100">Papercraft</span>
             </a>
 
-            <!-- Active Document Title Bar (centerpiece of the document editor header) -->
-            <!-- <div class="hidden sm:flex items-center gap-3 ml-2 lg:ml-4 grow max-w-xl">
+            {{-- Blok judul dokumen nonaktif (fitur mendatang) — disimpan sebagai
+                komentar Blade agar tidak pernah bocor ke HTML.
+            <div class="hidden sm:flex items-center gap-3 ml-2 lg:ml-4 grow max-w-xl">
                 <div
                     class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-parchment-300 bg-white shadow-theme-xs dark:bg-slate-warm-800 dark:border-slate-warm-700 grow">
                     <svg class="text-bronze-600 dark:text-bronze-400 shrink-0" width="16" height="16"
@@ -50,12 +51,13 @@
                         class="text-xs font-semibold text-ink-900 bg-transparent border-none focus:outline-none dark:text-parchment-100 truncate grow"
                         placeholder="Judul Dokumen..." />
                     <span class="text-[10px] font-mono text-slate-warm-400 shrink-0 hidden md:inline"
-                        x-text="savedTime"></span> -->
-                <!-- </div>
-            </div> -->
+                        x-text="savedTime"></span>
+                </div>
+            </div>
+            --}}
 
-            <!-- Quick Document Search Bar (desktop) -->
-            <!-- <div class="hidden xl:block ml-auto">
+            {{-- Pencarian cepat nonaktif (fitur mendatang).
+            <div class="hidden xl:block ml-auto">
                 <form @submit.prevent>
                     <div class="relative">
                         <span
@@ -70,7 +72,8 @@
                             class="h-9 w-48 rounded-lg border border-parchment-300 bg-white py-1.5 pl-10 pr-8 text-xs text-ink-900 shadow-theme-xs focus:border-bronze-500 focus:w-64 transition-all dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100 dark:focus:border-bronze-400" />
                     </div>
                 </form>
-            </div> -->
+            </div>
+            --}}
         </div>
 
         <!-- Right Side Header Actions -->
@@ -90,15 +93,16 @@
                      Admin simpan via tombol "Save" di top bar editor sendiri;
                      marketer (mode baca) tidak boleh simpan — hanya "Save As". --}}
                 
-                <!-- Save Document Action -->
-                <!-- <button @click="savedTime = 'Tersimpan ' + new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})" class="btn-primary text-xs px-3 py-1.5 h-9 shadow-xs">
+                {{-- Tombol Save lama nonaktif — simpan via top bar editor.
+                <button @click="savedTime = 'Tersimpan ' + new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})" class="btn-primary text-xs px-3 py-1.5 h-9 shadow-xs">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
                         <polyline points="17 21 17 13 7 13 7 21"/>
                         <polyline points="7 3 7 8 15 8"/>
                     </svg>
                     <span>Simpan</span>
-                </button> -->
+                </button>
+                --}}
 
                 <div class="h-5 w-px bg-parchment-300 dark:bg-slate-warm-700 mx-1"></div>
 

@@ -333,9 +333,6 @@
 
 @push('styles')
 <style>
-    /* Mode baca: blokir seluruh interaksi pada kertas dokumen,
-       namun tetap bisa discroll & dibaca. */
-       namun tetap bisa discroll & dibaca. */
     body.editor-readonly .doc-sheet,
     body.editor-readonly .doc-sheet * {
         pointer-events: none;
@@ -481,7 +478,7 @@
         cursor: pointer;
     }
 
-    /* ─── TOOL TABEL: dropdown + grid picker ─── */
+
     .toolbar-dropdown {
         position: relative;
         display: inline-flex;
@@ -608,10 +605,6 @@
         color: #fca5a5;
     }
 
-    /* ─── UNDERLINE DROPDOWN ─── */
-    /* PENTING: JANGAN pakai overflow:hidden di sini — akan memotong menu
-       dropdown yang diposisikan absolute di luar kotak (top: 100% + 6px).
-       Radius tiap tombol sudah ditangani aturan :first-child & toggle. */
     #tb-underline-dd {
         display: inline-flex;
         border-radius: 8px;
@@ -734,7 +727,7 @@
         text-decoration-style: wavy;
     }
 
-    /* Underline styles for editor content */
+
     .ql-editor u[style*="text-decoration-style: solid"],
     .ql-editor .ul-solid {
         text-decoration: underline !important;
@@ -816,19 +809,16 @@
         background: rgba(180, 140, 80, 0.25);
     }
 
-    /*KANVAS EDITOR (SATU INSTANCE)*/
     .document-editor-canvas {
         display: flex;
         flex-direction: column;
         gap: 24px;
     }
 
-    /* Setiap "kertas" di dalam editor */
     .doc-sheet {
         position: relative;
         width: 210mm;
         height: 297mm;
-        /* KERTAS TETAP: tidak memanjang lagi */
         min-height: 297mm;
         margin: 0 auto;
         box-sizing: border-box;
@@ -845,16 +835,11 @@
         flex-direction: column;
     }
 
-    /* Halaman SAMPUL (cover): geometri dibuat SAMA PERSIS dengan
-       halaman lain (padding 20mm semua sisi) supaya koordinat gambar
-       floating yang disalin ke mirror semua halaman konsisten — tidak
-       ada gambar yang terdorong keluar kertas di halaman lain. */
     .doc-sheet.doc-cover {
         padding: 20mm 20mm;
         background: #ffffff;
     }
 
-    /* Region di dalam satu kertas: header, body, footer */
     .doc-sheet-header {
         position: relative;
         min-height: 40px;
@@ -865,10 +850,6 @@
         flex: 1;
         min-height: 0;
         overflow: hidden !important;
-        /* konten yang meluap DIKELUARKAN otomatis
-                                        ke kertas berikutnya oleh paginasi.
-           !important: menang atas .ql-editor generik (overflow:visible)
-           pada body fallback non-Quill yang ikut ber-class ql-editor. */
     }
 
     .doc-sheet-footer {
@@ -877,7 +858,6 @@
         padding-top: 8px;
     }
 
-    /* Tombol hapus halaman (muncul di semua kertas, kecuali kertas pertama) */
     .page-remove-btn {
         position: absolute;
         top: 10px;
@@ -909,9 +889,6 @@
         color: #fff;
     }
 
-    /* Jadikan tiap region stacking context, agar gambar dengan z-index negatif
-       (mode "Di Belakang Teks") tetap tampil di atas kertas putih
-       tapi berada di bawah teks. */
     .doc-sheet-header,
     .doc-sheet-body,
     .doc-sheet-footer {
@@ -1011,8 +988,6 @@
         min-width: 60px;
         height: 32px;
         vertical-align: top;
-        /* Teks panjang tanpa spasi (nomor/URL) dipotong dalam sel,
-           bukan melebar keluar kolom & keluar kertas. */
         word-break: break-word;
         overflow-wrap: anywhere;
     }
@@ -1036,7 +1011,6 @@
         height: auto;
     }
 
-    /* Media & kata panjang tidak boleh melebar keluar kertas. */
     .doc-sheet .doc-sheet-body>* {
         max-width: 100%;
     }
@@ -1072,16 +1046,10 @@
         content: counter(list-8, decimal) '. ';
     }
 
-    /* Aturan counter ql-liststyle-* (decimal/alpha/upperalpha/lowerroman/
-       roman × indent 0..8) kini digenerate dari token App\Data\ContractStyle
-       di partials/contract-style.blade.php — satu sumber nilai format. */
-
-    /* Garis pemisah antar kertas (hanya di layar) */
     .doc-sheet+.doc-sheet {
         margin-top: 24px;
     }
 
-    /* Toolbar Quill: tombol aktif diberi latar lembut */
     .toolbar-button.active {
         background: #e7e0d2;
     }
@@ -1090,21 +1058,11 @@
         background: #3b3428;
     }
 
-    /* Editor Quill menyatu dengan gaya kertas.
-       CATATAN: .ql-editor di dalam BODY TIDAK BOLEH overflow:visible,
-       kalau tidak konten yang meluap (mis. template ber-tabel besar)
-       akan tumpah keluar kertas secara visual alih-alih terpotong rapi
-       di dalam kertas lalu dipindah ke kertas berikutnya oleh paginasi.
-       Quill editor resmi (dengan .ql-container) tetap butuh overflow
-       visible agar dropdown/toolbar tidak terpotong — visible itu milik
-       .ql-editor, tapi .ql-container + BODY-nya dikunci hidden sehingga
-       visual tetap terpotong di batas kertas. */
     .doc-sheet .ql-container {
         border: none !important;
         font-family: inherit;
         font-size: 12px;
         height: auto !important;
-        /* jangan kunci 100% — biarkan ikut aliran flex */
         overflow: hidden;
     }
 
@@ -1119,11 +1077,6 @@
         color: #111827;
     }
 
-    /* KUNCI VISUAL: body region selalu memotong konten di batas kertas —
-       mencakup body Quill (.ql-container di dalam) maupun body fallback
-       non-Quill (region ber-class ql-editor TANPA .ql-container, dipakai
-       saat konversi tabel template gagal). Spesifisitas dibuat tinggi agar
-       menang atas rule generik .ql-editor di atas. */
     .doc-sheet .doc-sheet-body,
     .doc-sheet .doc-sheet-body.ql-editor,
     .doc-sheet .doc-sheet-body .ql-container {
@@ -1143,10 +1096,6 @@
         margin: 0 0 10px 0;
     }
 
-    /* House style lima template kontrak (Times New Roman; ukuran font &
-       ritme spasi dari token App\Data\ContractStyle) ada di
-       partials/contract-style.blade.php — include-nya setelah </style>. */
-
     .doc-sheet.doc-cover .doc-sheet-body .ql-editor {
         display: flex;
         flex-direction: column;
@@ -1163,10 +1112,6 @@
         margin: 0;
     }
 
-    /* Quill menambahkan baris kosong <p><br></p> (class ql-align-center)
-       di akhir body yang bisa diedit. Baris "hantu" ini menyita satu slot
-       flex dan merusak distribusi space-between, jadi buang dari tata letak
-       (hanya untuk tampilan; tetap tersimpan utuh saat di-save). */
     .doc-sheet.doc-cover .doc-sheet-body .ql-editor p:last-child:empty,
     .doc-sheet.doc-cover .doc-sheet-body .ql-editor p:last-child:has(> br) {
         display: none;
@@ -1177,16 +1122,11 @@
         max-width: 100%;
     }
 
-    /* Sembunyikan chrome bawaan tema snow yang tidak dipakai */
     .doc-sheet .ql-clipboard {
         position: absolute;
         left: -9999px;
     }
 
-    /*
-        HEADER/FOOTER ALA WORD
-       - zona default INERT + hint saat hover
-       - sesi edit: area lain redup & terkunci*/
     .doc-sheet-header,
     .doc-sheet-footer {
         cursor: default;
@@ -1232,9 +1172,6 @@
         opacity: 1;
     }
 
-    /* Tabel footer cover (Pihak Pertama | Paraf/Stempel) naher Quill:
-       Quill beretain <table> maar membuang style inline (margin pada <p>,
-       padding/border pada <td>). Rule ini pulihkan penampilan compact. */
     .doc-sheet-footer table.contract-table-unstyled {
         margin: 0;
         width: 100%;
@@ -1258,7 +1195,6 @@
         transition: opacity 0.2s;
     }
 
-    /* Petunjuk saat menyentuh area yang terkunci */
     .editing-header .doc-sheet-body:hover::after,
     .editing-header .doc-sheet-footer:hover::after,
     .editing-footer .doc-sheet-body:hover::after,
@@ -1299,9 +1235,6 @@
         opacity: 1;
     }
 
-    /* Garis pembatas ala Word: pemisah zona aktif vs konten utama.
-       Dipasang via .zone-editing (langsung di elemen zona) DAN
-       .editing-* (induk) sebagai lapisan ganda. */
     .editing-header .doc-sheet-header,
     .doc-sheet-header.zone-editing {
         border-bottom: 1px dashed rgb(180 140 80);
@@ -1319,7 +1252,6 @@
             display: none !important;
         }
 
-        /* Garis pembatas hanya milik layar */
         .editing-header .doc-sheet-header,
         .editing-footer .doc-sheet-footer,
         .doc-sheet-header.zone-editing,
@@ -1381,9 +1313,6 @@
         }
     }
 
-    /* Contract table cell styling — specificity lebih tinggi (.ql-editor table td)
-       dibanding .ql-editor th quill-table-better (0,2,1 vs 0,1,1) agar tetap
-       menang walau CSS quill-table-better dimuat setelah tag <style> ini. */
     .ql-editor table {
         border-collapse: collapse;
         width: 100%;
@@ -1392,9 +1321,6 @@
 
     .ql-editor table[data-class*="contract-table"] {
         table-layout: fixed;
-        /* Jaring pengaman: quill-table-better bisa menghilangkan style
-           table-level saat konversi — tanpa ini tabel menyusut & kolom
-           berantakan. */
         width: 100% !important;
     }
 
@@ -1405,27 +1331,23 @@
         vertical-align: top;
     }
 
-    /* Header <th> cell: latar belakang abu-abu lembut, rata-tengah, tebalkan */
     .ql-editor table th {
         background: rgba(0, 0, 0, 0.03);
         font-weight: 600;
         text-align: center;
     }
 
-    /* Override: tabel border pakai warna proyek (#374151) */
     .ql-editor table[data-class*="contract-table-bordered"] td,
     .ql-editor table[data-class*="contract-table-bordered"] th {
         border: 1px solid #374151;
     }
 
-    /* Override: tabel tanpa border (mis. tabel tanda tangan) */
     .ql-editor table[data-class*="contract-table-unstyled"] td,
     .ql-editor table[data-class*="contract-table-unstyled"] th {
         border: none;
         background: transparent;
     }
 
-    /* Print: pastikan border & background tetap terlihat */
     @media print {
 
         .ql-editor table td,
@@ -1503,7 +1425,6 @@
                 this.$nextTick(() => {
                     this.initSingleEditor();
 
-                    // Deteksi aset JS usang: fitur zona butuh API DocQuill baru.
                     if (typeof window.DocQuill?.setZonesEnabled === 'function') {
                         this.initZoneEditMode();
                     } else {
@@ -1516,20 +1437,13 @@
                         );
                     }
 
-                    // Paginasi otomatis: kertas tetap 297mm, konten penuh
-                    // mengalir ke kertas baru di bawahnya (aman di-skip
-                    // kalau bundle editor.js belum dibangun ulang).
                     this.initAutoPagination();
                 });
 
-                // Mode baca: kunci semua editor agar tidak bisa diketik.
                 if (this.readOnly) {
                     this.applyReadOnlyLock();
                 }
 
-                // Bridge UNDO/REDO tingkat dokumen buat toolbar Quill.
-                // Editor.js akan memanggil ini dulu; kalau ada snapshot struktur
-                // halaman, dipakai (mis. memulihkan halaman yang dihapus).
                 window.__docUndoBridge = {
                     undo: () => this.undoDocument(),
                     redo: () => this.redoDocument(),
@@ -2020,15 +1934,12 @@
                     }
                 });
 
-                // SATU KLIK pada isi dokumen saat sesi aktif -> langsung kembali
-                // ke konten utama (caret otomatis mengikuti posisi klik).
                 rootEl.addEventListener(
                     'mousedown',
                     (e) => {
                         if (!this.editSection) return;
                         if (e.target.closest('.doc-sheet-body')) {
                             this.exitEditSection();
-                            // tanpa preventDefault: caret menempel di titik klik
                         }
                     },
                     true
@@ -2046,8 +1957,6 @@
                 if (section !== 'header' && section !== 'footer') return;
 
                 try {
-                    // Pastikan sesi role lain benar-benar mati
-                    // (supaya pindah Header <-> Footer tidak meninggalkan sesuatu aktif)
                     const other = section === 'header' ? 'footer' : 'header';
                     window.DocQuill.setZonesEnabled(other, false);
 
@@ -2075,8 +1984,6 @@
                     const rootEl = document.getElementById('document-editor');
                     rootEl?.classList.remove('editing-header', 'editing-footer');
 
-                    // Kunci KEDUA role sekaligus + bersihkan jejak pembatas.
-                    // Mode konten utama dijamin selalu meninggalkan semua zona terkunci.
                     ['header', 'footer'].forEach((role) => {
                         window.DocQuill.setZonesEnabled(role, false);
                         document.querySelectorAll('.doc-sheet-' + role + '.zone-editing')
@@ -2108,13 +2015,8 @@
                 this.saveStatus = 'idle';
             },
 
-            // Kunci halaman editor pada mode baca (read-only):
-            // nonaktifkan contentEditable Quill + blokir interaksi kertas.
             applyReadOnlyLock() {
                 document.body.classList.add('editor-readonly');
-
-                // Reset proteksi unsaved-changes: dokumen read-only tidak
-                // punya perubahan yang perlu diperingatkan.
                 this.changed = false;
                 window.hasUnsavedChanges = false;
 
@@ -2125,8 +2027,6 @@
                     document.querySelectorAll('.ql-toolbar').forEach((el) => el.remove());
                 };
 
-                // Editor diinisialisasi asinkron → kunci berulang sampai
-                // semua instance Quill siap.
                 const timer = setInterval(() => {
                     lockAll();
                     if (document.querySelectorAll('.ql-editor').length > 0) {
@@ -2136,9 +2036,6 @@
                 setTimeout(() => clearInterval(timer), 10000);
             },
 
-            // ADMIN: kirim dokumen untuk review (tombol "Selesai" di tahap
-            // draft/on_progress/revisi). Isi disimpan dulu, lalu status naik
-            // ke On Review dan user diarahkan kembali ke halaman Dokumen Saya.
             async submitForReview() {
 
                 const konfirmasi = await Swal.fire({
@@ -2159,8 +2056,6 @@
                     if (!this.readOnly) {
                         await this.saveDocument('draft');
 
-                        // Batalkan pengiriman kalau penyimpanan gagal, supaya
-                        // status tidak berubah sementara isi belum tersimpan.
                         if (this.saveStatus === 'error') {
                             throw new Error('save-failed');
                         }
@@ -2178,9 +2073,6 @@
                         showConfirmButton: false,
                     });
 
-                    // Kembali ke halaman Dokumen Saya: dokumen kini On Review
-                    // (read-only) dan keputusan Setujui / Minta Revisi bisa
-                    // diambil dari tabel di sana.
                     window.hasUnsavedChanges = false;
                     window.location.href = this.documentsUrl;
                 } catch (error) {
@@ -2196,12 +2088,6 @@
                 }
             },
 
-            // ADMIN: setujui dokumen On Review (tombol "Setujui") — user memilih
-            // berkas kontrak (PDF) lewat popup; berkas itu disimpan sebagai
-            // dokumen final kontrak ini dan menggantikan isi dokumen di Tabel
-            // Pelanggan (bukan diterbitkan sebagai berkas S.O.F).
-            // TIDAK ada guard readOnly di sini — dokumen On Review memang
-            // read-only, tapi keputusan approval harus tetap bisa diambil.
             async approveDocument() {
 
                 const konfirmasi = await Swal.fire({
@@ -2235,16 +2121,9 @@
                 if (!konfirmasi.isConfirmed || !konfirmasi.value) return;
 
                 try {
-                    // Dokumen yang masih bisa diedit disimpan dulu supaya isi
-                    // terbaru tidak hilang (intent 'draft' → status tidak
-                    // diubah di sini, langsung dilempar ke approve).
-                    // Dokumen On Review (read-only) dilewati karena tidak ada
-                    // perubahan yang bisa disimpan.
                     if (!this.readOnly) {
                         await this.saveDocument('draft');
 
-                        // Batalkan approval kalau penyimpanan gagal, supaya
-                        // status tidak berubah sementara isi belum tersimpan.
                         if (this.saveStatus === 'error') {
                             throw new Error('save-failed');
                         }
@@ -2263,8 +2142,6 @@
                         showConfirmButton: false,
                     });
 
-                    // Kembali ke halaman Dokumen Saya: kontrak kini tampil
-                    // Disetujui dengan berkas hasil upload sebagai dokumennya.
                     window.hasUnsavedChanges = false;
                     window.location.href = this.documentsUrl;
                 } catch (error) {
@@ -2280,7 +2157,7 @@
                 }
             },
 
-            // ADMIN: kembalikan dokumen ke tahap Revisi supaya bisa diperbaiki.
+
             async requestRevision() {
 
                 const konfirmasi = await Swal.fire({
@@ -2308,8 +2185,6 @@
                         showConfirmButton: false,
                     });
 
-                    // Muat ulang editor supaya mode baca dilepas dan isi
-                    // dokumen bisa diperbaiki.
                     window.hasUnsavedChanges = false;
                     window.location.href = `/documents/${this.documentId}/edit`;
                 } catch (error) {
@@ -2323,27 +2198,19 @@
                 }
             },
 
-            // Pesan dari respons JSON server (mis. 422 saat approval ditolak).
+           
             serverMessage(error, fallback) {
                 return error?.response?.data?.message || fallback;
             },
 
 
-
-                                    // Simpan dokumen. `intent` menentukan niat tombol yang ditekan:
-            // - 'submit' (default) → Save / Kirim untuk Review: draf naik ke On Progress
-            // - 'draft'            → Simpan Draf: status dokumen tetap Draft
             async saveDocument(intent = 'submit') {
 
-                // Mode baca: tidak ada yang bisa disimpan.
                 if (this.readOnly) return;
 
-                // Akhiri sesi edit header/footer sebelum menyimpan
                 this.exitEditSection();
                 this.saveStatus = 'saving';
 
-                // Setelah tersimpan, riwayat undo dokumen direset supaya tidak
-                // muncul snapshot lama yang sudah tidak relevan lagi.
                 this.undoStack = [];
                 this.redoStack = [];
 
@@ -2449,13 +2316,6 @@
         };
     }
 
-    // =========================================
-    // 2. PROTEKSI UNSAVED CHANGES
-    // =========================================
-
-    // Mode baca (marketer): tidak ada perubahan yang bisa disimpan,
-    // jadi peringatan "simpan perubahan?" tidak boleh muncul —
-    // apa pun versi bundle editor.js yang dimuat browser.
     window.__docEditorReadOnly = @js($readOnly ?? false);
 
     window.hasUnsavedChanges = false;

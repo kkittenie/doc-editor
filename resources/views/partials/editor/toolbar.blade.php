@@ -61,7 +61,7 @@
                 x-text="saveStatus === 'saving' ? 'Menyimpan...' : (saveStatus === 'saved' ? 'Tersimpan ✓' : 'Simpan')"></span>
         </button>
 
-        <<div class="relative shrink-0">
+        <div class="relative shrink-0">
             <button @click="showSignaturePicker = !showSignaturePicker"
                 :class="hasSignature ? 'bg-seal-50 border-seal-200 text-seal-700' : 'bg-parchment-50 border-parchment-300 text-slate-warm-600'"
                 class="btn-secondary text-xs px-3 py-1.5 h-8">
@@ -99,6 +99,6 @@
                     Hapus TTD dari dokumen
                 </button>
             </div>
+        </div>
     </div>
-</div>
 </div>
