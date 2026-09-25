@@ -31,11 +31,17 @@
         loadingTemplate: null,
         selectedTemplate: '',
         bodyHtml: '',
-        headerHtml: '<p></p>',
+        headerHtml: '<p style="text-align:left; margin:0; padding:0;"><img src="/images/fibertrust.png" alt="Fibertrust" style="height:56px; width:auto; max-width:260px; display:inline-block; vertical-align:middle; margin:0; padding:0;"></p>',
         footerHtml: '<p></p>',
+
+        // Kop default: hanya logo Fibertrust, rata kiri mentok batas insertion point.
+        defaultHeaderHtml() {
+            return '<p style="text-align:left; margin:0; padding:0;"><img src="/images/fibertrust.png" alt="Fibertrust" style="height:56px; width:auto; max-width:260px; display:inline-block; vertical-align:middle; margin:0; padding:0;"></p>';
+        },
 
         // Konfirmasi lalu kirim form (kontrak dibaca dari Form Pelanggan,
         // template bersifat opsional — tanpa template editor dibuka kosong).
+        // Footer default: kosong (kolom baru TANPA footer, sesuai persetujuan).
         async submitForm(event) {
             const form = event.target;
 
@@ -87,14 +93,9 @@
                 }
 
                 // Isi otomatis section HEADER & FOOTER dari template.
-                // Template ber-cover mengirim HTML jadi (header_content =
-                // ikon pihak pertama, footer_content = identitas pihak +
-                // paraf + stample/materai); sisanya dirangkai dari data kop.
-                if (t.header_content) {
-                    this.headerHtml = t.header_content;
-                } else if (t.header_data) {
-                    this.headerHtml = this.buildHeaderHtml(t.header_data);
-                }
+                // Header SELALU kop default Fibertrust (gambar saja, rata kiri).
+                // Template hanya menyumbang nomor/body/footer — bukan kop teks.
+                this.headerHtml = this.defaultHeaderHtml();
                 if (t.footer_content) {
                     this.footerHtml = t.footer_content;
                 } else if (t.footer_data) {

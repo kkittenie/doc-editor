@@ -219,6 +219,21 @@
             font-size: 9px;
         }
 
+        /* FOOTER DEFAULT FIBERTRUST (.fibertrust-footer): diulang di SETIAP
+           halaman via position:fixed (seperti .header-table kontrak di atas);
+           dompdf mengulang elemen fixed per halaman. Nomor "Page | n" digambar
+           callback kanvas (bukan bagian HTML) di atas blok identitas, sejajar
+           baris paraf. margin-top 18px memberi ruang baris nomor. */
+        .footer-fixed {
+            position: fixed;
+            bottom: 10mm;
+            left: {!! $cs::PAGE_MARGIN_SIDE !!};
+            right: {!! $cs::PAGE_MARGIN_SIDE !!};
+            width: auto;
+            margin-top: 18px;
+            font-size: 8.5pt;
+        }
+
         .signature-space {
             height: 70px;
             text-align: center;
@@ -371,7 +386,16 @@
     </div>
     @endforeach
 
-    @if($footerHasTable ?? false)
+    @if(($isFibertrustFooter ?? false) && !empty(trim(strip_tags($footerHtml ?? ''))))
+    {{-- FOOTER DEFAULT FIBERTRUST: identitas + paraf diulang tiap halaman
+         (position:fixed .footer-fixed). Nomor "Page | n" digambar callback
+         kanvas, bukan bagian HTML. --}}
+    <div class="footer-fixed">
+        {!! $footerHtml !!}
+    </div>
+    @endif
+
+    @if(($footerHasTable ?? false) && !($isFibertrustFooter ?? false))
     {{-- FOOTER TIPO COVER: tabel full-width, tidak dikompresi ke kolom 50%. --}}
     <div class="footer-cover">
         {!! $footerHtml !!}
@@ -387,7 +411,7 @@
                 @endif
             </td>
             <td class="right-col">
-                @if(!($footerHasTable ?? false))
+                @if(!($footerHasTable ?? false) && !($isFibertrustFooter ?? false))
                 {!! $footerHtml ?? '' !!}
                 @endif
 

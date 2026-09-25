@@ -82,6 +82,15 @@ class ContractStyle
     public const PAGE_NUM_SIZE = 8.0;
     public const PAGE_NUM_PREFIX = 'Page | ';
 
+    /**
+     * Nomor halaman footer default ("Page | n" di atas blok identitas,
+     * sejajar baris paraf). Satuan titik (pt), origin kiri-atas halaman.
+     * X = margin kiri (20mm). Y = baseline baris pertama blok footer-fixed
+     * (bottom:10mm + tinggi tabel ±55pt dari bawah kertas A4 842pt).
+     */
+    public const FOOTER_NUM_X = 56.0;   // 20mm — sejajar margin kiri
+    public const FOOTER_NUM_Y = 768.0;  // baseline baris "Page | n" footer
+
     /* ── Alignment ─────────────────────────────────────────────── */
     public const ALIGN_TITLE   = 'center';
     public const ALIGN_HEADING = 'center';

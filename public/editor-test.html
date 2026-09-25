@@ -531,6 +531,24 @@
         padding-bottom: 8px;
     }
 
+    /* Default header kop Fibertrust: rata kiri mentok batas insertion point,
+       tetap inline agar bisa dihapus / ditambah teks di sebelahnya. */
+    .doc-sheet-header p {
+        margin: 0;
+        padding: 0;
+        text-align: left;
+    }
+
+    .doc-sheet-header img {
+        height: 44px;
+        width: auto;
+        max-width: 220px;
+        display: inline-block;
+        vertical-align: middle;
+        margin: 0;
+        padding: 0;
+    }
+
     .doc-sheet-body {
         flex: 1;
         min-height: 0;
@@ -1928,7 +1946,7 @@
 
             readOnly: false,
 
-            headerHtml: '\u003Cp style=\u0022text-align:center;\u0022\u003E[ Foto \/ Ikon Pihak Pertama ]\u003C\/p\u003E',
+            headerHtml: '\u003Cp style=\u0022text-align:left; margin:0; padding:0;\u0022\u003E\u003Cimg src=\u0022/images/fibertrust.png\u0022 alt=\u0022Fibertrust\u0022 style=\u0022height:44px; width:auto; max-width:220px; display:inline-block; vertical-align:middle; margin:0; padding:0;\u0022\u003E\u003C\/p\u003E',
             footerHtml: '\u003Ctable style=\u0022width:100%; table-layout:fixed; border-collapse:collapse; margin:0; page-break-inside:avoid;\u0022\u003E\n\u003Ctbody\u003E\n\u003Ctr\u003E\n\u003Ctd style=\u0022width:50%; vertical-align:top; text-align:left; padding:0; font-size:9px; border:none;\u0022\u003E\n\u003Cp style=\u0022margin:0 0 3px; font-size:9px;\u0022\u003E\u003Cstrong\u003EPihak Pertama\u003C\/strong\u003E\u003C\/p\u003E\n\u003Cp style=\u0022margin:0 0 3px; font-size:9px;\u0022\u003EAlamat: [Ketik alamat pihak pertama di sini]\u003C\/p\u003E\n\u003Cp style=\u0022margin:0 0 3px; font-size:9px;\u0022\u003ENo. Telp | Email | Web: [Ketik telp di sini] | [Ketik email di sini] | [Ketik website di sini]\u003C\/p\u003E\n\u003C\/td\u003E\n\u003Ctd style=\u0022width:50%; vertical-align:top; text-align:right; padding:0; font-size:9px; border:none;\u0022\u003E\n\u003Cp style=\u0022margin:0 0 3px; font-size:9px;\u0022\u003E\u003Cstrong\u003EParaf PIHAK PERTAMA:\u003C\/strong\u003E ______________\u003C\/p\u003E\n\u003Cp style=\u0022margin:0 0 3px; font-size:9px;\u0022\u003E\u003Cstrong\u003EParaf PIHAK KEDUA:\u003C\/strong\u003E ______________\u003C\/p\u003E\n\u003Cp style=\u0022margin:0 0 3px; font-size:9px;\u0022\u003E[ Tempel Stample\/Materai di sini ]\u003C\/p\u003E\n\u003C\/td\u003E\n\u003C\/tr\u003E\n\u003C\/tbody\u003E\n\u003C\/table\u003E',
 
             editSection: null,

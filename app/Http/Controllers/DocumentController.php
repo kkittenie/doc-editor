@@ -192,7 +192,7 @@ class DocumentController extends Controller
 
         if ($isContractTemplate) {
             $headerContent = $this->buildContractLetterheadHtml((string) $templateKey);
-            $footerContent = '';
+            $footerContent = $this->buildDefaultFooterHtml();
 
             // Sampul kontrak (halaman 1 PDF sumber): baris judul + pihak +
             // nomor dari kunci 'cover' template — terpisah dari preamble
@@ -351,31 +351,25 @@ class DocumentController extends Controller
     }
 
     /**
-     * Kop formal yang muncul pada PDF sumber. Judul perjanjian sendiri ada di
-     * body template, sehingga tidak diulang pada header editor.
+     * Kop default semua template: hanya gambar Fibertrust, rata kiri mentok
+     * batas insertion point (batas kiri content-box header, bukan mepet
+     * pinggir kertas, bukan di tengah). Gambar dibuat INLINE (bukan
+     * absolute/floating) agar user tetap bisa menghapusnya atau mengetik
+     * teks di sebelahnya. Judul perjanjian sendiri ada di body template,
+     * sehingga tidak diulang pada header editor.
      */
+    private function buildDefaultHeaderHtml(): string
+    {
+        return '<p style="text-align:left; margin:0; padding:0;">'
+            .'<img src="/images/fibertrust.png" alt="Fibertrust" '
+            .'style="height:56px; width:auto; max-width:260px; display:inline-block; vertical-align:middle; margin:0; padding:0;">'
+            .'</p>';
+    }
+
     private function buildContractLetterheadHtml(string $templateKey): string
     {
-        $isBandung = $templateKey === 'kontrak-managed-service';
-        $company = $isBandung ? 'PT Bina Informatika Solusindo' : 'PT Bina Informatika Solusi';
-        $address = $isBandung
-            ? 'Gedung Wisma Bumiputera, Lantai 7 Suite #701B<br>Jl. Asia Afrika No. 141-149, Kota Bandung, Jawa Barat 40112'
-            : 'Jl. Prakarsa Muda No. 258, Kelurahan Pekiringan, Kec. Kesambi<br>Kota Cirebon, Jawa Barat 45131';
-        $contact = $isBandung
-            ? 'Tlp. 022-30501300 | email: info@fiberconnect.id | www.fiberconnect.id'
-            : 'Tlp. 0231-247618 | email: info@fibertrust.id | www.fibertrust.id';
-
-        $fs = ContractStyle::SIZE_LETTERHEAD;
-
-        return '<table style="width:100%; border-collapse:collapse; margin:0 0 8px;">'
-            .'<tr>'
-            .'<td style="width:50%; border:none; padding:0; text-align:left; font-size:'.$fs.';"><strong>Paraf PIHAK PERTAMA:</strong> _______</td>'
-            .'<td style="width:50%; border:none; padding:0; text-align:right; font-size:'.$fs.';"><strong>Paraf PIHAK KEDUA:</strong> _______</td>'
-            .'</tr>'
-            .'</table>'
-            .'<p style="text-align:center; margin:0;"><strong>'.$company.'</strong></p>'
-            .'<p style="text-align:center; margin:0; font-size:'.$fs.';">'.$address.'</p>'
-            .'<p style="text-align:center; margin:0; font-size:'.$fs.';">'.$contact.'</p>';
+        // Kop kontrak resmi: hanya logo Fibertrust (lihat buildDefaultHeaderHtml).
+        return $this->buildDefaultHeaderHtml();
     }
 
     /**
@@ -463,37 +457,52 @@ class DocumentController extends Controller
 
     /**
      * Isi SECTION HEADER untuk dokumen ber-cover:
-     * area foto/ikon pihak pertama di atas halaman sampul.
+     * hanya logo Fibertrust (lihat buildDefaultHeaderHtml).
      *
      * Catatan: disusun dari paragraf sederhana agar selamat dinormalisasi
      * ulang oleh Quill di editor (format tabel tidak ada di whitelist).
      */
     private function buildCoverHeaderHtml(): string
     {
-        return '<p style="text-align:center;">'
-            .'[ Foto / Ikon Pihak Pertama ]'
-            .'</p>';
+        return $this->buildDefaultHeaderHtml();
     }
 
     private function buildCoverFooterHtml(): string
     {
+        return $this->buildDefaultFooterHtml();
+    }
+
+    /**
+     * Footer default semua template (lihat screenshot referensi):
+     * - Kolom kiri: blok identitas PT Bina Informatika Solusi.
+     * - Kolom kanan: hanya dua paraf sebaris ("Paraf PIHAK PERTAMA: ___" +
+     *   "Paraf PIHAK KEDUA: ___").
+     * - TANPA gambar/logo ISO di kanan (sesuai permintaan).
+     *
+     * Nomor "Page | n" TIDAK disimpan di HTML ini: di editor digambar via
+     * CSS counter (.doc-sheet-footer::before, otomatis urut 1..N per kertas
+     * tanpa merusak mirror antar-halaman), di PDF digambar ulang per-halaman
+     * via callback kanvas makeDocumentPdf() (counter(page) CSS selalu 1 di
+     * dompdf). margin-top inline 24px memberi ruang baris nomor di editor;
+     * dilucuti (margin:0) saat render PDF fixed-footer.
+     */
+    private function buildDefaultFooterHtml(): string
+    {
         return implode("\n", [
-            // Footer rapikan 2 kolom: identitas Pihak Pertama di kiri,
-            // paraf + stample/materai di kanan, ukur kecil (9px), pada
-            // line yang sama (seberangan dalam satu baris tabel).
-            '<table style="width:100%; table-layout:fixed; border-collapse:collapse; margin:0; page-break-inside:avoid;">',
+            '<table class="fibertrust-footer" style="width:100%; table-layout:fixed; border-collapse:collapse; margin:24px 0 0; page-break-inside:avoid;">',
             '<tbody>',
             '<tr>',
-            '<td style="width:50%; vertical-align:top; text-align:left; padding:0; font-size:9px; border:none;">',
-            '<p style="margin:0 0 3px; font-size:9px;"><strong>Pihak Pertama</strong></p>',
-            '<p style="margin:0 0 3px; font-size:9px;">Alamat: [Ketik alamat pihak pertama di sini]</p>',
-            '<p style="margin:0 0 3px; font-size:9px;">No. Telp | Email | Web: '
-                .'[Ketik telp di sini] | [Ketik email di sini] | [Ketik website di sini]</p>',
+            '<td style="width:58%; vertical-align:top; text-align:left; padding:0; font-size:8.5pt; border:none;">',
+            '<p style="margin:0; font-size:8.5pt;"><strong>PT Bina Informatika Solusi</strong></p>',
+            '<p style="margin:0; font-size:8.5pt;">Jl. Prakarsa Muda No.258 Kelurahan Pekiringan, Kec. Kesambi</p>',
+            '<p style="margin:0; font-size:8.5pt;">Kota Cirebon, Jawa Barat 45131</p>',
+            '<p style="margin:0; font-size:8.5pt;">Tlp. 0231-247618 | email : info@fibertrust.id | www.fibertrust.id</p>',
             '</td>',
-            '<td style="width:50%; vertical-align:top; text-align:right; padding:0; font-size:9px; border:none;">',
-            '<p style="margin:0 0 3px; font-size:9px;"><strong>Paraf PIHAK PERTAMA:</strong> ______________</p>',
-            '<p style="margin:0 0 3px; font-size:9px;"><strong>Paraf PIHAK KEDUA:</strong> ______________</p>',
-            '<p style="margin:0 0 3px; font-size:9px;">[ Tempel Stample/Materai di sini ]</p>',
+            '<td style="width:42%; vertical-align:top; text-align:right; padding:0; font-size:8.5pt; border:none;">',
+            '<p style="margin:0; font-size:8.5pt;">'
+                .'<span style="display:inline-block; text-align:left; margin-right:14px;">Paraf PIHAK PERTAMA: ________</span>'
+                .'<span style="display:inline-block; text-align:left;">Paraf PIHAK KEDUA: ________</span>'
+                .'</p>',
             '</td>',
             '</tr>',
             '</tbody>',
@@ -502,20 +511,24 @@ class DocumentController extends Controller
     }
 
     /**
-     * Footer efektif untuk render editor/PDF. Dokumen ber-cover harus selalu
-     * punya footer tabel (identitas Pihak Pertama | Paraf/Stempel). Dokumen
-     * lama yang footernya kosong atau tergerus round-trip lama diregenerasi
-     * on-the-fly sehingga tampil kembali tanpa perlu dibuat ulang.
+     * Footer efektif untuk render editor/PDF. Dokumen baru SELALU memakai
+     * footer default Fibertrust (lihat buildDefaultFooterHtml): kontrak resmi
+     * yang footer tersimpannya kosong + dokumen cover yang footernya kosong /
+     * tanpa tabel (tergerus round-trip lama) diregenerasi on-the-fly sehingga
+     * tampil kembali tanpa perlu dibuat ulang. Dokumen LAMA kontrak yang
+     * footernya berisi HTML kustom (ada isi non-kosong) tetap dihormati —
+     * tidak ditimpa (scope footer baru = dokumen baru saja).
      */
     private function resolveFooterHtml(Document $document): string
     {
         $footerHtml = (string) ($document->footer_data['content'] ?? '');
 
-        // Kontrak resmi: footer dibiarkan apa adanya (biasanya kosong) —
-        // jangan regenerate footer sampul placeholder legacy yang akan ikut
-        // tercetak ke PDF (sampul kontrak sudah dibangun sendiri oleh store()).
+        // Kontrak resmi: footer kosong = dokumen baru/belum diisi → pakai
+        // footer default. Footer kustom lama (non-kosong) dibiarkan apa adanya.
         if ((bool) ($document->body_content['contractTemplate'] ?? false)) {
-            return $footerHtml;
+            return trim(strip_tags($footerHtml)) === '' && !preg_match('/<table/i', $footerHtml)
+                ? $this->buildDefaultFooterHtml()
+                : $footerHtml;
         }
 
         $isCover = (int) ($document->body_content['coverPages'] ?? 0) > 0;
@@ -1581,9 +1594,18 @@ class DocumentController extends Controller
         }
 
         $footerHtml = $this->resolveImagePathsForPdf($this->resolveFooterHtml($document));
-        // Footer ber-tabel (cover: Pihak Pertama | Paraf/Stempel) dirender
-        // full-width, sedangkan footer teks biasa tetap di kolom kanan 50%.
+        // Footer ber-tabel (default Fibertrust / cover: identitas | paraf)
+        // dirender full-width, sedangkan footer teks biasa tetap di kolom
+        // kanan 50%.
         $footerHasTable = (bool) preg_match('/<table/i', $footerHtml);
+        // Footer default baru (.fibertrust-footer) diulang di SETIAP halaman
+        // via .footer-fixed; margin-top inline 24px (ruang nomor editor)
+        // dilucuti jadi 0 karena nomor digambar callback kanvas di bawah.
+        // Footer lama/kustom (tanpa marker) tetap sekali di akhir dokumen.
+        $isFibertrustFooter = str_contains($footerHtml, 'fibertrust-footer');
+        if ($isFibertrustFooter) {
+            $footerHtml = str_replace('margin:24px 0 0;', 'margin:0;', $footerHtml);
+        }
 
         $pdf = Pdf::loadView('pdf.document', array_merge([
             'document'      => $document,
@@ -1591,24 +1613,32 @@ class DocumentController extends Controller
             'headerHtml'    => $headerHtml,
             'footerHtml'    => $footerHtml,
             'footerHasTable' => $footerHasTable,
+            'isFibertrustFooter' => $isFibertrustFooter ?? false,
             'signaturePath' => $signaturePath,
             'coverPages'    => (int) ($document->body_content['coverPages'] ?? 0),
         ], $extraData))->setPaper('a4', 'portrait');
 
-        if ($isContract) {
-            // Nomor halaman "Page | n" tiap halaman (D4). counter(page) CSS
-            // selalu bernilai 1 di dompdf, jadi digambar lewat callback
-            // end_document — dipanggil dompdf untuk SETIAP halaman.
+        if (($isFibertrustFooter ?? false) || $isContract) {
+            // Nomor halaman "Page | n" tiap halaman. counter(page) CSS selalu
+            // bernilai 1 di dompdf, jadi digambar lewat callback end_document —
+            // dipanggil dompdf untuk SETIAP halaman. Dokumen berfooter default
+            // (baru): nomor di baris footer bawah (token FOOTER_NUM_X/Y) —
+            // SATU nomor per halaman (kop atas tidak ikut bernomor agar tidak
+            // ganda dengan footer). Kontrak legacy TANPA footer default:
+            // nomor tetap di baris kop atas (token PAGE_NUM_X/Y).
+            $useFooterNum = (bool) ($isFibertrustFooter ?? false);
+            $pageNumX = $useFooterNum ? ContractStyle::FOOTER_NUM_X : ContractStyle::PAGE_NUM_X;
+            $pageNumY = $useFooterNum ? ContractStyle::FOOTER_NUM_Y : ContractStyle::PAGE_NUM_Y;
             $pdf->setCallbacks([
                 [
                     'event' => 'end_document',
-                    'f' => function (int $pageNumber, int $pageCount, $canvas, $fontMetrics): void {
+                    'f' => function (int $pageNumber, int $pageCount, $canvas, $fontMetrics) use ($pageNumX, $pageNumY): void {
                         $font = $fontMetrics->getFont('times')
                             ?? $fontMetrics->getFont(null);
 
                         $canvas->text(
-                            ContractStyle::PAGE_NUM_X,
-                            ContractStyle::PAGE_NUM_Y,
+                            $pageNumX,
+                            $pageNumY,
                             ContractStyle::PAGE_NUM_PREFIX . $pageNumber,
                             $font,
                             ContractStyle::PAGE_NUM_SIZE,
