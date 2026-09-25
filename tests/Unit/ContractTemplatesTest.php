@@ -418,3 +418,42 @@ test('template kontrak bebas nomor kontrak hardcode', function () use ($keys) {
         expect($tpl['body_content']['preamble'])->toContain('[Nomor Perjanjian]');
     }
 });
+
+test('kontrak-soho punya kunci cover terpisah dari preamble (halaman 1 & 2 PDF sumber)', function () {
+    $tpl   = ContractTemplates::find('kontrak-soho');
+    $cover = (string) ($tpl['body_content']['cover'] ?? '');
+
+    expect($cover)->not->toBeEmpty();
+    expect($cover)->toContain('PERJANJIAN BERLANGGANAN');
+    expect($cover)->toContain('JASA SOHO');
+    expect($cover)->toContain('DENGAN');
+    expect($cover)->toContain('[PIHAK KEDUA]');
+    expect($cover)->toContain('Nomor: [Nomor Perjanjian]');
+    // Cover bebas nomor kontrak hardcode sumber.
+    expect($cover)->not->toContain('152/FBT/J.S/IX/2025');
+
+    // Halaman 2 tetap dibuka judul + nomor + naratif pembuka verbatim.
+    expect($tpl['body_content']['preamble'])->toContain('Nomor: [Nomor Perjanjian]');
+    expect($tpl['body_content']['preamble'])->toContain('Pada hari ini, [Hari]');
+    expect($tpl['body_content']['preamble'])->toContain('I. PT Bina Informatika Solusi');
+    expect($tpl['body_content']['preamble'])->toContain('II. [PIHAK KEDUA]');
+});
+
+test('buildContractCoverHtml merender baris sampul memakai token ContractStyle', function () {
+    $tpl  = ContractTemplates::find('kontrak-soho');
+    $ctrl = new DocumentController();
+    $m    = new ReflectionMethod(DocumentController::class, 'buildContractCoverHtml');
+
+    $html = $m->invoke($ctrl, (string) $tpl['body_content']['cover']);
+    $cs   = \App\Data\ContractStyle::class;
+
+    // 6 baris cover: judul, sub-judul, nama pihak pertama, DENGAN, pihak
+    // kedua, nomor — masing-masing satu paragraf center.
+    expect(substr_count($html, '<p '))->toBe(6);
+    expect($html)->toContain('<strong>PERJANJIAN BERLANGGANAN</strong>');
+    expect($html)->toContain($cs::coverStyle('PERJANJIAN BERLANGGANAN', true, false));
+    expect($html)->toContain($cs::coverStyle('Nomor: [Nomor Perjanjian]', false, true));
+
+    // Baris kosong tidak menghasilkan paragraf kosong.
+    expect($m->invoke($ctrl, "  \n "))->toBe('');
+});

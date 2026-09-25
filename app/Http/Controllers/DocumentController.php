@@ -182,7 +182,7 @@ class DocumentController extends Controller
                 ?? $this->buildTemplateBodyHtml($template['body_content'] ?? [], $useCenter);
         }
 
-                $bodyHtml = $this->normalizePasalNumbering([$bodyHtml])[0];
+        $bodyHtml = $this->normalizePasalNumbering([$bodyHtml])[0];
 
         // Isi placeholder body template dengan data nyata (kontrak & pelanggan).
         $bodyHtml = $this->applyTemplateReplacements($bodyHtml, $customer, $nomorSurat);
@@ -190,13 +190,24 @@ class DocumentController extends Controller
         $isContractTemplate = \App\Data\ContractTemplates::find((string) $templateKey) !== null;
         $coverPages = 0;
 
-        // Lima kontrak sumber sudah memiliki halaman pertama lengkap (kop,
-        // judul, pihak, dan nomor). Jangan tambahkan sampul placeholder baru
-        // karena itu menggeser seluruh tata letak dan menggandakan judul.
         if ($isContractTemplate) {
             $headerContent = $this->buildContractLetterheadHtml((string) $templateKey);
             $footerContent = '';
-            $pages = [$bodyHtml];
+
+            // Sampul kontrak (halaman 1 PDF sumber): baris judul + pihak +
+            // nomor dari kunci 'cover' template — terpisah dari preamble
+            // supaya halaman 2 dibuka judul + nomor, persis dokumen sumber.
+            $coverHtml = $this->buildContractCoverHtml(
+                (string) ($template['body_content']['cover'] ?? '')
+            );
+
+            if ($coverHtml !== '') {
+                $coverHtml = $this->applyTemplateReplacements($coverHtml, $customer, $nomorSurat);
+                $pages = [$coverHtml, $bodyHtml];
+                $coverPages = 1;
+            } else {
+                $pages = [$bodyHtml];
+            }
         } elseif ($templateKey && in_array($templateKey, $this->coverTemplateKeys(), true)) {
             $headerContent = $this->buildCoverHeaderHtml();
             $footerContent = $this->buildCoverFooterHtml();
@@ -206,7 +217,7 @@ class DocumentController extends Controller
             $pages = [$bodyHtml];
         }
 
-                $document = Document::create([
+        $document = Document::create([
             'user_id' => Auth::id(),
             'customer_id' => $customer?->id,
             'title' => $title,
@@ -368,6 +379,38 @@ class DocumentController extends Controller
     }
 
     /**
+     * Halaman sampul kontrak: baris judul/pihak/nomor dari kunci 'cover'
+     * template dirapatkan seperti halaman 1 PDF sumber. Seluruh jarak &
+     * ukuran diambil dari token App\Data\ContractStyle (coverStyle) —
+     * jangan hardcode ukuran di sini.
+     */
+    private function buildContractCoverHtml(string $cover): string
+    {
+        $lines = preg_split('/\r?\n/', trim($cover));
+        $lines = array_values(array_filter(array_map('trim', $lines), fn ($l) => $l !== ''));
+
+        if ($lines === []) {
+            return '';
+        }
+
+        $last = count($lines) - 1;
+        $out = [];
+
+        foreach ($lines as $i => $line) {
+            $style = ContractStyle::coverStyle($line, $i === 0, $i === $last);
+            $inner = $this->styleContractPartyNames(e($line));
+
+            if ($i === 0) {
+                $inner = '<strong>' . $inner . '</strong>';
+            }
+
+            $out[] = '<p style="' . $style . '">' . $inner . '</p>';
+        }
+
+        return implode("\n", $out);
+    }
+
+    /**
      * Dokumen yang dibuat sebelum perbaikan ini memiliki sampul placeholder
      * tambahan di depan halaman pertama sumber. Hanya pola placeholder yang
      * persis sama yang diubah, sehingga halaman sampul yang sudah diedit user
@@ -467,6 +510,13 @@ class DocumentController extends Controller
     private function resolveFooterHtml(Document $document): string
     {
         $footerHtml = (string) ($document->footer_data['content'] ?? '');
+
+        // Kontrak resmi: footer dibiarkan apa adanya (biasanya kosong) —
+        // jangan regenerate footer sampul placeholder legacy yang akan ikut
+        // tercetak ke PDF (sampul kontrak sudah dibangun sendiri oleh store()).
+        if ((bool) ($document->body_content['contractTemplate'] ?? false)) {
+            return $footerHtml;
+        }
 
         $isCover = (int) ($document->body_content['coverPages'] ?? 0) > 0;
 
@@ -1518,12 +1568,24 @@ class DocumentController extends Controller
         );
 
         $headerHtml = $this->resolveImagePathsForPdf($document->header_data['content'] ?? '');
+        $isContract = (bool) ($document->body_content['contractTemplate'] ?? false);
+
+        if ($isContract) {
+            // Ruang untuk nomor halaman "Page | n" di margin kiri: sel paraf
+            // kiri digeser masuk 32mm agar tidak bertabrakan dengan teks kanvas.
+            $headerHtml = str_replace(
+                'border:none; padding:0; text-align:left; font-size:',
+                'border:none; padding:0 0 0 32mm; text-align:left; font-size:',
+                $headerHtml
+            );
+        }
+
         $footerHtml = $this->resolveImagePathsForPdf($this->resolveFooterHtml($document));
         // Footer ber-tabel (cover: Pihak Pertama | Paraf/Stempel) dirender
         // full-width, sedangkan footer teks biasa tetap di kolom kanan 50%.
         $footerHasTable = (bool) preg_match('/<table/i', $footerHtml);
 
-        return Pdf::loadView('pdf.document', array_merge([
+        $pdf = Pdf::loadView('pdf.document', array_merge([
             'document'      => $document,
             'pages'         => $pages,
             'headerHtml'    => $headerHtml,
@@ -1532,6 +1594,32 @@ class DocumentController extends Controller
             'signaturePath' => $signaturePath,
             'coverPages'    => (int) ($document->body_content['coverPages'] ?? 0),
         ], $extraData))->setPaper('a4', 'portrait');
+
+        if ($isContract) {
+            // Nomor halaman "Page | n" tiap halaman (D4). counter(page) CSS
+            // selalu bernilai 1 di dompdf, jadi digambar lewat callback
+            // end_document — dipanggil dompdf untuk SETIAP halaman.
+            $pdf->setCallbacks([
+                [
+                    'event' => 'end_document',
+                    'f' => function (int $pageNumber, int $pageCount, $canvas, $fontMetrics): void {
+                        $font = $fontMetrics->getFont('times')
+                            ?? $fontMetrics->getFont(null);
+
+                        $canvas->text(
+                            ContractStyle::PAGE_NUM_X,
+                            ContractStyle::PAGE_NUM_Y,
+                            ContractStyle::PAGE_NUM_PREFIX . $pageNumber,
+                            $font,
+                            ContractStyle::PAGE_NUM_SIZE,
+                            [0, 0, 0]
+                        );
+                    },
+                ],
+            ]);
+        }
+
+        return $pdf;
     }
 
     /**

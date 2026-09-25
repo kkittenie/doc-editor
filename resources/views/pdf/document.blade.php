@@ -329,6 +329,28 @@
         .contract-document .body-content table.contract-table-unstyled th {
             border: none;
         }
+
+        /* ── D3 & D4: kertas & kop berulang — HANYA untuk lima template
+           kontrak resmi (digate body class contract-document + flag
+           contractTemplate). Margin @page menyediakan ruang kop di atas
+           area teks; kop dipasang position:fixed dengan origin tepi kertas
+           sehingga dompdf mengulangnya di SETIAP halaman (termasuk sampul),
+           persis PDF sumber ("Page | n" + paraf + kop). Semua nilai dari
+           token ContractStyle. ── */
+        @if($document->body_content['contractTemplate'] ?? false)
+        @page {
+            margin: {!! $cs::PAGE_MARGIN_TOP !!} {!! $cs::PAGE_MARGIN_SIDE !!} {!! $cs::PAGE_MARGIN_BOTTOM !!} {!! $cs::PAGE_MARGIN_SIDE !!};
+        }
+
+        .contract-document .header-table {
+            position: fixed;
+            top: {!! $cs::RUNNING_HEADER_TOP !!};
+            left: {!! $cs::PAGE_MARGIN_SIDE !!};
+            right: {!! $cs::PAGE_MARGIN_SIDE !!};
+            width: auto;
+            margin-bottom: 0;
+        }
+        @endif
     </style>
 </head>
 

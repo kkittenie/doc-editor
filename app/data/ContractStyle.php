@@ -58,6 +58,30 @@ class ContractStyle
     public const TABLE_BORDER = '1px solid #000';
     public const TABLE_WIDTH  = '100%';
 
+    /* ── Sampul kontrak (cover, halaman 1 PDF sumber) ──────────── */
+    /** Jarak antar-baris halaman sampul. */
+    public const COVER_SPACE_AFTER = '80pt';
+    /** Ukuran baris pihak (bukan judul, bukan "DENGAN"/"Nomor:") pada sampul. */
+    public const SIZE_COVER_LINE = '13pt';
+
+    /* ── Kertas & kop berulang PDF kontrak (D3/D4) ─────────────── */
+    /** Margin halaman — dipakai rule @page di views/pdf/document.blade.php. */
+    public const PAGE_MARGIN_TOP = '32mm';
+    public const PAGE_MARGIN_SIDE = '20mm';
+    public const PAGE_MARGIN_BOTTOM = '18mm';
+    /** Posisi kop position:fixed relatif tepi kertas (dompdf origin = kertas). */
+    public const RUNNING_HEADER_TOP = '5mm';
+
+    /**
+     * Nomor halaman "Page | n" digambar kanvas dompdf (callback end_document)
+     * karena counter(page) CSS selalu 1 di dompdf. Satuan titik (pt),
+     * origin kiri-atas halaman. X = margin kiri; Y = baris paraf kop.
+     */
+    public const PAGE_NUM_X = 56.0;   // 20mm — sejajar margin kiri
+    public const PAGE_NUM_Y = 15.0;    // kop mulai RUNNING_HEADER_TOP (5mm)
+    public const PAGE_NUM_SIZE = 8.0;
+    public const PAGE_NUM_PREFIX = 'Page | ';
+
     /* ── Alignment ─────────────────────────────────────────────── */
     public const ALIGN_TITLE   = 'center';
     public const ALIGN_HEADING = 'center';
@@ -138,6 +162,25 @@ class ContractStyle
         return 'text-align:' . self::ALIGN_TITLE . ';'
             . ' font-size:' . self::SIZE_BODY . ';'
             . ' margin-top:0; margin-bottom:' . self::HEADING_SPACE_AFTER . ';';
+    }
+
+    /**
+     * CSS satu baris halaman sampul kontrak. Baris pertama = judul dokumen
+     * (SIZE_TITLE), baris "DENGAN"/"Nomor:" reguler (SIZE_BODY, tanpa tebal),
+     * baris lain baris pihak (SIZE_COVER_LINE, tebal). Margin dipisah
+     * top/bottom supaya selamat round-trip Quill (attributor phead/pbb).
+     */
+    public static function coverStyle(string $line, bool $first = false, bool $last = false): string
+    {
+        $plain = preg_match('/^(dengan|nomor\b)/iu', trim($line)) === 1;
+
+        return 'text-align:' . self::ALIGN_TITLE . ';'
+            . ' font-size:' . ($first
+                ? self::SIZE_TITLE
+                : ($plain ? self::SIZE_BODY : self::SIZE_COVER_LINE)) . ';'
+            . ' font-weight:' . (($first || ! $plain) ? 'bold' : 'normal') . ';'
+            . ' margin-top:0;'
+            . ' margin-bottom:' . ($last ? '0' : self::COVER_SPACE_AFTER) . ';';
     }
 
     /** CSS heading kontrak (PASAL n, judul pasal, LAMPIRAN, MENIMBANG). */
