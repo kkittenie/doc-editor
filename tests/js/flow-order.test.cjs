@@ -175,7 +175,7 @@ class FakeDelta {
 
 // shim Quill: root berupa elemen, getIndex() mengembalikan offset karakter
 // anak, updateContents() benar-benar menyisipkan sesuai retain/insert.
-function makeQuill(rootKids) {
+function makeQuill(rootKids, docLen) {
   const q = {
     root: new El('div'),
     _inserted: 0,
@@ -187,6 +187,11 @@ function makeQuill(rootKids) {
     // offset kasar: satu blok = 1 "karakter" + pemisah newline
     return at * 2;
   };
+  // Panjang dokumen kasar untuk plan append-di-akhir (boundary null).
+  // Default: 2 per blok (= konsisten dengan getIndex di atas).
+  q.getLength = () => (typeof docLen === 'number'
+    ? docLen
+    : q.root.children.length * 2);
   q.updateContents = (delta) => {
     let idx = 0;
     for (const op of delta.ops) {
@@ -236,6 +241,38 @@ assert.strictEqual(q.root.children[3].dataset.flowCont, undefined);
 // Nilai yang sama harus ter-retain dengan benar oleh __flowContDelta.
 const planIdx = __flowContInsertPlan(q).index;
 assert.ok(planIdx > 0, 'setelah ada continuation, index harus > 0');
+
+// --- Regresi boundary-null jalur Quill (pasal acak + lampiran di tengah) --
+//
+// Skenario SOHO nyata: halaman tujuan isinya SEMUA continuation (Pasal 4
+// sudah mendarat), lalu batch susulan (isi Pasal 4, lalu tabel Lampiran)
+// datang. `__flowContBoundary` = null. Jalur DOM append di akhir (benar),
+// tapi jalur Quill lama `retain(0)` = sisip paling depan (salah) sehingga
+// tiap batch membalik batch sebelumnya.
+const qFullA = new El('p'); qFullA.text = () => 'Q-PASAL-4';
+qFullA.dataset.flowCont = '1';
+const qFullB = new El('p'); qFullB.text = () => 'Q-ISI-4';
+qFullB.dataset.flowCont = '1';
+const qFull = makeQuill([qFullA, qFullB]);
+
+// Plan boundary-null harus append di akhir (index = panjang dokumen),
+// bukan 0.
+const planFull1 = __flowContInsertPlan(qFull);
+assert.ok(planFull1.index > 0, 'boundary null: plan harus append di akhir, bukan index 0');
+assert.strictEqual(planFull1.boundary, null, 'boundary null tetap null');
+qFull.updateContents(__flowContDelta(FakeDelta, { ops: [{ insert: 'Q-PASAL-5' }] }, planFull1));
+__markFlowContinuationRun(qFull, planFull1);
+
+// Batch susulan kedua (tabel lampiran) harus MENYUSUL, bukan membalik.
+const planFull2 = __flowContInsertPlan(qFull);
+qFull.updateContents(__flowContDelta(FakeDelta, { ops: [{ insert: 'Q-LAMPIRAN-A' }] }, planFull2));
+__markFlowContinuationRun(qFull, planFull2);
+
+assert.strictEqual(
+  qFull.root.children.map((c) => c.text()).join(','),
+  'Q-PASAL-4,Q-ISI-4,Q-PASAL-5,Q-LAMPIRAN-A',
+  'batch susulan di halaman penuh-continuation harus append berurutan (Quill sama dengan DOM)'
+);
 
 // --- Grup heading atomik dua arah (SOHO) ---------------------------
 //

@@ -2785,10 +2785,26 @@ function __domFlowInsertContinuation(targetBody, nodes) {
 // persis sumber bug yang sudah diperbaiki di jalur DOM. Plan ini menyamakan
 // kedua jalur: konten lanjutan menyusul continuation sebelumnya, dan mendahului
 // konten lama halaman tujuan.
+//
+// Kasus `boundary == null` (seluruh isi target adalah continuation, atau
+// target kosong): batch baru wajib APPEND DI AKHIR, bukan sisip di 0.
+// Jalur DOM memakai `insertBefore(node, null)` (= append) sehingga benar;
+// jalur Quill sebelumnya memakai `retain(0)` (= sisip paling depan) sehingga
+// tiap batch susulan (Pasal 4, isi, tabel Lampiran SOHO) membalik batch
+// sebelumnya — gejala "pasal acak + lampiran di tengah pasal". Perbaikan:
+// kembalikan indeks akhir dokumen (`getLength()`), mirroring pola append
+// yang dipakai `__pullBackPass` (`retain(quill.getLength())`).
 function __flowContInsertPlan(targetQ) {
     try {
         const boundary = __flowContBoundary(targetQ.root);
-        if (!boundary) return { index: 0, boundary: null };
+        if (!boundary) {
+            let end = 0;
+            try {
+                const len = targetQ.getLength();
+                if (typeof len === 'number' && len > 0) end = len;
+            } catch (err) { end = 0; }
+            return { index: end, boundary: null };
+        }
         const at = targetQ.getIndex(boundary);
         return {
             index: (typeof at === 'number' && at > 0) ? at : 0,
