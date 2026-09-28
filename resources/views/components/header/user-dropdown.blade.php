@@ -73,7 +73,18 @@ $initials = strtoupper(substr($words[0] ?? 'P', 0, 1) . (isset($words[1]) && $wo
         </ul>
 
         <!-- Sign Out Action -->
-        <form method="POST" action="{{ route('logout') }}" @submit="closeDropdown()">
+        <form method="POST" action="{{ route('logout') }}" @submit.prevent="
+                if (!window.Swal) { closeDropdown(); $el.submit(); return; }
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Keluar dari sesi?',
+                    text: 'Anda akan keluar dari akun ini dan kembali ke halaman masuk.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Keluar',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#A8172A',
+                    cancelButtonColor: '#6E0F1E'
+                }).then((result) => { if (result.isConfirmed) { closeDropdown(); $el.submit(); } });">
             @csrf
             <button type="submit"
                 class="flex items-center w-full gap-2.5 px-2.5 py-2 mt-1 font-medium text-xs text-seal-700 hover:bg-seal-50 rounded-lg transition-colors dark:text-seal-400 dark:hover:bg-slate-warm-800">

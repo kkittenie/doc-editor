@@ -12,7 +12,7 @@
             'id' => 'DOC-' . str_pad($doc->id, 5, '0', STR_PAD_LEFT),
             'databaseId' => $doc->id,
             'title' => $doc->title,
-            'nomorSurat' => $doc->header_data['nomorSurat'] ?? '—',
+            'nomorSurat' => $doc->header_data['nomorSurat'] ?? 'â€”',
 
             'category' => ucfirst($doc->type ?? 'surat'),
 
@@ -73,7 +73,7 @@
 
                         async updateDocumentStatus(docId, status, action) {
                 const konfirmasi = {
-                    kirim:   { icon: 'info',    title: 'Kirim untuk review?', text: 'Dokumen akan dikirim untuk review.', confirm: 'Ya, kirim', color: '#2563eb' },
+                    kirim:   { icon: 'info',    title: 'Kirim untuk review?', text: 'Dokumen akan dikirim untuk review.', confirm: 'Ya, kirim', color: '#A8172A' },
                     setujui: { icon: 'success', title: 'Setujui dokumen?',    text: 'Dokumen akan berstatus Disetujui.', confirm: 'Ya, setujui', color: '#059669' },
                 }[action];
 
@@ -140,7 +140,7 @@
                         icon: 'success',
                         title: 'Terhapus',
                         text: 'Dokumen berhasil dihapus.',
-                        confirmButtonColor: '#1B2A4A'
+                        confirmButtonColor: '#A8172A'
                     }).then(() => window.location.reload());
                 })
                 .catch(error => {
@@ -148,7 +148,7 @@
                         icon: 'error',
                         title: 'Gagal',
                         text: error.message,
-                        confirmButtonColor: '#1B2A4A'
+                        confirmButtonColor: '#A8172A'
                     });
 
                     console.error(error);
@@ -187,7 +187,7 @@
                         icon: 'success',
                         title: 'Terhapus',
                         text: 'Semua dokumen berhasil dihapus.',
-                        confirmButtonColor: '#1B2A4A'
+                        confirmButtonColor: '#A8172A'
                     }).then(() => window.location.reload());
                 })
                 .catch(error => {
@@ -195,7 +195,7 @@
                         icon: 'error',
                         title: 'Gagal',
                         text: error.message,
-                        confirmButtonColor: '#1B2A4A'
+                        confirmButtonColor: '#A8172A'
                     });
 
                     console.error(error);
@@ -214,7 +214,7 @@
 
         <div>
             <div class="mb-2 flex items-center gap-2">
-                <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-ink-900 text-white dark:bg-bronze-500 dark:text-ink-900">
+                <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-crimson-700 text-white shadow-theme-xs">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -224,7 +224,7 @@
                     </svg>
                 </span>
 
-                <span class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-warm-500">
+                <span class="text-[11px] font-semibold uppercase tracking-[0.18em] text-crimson-600 dark:text-crimson-400">
                     Document Management
                 </span>
             </div>
@@ -241,7 +241,7 @@
         <a
             href="{{ route('documents.create') }}"
             @if(!$isAdmin) hidden @endif
-            class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-ink-900 px-4 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:bg-bronze-500 dark:text-ink-900"
+            class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-crimson-700 px-4 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-crimson-600 hover:shadow-md"
         >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2">
@@ -273,7 +273,7 @@
                     </p>
                 </div>
 
-                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-parchment-100 text-ink-900 dark:bg-slate-warm-800 dark:text-parchment-200">
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-crimson-50 text-crimson-700 dark:bg-crimson-900/25 dark:text-crimson-300">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -348,7 +348,7 @@
                     ></p>
                 </div>
 
-                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-crimson-50 text-crimson-600 dark:bg-crimson-900/25 dark:text-crimson-300">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"/>
@@ -398,8 +398,8 @@
                 <button
                     @click="filterStatus = 'all'"
                     :class="filterStatus === 'all'
-                        ? 'bg-white text-ink-900 shadow-sm dark:bg-slate-warm-700 dark:text-white'
-                        : 'text-slate-warm-500 hover:text-ink-900 dark:hover:text-white'"
+                        ? 'bg-crimson-700 text-white shadow-sm'
+                        : 'text-slate-warm-500 hover:text-crimson-700 dark:hover:text-crimson-300'"
                     class="whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition"
                 >
                     Semua
@@ -408,8 +408,8 @@
                 <button
                     @click="filterStatus = 'draft'"
                     :class="filterStatus === 'draft'
-                        ? 'bg-white text-ink-900 shadow-sm dark:bg-slate-warm-700 dark:text-white'
-                        : 'text-slate-warm-500 hover:text-ink-900 dark:hover:text-white'"
+                        ? 'bg-crimson-700 text-white shadow-sm'
+                        : 'text-slate-warm-500 hover:text-crimson-700 dark:hover:text-crimson-300'"
                     class="whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition"
                 >
                     Draft
@@ -418,8 +418,8 @@
                                 <button
                     @click="filterStatus = 'pending'"
                     :class="filterStatus === 'pending'
-                        ? 'bg-white text-ink-900 shadow-sm dark:bg-slate-warm-700 dark:text-white'
-                        : 'text-slate-warm-500 hover:text-ink-900 dark:hover:text-white'"
+                        ? 'bg-crimson-700 text-white shadow-sm'
+                        : 'text-slate-warm-500 hover:text-crimson-700 dark:hover:text-crimson-300'"
                     class="whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition"
                 >
                     Pending Review
@@ -428,8 +428,8 @@
                 <button
                     @click="filterStatus = 'signed'"
                     :class="filterStatus === 'signed'
-                        ? 'bg-white text-ink-900 shadow-sm dark:bg-slate-warm-700 dark:text-white'
-                        : 'text-slate-warm-500 hover:text-ink-900 dark:hover:text-white'"
+                        ? 'bg-crimson-700 text-white shadow-sm'
+                        : 'text-slate-warm-500 hover:text-crimson-700 dark:hover:text-crimson-300'"
                     class="whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition"
                 >
                     Disetujui
@@ -458,7 +458,7 @@
                     type="text"
                     x-model="searchQuery"
                     placeholder="Cari dokumen atau nomor..."
-                    class="h-10 w-full rounded-xl border border-parchment-300 bg-parchment-25 pl-9 pr-3 text-xs outline-none transition placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/5 dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100 dark:focus:border-bronze-500"
+                    class="h-10 w-full rounded-xl border border-parchment-300 bg-parchment-25 pl-9 pr-3 text-xs outline-none transition placeholder:text-slate-warm-400 focus:border-crimson-600 focus:ring-2 focus:ring-crimson-600/10 dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100 dark:focus:border-crimson-500"
                 >
 
             </div>
@@ -556,14 +556,14 @@
                         :key="doc.id"
                     >
 
-                        <tr class="group border-t border-parchment-200 transition hover:bg-parchment-50 dark:border-slate-warm-800 dark:hover:bg-slate-warm-800/40">
+                        <tr class="group border-t border-parchment-200 transition hover:bg-crimson-25 dark:border-slate-warm-800 dark:hover:bg-crimson-900/10">
 
                             {{-- Document --}}
                             <td class="px-5 py-4">
 
                                 <div class="flex items-center gap-3">
 
-                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-parchment-200 bg-parchment-50 text-ink-900 dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-200">
+                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-crimson-100 bg-crimson-50 text-crimson-700 dark:border-crimson-900/40 dark:bg-crimson-900/20 dark:text-crimson-300">
 
                                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
                                             stroke="currentColor" stroke-width="1.8">
@@ -631,8 +631,8 @@
                                 </template>
 
                                 <template x-if="doc.status === 'pending'">
-                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-semibold text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-crimson-50 px-2.5 py-1 text-[10px] font-semibold text-crimson-700 dark:bg-crimson-900/20 dark:text-crimson-300">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-crimson-600"></span>
                                         Pending Review
                                     </span>
                                 </template>
@@ -660,12 +660,12 @@
                                 <div class="flex justify-end gap-1.5">
 
                                     @if($isAdmin)
-                                        {{-- Kirim Review (draft → pending) --}}
+                                        {{-- Kirim Review (draft â†’ pending) --}}
                                         <button
                                             type="button"
                                             x-show="doc.status === 'draft'"
                                             @click="updateDocumentStatus(doc.databaseId, 'pending', 'kirim')"
-                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-100 dark:border-blue-900/40 dark:bg-blue-900/20 dark:text-blue-300"
+                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-crimson-200 bg-crimson-50 px-2.5 text-[11px] font-semibold text-crimson-700 transition hover:bg-crimson-100 dark:border-crimson-900/40 dark:bg-crimson-900/20 dark:text-crimson-300"
                                             title="Kirim untuk review"
                                         >
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
@@ -677,7 +677,7 @@
                                             Kirim Review
                                         </button>
 
-                                                                                {{-- Setujui (pending → signed) --}}
+                                                                                {{-- Setujui (pending â†’ signed) --}}
                                         <button
                                             type="button"
                                             x-show="doc.status === 'pending'"
@@ -697,7 +697,7 @@
                                         <button
                                             type="button"
                                             @click="window.location.href = `/documents/${doc.databaseId}/edit`"
-                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900"
+                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-crimson-700 hover:bg-crimson-700 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-crimson-600 dark:hover:bg-crimson-600 dark:hover:text-white"
                                         >
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                                                 stroke="currentColor" stroke-width="2">

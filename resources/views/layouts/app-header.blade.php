@@ -11,9 +11,11 @@
     }">
     <div class="flex flex-col items-center justify-between grow xl:flex-row xl:px-6">
         <div
-            class="flex items-center justify-between w-full gap-3 px-4 py-3 border-b border-parchment-200 dark:border-slate-warm-800 xl:justify-normal xl:border-b-0 xl:px-0">
+            class="flex items-center justify-start w-full gap-3 px-4 py-3 border-b border-parchment-200 dark:border-slate-warm-800 xl:justify-normal xl:border-b-0 xl:px-0">
 
-            <!-- Desktop Sidebar Toggle Button -->
+            {{-- Desktop Sidebar Toggle Button —
+                 dinonaktifkan sementara; posisinya kini ditempati logo perusahaan.
+                 Untuk mengaktifkan kembali, hapus pembungkus komentar Blade ini.
             <button
                 class="hidden xl:flex items-center justify-center w-10 h-10 text-slate-warm-500 border border-parchment-300 rounded-lg dark:border-slate-warm-700 dark:text-parchment-400 hover:bg-parchment-100 transition-colors"
                 :class="{ 'bg-parchment-200 dark:bg-slate-warm-800': !$store.sidebar.isExpanded }"
@@ -22,19 +24,22 @@
                     <path d="M4 6H20M4 12H14M4 18H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                 </svg>
             </button>
+            --}}
 
             <!-- Mobile Sidebar Toggle Button -->
             <button
-                class="flex xl:hidden items-center justify-center w-10 h-10 text-slate-warm-600 rounded-lg dark:text-parchment-400"
+                class="flex xl:hidden items-center justify-center w-10 h-10 text-slate-warm-600 rounded-lg dark:text-parchment-400 shrink-0"
                 @click="$store.sidebar.toggleMobileOpen()" aria-label="Toggle Mobile Menu">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
 
-            <!-- Mobile Brand Logo -->
-            <a href="/" class="xl:hidden flex items-center gap-2">
-                <span class="font-serif font-bold text-ink-900 dark:text-parchment-100">Papercraft</span>
+            <!-- Brand Logo — menempati posisi tombol hamburger -->
+            <a href="/" title="Akses Digital"
+                class="flex items-center shrink-0 rounded-lg transition-colors dark:bg-white/95 dark:px-2 dark:py-1">
+                <img src="{{ asset('images/aksesdigital-mark.webp') }}" alt="Akses Digital"
+                    class="h-9 w-auto">
             </a>
 
             {{-- Blok judul dokumen nonaktif (fitur mendatang) — disimpan sebagai

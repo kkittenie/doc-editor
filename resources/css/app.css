@@ -77,6 +77,20 @@
   --color-parchment-50: #FAF8F5;
   --color-parchment-25: #FCFBF9;
 
+  /* Merah Putih Crimson — brand primary: sidebar, primary actions, active states */
+  --color-crimson-950: #4A0A14;
+  --color-crimson-900: #6E0F1E;
+  --color-crimson-800: #8A1224;
+  --color-crimson-700: #A8172A;
+  --color-crimson-600: #C81E33;
+  --color-crimson-500: #DE3B4F;
+  --color-crimson-400: #EA6674;
+  --color-crimson-300: #F2A0A9;
+  --color-crimson-200: #F8C9CE;
+  --color-crimson-100: #FCE3E5;
+  --color-crimson-50: #FEF3F4;
+  --color-crimson-25: #FFFAFA;
+
   /* Burgundy Seal — official status, signatures, stamps */
   --color-seal-950: #3D0F1A;
   --color-seal-900: #5A1628;
@@ -273,29 +287,31 @@
   }
 }
 
-/* ─── MENU / SIDEBAR UTILITIES ─── */
+/* ─── MENU / SIDEBAR UTILITIES (Merah Putih) ───
+   Sidebar memakai latar crimson, sehingga state menu tidak lagi
+   bergantung pada mode terang/gelap. */
 @utility menu-item {
-  @apply relative flex items-center w-full gap-3 px-3 py-2.5 font-medium rounded-lg text-theme-sm transition-all duration-200;
+  @apply relative flex items-center w-full gap-3 px-3 py-2.5 font-normal rounded-lg text-theme-sm transition-all duration-200;
 }
 
 @utility menu-item-active {
-  @apply bg-ink-900 text-parchment-50 dark:bg-ink-800 dark:text-parchment-100;
+  @apply bg-white font-medium text-crimson-800 shadow-theme-xs;
 }
 
 @utility menu-item-inactive {
-  @apply text-slate-warm-600 hover:bg-parchment-100 hover:text-ink-900 dark:text-parchment-400 dark:hover:bg-white/5 dark:hover:text-parchment-200;
+  @apply text-white/85 hover:bg-white/10 hover:text-white;
 }
 
 @utility menu-item-icon {
-  @apply text-slate-warm-400 transition-colors duration-200;
+  @apply text-white/70 transition-colors duration-200;
 }
 
 @utility menu-item-icon-active {
-  @apply text-parchment-200 dark:text-bronze-400;
+  @apply text-crimson-700;
 }
 
 @utility menu-item-icon-inactive {
-  @apply text-slate-warm-400 group-hover:text-ink-700 dark:text-parchment-500 dark:group-hover:text-parchment-300;
+  @apply text-white/70 group-hover:text-white;
 }
 
 @utility menu-item-arrow {
@@ -303,23 +319,23 @@
 }
 
 @utility menu-item-arrow-active {
-  @apply rotate-180 text-parchment-200 dark:text-bronze-400;
+  @apply rotate-180 text-crimson-700;
 }
 
 @utility menu-item-arrow-inactive {
-  @apply text-slate-warm-400 group-hover:text-ink-700 dark:text-parchment-500 dark:group-hover:text-parchment-300;
+  @apply text-white/70 group-hover:text-white;
 }
 
 @utility menu-dropdown-item {
-  @apply relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-theme-sm font-medium transition-all duration-200;
+  @apply relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-theme-sm font-normal transition-all duration-200;
 }
 
 @utility menu-dropdown-item-active {
-  @apply bg-parchment-200 text-ink-900 dark:bg-white/10 dark:text-parchment-100;
+  @apply bg-white/20 font-medium text-white;
 }
 
 @utility menu-dropdown-item-inactive {
-  @apply text-slate-warm-500 hover:bg-parchment-100 hover:text-ink-800 dark:text-parchment-400 dark:hover:bg-white/5;
+  @apply text-white/70 hover:bg-white/10 hover:text-white;
 }
 
 @utility menu-dropdown-badge {
@@ -821,23 +837,23 @@
 /* ─── BUTTON STYLES ─── */
 .btn-primary {
   @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200;
-  background: var(--color-ink-900);
+  background: var(--color-crimson-700);
   color: var(--color-white);
 }
 .btn-primary:hover {
-  background: var(--color-ink-800);
+  background: var(--color-crimson-600);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-theme-md);
+  box-shadow: 0 4px 14px rgba(168, 23, 42, 0.28);
 }
 .btn-primary:active {
   transform: translateY(0) scale(0.98);
 }
 .dark .btn-primary {
-  background: var(--color-parchment-100);
-  color: var(--color-ink-900);
+  background: var(--color-crimson-600);
+  color: var(--color-white);
 }
 .dark .btn-primary:hover {
-  background: var(--color-parchment-200);
+  background: var(--color-crimson-500);
 }
 
 .btn-secondary {

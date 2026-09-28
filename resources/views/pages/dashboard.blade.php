@@ -58,7 +58,7 @@
                     </p>
                 </div>
 
-                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-parchment-100 text-ink-900 dark:bg-slate-warm-800 dark:text-parchment-200">
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-crimson-50 text-crimson-700 dark:bg-crimson-900/25 dark:text-crimson-300">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -106,7 +106,7 @@
                     >{{ $onProgressDocuments }}</p>
                 </div>
 
-                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-400">
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-bronze-50 text-bronze-700 dark:bg-bronze-900/20 dark:text-bronze-400">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2">
                         <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/>
@@ -154,7 +154,7 @@
                     >{{ $reviewDocuments }}</p>
                 </div>
 
-                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-crimson-50 text-crimson-600 dark:bg-crimson-900/25 dark:text-crimson-300">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"/>
@@ -213,8 +213,8 @@
 
             <a href="{{ route('documents') }}"
                class="text-sm font-medium
-                      text-blue-600 hover:text-blue-700
-                      dark:text-blue-400">
+                      text-crimson-700 hover:text-crimson-800
+                      dark:text-crimson-400 dark:hover:text-crimson-300">
                 Lihat Semua
             </a>
 
@@ -240,13 +240,14 @@
 
                             <div class="w-10 h-10 shrink-0
                                         rounded-lg
-                                        bg-blue-100 dark:bg-blue-900/30
-                                        flex items-center justify-center">
+                                        bg-crimson-50 dark:bg-crimson-900/25
+                                        flex items-center justify-center
+                                        ring-1 ring-crimson-100 dark:ring-crimson-900/40">
 
                                 <svg xmlns="http://www.w3.org/2000/svg"
                                      class="w-5 h-5
-                                            text-blue-600
-                                            dark:text-blue-400"
+                                            text-crimson-700
+                                            dark:text-crimson-300"
                                      fill="none"
                                      viewBox="0 0 24 24"
                                      stroke="currentColor">
@@ -305,10 +306,10 @@
                                              px-2.5 py-1
                                              rounded-full
                                              text-xs font-medium
-                                             bg-sky-100
-                                             text-sky-700
-                                             dark:bg-sky-900/30
-                                             dark:text-sky-400">
+                                             bg-bronze-100
+                                             text-bronze-700
+                                             dark:bg-bronze-900/30
+                                             dark:text-bronze-400">
                                     On Progress
                                 </span>
 
@@ -318,10 +319,10 @@
                                              px-2.5 py-1
                                              rounded-full
                                              text-xs font-medium
-                                             bg-blue-100
-                                             text-blue-700
-                                             dark:bg-blue-900/30
-                                             dark:text-blue-400">
+                                             bg-crimson-100
+                                             text-crimson-700
+                                             dark:bg-crimson-900/30
+                                             dark:text-crimson-300">
                                     On Review
                                 </span>
 
@@ -416,7 +417,7 @@
                 <a href="{{ route('documents.create') }}"
                    class="inline-flex items-center gap-2
                           mt-4 px-4 py-2
-                          bg-blue-600 hover:bg-blue-700
+                          bg-crimson-700 hover:bg-crimson-600
                           text-white text-sm font-medium
                           rounded-lg transition">
 
