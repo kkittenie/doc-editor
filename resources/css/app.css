@@ -285,6 +285,27 @@
     outline: 2px solid var(--color-bronze-600);
     outline-offset: 2px;
   }
+  /* Autofill Chrome: timpa tinta biru bawaan browser agar form underline
+     tetap putih/neutral dan minimalis. Trik inset-shadow raksasa menimpa
+     background biru tanpa mematikan fungsi isi-otomatis. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 60px #ffffff inset !important;
+    -webkit-text-fill-color: var(--color-ink-900) !important;
+    caret-color: var(--color-ink-900);
+    transition: background-color 9999s ease-in-out 0s;
+  }
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus,
+  .dark input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 60px var(--color-slate-warm-950) inset !important;
+    -webkit-text-fill-color: var(--color-parchment-100) !important;
+    caret-color: var(--color-parchment-100);
+    transition: background-color 9999s ease-in-out 0s;
+  }
 }
 
 /* ─── MENU / SIDEBAR UTILITIES (Merah Putih) ───
