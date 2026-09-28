@@ -40,6 +40,9 @@ const helperSource = [
   extract('function __flowContInsertPlan(targetQ) {', ['__flowContInsertPlan']),
   extract('function __flowContDelta(DeltaCtor, delta, plan) {', ['__flowContDelta']),
   extract('function __markFlowContinuationRun(targetQ, plan) {', ['__markFlowContinuationRun']),
+  extract('function __isContractHeadingLine(el) {', ['__isContractHeadingLine']),
+  extract('function __headingGroupStart(kids, idx) {', ['__headingGroupStart']),
+  extract('function __headingGroupEnd(kids, idx) {', ['__headingGroupEnd']),
   extract('function __opLength(op) {', ['__opLength']),
 ].join('\n');
 
@@ -85,10 +88,12 @@ global.document = {
 const factory = new Function(
   'document',
   helperSource + '\nreturn { __domFlowInsertContinuation, __flowContBoundary,'
-  + ' __flowContInsertPlan, __flowContDelta, __markFlowContinuationRun };'
+  + ' __flowContInsertPlan, __flowContDelta, __markFlowContinuationRun,'
+  + ' __isContractHeadingLine, __headingGroupStart, __headingGroupEnd };'
 );
 const { __domFlowInsertContinuation, __flowContBoundary, __flowContInsertPlan,
-  __flowContDelta, __markFlowContinuationRun } = factory(global.document);
+  __flowContDelta, __markFlowContinuationRun,
+  __isContractHeadingLine, __headingGroupStart, __headingGroupEnd } = factory(global.document);
 
 // Blok A = luapan pasal, Blok B = luapan lampiran, keduanya menyusul
 // continuation lama. Keduanya harus tetap berurutan sesuai urutan sumber;
@@ -232,4 +237,65 @@ assert.strictEqual(q.root.children[3].dataset.flowCont, undefined);
 const planIdx = __flowContInsertPlan(q).index;
 assert.ok(planIdx > 0, 'setelah ada continuation, index harus > 0');
 
+// --- Grup heading atomik dua arah (SOHO) ---------------------------
+//
+// Shim heading: <p> yang seluruh teksnya bold. El minimal tidak punya
+// textContent/querySelector/cloneNode, jadi bungkus dengan properti yang
+// dipakai __isContractHeadingLine.
+function headEl(text) {
+  const el = new El('p');
+  el.text = () => text;
+  el.textContent = text;
+  el.querySelector = (sel) => (sel === 'strong, b' ? {} : null);
+  el.querySelectorAll = () => [];
+  el.cloneNode = () => ({ querySelectorAll: () => [], textContent: '' });
+  return el;
+}
+function bodyEl(text) {
+  const el = new El('p');
+  el.text = () => text;
+  el.textContent = text;
+  el.querySelector = () => null;
+  return el;
+}
+
+// 1) Mundur: blok isi yang meluap menyerap PASAL N + judul di atasnya.
+const hPasal = headEl('PASAL 4');
+const hJudul = headEl('JANGKA WAKTU');
+const isi4 = bodyEl('ISI-4');
+assert.ok(__isContractHeadingLine(hPasal), 'PASAL N terdeteksi heading');
+assert.ok(__isContractHeadingLine(hJudul), 'judul pasal terdeteksi heading');
+assert.ok(!__isContractHeadingLine(isi4), 'isi bukan heading');
+assert.strictEqual(
+  __headingGroupStart([hPasal, hJudul, isi4], 2),
+  0,
+  'grup mundur mencakup PASAL N + judul'
+);
+
+// 2) Maju (anti-yatim): heading yang meluap sendiri menyerap 1 konten di
+// bawahnya — PASAL + judul + isi pindah sebagai satu grup utuh.
+assert.strictEqual(
+  __headingGroupEnd([hPasal, hJudul, isi4], 0),
+  3,
+  'grup maju heading mencakup judul + 1 isi'
+);
+
+// 3) Bukan heading: grup hanya 1 blok (perilaku lama tidak berubah).
+assert.strictEqual(
+  __headingGroupEnd([isi4, bodyEl('ISI-5')], 0),
+  1,
+  'blok isi biasa tidak menyerap blok berikutnya'
+);
+
+// 4) LAMPIRAN A + tabel: heading lampiran menyerap tabel kecil menempel
+// (keep-with-table) supaya judul tidak tertinggal tanpa tabelnya.
+const hLamp = headEl('LAMPIRAN A');
+const tblLamp = new El('table'); tblLamp.text = () => 'TABEL-LAMPIRAN-A';
+assert.strictEqual(
+  __headingGroupEnd([hLamp, tblLamp], 0),
+  2,
+  'heading LAMPIRAN menyerap tabel kecil menempel'
+);
+
+console.log('OK: grup heading atomik dua arah utuh (mundur + maju)');
 console.log('\nOK: helper urutan continuation berperilaku benar (DOM + Quill)');

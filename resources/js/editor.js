@@ -2679,6 +2679,13 @@ function __rememberPushedBlock(sheet, blockEl) {
     if (key) pageFlowJustPushedSig.set(key, __flowSig(blockEl));
 }
 
+// Ingat sidik GABUNGAN grup (dipakai jalur atomik dua arah): cegah flip
+// parsial heading <-> isi lintas siklus push/pull.
+function __rememberPushedGroup(sheet, sig) {
+    const key = __pushedSigKey(sheet);
+    if (key && sig) pageFlowJustPushedSig.set(key, sig);
+}
+
 // ---------------------------------------------------------------------------
 // Atribut internal pagination. WAJIB dihapus dari HTML yang disimpan/di-ekspor.
 //
@@ -2928,12 +2935,37 @@ function __isContractHeadingLine(el) {
 
 // Awal grup heading yang menempel tepat di atas blok yang akan dipindah
 // (PASAL N + baris judul pasal = 1-2 baris). Nilai kembalian <= idx.
+//
+// Aturan dua arah (keep-with-next atomik):
+// - Mundur: serap heading yang menempel di atas idx (PASAL N + judul).
+// - Maju: bila kids[idx] SENDIRI adalah heading, serap 1 blok konten tepat
+//   di bawahnya supaya heading tidak pernah pindah sendirian (yatim) dan
+//   urutan PASAL N + judul + isi selalu utuh sebagai satu grup.
 function __headingGroupStart(kids, idx) {
     try {
         let start = idx;
         while (start > 0 && __isContractHeadingLine(kids[start - 1])) start--;
         return start;
     } catch (err) { return idx; }
+}
+
+// Akhir (eksklusif) grup heading atomik: bila blok pada `idx` adalah heading,
+// grup mencakup 1 blok konten berikutnya (judul -> isi, atau PASAL N ->
+// judul bila judul tidak terdeteksi sebagai heading oleh Quill). Dipakai
+// sisi pull-back agar blok yang ditarik balik tidak memisahkan heading dari
+// isinya, dan sisi push agar heading yang meluap sendiri ikut membawa isinya.
+function __headingGroupEnd(kids, idx) {
+    try {
+        if (!kids || idx < 0 || idx >= kids.length) return idx + 1;
+        if (!__isContractHeadingLine(kids[idx])) return idx + 1;
+        let end = idx + 1;
+        // Serap baris heading lanjutan (PASAL N diikuti baris judul).
+        while (end < kids.length && __isContractHeadingLine(kids[end])) end++;
+        // Serap tepat 1 blok konten non-heading (isi / tabel lampiran) agar
+        // grup tetap atomik; tabel/list ikut sebagai satu kesatuan.
+        if (end < kids.length && !__isContractHeadingLine(kids[end])) end++;
+        return Math.min(end, kids.length);
+    } catch (err) { return idx + 1; }
 }
 
 // Blok atomik paginasi (mis. tabel formula satu baris di akhir LAMPIRAN B):
@@ -3369,17 +3401,35 @@ async function __domFlowPass(bodyEl) {
             return true;
         }
     }
-    // Keep-with-next: baris judul/heading kontrak (PASAL N + judul pasal)
-    // yang menempel di atas blok yang pindah ikut dipindah — heading tidak
-    // boleh tertinggal sendirian di dasar kertas. Heading yang sudah berada
-    // di PUNCAK kertas tidak dipaksa turun (grpStart===0) supaya tidak
-    // menciptakan kertas kosong.
+    // Keep-with-next DUA ARAH (atomik): mundur serap heading di atas blok
+    // yang pindah; maju serap 1 konten di bawah heading yang meluap
+    // (PASAL N / LAMPIRAN A tidak pernah pindah yatim). Heading di PUNCAK
+    // kertas tidak dipaksa turun (grpStart===0) supaya tidak menciptakan
+    // kertas kosong.
     let grpStart = idx;
     if (idx > 0 && __isContractHeadingLine(kids[idx - 1])) {
         grpStart = __headingGroupStart(kids, idx);
         if (grpStart === 0) grpStart = idx;
     }
-    const moving = kids.slice(grpStart);
+    let grpEnd = idx + 1;
+    if (__isContractHeadingLine(overKid)) {
+        const fwd = __headingGroupEnd(kids, idx);
+        if (fwd > grpEnd && (fwd >= kids.length || kids.slice(idx, fwd)
+            .every((k) => k.tagName !== 'TABLE' && k.tagName !== 'OL' && k.tagName !== 'UL'))) {
+            grpEnd = fwd;
+        }
+        // LAMPIRAN + tabel kecil menempel: keep-with-table (tabel ikut grup).
+        if (grpEnd === idx + 1 && kids[idx + 1] && kids[idx + 1].tagName === 'TABLE'
+            && !(kids[idx + 1].getBoundingClientRect().height > bodyEl.clientHeight + PAGE_FLOW_TOL)) {
+            grpEnd = idx + 2;
+        }
+    }
+    // grpEnd hanya memanjang ke depan bila overKid heading dan TIDAK ada
+    // heading menempel di atas (mundur); bila keduanya ada, seluruh sisa
+    // tetap pindah seperti semula. Bila overKid bukan heading, seluruh sisa
+    // (kids.slice(grpStart)) tetap pindah.
+    const fwdOnly = __isContractHeadingLine(overKid) && grpStart === idx;
+    const moving = fwdOnly ? kids.slice(grpStart, grpEnd) : kids.slice(grpStart);
     if (!moving.length) return false;
     // Guard anti-halaman-hantu: blok ISI raksasa yang tidak bisa dibelah
     // dan tingginya melebihi satu halaman kosong penuh — jangan buat kertas
@@ -3641,13 +3691,26 @@ async function __flowPass(quill, bodyEl) {
         // Petakan blok Quill -> node DOM: pindahkan berdasar urutan dengan
         // menandai node asal supaya tidak salah bila ada kembaran isi.
         const srcKids = Array.from(quill.root.children || []);
-        // Keep-with-next: heading yang menempel di atas blok pertama ikut pindah.
+        // Keep-with-next DUA ARAH (atomik): mundur serap heading di atas;
+        // maju serap 1 konten di bawah heading yang meluap (anti-yatim).
         let grpStart = idx;
         if (idx > 0 && __isContractHeadingLine(srcKids[idx - 1])) {
             grpStart = __headingGroupStart(srcKids, idx);
             if (grpStart === 0) grpStart = idx; // heading di puncak kertas: jangan dipaksa turun
         }
-        const moving = srcKids.slice(grpStart);
+        let grpEnd = idx + 1;
+        if (__isContractHeadingLine(srcKids[idx])) {
+            const fwd = __headingGroupEnd(srcKids, idx);
+            if (fwd > grpEnd && (fwd >= srcKids.length || srcKids.slice(idx, fwd)
+                .every((k) => k.tagName !== 'TABLE' && k.tagName !== 'OL' && k.tagName !== 'UL'))) {
+                grpEnd = fwd;
+            }
+            if (grpEnd === idx + 1 && srcKids[idx + 1] && srcKids[idx + 1].tagName === 'TABLE') {
+                grpEnd = idx + 2;
+            }
+        }
+        const fwdOnlyQd = __isContractHeadingLine(srcKids[idx]) && grpStart === idx;
+        const moving = fwdOnlyQd ? srcKids.slice(grpStart, grpEnd) : srcKids.slice(grpStart);
         const moveSet = new Set(moving);
         // Kumpulkan node salinan sesuai urutan sumber, lalu sisipkan SEKALIGUS
         // di batas run continuation (bukan firstChild): batch baru menyusul
@@ -3664,10 +3727,16 @@ async function __flowPass(quill, bodyEl) {
         });
         if (freshNodes.length) __domFlowInsertContinuation(targetBody, freshNodes);
         // Hapus dari Quill asal via delta (tetap sinkron dengan blot).
+        // fwdOnly: hapus HANYA rentang grup (jangan bulk-hapus sisa dokumen).
         const firstRange = __blockRangeOf(quill, moving[0]);
         if (firstRange) {
-            quill.deleteText(firstRange.start,
-                Math.max(firstRange.len, quill.getLength() - firstRange.start), 'silent');
+            const lastRange = (moving.length > 1)
+                ? (__blockRangeOf(quill, moving[moving.length - 1]) || firstRange)
+                : firstRange;
+            const delLen = fwdOnlyQd
+                ? (lastRange.start - firstRange.start) + lastRange.len
+                : Math.max(firstRange.len, quill.getLength() - firstRange.start);
+            quill.deleteText(firstRange.start, delLen, 'silent');
         }
         __rememberPushedBlock(sheet, moving[0]);
         notifyDirty();
@@ -3731,11 +3800,42 @@ async function __flowPass(quill, bodyEl) {
         grpStart = __headingGroupStart(kids, idx);
         if (grpStart === 0) grpStart = idx;
     }
+    // Maju (atomik): bila blok yang meluap SENDIRI adalah heading (PASAL N /
+    // LAMPIRAN A), ikutkan 1 blok konten tepat di bawahnya supaya heading
+    // tidak pindah sendirian (yatim). Grup [heading + judul + isi] selalu
+    // utuh — urutan SOHO tidak terpecah di batas halaman. Tabel/list raksasa
+    // yang tidak muat satu halaman TIDAK ikut (punya logika belah sendiri).
+    let grpEnd = idx + 1;
+    if (__isContractHeadingLine(kids[idx])) {
+        const fwd = __headingGroupEnd(kids, idx);
+        if (fwd > grpEnd) {
+            let ok = true;
+            for (let i = idx; i < fwd; i++) {
+                const t = kids[i] && kids[i].tagName;
+                if ((t === 'TABLE' || t === 'OL' || t === 'UL')
+                    && kids[i].getBoundingClientRect().height > bodyEl.clientHeight + PAGE_FLOW_TOL) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (ok) grpEnd = fwd;
+        }
+    }
 
     const remaining = kids.slice(grpStart);
     const overTableTooBig = kids[idx].tagName === 'TABLE'
         && kids[idx].getBoundingClientRect().height > bodyEl.clientHeight + PAGE_FLOW_TOL;
-    const bulk = targetQ.getLength() <= 1
+    // Ujung grup maju dihitung DULU (bulk memakainya): blok heading yang
+    // meluap membawa 1 konten di bawahnya; ujung delta dari blok terakhir
+    // grup (bukan idx).
+    const grpLastIdx = Math.max(idx, grpEnd - 1);
+    // Bulk = target kosong: pindah SELURUH sisa sekaligus. Bila grup maju
+    // aktif (heading meluap + konten), JANGAN bulk — pindah HANYA grup agar
+    // sisa dokumen tidak ikut tersedot dan tabel/list raksasa di bawahnya
+    // tetap lewat logika belah (anti-kaskade).
+    const atomicGroup = grpLastIdx !== idx;
+    const bulk = !atomicGroup
+        && targetQ.getLength() <= 1
         && remaining.length > 0
         && !remaining.some(__isFloatingKid)
         && !overTableTooBig;
@@ -3765,17 +3865,21 @@ async function __flowPass(quill, bodyEl) {
         ? __blockRangeOf(quill, kids[grpStart])
         : firstRange;
     if (!groupFirstRange) return false;
+    const groupLastRange = (grpLastIdx !== idx)
+        ? __blockRangeOf(quill, kids[grpLastIdx])
+        : firstRange;
+    if (!groupLastRange) return false;
     const range = bulk
         ? {
             start: groupFirstRange.start,
             len: Math.max(groupFirstRange.len, quill.getLength() - groupFirstRange.start),
         }
-        : (grpStart < idx
+        : ((grpStart < idx || grpLastIdx !== idx)
             ? {
-                // Dari awal heading sampai akhir blok yang meluap (blok
+                // Dari awal heading sampai akhir blok terakhir grup (blok
                 // Quill berurutan dalam delta, jadi bisa dihitung langsung).
                 start: groupFirstRange.start,
-                len: (firstRange.start - groupFirstRange.start) + firstRange.len,
+                len: (groupLastRange.start - groupFirstRange.start) + groupLastRange.len,
             }
             : firstRange);
     if (!range) return false;
@@ -3794,7 +3898,11 @@ async function __flowPass(quill, bodyEl) {
     // sebelumnya di kertas tujuan. Guard anti-hilang: verifikasi delta benar-
     // benar mendarat di target (khusus blok tabel: jumlah <tr> target harus
     // bertambah). Kalau konversi menelan tabel, KEMBALIKAN isi ke asal.
-    const probeTable = kids[idx].tagName === 'TABLE';
+    // Grup maju (anti-yatim) bisa memuat tabel kecil (LAMPIRAN + tabel):
+    // probe seluruh grup, bukan hanya kids[idx].
+    const grpProbeLast = (typeof grpLastIdx === 'number') ? grpLastIdx : idx;
+    const probeTable = kids.slice(grpStart, grpProbeLast + 1)
+        .some((k) => k && k.tagName === 'TABLE');
     const trBefore = probeTable ? targetQ.root.querySelectorAll('table tr').length : 0;
     const contPlan = __flowContInsertPlan(targetQ);
     targetQ.updateContents(__flowContDelta(DeltaCtor, removed, contPlan), 'silent');
@@ -3836,7 +3944,15 @@ async function __flowPass(quill, bodyEl) {
     // WeakMap hanya bisa memakai objek sebagai kunci, jadi identitas objek
     // disimpan di WeakMap, sedangkan sidik konten disimpan di Map biasa
     // karena target Quill menerima node DOM baru.
-    __rememberPushedBlock(sheet, kids[idx]);
+    // Jalur grup maju (anti-yatim): ingat sidik SELURUH grup supaya pull
+    // tidak menarik balik parsial heading/isi yang sama di siklus berikut.
+    if (grpLastIdx !== idx) {
+        __rememberPushedBlock(sheet, kids[idx]);
+        __rememberPushedGroup(sheet,
+            kids.slice(grpStart, grpLastIdx + 1).map(__flowSig).join('||'));
+    } else {
+        __rememberPushedBlock(sheet, kids[idx]);
+    }
 
     notifyDirty();
     return true;
@@ -3867,12 +3983,29 @@ function __pullBackPass(quill, bodyEl) {
     const kids = Array.from(quill.root.children || []);
     const nkids = Array.from(nextQ.root.children || []);
     if (!nkids.length) return false;
-    const k2 = nkids[0];
+    // Tarik-balik ATOMIK: bila blok teratas halaman berikut adalah heading
+    // (PASAL N / LAMPIRAN A), seluruh grup [heading + judul + 1 isi] ikut
+    // ditarik — JANGAN hanya headingnya (yatim terbalik: heading kembali,
+    // isinya tertinggal). Bila grup tidak muat, batalkan seluruhnya.
+    const pullEnd = __headingGroupEnd(nkids, 0);
+    const pullKids = nkids.slice(0, pullEnd);
+    if (!pullKids.length) return false;
+    const k2 = pullKids[0];
     if (__isFloatingKid(k2) || !__hasMeaningfulTextNode(k2)) return false;
-    // Tabel TIDAK PERNAH ditarik balik: tabel hanya bergerak lewat belah
-    // baris (__domSplitTable / __quillSplitTable). Menarik balik tabel
-    // lanjutan memicu ping-pong push<->pull yang menguras iterasi paginasi.
-    if (k2.tagName === 'TABLE') return false;
+    for (const pk of pullKids) {
+        if (__isFloatingKid(pk) || !__hasMeaningfulTextNode(pk)) return false;
+    }
+    // Tabel/list raksasa TIDAK PERNAH ditarik balik utuh: hanya bergerak
+    // lewat belah baris (__domSplitTable / __quillSplitTable). Menarik balik
+    // tabel lanjutan memicu ping-pong push<->pull yang menguras iterasi.
+    // Tabel LAMPIRAN kecil yang menempel pada heading LAMPIRAN boleh ikut
+    // sebagai bagian grup atomik (keep-with-table).
+    const groupHasSplitTable = pullKids.some((pk) =>
+        pk.tagName === 'TABLE' && pk.dataset && pk.dataset.splitFrom);
+    if (groupHasSplitTable) return false;
+    if (pullKids.length === 1 && k2.tagName === 'TABLE') return false;
+    if (pullKids.some((pk) => (pk.tagName === 'OL' || pk.tagName === 'UL')
+        && pk.getBoundingClientRect().height > bodyEl.clientHeight + PAGE_FLOW_TOL)) return false;
 
     // Anti-flip: jangan langsung menarik balik blok yang barusan didorong
     // oleh __flowPass di siklus yang sama - memicu getar abadi (push -> pull
@@ -3883,7 +4016,14 @@ function __pullBackPass(quill, bodyEl) {
     const pushed = pageFlowJustPushed.get(sheet);
     const pushedSig = __pushedSigFor(sheet);
     if (pushed && pushed === k2) return false;
-    if (pushedSig && pushedSig === __flowSig(k2)) return false;
+    // Sidik gabungan grup untuk anti-flip lintas siklus (dihitung dulu
+    // karena dipakai guard granularitas grup di bawah). Push blok TUNGGAL
+    // mengingat sidik 1 blok — tolak bila sama dengan sidik k2 ATAU sidik
+    // gabungan grup; push GRUP mengingat sidik gabungan — tolak bila sama
+    // dengan sidik gabungan. Per-blok individual SELAIN k2 tidak ditolak
+    // (terlalu agresif, mengunci pull grup yang sah).
+    const pullSig = pullKids.map(__flowSig).join('||');
+    if (pushedSig && (pushedSig === __flowSig(k2) || pushedSig === pullSig)) return false;
 
     let k2Len = 0;
     try {
@@ -3908,14 +4048,22 @@ function __pullBackPass(quill, bodyEl) {
     }
 
     
-    const h2 = k2.getBoundingClientRect().height;
+    const h2 = pullKids.reduce((sum, pk) => {
+        try { return sum + pk.getBoundingClientRect().height; }
+        catch (err) { return sum; }
+    }, 0);
     // Hysteresis tarik-balik: blok yang pas-pasan di batas halaman tidak
     // ditarik balik, karena pengukuran berikutnya hampir pasti menilai
     // halaman penuh lagi lalu mendorongnya maju (getar push<->pull).
     if (baseBottom + h2 > effBottom - PAGE_FLOW_TOL - PAGE_FLOW_PULL_MARGIN) return false;
 
-    const range = __blockRangeOf(nextQ, k2);
-    if (!range) return false;
+    // Petakan rentang delta SELURUH grup (blok Quill berurutan dalam delta).
+    const pullRanges = pullKids.map((pk) => __blockRangeOf(nextQ, pk));
+    if (pullRanges.some((r) => !r)) return false;
+    const pullStart = Math.min.apply(null, pullRanges.map((r) => r.start));
+    const pullEndIdx = Math.max.apply(null, pullRanges.map((r) => r.start + r.len));
+    const range = { start: pullStart, len: pullEndIdx - pullStart };
+    if (!(range.len > 0)) return false;
     const DeltaCtor = __flowDeltaCtor(quill);
     const removed = nextQ.getContents(range.start, range.len);
     if (!DeltaCtor || !removed || !(removed.ops || []).length) return false;
@@ -3941,6 +4089,13 @@ function __pullBackPass(quill, bodyEl) {
         ));
         quill.setSelection(ni, nextSelBefore.length || 0, 'silent');
     }
+
+    // Ingat sidik grup yang ditarik balik supaya siklus berikut tidak
+    // langsung mendorongnya maju lagi (anti-flip dua arah).
+    try {
+        const key = __pushedSigKey(sheet);
+        if (key) pageFlowJustPushedSig.set(key, pullSig);
+    } catch (err) { /* noop */ }
 
     notifyDirty();
     return true;
