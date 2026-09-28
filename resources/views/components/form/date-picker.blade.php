@@ -17,7 +17,10 @@
                 static: true,
                 monthSelectorType: 'static',
                 dateFormat: '{{ $dateFormat }}',
-                defaultDate: {{ $defaultDate ? (is_array($defaultDate) ? json_encode($defaultDate) : "'" . $defaultDate . "'") : 'null' }},
+                // Js::from() memakai JSON_HEX_QUOT/AMP/APOS sehingga petik tidak
+                // memotong atribut x-data. String, array, dan null aman tanpa
+                // ternary manual.
+                defaultDate: @js($defaultDate),
                 onChange: (selectedDates, dateStr, instance) => {
                     this.$dispatch('date-change', {
                         selectedDates,

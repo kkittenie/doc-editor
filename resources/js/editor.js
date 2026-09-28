@@ -2679,6 +2679,177 @@ function __rememberPushedBlock(sheet, blockEl) {
     if (key) pageFlowJustPushedSig.set(key, __flowSig(blockEl));
 }
 
+// ---------------------------------------------------------------------------
+// Atribut internal pagination. WAJIB dihapus dari HTML yang disimpan/di-ekspor.
+//
+// Kalau bocor ke body_html, saat dokumen dimuat ulang atribut-atribut ini ikut
+// terbawa dan alur flow akan salah membaca batas continuation — gejalanya
+// urutan pasal/lampiran kembali "acak" meski sudah disimpan rapi. Jadi
+// Kehadiran atribut ini di HTML tersimpan selalu berarti bug.
+const __FLOW_INTERNAL_ATTRS = [
+    'data-flow-cont',
+    'data-split-from',
+    'data-split-id',
+    'data-flow-atomic',
+    'data-domflow-marker',
+];
+
+// Buang atribut internal dari string HTML TANPA menyentuh DOM yang hidup
+// (parse ke elemen terpisah, serialize ulang).
+function __stripFlowInternalAttrs(html) {
+    if (!html || typeof html !== 'string') return html || '';
+    if (!__FLOW_INTERNAL_ATTRS.some((a) => html.indexOf(a) >= 0)) return html;
+
+    try {
+        const holder = document.createElement('div');
+        holder.innerHTML = html;
+        const touched = holder.querySelectorAll(
+            __FLOW_INTERNAL_ATTRS.map((a) => '[' + a + ']').join(',')
+        );
+        touched.forEach((el) => {
+            __FLOW_INTERNAL_ATTRS.forEach((a) => el.removeAttribute(a));
+        });
+        return holder.innerHTML;
+    } catch (err) {
+        // Kalau parsing gagal, lebih baik kirim HTML mentah daripada kosong.
+        return html;
+    }
+}
+
+// Anchor insertion blok lanjutan (fix urutan isi antar-halaman)
+// ---------------------------------------------------------------------------
+//
+// Riwayat bug: SELURUH blok lanjutan disisipkan dengan
+// `targetBody.insertBefore(node, targetBody.firstChild)` — selalu di depan.
+// Itu benar untuk satu blok, tapi salah begitu satu halaman menerima luapan
+// dari lebih dari satu blok: tiap sisipan baru masuk paling depan, sehingga
+// blok yang menyusul MENDOMINASI blok sebelumnya.
+//
+// Contoh nyata (soho): satu halaman penuh -> PASAL 4, isi pasal 4, lalu tabel
+// lampiran sama-sama meluap ke halaman berikutnya. Blok terakhir yang diproses
+// mendarat di depan => isi pasal mendahului judul pasal, dan lampiran
+// mendahului pasal. Hasinya urutan terasa "acak".
+//
+// Perbaikannya: sisipkan di BATAS run continuation, bukan di firstChild.
+// `__flowContBoundary` mencari anak pertama target yang BUKAN continuation;
+// blok baru disisipkan tepat DI DEPATNYA. Continuation yang sudah ada tetap
+// di depan (memang harus mendahului konten lama halaman tersebut) dan
+// continuation baru menyusul di PATENTinya — jadi urutannya sesuai urutan
+// sumber dokumen.
+function __isFlowContinuation(node) {
+    try {
+        if (!node || !node.dataset) return false;
+        // Tabel/list lanjutan hasil belah => sudah ada(splitFrom).
+        // Blok utuh yang didorong dari halaman sebelumnya => flowCont.
+        return !!(node.dataset.splitFrom || node.dataset.flowCont);
+    } catch (err) { return false; }
+}
+
+// Anak pertama `root` yang bukan continuation; null bila seluruh isi root
+// adalah continuation (atau root kosong) => sisip di akhir.
+function __flowContBoundary(root) {
+    try {
+        const kids = Array.from(root.children || []);
+        for (const kid of kids) {
+            if (!__isFlowContinuation(kid)) return kid;
+        }
+    } catch (err) { /* noop */ }
+    return null;
+}
+
+// Sisipkan `nodes` (DocumentFragment/Element/array) di batas continuation,
+// dijaga urutannya, lalu tandai sebagai continuation.
+function __domFlowInsertContinuation(targetBody, nodes) {
+    try {
+        const list = Array.isArray(nodes) ? nodes : [nodes];
+        const boundary = __flowContBoundary(targetBody);
+        for (const node of list) {
+            if (!node) continue;
+            try { node.dataset.flowCont = '1'; } catch (err) { /* noop */ }
+            targetBody.insertBefore(node, boundary);
+        }
+    } catch (err) { /* noop */ }
+}
+
+// Rencana sisipkan continuation di targetQ: indeks Quill (bukan 0) + penanda
+// blok mana yang harus ditandai sebagai continuation.
+//
+// Tanpa `retain` di depan, `updateContents()` selalu menyisipkan di index 0 —
+// persis sumber bug yang sudah diperbaiki di jalur DOM. Plan ini menyamakan
+// kedua jalur: konten lanjutan menyusul continuation sebelumnya, dan mendahului
+// konten lama halaman tujuan.
+function __flowContInsertPlan(targetQ) {
+    try {
+        const boundary = __flowContBoundary(targetQ.root);
+        if (!boundary) return { index: 0, boundary: null };
+        const at = targetQ.getIndex(boundary);
+        return {
+            index: (typeof at === 'number' && at > 0) ? at : 0,
+            boundary: boundary,
+        };
+    } catch (err) {
+        return { index: 0, boundary: null };
+    }
+}
+
+// Susun delta continuation: ops dari `delta` didorong setelah `plan.index`.
+function __flowContDelta(DeltaCtor, delta, plan) {
+    const chg = new DeltaCtor();
+    if (plan && plan.index > 0) chg.retain(plan.index);
+    for (const op of (delta && delta.ops) || []) {
+        chg.push(op.insert == null
+            ? { retain: __opLength(op) }
+            : JSON.parse(JSON.stringify(op)));
+    }
+    return chg;
+}
+
+// Tandai run continuation teratas pada targetQ sebagai `data-flow-cont`.
+//
+// Dipanggil SESUDAH guard jumlah baris/item lolos, supaya blok yang gagal
+// mendarat tidak ikut tertandai.
+//
+// PENTING: batasannya harus diambil dari `plan` (yang dihitung SEBELUM sisip),
+// bukan dihitung ulang di sini. Kalau dihitung ulang setelah sisip, anak
+// pertama target adalah blok yang baru saja disisip dan belum bertanda, jadi
+//helper ini langsung berhenti di blok itu dan tidak menandai apa pun —
+// akibatnya __flowContInsertPlan selalu mengembalikan 0 pada pemanggilan
+// berikutnya dan urutan blok lanjutan kembali terbalik.
+//
+// Kalau plan tidak diberikan (fallback), batasannya dihitung ulang dari DOM.
+//
+// Atribut ini sengaja masuk daftar __FLOW_INTERNAL_ATTRS: ia hanya hidup di
+// DOM aktif dan WAJIB dibuang sebelum HTML disimpan/di-ekspor.
+function __markFlowContinuationRun(targetQ, plan) {
+    try {
+        const kids = Array.from(targetQ.root.children || []);
+        // `hasPlan` membedakan "plan diberikan dengan boundary null" (seluruh
+        // isi target adalah continuation => tandai SEMUA anak) dari "plan tidak
+        // diberikan" (fallback: hitung ulang batas dari DOM).
+        const hasPlan = !!(plan && typeof plan === 'object');
+        let boundary;
+        if (hasPlan) {
+            boundary = plan.boundary || undefined; // null => tandai semua
+        } else {
+            boundary = __flowContBoundary(targetQ.root) || undefined;
+        }
+        for (const kid of kids) {
+            if (boundary && kid === boundary) break;
+            try { kid.dataset.flowCont = '1'; } catch (err) { /* noop */ }
+        }
+    } catch (err) { /* noop */ }
+}
+
+// Total panjang delta hasil konversi (dipakai untuk memperbarui anchor
+// quaternion setelah sisipan).
+function __flowDeltaLength(delta) {
+    let total = 0;
+    for (const op of (delta && delta.ops) || []) {
+        if (op && op.insert != null) total += __opLength(op);
+    }
+    return total;
+}
+
 const pageFlowTimers = new WeakMap();
 const pageFlowRequeues = new WeakMap(); // bodyEl -> jumlah antre-ulang aktif
 const pageFlowQueue = Promise.resolve();
@@ -2954,16 +3125,14 @@ function __domSplitTable(tableEl, effBottom, targetBody) {
             const tbody = document.createElement('tbody');
             targetTable.appendChild(tbody);
             targetTable.dataset.splitFrom = tableEl.dataset.splitId;
-            // Sisipkan sebagai blok PERTAMA di target (isi lanjutan) supaya
-            // urutan dokumen tetap benar: baris pindahan selalu di depan
-            // konten lama halaman berikut.
-            targetBody.insertBefore(targetTable, targetBody.firstChild);
+            // Sisipkan di BATAS run continuation (bukan firstChild) supaya
+            // beberapa tabel lanjutan yang masuk ke halaman yang sama tetap
+            // berurutan sesuai urutan sumber. Lihat __domFlowInsertContinuation.
+            __domFlowInsertContinuation(targetBody, targetTable);
         }
-        else {
-            // Tabel lanjutan sudah ada: angkat ke posisi paling depan supaya
-            // baris pindahan (append di bawah) tetap berurutan benar.
-            targetBody.insertBefore(targetTable, targetBody.firstChild);
-        }
+        // Tabel lanjutan yang sudah ada TIDAK dipindahkan lagi: posisinya sudah
+        // benar di run continuation. Baris baru cukup di-append (lihat bawah)
+        // sehingga urutan baris tetap terjaga.
         let targetTbody = targetTable.querySelector(':scope > tbody');
         if (!targetTbody) {
             targetTbody = document.createElement('tbody');
@@ -3017,13 +3186,15 @@ function __domSplitList(listEl, effBottom, targetBody) {
                 const startBase = parseInt(listEl.getAttribute('start') || '1', 10) || 1;
                 targetList.setAttribute('start', String(startBase + cut));
             }
-            targetBody.insertBefore(targetList, targetBody.firstChild);
-        } else {
-            // List lanjutan yang sudah ada (belah bertahap): pertahankan
-            // nilai start dari belah pertama — item target sudah memulai
-            // penomoran dari posisi itu, jadi jangan ditimpa ulang.
-            targetBody.insertBefore(targetList, targetBody.firstChild);
+            // Sisipkan di BATAS run continuation (bukan firstChild) supaya
+            // beberapa list lanjutan di halaman yang sama tetap berurutan
+            // sesuai urutan sumber.
+            __domFlowInsertContinuation(targetBody, targetList);
         }
+        // List lanjutan yang sudah ada (belah bertahap) tidak dipindahkan
+        // lagi — posisinya sudah benar di run continuation. Nilai `start` dari
+        // belah pertama juga tidak ditimpa: item target sudah memulai
+        // penomoran dari posisi itu.
         let moved = 0;
         for (let i = cut; i < items.length; i++) {
             targetList.appendChild(items[i]);
@@ -3061,18 +3232,15 @@ function __domSplitListToQuill(listEl, effBottom, targetQ) {
         const DeltaCtor = __flowDeltaCtor(targetQ);
         if (!DeltaCtor) return 0;
         const liBefore = targetQ.root.querySelectorAll('li').length;
-        const chg = new DeltaCtor();
-        for (const op of delta.ops) {
-            chg.push(op.insert == null
-                ? { retain: __opLength(op) }
-                : JSON.parse(JSON.stringify(op)));
-        }
-        targetQ.updateContents(chg, 'silent');
+        // Sisipkan di indeks setelah run continuation teratas (bukan index 0).
+        const contPlan = __flowContInsertPlan(targetQ);
+        targetQ.updateContents(__flowContDelta(DeltaCtor, delta, contPlan), 'silent');
         const liAfter = targetQ.root.querySelectorAll('li').length;
         if (!(liAfter > liBefore)) {
             console.warn('[DocQuill] Belah list DOM->Quill menelan isi — dibatalkan.');
             return 0;
         }
+        __markFlowContinuationRun(targetQ, contPlan);
         let moved = 0;
         for (let i = cut; i < items.length; i++) {
             items[i].remove();
@@ -3226,12 +3394,9 @@ async function __domFlowPass(bodyEl) {
         return false;
     }
     if (targetIsDom) {
-        const marker = document.createElement('span');
-        marker.setAttribute('data-domflow-marker', '1');
-        marker.style.display = 'none';
-        targetBody.insertBefore(marker, targetBody.firstChild);
-        moving.forEach((kid) => targetBody.insertBefore(kid, marker));
-        marker.remove();
+        // Sisipkan di batas run continuation (bukan firstChild): blok
+        // lanjutan baru menyusul continuation sebelumnya, bukan mendahuluinya.
+        __domFlowInsertContinuation(targetBody, moving);
     } else {
         const wrap = document.createElement('div');
         moving.forEach((kid) => wrap.appendChild(kid.cloneNode(true)));
@@ -3246,13 +3411,9 @@ async function __domFlowPass(bodyEl) {
         probe.innerHTML = wrap.innerHTML;
         const hadTable = !!probe.querySelector('table tr');
         const trBefore = targetQ.root.querySelectorAll('table tr').length;
-        const chg = new DeltaCtor();
-        for (const op of delta.ops) {
-            chg.push(op.insert == null
-                ? { retain: __opLength(op) }
-                : JSON.parse(JSON.stringify(op)));
-        }
-        targetQ.updateContents(chg, 'silent');
+        // Sisipkan di indeks setelah run continuation teratas (bukan index 0).
+        const contPlan = __flowContInsertPlan(targetQ);
+        targetQ.updateContents(__flowContDelta(DeltaCtor, delta, contPlan), 'silent');
         if (hadTable) {
             const trAfter = targetQ.root.querySelectorAll('table tr').length;
             if (!(trAfter > trBefore)) {
@@ -3260,12 +3421,10 @@ async function __domFlowPass(bodyEl) {
                 // Node sumber BELUM dihapus (removal terjadi setelah guard),
                 // jadi cukup pindahkan via DOM murni.
                 if (__takeoverBodyAsDom(targetBody)) {
-                    const marker = document.createElement('span');
-                    marker.setAttribute('data-domflow-marker', '1');
-                    marker.style.display = 'none';
-                    targetBody.insertBefore(marker, targetBody.firstChild);
-                    moving.forEach((kid) => targetBody.insertBefore(kid, marker));
-                    marker.remove();
+                    // Sisipkan di batas run continuation (bukan firstChild):
+                    // batch lanjutan baru menyusul continuation yang sudah ada,
+                    // bukan mendahuluinya (bug urutan pasal/lampiran acak).
+                    __domFlowInsertContinuation(targetBody, moving);
                     __runDomFlow(targetBody);
                     return true;
                 }
@@ -3273,6 +3432,10 @@ async function __domFlowPass(bodyEl) {
             }
         }
         moving.forEach((kid) => kid.remove());
+        // Guard jumlah baris lolos -> blok yang mendarat ditandai continuation
+        // supaya penyisipan berikutnya (__flowContInsertPlan) menghitung batas
+        // dengan benar dan tidak kembali ke index 0.
+        __markFlowContinuationRun(targetQ, contPlan);
     }
     __rememberPushedBlock(sheet, overKid);
     notifyDirty();
@@ -3486,10 +3649,10 @@ async function __flowPass(quill, bodyEl) {
         }
         const moving = srcKids.slice(grpStart);
         const moveSet = new Set(moving);
-        const marker = document.createElement('span');
-        marker.setAttribute('data-domflow-marker', '1');
-        marker.style.display = 'none';
-        targetBody.insertBefore(marker, targetBody.firstChild);
+        // Kumpulkan node salinan sesuai urutan sumber, lalu sisipkan SEKALIGUS
+        // di batas run continuation (bukan firstChild): batch baru menyusul
+        // continuation yang sudah ada, bukan mendahuluinya (bug urutan acak).
+        const freshNodes = [];
         srcKids.forEach((kid) => {
             if (!moveSet.has(kid)) return;
             const html = kid.outerHTML || '';
@@ -3497,9 +3660,9 @@ async function __flowPass(quill, bodyEl) {
             const tmp = document.createElement('div');
             tmp.innerHTML = html;
             const node = tmp.firstElementChild;
-            if (node) targetBody.insertBefore(node, marker);
+            if (node) freshNodes.push(node);
         });
-        marker.remove();
+        if (freshNodes.length) __domFlowInsertContinuation(targetBody, freshNodes);
         // Hapus dari Quill asal via delta (tetap sinkron dengan blot).
         const firstRange = __blockRangeOf(quill, moving[0]);
         if (firstRange) {
@@ -3626,19 +3789,15 @@ async function __flowPass(quill, bodyEl) {
 
     quill.deleteText(range.start, range.len, 'silent');
 
-    // Sisipkan DI DEPAN isi kertas berikutnya agar urutan dokumen tetap benar.
-    // Guard anti-hilang: verifikasi delta benar-benar mendarat di target
-    // (khusus blok tabel: jumlah <tr> target harus bertambah). Kalau
-    // konversi menelan tabel, KEMBALIKAN isi ke asal (tidak ada data hilang).
+    // Sisipkan di indeks setelah run continuation teratas (bukan index 0),
+    // supaya blok lanjutan yang menyusul tidak mendahului continuation
+    // sebelumnya di kertas tujuan. Guard anti-hilang: verifikasi delta benar-
+    // benar mendarat di target (khusus blok tabel: jumlah <tr> target harus
+    // bertambah). Kalau konversi menelan tabel, KEMBALIKAN isi ke asal.
     const probeTable = kids[idx].tagName === 'TABLE';
     const trBefore = probeTable ? targetQ.root.querySelectorAll('table tr').length : 0;
-    const chg = new DeltaCtor();
-    for (const op of removed.ops) {
-        chg.push(op.insert == null
-            ? { retain: __opLength(op) }
-            : JSON.parse(JSON.stringify(op)));
-    }
-    targetQ.updateContents(chg, 'silent');
+    const contPlan = __flowContInsertPlan(targetQ);
+    targetQ.updateContents(__flowContDelta(DeltaCtor, removed, contPlan), 'silent');
 
     if (probeTable) {
         const trAfter = targetQ.root.querySelectorAll('table tr').length;
@@ -3661,6 +3820,8 @@ async function __flowPass(quill, bodyEl) {
             return false;
         }
     }
+
+    __markFlowContinuationRun(targetQ, contPlan);
 
     if (selBefore && selBefore.index >= range.start
         && selBefore.index < range.start + range.len) {
@@ -3928,13 +4089,9 @@ function __quillSplitTable(quill, tableEl, effBottom, targetBody, targetQ) {
         // BARU hapus baris asal — kalau konversi menelan tabel, isi asal
         // tetap utuh (tidak ada data yang hilang).
         const trBefore = targetQ.root.querySelectorAll('table tr').length;
-        const chg = new DeltaCtor();
-        for (const op of delta.ops) {
-            chg.push(op.insert == null
-                ? { retain: __opLength(op) }
-                : JSON.parse(JSON.stringify(op)));
-        }
-        targetQ.updateContents(chg, 'silent');
+        // Sisipkan di indeks setelah run continuation teratas (bukan index 0).
+        const contPlan = __flowContInsertPlan(targetQ);
+        targetQ.updateContents(__flowContDelta(DeltaCtor, delta, contPlan), 'silent');
         // Guard: jumlah baris tabel target HARUS bertambah (mencegah kasus
         // tabel lanjutan menyatu/merge dengan tabel lama tetap dihitung ok,
         // tapi konversi yang menelan isi pasti tertolak).
@@ -3943,6 +4100,7 @@ function __quillSplitTable(quill, tableEl, effBottom, targetBody, targetQ) {
             console.warn('[DocQuill] Belah tabel Quill menelan isi — dibatalkan.');
             return 0;
         }
+        __markFlowContinuationRun(targetQ, contPlan);
         quill.deleteText(start, end - start, 'silent');
         return rows.length - safeCut;
     } catch (err) { return 0; }
@@ -3993,18 +4151,15 @@ function __quillSplitList(quill, listEl, effBottom, targetQ) {
         // BARU hapus item asal — kalau konversi menelan list, isi asal
         // tetap utuh (tidak ada data yang hilang).
         const liBefore = targetQ.root.querySelectorAll('li').length;
-        const chg = new DeltaCtor();
-        for (const op of delta.ops) {
-            chg.push(op.insert == null
-                ? { retain: __opLength(op) }
-                : JSON.parse(JSON.stringify(op)));
-        }
-        targetQ.updateContents(chg, 'silent');
+        // Sisipkan di indeks setelah run continuation teratas (bukan index 0).
+        const contPlan = __flowContInsertPlan(targetQ);
+        targetQ.updateContents(__flowContDelta(DeltaCtor, delta, contPlan), 'silent');
         const liAfter = targetQ.root.querySelectorAll('li').length;
         if (!(liAfter > liBefore)) {
             console.warn('[DocQuill] Belah list Quill menelan isi — dibatalkan.');
             return 0;
         }
+        __markFlowContinuationRun(targetQ, contPlan);
         quill.deleteText(start, end - start, 'silent');
         return items.length - cut;
     } catch (err) { return 0; }
@@ -4080,6 +4235,7 @@ window.DocQuill = {
 
     attachRegion: attachQuillToRegion,
 
+    // Buang atribut internal pagination sebelum HTML masuk ke payload/database.
     getHtml: (regionEl) => {
         if (!regionEl) return '';
         const q = quillsByRegion.get(regionEl);
@@ -4095,7 +4251,7 @@ window.DocQuill = {
             } catch (err) { /* lanjut sertakan */ }
             html += im.outerHTML;
         });
-        return html;
+        return __stripFlowInternalAttrs(html);
     },
 
     getActive: getActiveQuill,

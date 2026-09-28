@@ -31,12 +31,24 @@
         loadingTemplate: null,
         selectedTemplate: '',
         bodyHtml: '',
-        headerHtml: '<p style="text-align:left; margin:0; padding:0;"><img src="/images/fibertrust.png" alt="Fibertrust" style="height:56px; width:auto; max-width:260px; display:inline-block; vertical-align:middle; margin:0; padding:0;"></p>',
+        // Diisi di init() dari defaultHeaderHtml() agar hanya ada satu sumber
+        // kebenaran untuk markup kop.
+        headerHtml: '',
         footerHtml: '<p></p>',
 
         // Kop default: hanya logo Fibertrust, rata kiri mentok batas insertion point.
+        //
+        // PENTING: string ini berada di dalam atribut x-data yang diapit tanda
+        // kutip ganda, sehingga setiap tanda kutip di markup WAJIB ditulis
+        // sebagai &quot;. Kalau ditulis mentah, parser HTML memotong atribut
+        // lebih awal (teputus di style=), Alpine menerima x-data terpotong
+        // dan setiap properti di dalamnya meledak jadi is not defined.
         defaultHeaderHtml() {
-            return '<p style="text-align:left; margin:0; padding:0;"><img src="/images/fibertrust.png" alt="Fibertrust" style="height:56px; width:auto; max-width:260px; display:inline-block; vertical-align:middle; margin:0; padding:0;"></p>';
+            return '<p style=&quot;text-align:left; margin:0; padding:0;&quot;><img src=&quot;/images/fibertrust.png&quot; alt=&quot;Fibertrust&quot; style=&quot;height:56px; width:auto; max-width:260px; display:inline-block; vertical-align:middle; margin:0; padding:0;&quot;></p>';
+        },
+
+        init() {
+            this.headerHtml = this.defaultHeaderHtml();
         },
 
         // Konfirmasi lalu kirim form (kontrak dibaca dari Form Pelanggan,

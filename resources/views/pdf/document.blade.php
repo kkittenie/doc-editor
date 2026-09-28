@@ -227,8 +227,8 @@
         .footer-fixed {
             position: fixed;
             bottom: 10mm;
-            left: {!! $cs::PAGE_MARGIN_SIDE !!};
-            right: {!! $cs::PAGE_MARGIN_SIDE !!};
+            left: {!! \App\Data\ContractStyle::PAGE_MARGIN_SIDE !!};
+            right: {!! \App\Data\ContractStyle::PAGE_MARGIN_SIDE !!};
             width: auto;
             margin-top: 18px;
             font-size: 8.5pt;
