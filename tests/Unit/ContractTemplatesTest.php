@@ -28,9 +28,9 @@ function contractNormalizePasal(string $html): string
 $keys = [
     'kontrak-kemitraan',
     'kontrak-colocation',
-    'kontrak-managed-service',
-    'kontrak-soho',
     'kontrak-payung',
+    'kontrak-soho',
+    'kontrak-managed-service',
 ];
 
 test('semua template kontrak tersedia', function () use ($keys) {

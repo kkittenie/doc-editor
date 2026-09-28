@@ -3297,1687 +3297,6 @@ Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjala
                     ],
                 ],
             ],
-            'kontrak-managed-service' => [
-                'title' => 'Perjanjian Berlangganan Jasa Dedicated, Metro, dan Managed Service',
-                'header_data' => [
-                    'kopInstansi' => 'PT BINA INFORMATIKA SOLUSI',
-                    'kopAlamat' => 'Jl. Prakarsa Muda No. 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131',
-                    'kopKontrak' => 'PERJANJIAN BERLANGGANAN',
-                    'nomorSurat' => '[Nomor Perjanjian]',
-                    'perihalSurat' => 'Jasa Dedicated, Metro, dan Managed Service',
-                    'sifatSurat' => 'Penting',
-                ],
-                'body_content' => [
-                    'preamble' => 'PERJANJIAN BERLANGGANAN
-
-JASA DEDICATED, METRO, DAN MANAGED SERVICE
-
-PT BINA INFORMATIKA SOLUSI
-
-DENGAN
-
-[PIHAK KEDUA]
-
-Nomor: [Nomor Perjanjian]
-
-Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Berlangganan Jasa Dedicated, Metro, dan Managed Service (selanjutnya disebut “Perjanjian”), oleh dan antara:
-
-PT Bina Informatika Solusindo, berkedudukan di Gedung Wisma Bumiputera Lantai 7 Suite #701B Jl. Asia-Afrika No.141-149 Kebon Pisang, Sumur, Kota Bandung. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T.,M.Kom., selaku Direktur, bertindak untuk dan atas nama PT Bina Informatika Solusindo, selanjutnya disebut “PIHAK PERTAMA”
-
-[PIHAK KEDUA], berkedudukan di Jl. Cetarip Barat (Cetarip raya) No. 15/200 Rt 05 Rw 10, Kopo, Kota Bandung. Berdasarkan Akta Perusahaan No: 16, Tanggal 12 Desember 2022, dibuat dihadapan Arief Karisma, S.H., M.Kn.,  notaris di Kabupaten Bandung. Dalam hal ini diwakili oleh Wildan Arief Santika Budi, selaku Direktur Utama, bertindak untuk dan atas nama [PIHAK KEDUA], selanjutnya disebut “PIHAK KEDUA”
-
-PIHAK PERTAMA dan PIHAK KEDUA secara bersama-sama selanjutnya disebut “PARA PIHAK”
-
-PARA PIHAK dengan ini menerangkan telah sepakat untuk mengikatkan diri pada syarat-syarat dan ketentuan-ketentuan sebagai berikut:',
-                    'isi' => [
-                        [
-                            'judul' => 'Definisi',
-                            'text' => '“Perjanjian” adalah Perjanjian ini berikut lampiran dan semua perubahan yang terkait dan merupakan bagian dari Perjanjian ini.
-
-“Jasa” adalah layanan yang harus dipenuhi oleh PIHAK PERTAMA sebagaimana diuraikan pada Lampiran A.
-
-“Biaya Jasa” adalah biaya yang harus dibayar oleh PIHAK KEDUA seperti diuraikan pada Lampiran A.
-
-“SLA” – Service Level Agreement adalah kriteria hasil kerja Jasa yang telah ditetapkan terlebih dahulu sebagaimana diuraikan pada Lampiran B.',
-                            'blocks' => [
-                                [
-                                    'p' => '“Perjanjian” adalah Perjanjian ini berikut lampiran dan semua perubahan yang terkait dan merupakan bagian dari Perjanjian ini.',
-                                ],
-                                [
-                                    'p' => '“Jasa” adalah layanan yang harus dipenuhi oleh PIHAK PERTAMA sebagaimana diuraikan pada Lampiran A.',
-                                ],
-                                [
-                                    'p' => '“Biaya Jasa” adalah biaya yang harus dibayar oleh PIHAK KEDUA seperti diuraikan pada Lampiran A.',
-                                ],
-                                [
-                                    'p' => '“SLA” – Service Level Agreement adalah kriteria hasil kerja Jasa yang telah ditetapkan terlebih dahulu sebagaimana diuraikan pada Lampiran B.',
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Fasilitas PIHAK PERTAMA',
-                            'text' => 'PIHAK PERTAMA sepakat untuk menyediakan Jasa dan Fasilitas terkait (selanjutnya disebut “Jasa”) sebagaimana tercantum dalam Service Order Form yang dikeluarkan oleh PIHAK KEDUA yang menjadi bagian tak terpisahkan dari Perjanjian ini;
-
-Layanan Jasa yang disediakan PIHAK PERTAMA berdasarkan Perjanjian ini dapat digunakan oleh PIHAK KEDUA selama 24 jam/hari (7 hari/minggu);
-
-Penyediaan Fasilitas dan Jasa PIHAK PERTAMA akan dilakukan sesuai dengan konfigurasi teknis yang telah disepakati;
-
-Terminal dan perangkat antarmuka milik PIHAK KEDUA yang akan dihubungkan dengan perangkat/saluran PIHAK PERTAMA harus mendapat persetujuan terlebih dahulu dari PIHAK PERTAMA;
-
-Penyambungan pelayanan PIHAK PERTAMA akan dilaksanakan setelah PIHAK KEDUA mengeluarkan Service Order Form dan diterima oleh pihak PIHAK PERTAMA.',
-                            'blocks' => [
-                                [
-                                    'p' => 'PIHAK PERTAMA sepakat untuk menyediakan Jasa dan Fasilitas terkait (selanjutnya disebut “Jasa”) sebagaimana tercantum dalam Service Order Form yang dikeluarkan oleh PIHAK KEDUA yang menjadi bagian tak terpisahkan dari Perjanjian ini;',
-                                ],
-                                [
-                                    'p' => 'Layanan Jasa yang disediakan PIHAK PERTAMA berdasarkan Perjanjian ini dapat digunakan oleh PIHAK KEDUA selama 24 jam/hari (7 hari/minggu);',
-                                ],
-                                [
-                                    'p' => 'Penyediaan Fasilitas dan Jasa PIHAK PERTAMA akan dilakukan sesuai dengan konfigurasi teknis yang telah disepakati;',
-                                ],
-                                [
-                                    'p' => 'Terminal dan perangkat antarmuka milik PIHAK KEDUA yang akan dihubungkan dengan perangkat/saluran PIHAK PERTAMA harus mendapat persetujuan terlebih dahulu dari PIHAK PERTAMA;',
-                                ],
-                                [
-                                    'p' => 'Penyambungan pelayanan PIHAK PERTAMA akan dilaksanakan setelah PIHAK KEDUA mengeluarkan Service Order Form dan diterima oleh pihak PIHAK PERTAMA.',
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Aktivasi Layanan',
-                            'text' => 'Aktivasi Layanan akan dimulai setelah Fasilitas PIHAK PERTAMA siap dioperasikan dan dinyatakan dengan Berita Acara Aktivasi yang ditandatangani oleh PARA PIHAK.',
-                            'blocks' => [
-                                [
-                                    'p' => 'Aktivasi Layanan akan dimulai setelah Fasilitas PIHAK PERTAMA siap dioperasikan dan dinyatakan dengan Berita Acara Aktivasi yang ditandatangani oleh PARA PIHAK.',
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Jangka Waktu Berlangganan',
-                            'text' => 'Jangka Waktu Efektif Layanan sebagaimana dimaksud dalam Syarat dan Ketentuan Berlangganan ini adalah tanggal sebagaimana dimaksud dalam lampiran A Perjanjian Berlangganan Jasa ini.
-
-Apabila PIHAK KEDUA  mengakhiri Layanan sebelum Jangka Waktu berakhir sebagaimana dimaksud dalam lampiran A dan atau Service Order Form, maka PIHAK KEDUA akan dikenakan denda sebagaimana berikut:
-
-Apabila 30 (Tiga puluh) hari sebelum jangka waktu dalam pasal  4 ayat 1 ini berakhir PIHAK KEDUA tidak melakukan pemberitahuan pengakhiran Layanan, maka Syarat dan Ketentuan Berlangganan akan otomatis berlanjut selama 1 (Satu) tahun (“Jangka Waktu Perpanjangan”). Pemberitahuan pengakhiran Berlangganan dihitung 30 (tiga puluh) hari sejak diterimanya pemberitahuan pengakhiran Layanan;',
-                            'blocks' => [
-                                [
-                                    'p' => 'Jangka Waktu Efektif Layanan sebagaimana dimaksud dalam Syarat dan Ketentuan Berlangganan ini adalah tanggal sebagaimana dimaksud dalam lampiran A Perjanjian Berlangganan Jasa ini.',
-                                ],
-                                [
-                                    'p' => 'Apabila PIHAK KEDUA  mengakhiri Layanan sebelum Jangka Waktu berakhir sebagaimana dimaksud dalam lampiran A dan atau Service Order Form, maka PIHAK KEDUA akan dikenakan denda sebagaimana berikut:',
-                                ],
-                                [
-                                    'table' => [
-                                        'rows' => [
-                                            [
-                                                [
-                                                    'c' => [
-                                                        '100% x Biaya Bulanan x Bulan yang belum terpenuhi',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                        ],
-                                        'bordered' => true,
-                                        'head' => false,
-                                    ],
-                                ],
-                                [
-                                    'p' => 'Apabila 30 (Tiga puluh) hari sebelum jangka waktu dalam pasal  4 ayat 1 ini berakhir PIHAK KEDUA tidak melakukan pemberitahuan pengakhiran Layanan, maka Syarat dan Ketentuan Berlangganan akan otomatis berlanjut selama 1 (Satu) tahun (“Jangka Waktu Perpanjangan”). Pemberitahuan pengakhiran Berlangganan dihitung 30 (tiga puluh) hari sejak diterimanya pemberitahuan pengakhiran Layanan;',
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Pembayaran',
-                            'text' => 'PIHAK KEDUA wajib melakukan pembayaran atas Layanan sebagaimana dimaksud dalam Service Order Form;
-
-Pembayaran dilakukan oleh PIHAK KEDUA selambat–lambatnya pada tanggal sesuai dengan invoice yang diterbitkan atau selambat-lambatnya 7 (tujuh) hari dari tanggal invoice diterbitkan;
-
-Atas setiap keterlambatan pembayaran dari tanggal sebagaimana dimaksud dalam Pasal 5.2, maka PIHAK KEDUA dikenakan denda keterlambatan pembayaran sebesar 1 (satu) permil setiap hari keterlambatan;
-
-Apabila PIHAK KEDUA terlambat melakukan pembayaran 30 (tiga puluh) hari sejak invoice diterima oleh PIHAK KEDUA, maka PIHAK PERTAMA akan melakukan pemutusan sementara (isolir) layanan tanpa pemberitahuan terlebih dahulu kepada PIHAK KEDUA;
-
-Apabila PIHAK KEDUA melunasi biaya-biaya dalam pasal ini, maka PIHAK PERTAMA akan membuka pemutusan sementara (isolir) dalam waktu selambat-lambatnya 1 (satu) hari kerja;
-
-Semua Biaya bank yang timbul dalam pembayaran tagihan merupakan tanggung jawab PIHAK KEDUA;
-
-Seluruh pembayaran dianggap telah dilakukan PIHAK KEDUA setelah pembayaran diterima di rekening PIHAK PERTAMA, dengan detail sebagai berikut:
-
-Bank Mandiri
-
-Nomor Rekening	: 130-00-2010068-4
-
-Nama Rekening	: PT Bina Informatika Solusindo
-
-Bank Rakyat Indonesia (BRI)
-
-Nomor Rekening	: 1317-01-000039-30-8
-
-Nama Rekening	: PT Bina Informatika Solusindo
-
-Bank Central Asia (BCA)
-
-Nomor Rekening	: 008-3982-397
-
-Nama Rekening	: PT Bina Informatika Solusindo
-
-Bank Pembangunan Daerah Jawa Barat dan Banten (BJB)
-
-Nomor Rekening	: 012-1989-247-001
-
-Nama Rekening	: PT Bina Informatika Solusindo',
-                            'blocks' => [
-                                [
-                                    'p' => 'PIHAK KEDUA wajib melakukan pembayaran atas Layanan sebagaimana dimaksud dalam Service Order Form;',
-                                ],
-                                [
-                                    'p' => 'Pembayaran dilakukan oleh PIHAK KEDUA selambat–lambatnya pada tanggal sesuai dengan invoice yang diterbitkan atau selambat-lambatnya 7 (tujuh) hari dari tanggal invoice diterbitkan;',
-                                ],
-                                [
-                                    'p' => 'Atas setiap keterlambatan pembayaran dari tanggal sebagaimana dimaksud dalam Pasal 5.2, maka PIHAK KEDUA dikenakan denda keterlambatan pembayaran sebesar 1 (satu) permil setiap hari keterlambatan;',
-                                ],
-                                [
-                                    'p' => 'Apabila PIHAK KEDUA terlambat melakukan pembayaran 30 (tiga puluh) hari sejak invoice diterima oleh PIHAK KEDUA, maka PIHAK PERTAMA akan melakukan pemutusan sementara (isolir) layanan tanpa pemberitahuan terlebih dahulu kepada PIHAK KEDUA;',
-                                ],
-                                [
-                                    'p' => 'Apabila PIHAK KEDUA melunasi biaya-biaya dalam pasal ini, maka PIHAK PERTAMA akan membuka pemutusan sementara (isolir) dalam waktu selambat-lambatnya 1 (satu) hari kerja;',
-                                ],
-                                [
-                                    'p' => 'Semua Biaya bank yang timbul dalam pembayaran tagihan merupakan tanggung jawab PIHAK KEDUA;',
-                                ],
-                                [
-                                    'p' => 'Seluruh pembayaran dianggap telah dilakukan PIHAK KEDUA setelah pembayaran diterima di rekening PIHAK PERTAMA, dengan detail sebagai berikut:',
-                                ],
-                                [
-                                    'p' => 'Bank Mandiri',
-                                ],
-                                [
-                                    'p' => 'Nomor Rekening	: 130-00-2010068-4',
-                                ],
-                                [
-                                    'p' => 'Nama Rekening	: PT Bina Informatika Solusindo',
-                                ],
-                                [
-                                    'p' => 'Bank Rakyat Indonesia (BRI)',
-                                ],
-                                [
-                                    'p' => 'Nomor Rekening	: 1317-01-000039-30-8',
-                                ],
-                                [
-                                    'p' => 'Nama Rekening	: PT Bina Informatika Solusindo',
-                                ],
-                                [
-                                    'p' => 'Bank Central Asia (BCA)',
-                                ],
-                                [
-                                    'p' => 'Nomor Rekening	: 008-3982-397',
-                                ],
-                                [
-                                    'p' => 'Nama Rekening	: PT Bina Informatika Solusindo',
-                                ],
-                                [
-                                    'p' => 'Bank Pembangunan Daerah Jawa Barat dan Banten (BJB)',
-                                ],
-                                [
-                                    'p' => 'Nomor Rekening	: 012-1989-247-001',
-                                ],
-                                [
-                                    'p' => 'Nama Rekening	: PT Bina Informatika Solusindo',
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Hak dan Kewajiban',
-                            'text' => 'PIHAK KEDUA wajib menyediakan perangkat yang dibutuhkan, sehingga fasilitas dan pelayanan PIHAK PERTAMA dapat diaktivasikan sesuai jadwal yang telah disepakati bersama;
-
-PIHAK KEDUA tidak diperkenankan memberi kesempatan kepada pihak ketiga untuk memanfaatkan fasilitas dan pelayanan PIHAK PERTAMA tanpa izin tertulis dari PIHAK PERTAMA;
-
-PIHAK KEDUA tidak diperkenankan mengadakan perubahan terhadap spesifikasi teknis, konfigurasi, dan fasilitas layanan PIHAK PERTAMA, termasuk menghubungkannya ke dalam jaringan PIHAK PERTAMA dengan cara apapun, kecuali atas izin tertulis dari PIHAK PERTAMA;
-
-PIHAK KEDUA tidak diperkenankan untuk menghubungkan jaringan dan/atau fasilitas PIHAK PERTAMA dengan jaringan telekomunikasi umum (PSTN) termasuk namun tidak terbatas kepada jaringan telepon, teleks, atau komunikasi data;
-
-PIHAK KEDUA akan memberikan izin wilayah kepada PIHAK PERTAMA  untuk memasuki fasilitas dan/atau lokasi milik PIHAK KEDUA sehubungan dengan keperluan pemeliharaan dan perbaikan;
-
-PIHAK PERTAMA bertanggung jawab terhadap pemeliharaan dan perbaikan atas kerusakan atau gangguan pada saluran dan fasilitas milik PIHAK PERTAMA. Apabila kerusakan atau gangguan tersebut disebabkan oleh kesalahan, kesengajaan, atau kelalaian PIHAK KEDUA, maka PIHAK PERTAMA berhak memungut biaya perbaikan;
-
-PIHAK KEDUA berhak memperoleh restitusi atas kerusakan atau gangguan yang terbukti bukan disebabkan oleh PIHAK KEDUA. Kompensasi akan diberikan sesuai ketentuan yang berlaku (Jaminan Pelayanan-SLA) dan tidak berlaku untuk kerusakan atau gangguan yang disebabkan oleh perangkat milik PIHAK KEDUA atau Force Majeure;
-
-PIHAK PERTAMA tidak bertanggung jawab atas kebenaran, kerahasiaan dan atau kualitas informasi yang disalurkan melalui layanan PIHAK PERTAMA;
-
-PIHAK PERTAMA tidak bertanggung jawab atas kerugian tidak langsung, kerugian konsekuensial, kehilangan keuntungan, kehilangan data, kehilangan peluang usaha, atau tuntutan pihak ketiga yang timbul akibat penggunaan atau ketidakmampuan penggunaan layanan oleh PIHAK KEDUA, kecuali apabila kerugian tersebut secara langsung disebabkan oleh kesalahan atau kelalaian berat PIHAK PERTAMA.',
-                            'blocks' => [
-                                [
-                                    'p' => 'PIHAK KEDUA wajib menyediakan perangkat yang dibutuhkan, sehingga fasilitas dan pelayanan PIHAK PERTAMA dapat diaktivasikan sesuai jadwal yang telah disepakati bersama;',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA tidak diperkenankan memberi kesempatan kepada pihak ketiga untuk memanfaatkan fasilitas dan pelayanan PIHAK PERTAMA tanpa izin tertulis dari PIHAK PERTAMA;',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA tidak diperkenankan mengadakan perubahan terhadap spesifikasi teknis, konfigurasi, dan fasilitas layanan PIHAK PERTAMA, termasuk menghubungkannya ke dalam jaringan PIHAK PERTAMA dengan cara apapun, kecuali atas izin tertulis dari PIHAK PERTAMA;',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA tidak diperkenankan untuk menghubungkan jaringan dan/atau fasilitas PIHAK PERTAMA dengan jaringan telekomunikasi umum (PSTN) termasuk namun tidak terbatas kepada jaringan telepon, teleks, atau komunikasi data;',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA akan memberikan izin wilayah kepada PIHAK PERTAMA  untuk memasuki fasilitas dan/atau lokasi milik PIHAK KEDUA sehubungan dengan keperluan pemeliharaan dan perbaikan;',
-                                ],
-                                [
-                                    'p' => 'PIHAK PERTAMA bertanggung jawab terhadap pemeliharaan dan perbaikan atas kerusakan atau gangguan pada saluran dan fasilitas milik PIHAK PERTAMA. Apabila kerusakan atau gangguan tersebut disebabkan oleh kesalahan, kesengajaan, atau kelalaian PIHAK KEDUA, maka PIHAK PERTAMA berhak memungut biaya perbaikan;',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA berhak memperoleh restitusi atas kerusakan atau gangguan yang terbukti bukan disebabkan oleh PIHAK KEDUA. Kompensasi akan diberikan sesuai ketentuan yang berlaku (Jaminan Pelayanan-SLA) dan tidak berlaku untuk kerusakan atau gangguan yang disebabkan oleh perangkat milik PIHAK KEDUA atau Force Majeure;',
-                                ],
-                                [
-                                    'p' => 'PIHAK PERTAMA tidak bertanggung jawab atas kebenaran, kerahasiaan dan atau kualitas informasi yang disalurkan melalui layanan PIHAK PERTAMA;',
-                                ],
-                                [
-                                    'p' => 'PIHAK PERTAMA tidak bertanggung jawab atas kerugian tidak langsung, kerugian konsekuensial, kehilangan keuntungan, kehilangan data, kehilangan peluang usaha, atau tuntutan pihak ketiga yang timbul akibat penggunaan atau ketidakmampuan penggunaan layanan oleh PIHAK KEDUA, kecuali apabila kerugian tersebut secara langsung disebabkan oleh kesalahan atau kelalaian berat PIHAK PERTAMA.',
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Pembatalan',
-                            'text' => 'Jika PIHAK KEDUA membatalkan layanan yang telah disepakati dalam Service Order Form sebelum dan atau sesudah aktivasi sebagaimana dimaksud dalam Service Order Form atau Berita Acara, maka PIHAK KEDUA diwajibkan melakukan pelunasan atas Biaya Instalasi',
-                            'blocks' => [
-                                [
-                                    'p' => 'Jika PIHAK KEDUA membatalkan layanan yang telah disepakati dalam Service Order Form sebelum dan atau sesudah aktivasi sebagaimana dimaksud dalam Service Order Form atau Berita Acara, maka PIHAK KEDUA diwajibkan melakukan pelunasan atas Biaya Instalasi',
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Perpindahan dan Pengalihan',
-                            'text' => 'PIHAK KEDUA dapat meminta perpindahan lokasi fasilitas PIHAK PERTAMA serta penambahan kapasitas sepanjang teknis memungkinkan. Segala biaya yang timbul akibat perpindahan lokasi serta penambahan kapasitas tersebut akan dibebankan kepada PIHAK KEDUA; dan
-
-Pemindahan fasilitas PIHAK PERTAMA yang telah terpasang ke lokasi lainnya akan diperlakukan sebagai sambungan baru. Biaya berlangganan akan disesuaikan dengan penambahan kapasitas terpasang.',
-                            'blocks' => [
-                                [
-                                    'p' => 'PIHAK KEDUA dapat meminta perpindahan lokasi fasilitas PIHAK PERTAMA serta penambahan kapasitas sepanjang teknis memungkinkan. Segala biaya yang timbul akibat perpindahan lokasi serta penambahan kapasitas tersebut akan dibebankan kepada PIHAK KEDUA; dan',
-                                ],
-                                [
-                                    'p' => 'Pemindahan fasilitas PIHAK PERTAMA yang telah terpasang ke lokasi lainnya akan diperlakukan sebagai sambungan baru. Biaya berlangganan akan disesuaikan dengan penambahan kapasitas terpasang.',
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Pembatalan Perjanjian dengan Alasan',
-                            'text' => 'PIHAK PERTAMA tidak dapat dianggap melakukan wanprestasi dan dibebaskan dari segala tanggung jawab atas kegagalan penyediaan Jasa yang disebabkan oleh tindakan, kelalaian, kesalahan, gangguan sistem, kegagalan perangkat keras (hardware), perangkat lunak (software), jaringan internal, sumber daya manusia, maupun sebab lainnya yang berasal dari PIHAK KEDUA atau pihak yang berada di bawah kendali PIHAK KEDUA;
-
-Apabila terjadi pelanggaran kewajiban dari PIHAK KEDUA yang mengakibatkan pembatalan perjanjian ini, maka PIHAK KEDUA wajib membayar penggunaan internet sampai dengan bulan terakhir pembatalan kontrak;
-
-Apabila salah satu pihak mengalami kegagalan keuangan atau berhenti beroperasi maka hal ini dapat menjadi penyebab pembatalan, dimana salah satu pihak atau lainnya dapat membatalkan perjanjian ini dengan melakukan pemberitahuan secara tertulis. Namun pihak yang mengalami keadaan insolven, kegagalan keuangan atau berhenti beroperasi tersebut tetap harus melaksanakan segala kewajiban hingga tanggal pemutusan kontrak berdasarkan peraturan perundang-undangan yang berlaku, termasuk akan tetapi tidak terbatas pada, Undang-undang Nomor 37 Tahun 2004 tentang Kepailitan dan Penundaan Kewajiban Pembayaran Utang;
-
-Apabila PIHAK PERTAMA gagal untuk menyediakan Jasa atau gagal mencapai SLA sebagaimana diuraikan pada Lampiran B, maka akan berlaku ketentuan denda sebagai berikut:
-
-Atas setiap akumulasi selama periode 30 hari kegagalan penyediaan Jasa, PIHAK PERTAMA akan memberikan potongan biaya Jasa secara prorata atas kegagalan penyediaan Jasa sesuai dengan skema restitusi yang dijelaskan dalam Lampiran B; dan
-
-Dalam hal pihak PIHAK PERTAMA gagal memenuhi minimum SLA sebesar 99.5% dalam jangka waktu sebulan berdasarkan pada laporan dan pembuktian, maka PIHAK KEDUA wajib memberikan teguran sebanyak 3 (tiga) kali secara berturut-turut dan jika tidak ada penyelesaian dari PIHAK PERTAMA, maka PIHAK KEDUA berhak memutuskan kontrak dan wajib membayar seluruh kewajiban sampai tanggal pemutusan kontrak.
-
-Apabila setelah 3 (tiga) surat teguran berturut-turut PIHAK PERTAMA tetap gagal memenuhi SLA sebagaimana diatur dalam Lampiran B, PIHAK KEDUA berhak mengakhiri Perjanjian tanpa dikenakan penalti terminasi dini. Namun PIHAK KEDUA tetap wajib melunasi seluruh tagihan yang telah jatuh tempo sampai dengan tanggal efektif pengakhiran layanan.',
-                            'blocks' => [
-                                [
-                                    'p' => 'PIHAK PERTAMA tidak dapat dianggap melakukan wanprestasi dan dibebaskan dari segala tanggung jawab atas kegagalan penyediaan Jasa yang disebabkan oleh tindakan, kelalaian, kesalahan, gangguan sistem, kegagalan perangkat keras (hardware), perangkat lunak (software), jaringan internal, sumber daya manusia, maupun sebab lainnya yang berasal dari PIHAK KEDUA atau pihak yang berada di bawah kendali PIHAK KEDUA;',
-                                ],
-                                [
-                                    'p' => 'Apabila terjadi pelanggaran kewajiban dari PIHAK KEDUA yang mengakibatkan pembatalan perjanjian ini, maka PIHAK KEDUA wajib membayar penggunaan internet sampai dengan bulan terakhir pembatalan kontrak;',
-                                ],
-                                [
-                                    'p' => 'Apabila salah satu pihak mengalami kegagalan keuangan atau berhenti beroperasi maka hal ini dapat menjadi penyebab pembatalan, dimana salah satu pihak atau lainnya dapat membatalkan perjanjian ini dengan melakukan pemberitahuan secara tertulis. Namun pihak yang mengalami keadaan insolven, kegagalan keuangan atau berhenti beroperasi tersebut tetap harus melaksanakan segala kewajiban hingga tanggal pemutusan kontrak berdasarkan peraturan perundang-undangan yang berlaku, termasuk akan tetapi tidak terbatas pada, Undang-undang Nomor 37 Tahun 2004 tentang Kepailitan dan Penundaan Kewajiban Pembayaran Utang;',
-                                ],
-                                [
-                                    'p' => 'Apabila PIHAK PERTAMA gagal untuk menyediakan Jasa atau gagal mencapai SLA sebagaimana diuraikan pada Lampiran B, maka akan berlaku ketentuan denda sebagai berikut:',
-                                ],
-                                [
-                                    'p' => 'Atas setiap akumulasi selama periode 30 hari kegagalan penyediaan Jasa, PIHAK PERTAMA akan memberikan potongan biaya Jasa secara prorata atas kegagalan penyediaan Jasa sesuai dengan skema restitusi yang dijelaskan dalam Lampiran B; dan',
-                                ],
-                                [
-                                    'p' => 'Dalam hal pihak PIHAK PERTAMA gagal memenuhi minimum SLA sebesar 99.5% dalam jangka waktu sebulan berdasarkan pada laporan dan pembuktian, maka PIHAK KEDUA wajib memberikan teguran sebanyak 3 (tiga) kali secara berturut-turut dan jika tidak ada penyelesaian dari PIHAK PERTAMA, maka PIHAK KEDUA berhak memutuskan kontrak dan wajib membayar seluruh kewajiban sampai tanggal pemutusan kontrak.',
-                                ],
-                                [
-                                    'p' => 'Apabila setelah 3 (tiga) surat teguran berturut-turut PIHAK PERTAMA tetap gagal memenuhi SLA sebagaimana diatur dalam Lampiran B, PIHAK KEDUA berhak mengakhiri Perjanjian tanpa dikenakan penalti terminasi dini. Namun PIHAK KEDUA tetap wajib melunasi seluruh tagihan yang telah jatuh tempo sampai dengan tanggal efektif pengakhiran layanan.',
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Pembatalan Perjanjian Tanpa Alasan',
-                            'text' => 'Para Pihak dapat membatalkan Perjanjian tanpa alasan dengan pemberitahuan tertulis dimuka dengan ketentuan sebagai berikut:
-
-Jika PIHAK PERTAMA membatalkan Perjanjian, maka PIHAK PERTAMA akan memberitahukan 30 hari dimuka; dan
-
-Jika PIHAK KEDUA membatalkan Perjanjian, maka PIHAK KEDUA akan memberitahukan 30 hari dimuka.
-
-Jika PIHAK KEDUA membatalkan Perjanjian tanpa alasan, PIHAK KEDUA wajib membayar PIHAK PERTAMA atas seluruh biaya bulan berjalan di bulan terjadinya pembatalan hingga tanggal jatuh tempo perjanjian;
-
-Dalam hal PIHAK PERTAMA mengakhiri Perjanjian tanpa alasan yang sah, PIHAK PERTAMA wajib memberikan pemberitahuan tertulis sekurang-kurangnya 30 (tiga puluh) hari kalender sebelumnya dan tetap memberikan layanan sampai dengan tanggal efektif pengakhiran. Kewajiban PIHAK PERTAMA terbatas pada pengembalian biaya layanan yang telah dibayar di muka untuk periode yang belum digunakan.',
-                            'blocks' => [
-                                [
-                                    'p' => 'Para Pihak dapat membatalkan Perjanjian tanpa alasan dengan pemberitahuan tertulis dimuka dengan ketentuan sebagai berikut:',
-                                ],
-                                [
-                                    'p' => 'Jika PIHAK PERTAMA membatalkan Perjanjian, maka PIHAK PERTAMA akan memberitahukan 30 hari dimuka; dan',
-                                ],
-                                [
-                                    'p' => 'Jika PIHAK KEDUA membatalkan Perjanjian, maka PIHAK KEDUA akan memberitahukan 30 hari dimuka.',
-                                ],
-                                [
-                                    'p' => 'Jika PIHAK KEDUA membatalkan Perjanjian tanpa alasan, PIHAK KEDUA wajib membayar PIHAK PERTAMA atas seluruh biaya bulan berjalan di bulan terjadinya pembatalan hingga tanggal jatuh tempo perjanjian;',
-                                ],
-                                [
-                                    'p' => 'Dalam hal PIHAK PERTAMA mengakhiri Perjanjian tanpa alasan yang sah, PIHAK PERTAMA wajib memberikan pemberitahuan tertulis sekurang-kurangnya 30 (tiga puluh) hari kalender sebelumnya dan tetap memberikan layanan sampai dengan tanggal efektif pengakhiran. Kewajiban PIHAK PERTAMA terbatas pada pengembalian biaya layanan yang telah dibayar di muka untuk periode yang belum digunakan.',
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Ketentuan Perubahan',
-                            'text' => 'Selama masa berlakunya Perjanjian, salah satu pihak dapat mengajukan usulan perubahan Perjanjian dengan mengajukan usulan secara tertulis kepada pihak lainnya;
-
-Dalam jangka waktu 30 hari setelah menerima pemberitahuan tertulis mengenai usulan perubahan dari PIHAK KEDUA, PIHAK PERTAMA akan memberitahu PIHAK KEDUA apakah perubahan dapat dilaksanakan atau tidak. Apabila perubahan tersebut dapat dilaksanakan, maka PIHAK PERTAMA berhak mengajukan perubahan atas biaya Jasa dan ketentuan lainnya dari Perjanjian ini;
-
-PIHAK KEDUA dapat mengajukan usulan upgrade dan downgrade layanan selama masa berlakunya perjanjian melalui pemberitahuan tertulis 30 hari sebelumnya;
-
-Permohonan downgrade layanan yang diajukan sebelum berakhirnya Masa Berlangganan Minimum sebagaimana ditentukan dalam Service Order Form atau Lampiran Perjanjian ini akan dianggap sebagai pengakhiran sebagian layanan dan dikenakan penalti sebesar (100% x biaya layanan perbulan x Bulan yang belum terpenuhi);
-
-Selama masa berlakunya Perjanjian ini Pihak Kedua tidak bisa mengajukan perubahan biaya layanan yang berjalan sampai dengan masa kontrak Perjanjian ini berakhir. Terkecuali adanya permohonan upgrade layanan;',
-                            'blocks' => [
-                                [
-                                    'p' => 'Selama masa berlakunya Perjanjian, salah satu pihak dapat mengajukan usulan perubahan Perjanjian dengan mengajukan usulan secara tertulis kepada pihak lainnya;',
-                                ],
-                                [
-                                    'p' => 'Dalam jangka waktu 30 hari setelah menerima pemberitahuan tertulis mengenai usulan perubahan dari PIHAK KEDUA, PIHAK PERTAMA akan memberitahu PIHAK KEDUA apakah perubahan dapat dilaksanakan atau tidak. Apabila perubahan tersebut dapat dilaksanakan, maka PIHAK PERTAMA berhak mengajukan perubahan atas biaya Jasa dan ketentuan lainnya dari Perjanjian ini;',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA dapat mengajukan usulan upgrade dan downgrade layanan selama masa berlakunya perjanjian melalui pemberitahuan tertulis 30 hari sebelumnya;',
-                                ],
-                                [
-                                    'p' => 'Permohonan downgrade layanan yang diajukan sebelum berakhirnya Masa Berlangganan Minimum sebagaimana ditentukan dalam Service Order Form atau Lampiran Perjanjian ini akan dianggap sebagai pengakhiran sebagian layanan dan dikenakan penalti sebesar (100% x biaya layanan perbulan x Bulan yang belum terpenuhi);',
-                                ],
-                                [
-                                    'p' => 'Selama masa berlakunya Perjanjian ini Pihak Kedua tidak bisa mengajukan perubahan biaya layanan yang berjalan sampai dengan masa kontrak Perjanjian ini berakhir. Terkecuali adanya permohonan upgrade layanan;',
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Force Majeure',
-                            'text' => 'Keadaan Memaksa (Force Majeure) adalah setiap peristiwa di luar kendali dan kemampuan wajar PARA PIHAK yang secara langsung mengakibatkan sebagian atau seluruh kewajiban dalam Perjanjian ini tidak dapat dilaksanakan, termasuk namun tidak terbatas pada bencana alam, kebakaran, perang, kerusuhan, wabah penyakit, pemogokan, gangguan jaringan berskala besar, kegagalan sistem di luar kendali PARA PIHAK, kebijakan Pemerintah, atau peristiwa lain yang sejenis.
-
-PIHAK yang mengalami Keadaan Memaksa wajib memberitahukan secara tertulis kepada pihak lainnya paling lambat 14 (empat belas) Hari Kalender sejak diketahui atau seharusnya diketahui terjadinya Keadaan Memaksa, disertai penjelasan mengenai dampak terhadap pelaksanaan Perjanjian.
-
-Selama Keadaan Memaksa berlangsung, kewajiban PARA PIHAK yang terdampak ditangguhkan sepanjang tidak dapat dilaksanakan akibat Keadaan Memaksa. Penangguhan tersebut tidak menghapus kewajiban yang telah timbul sebelum terjadinya Keadaan Memaksa.
-
-PARA PIHAK wajib melakukan upaya yang wajar untuk mengurangi dampak Keadaan Memaksa dan melanjutkan pelaksanaan Perjanjian segera setelah keadaan tersebut berakhir.
-
-Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender secara berturut-turut dan PARA PIHAK tidak mencapai kesepakatan mengenai kelanjutan Perjanjian, masing-masing pihak berhak mengakhiri Perjanjian dengan pemberitahuan tertulis tanpa dikenakan penalti, dengan tetap menyelesaikan seluruh hak dan kewajiban yang telah timbul sebelum tanggal efektif pengakhiran.',
-                            'blocks' => [
-                                [
-                                    'p' => 'Keadaan Memaksa (Force Majeure) adalah setiap peristiwa di luar kendali dan kemampuan wajar PARA PIHAK yang secara langsung mengakibatkan sebagian atau seluruh kewajiban dalam Perjanjian ini tidak dapat dilaksanakan, termasuk namun tidak terbatas pada bencana alam, kebakaran, perang, kerusuhan, wabah penyakit, pemogokan, gangguan jaringan berskala besar, kegagalan sistem di luar kendali PARA PIHAK, kebijakan Pemerintah, atau peristiwa lain yang sejenis.',
-                                ],
-                                [
-                                    'p' => 'PIHAK yang mengalami Keadaan Memaksa wajib memberitahukan secara tertulis kepada pihak lainnya paling lambat 14 (empat belas) Hari Kalender sejak diketahui atau seharusnya diketahui terjadinya Keadaan Memaksa, disertai penjelasan mengenai dampak terhadap pelaksanaan Perjanjian.',
-                                ],
-                                [
-                                    'p' => 'Selama Keadaan Memaksa berlangsung, kewajiban PARA PIHAK yang terdampak ditangguhkan sepanjang tidak dapat dilaksanakan akibat Keadaan Memaksa. Penangguhan tersebut tidak menghapus kewajiban yang telah timbul sebelum terjadinya Keadaan Memaksa.',
-                                ],
-                                [
-                                    'p' => 'PARA PIHAK wajib melakukan upaya yang wajar untuk mengurangi dampak Keadaan Memaksa dan melanjutkan pelaksanaan Perjanjian segera setelah keadaan tersebut berakhir.',
-                                ],
-                                [
-                                    'p' => 'Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender secara berturut-turut dan PARA PIHAK tidak mencapai kesepakatan mengenai kelanjutan Perjanjian, masing-masing pihak berhak mengakhiri Perjanjian dengan pemberitahuan tertulis tanpa dikenakan penalti, dengan tetap menyelesaikan seluruh hak dan kewajiban yang telah timbul sebelum tanggal efektif pengakhiran.',
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Penyelesaian Sengketa',
-                            'text' => 'PARA PIHAK sepakat bahwa Perjanjian ini dibuat dan dilaksanakan berdasarkan prinsip itikad baik, saling menguntungkan, serta tunduk pada ketentuan peraturan perundang-undangan yang berlaku di Republik Indonesia;
-
-Apabila timbul perselisihan, perbedaan penafsiran, atau sengketa yang berkaitan dengan pelaksanaan, pelanggaran, pengakhiran, maupun keabsahan Perjanjian ini, PARA PIHAK sepakat untuk terlebih dahulu menyelesaikannya secara musyawarah untuk mufakat dalam jangka waktu paling lama 30 (tiga puluh) hari kalender sejak salah satu pihak menyampaikan pemberitahuan tertulis mengenai adanya sengketa;
-
-Dalam hal musyawarah sebagaimana dimaksud pada ayat (2) tidak mencapai kesepakatan dalam jangka waktu tersebut, PARA PIHAK sepakat untuk menyelesaikan sengketa melalui Pengadilan Negeri Bandung, tanpa mengurangi hak PIHAK PERTAMA untuk melakukan upaya penagihan, pemutusan layanan, atau tindakan hukum lainnya sesuai ketentuan Perjanjian ini;
-
-Selama proses penyelesaian sengketa berlangsung, PARA PIHAK tetap berkewajiban melaksanakan bagian-bagian Perjanjian yang tidak dipersengketakan;
-
-PARA PIHAK sepakat bahwa pengajuan keberatan, klaim, atau sengketa oleh PIHAK KEDUA tidak menghapus, menangguhkan, atau mengurangi kewajiban PIHAK KEDUA untuk melakukan pembayaran atas tagihan yang telah jatuh tempo berdasarkan Perjanjian ini.',
-                            'blocks' => [
-                                [
-                                    'p' => 'PARA PIHAK sepakat bahwa Perjanjian ini dibuat dan dilaksanakan berdasarkan prinsip itikad baik, saling menguntungkan, serta tunduk pada ketentuan peraturan perundang-undangan yang berlaku di Republik Indonesia;',
-                                ],
-                                [
-                                    'p' => 'Apabila timbul perselisihan, perbedaan penafsiran, atau sengketa yang berkaitan dengan pelaksanaan, pelanggaran, pengakhiran, maupun keabsahan Perjanjian ini, PARA PIHAK sepakat untuk terlebih dahulu menyelesaikannya secara musyawarah untuk mufakat dalam jangka waktu paling lama 30 (tiga puluh) hari kalender sejak salah satu pihak menyampaikan pemberitahuan tertulis mengenai adanya sengketa;',
-                                ],
-                                [
-                                    'p' => 'Dalam hal musyawarah sebagaimana dimaksud pada ayat (2) tidak mencapai kesepakatan dalam jangka waktu tersebut, PARA PIHAK sepakat untuk menyelesaikan sengketa melalui Pengadilan Negeri Bandung, tanpa mengurangi hak PIHAK PERTAMA untuk melakukan upaya penagihan, pemutusan layanan, atau tindakan hukum lainnya sesuai ketentuan Perjanjian ini;',
-                                ],
-                                [
-                                    'p' => 'Selama proses penyelesaian sengketa berlangsung, PARA PIHAK tetap berkewajiban melaksanakan bagian-bagian Perjanjian yang tidak dipersengketakan;',
-                                ],
-                                [
-                                    'p' => 'PARA PIHAK sepakat bahwa pengajuan keberatan, klaim, atau sengketa oleh PIHAK KEDUA tidak menghapus, menangguhkan, atau mengurangi kewajiban PIHAK KEDUA untuk melakukan pembayaran atas tagihan yang telah jatuh tempo berdasarkan Perjanjian ini.',
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Lain-Lain',
-                            'text' => 'Setiap perubahan, penambahan, pengurangan, atau penyesuaian terhadap ketentuan dalam Perjanjian ini hanya sah dan mengikat apabila dibuat secara tertulis serta disepakati dan ditandatangani oleh PARA PIHAK dalam bentuk Addendum dan/atau Amandemen yang menjadi bagian yang tidak terpisahkan dari Perjanjian ini;
-
-Seluruh Lampiran dalam Perjanjian ini merupakan satu kesatuan yang tidak terpisahkan dan mempunyai kekuatan hukum yang sama dengan Perjanjian ini;
-
-PARA PIHAK sepakat dan setuju untuk mengesampikan berlakunya Pasal 1266 KUHPerdata, sehingga Pemutusan Perjanjian ini dapat dilakukan oleh PARA PIHAK tanpa terlebih dahulu menunggu Putusan Pengadilan
-
-Para pihak menjamin bahwa penandatangan Perjanjian ini dan/atau Lampiran-Lampirannya adalah pihak yang sah dan berwenang secara hukum untuk mengikatkan diri dan/atau mewakili perusahaan masing-masing, baik berdasarkan anggaran dasar, keputusan organ perusahaan yang berwenang, maupun surat kuasa yang sah;
-
-Perjanjian ini dibuat dan ditandatangani dalam rangkap 2 (dua) asli, masing-masing bermeterai cukup dan mempunyai kekuatan hukum yang sama. Perjanjian ini dibuat dengan itikad baik untuk dilaksanakan oleh PARA PIHAK. Dalam hal ditandatangani secara elektronik, PARA PIHAK sepakat bahwa dokumen elektronik memiliki kekuatan hukum yang sah sesuai peraturan perundang-undangan yang berlaku.',
-                            'blocks' => [
-                                [
-                                    'p' => 'Setiap perubahan, penambahan, pengurangan, atau penyesuaian terhadap ketentuan dalam Perjanjian ini hanya sah dan mengikat apabila dibuat secara tertulis serta disepakati dan ditandatangani oleh PARA PIHAK dalam bentuk Addendum dan/atau Amandemen yang menjadi bagian yang tidak terpisahkan dari Perjanjian ini;',
-                                ],
-                                [
-                                    'p' => 'Seluruh Lampiran dalam Perjanjian ini merupakan satu kesatuan yang tidak terpisahkan dan mempunyai kekuatan hukum yang sama dengan Perjanjian ini;',
-                                ],
-                                [
-                                    'p' => 'PARA PIHAK sepakat dan setuju untuk mengesampikan berlakunya Pasal 1266 KUHPerdata, sehingga Pemutusan Perjanjian ini dapat dilakukan oleh PARA PIHAK tanpa terlebih dahulu menunggu Putusan Pengadilan',
-                                ],
-                                [
-                                    'p' => 'Para pihak menjamin bahwa penandatangan Perjanjian ini dan/atau Lampiran-Lampirannya adalah pihak yang sah dan berwenang secara hukum untuk mengikatkan diri dan/atau mewakili perusahaan masing-masing, baik berdasarkan anggaran dasar, keputusan organ perusahaan yang berwenang, maupun surat kuasa yang sah;',
-                                ],
-                                [
-                                    'p' => 'Perjanjian ini dibuat dan ditandatangani dalam rangkap 2 (dua) asli, masing-masing bermeterai cukup dan mempunyai kekuatan hukum yang sama. Perjanjian ini dibuat dengan itikad baik untuk dilaksanakan oleh PARA PIHAK. Dalam hal ditandatangani secara elektronik, PARA PIHAK sepakat bahwa dokumen elektronik memiliki kekuatan hukum yang sah sesuai peraturan perundang-undangan yang berlaku.',
-                                ],
-                            ],
-                        ],
-                    ],
-                    'tutup' => 'PIHAK PERTAMA
-
-PT Bina Informatika Solusindo
-
-PIHAK KEDUA
-
-[PIHAK KEDUA]
-
-Ageng Bagja Priyadi, S.T.,M.Kom
-
-Direktur
-
-Wildan Arief Santika Budi
-
-Direktur Utama',
-                    'tutupBlocks' => [
-                        [
-                            'table' => [
-                                'rows' => [
-                                    [
-                                        [
-                                            'c' => [
-                                                'PIHAK PERTAMA',
-                                                'PT Bina Informatika Solusindo',
-                                            ],
-                                            's' => 1,
-                                            'v' => null,
-                                        ],
-                                        [
-                                            'c' => [
-                                                'PIHAK KEDUA',
-                                                '[PIHAK KEDUA]',
-                                            ],
-                                            's' => 1,
-                                            'v' => null,
-                                        ],
-                                    ],
-                                    [
-                                        [
-                                            'c' => [
-                                                'Ageng Bagja Priyadi, S.T.,M.Kom',
-                                                'Direktur',
-                                            ],
-                                            's' => 1,
-                                            'v' => null,
-                                        ],
-                                        [
-                                            'c' => [
-                                                'Wildan Arief Santika Budi',
-                                                'Direktur Utama',
-                                            ],
-                                            's' => 1,
-                                            'v' => null,
-                                        ],
-                                    ],
-                                ],
-                                'bordered' => false,
-                                'head' => true,
-                            ],
-                        ],
-                    ],
-                    'lampiran' => [
-                        [
-                            'judul' => 'LAMPIRAN A',
-                            'text' => '',
-                            'blocks' => [
-                                [
-                                    'table' => [
-                                        'rows' => [
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Nomor Perjanjian Berlangganan',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        '[Nomor Perjanjian]',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Tanggal Awal Berlangganan',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        '1 April 2026',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Tanggal Akhir Berlangganan',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        '31 Maret 2027',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Nama dan Alamat Pelanggan',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        '[PIHAK KEDUA]',
-                                                        'Jl. Cetarip Barat (Cetarip raya) No. 15/200 Rt 05 Rw 10, Kopo, Kota Bandung',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'NPWP',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        '95.536.317.1-422.000',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Nomor Telepon Pelanggan /',
-                                                        'Penanggungjawab',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        '0889-9999-0707',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Nomor Handphone Pelanggan /',
-                                                        'Penanggungjawab',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        '0811-2236-799',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Nama Penanggungjawab Administrasi/Keuangan',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        'Wenni Kartina Pelita',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Nama Penanggungjawab Teknisi',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        'Firman Syahruman',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Jenis Layanan',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        'Meta Content 3 (tiga) Gbps',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Biaya Layanan',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        'Rp9,000,000,- (Perbulan)',
-                                                        'Belum termasuk PPN',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Biaya Instalasi',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        '-',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                        ],
-                                        'bordered' => true,
-                                        'head' => false,
-                                    ],
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'LAMPIRAN B',
-                            'text' => 'SLA = 99.5%
-
-Catatan :
-
-PIHAK PERTAMA tidak bertanggung jawab atas ketersediaan dari infrastruktur LAN (Local Area Network) sebagai dari Perjanjian ini. Target Availability terkait dengan sambungan internet dari sisi pemancar PIHAK PERTAMA hingga sisi PIHAK KEDUA dan koneksi fisik dari Ethernet port perangkat PIHAK PERTAMA hingga ke PIHAK KEDUA tapi tidak termasuk Ethernet port disisi PC maupun server PIHAK KEDUA.
-
-Downtime yang diperhitungkan tidak termasuk perawatan rutin.
-
-FORMULA PERHITUNGAN
-
-PIHAK PERTAMA memberikan jaminan Layanan yang tercantum dalam Service Order Form dengan rumusan sebagai berikut:
-
-Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, maka akan berlaku rumusan Restitusi sebagai berikut:',
-                            'blocks' => [
-                                [
-                                    'p' => 'SLA = 99.5%',
-                                ],
-                                [
-                                    'p' => 'Catatan :',
-                                ],
-                                [
-                                    'p' => 'PIHAK PERTAMA tidak bertanggung jawab atas ketersediaan dari infrastruktur LAN (Local Area Network) sebagai dari Perjanjian ini. Target Availability terkait dengan sambungan internet dari sisi pemancar PIHAK PERTAMA hingga sisi PIHAK KEDUA dan koneksi fisik dari Ethernet port perangkat PIHAK PERTAMA hingga ke PIHAK KEDUA tapi tidak termasuk Ethernet port disisi PC maupun server PIHAK KEDUA.',
-                                ],
-                                [
-                                    'p' => 'Downtime yang diperhitungkan tidak termasuk perawatan rutin.',
-                                ],
-                                [
-                                    'p' => 'FORMULA PERHITUNGAN',
-                                ],
-                                [
-                                    'p' => 'PIHAK PERTAMA memberikan jaminan Layanan yang tercantum dalam Service Order Form dengan rumusan sebagai berikut:',
-                                ],
-                                [
-                                    'table' => [
-                                        'rows' => [
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Service Level Guarantee(%): (usage minutes per month – down time) x 100',
-                                                        'Total minutes per month',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                        ],
-                                        'bordered' => true,
-                                        'head' => false,
-                                    ],
-                                ],
-                                [
-                                    'p' => 'Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, maka akan berlaku rumusan Restitusi sebagai berikut:',
-                                ],
-                                [
-                                    'table' => [
-                                        'rows' => [
-                                            [
-                                                [
-                                                    'c' => [
-                                                        '[Agreed Service Level – Actual Service Level] x Monthly Cost.',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                        ],
-                                        'bordered' => true,
-                                        'head' => false,
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-                'source_layout' => [
-                    'page_count' => 11,
-                    'paper' => 'A4',
-                    'source' => 'PDF sumber',
-                    'cover_page' => 1,
-                    'appendix_pages' => [
-                        10,
-                        11,
-                    ],
-                    'section_pages' => [
-                        'Definisi' => [
-                            2,
-                        ],
-                        'Fasilitas PIHAK PERTAMA' => [
-                            3,
-                        ],
-                        'Aktivasi Layanan' => [
-                            3,
-                        ],
-                        'Jangka Waktu Berlangganan' => [
-                            3,
-                        ],
-                        'Pembayaran' => [
-                            3,
-                            4,
-                        ],
-                        'Hak dan Kewajiban' => [
-                            4,
-                            5,
-                        ],
-                        'Pembatalan' => [
-                            5,
-                        ],
-                        'Perpindahan dan Pengalihan' => [
-                            5,
-                        ],
-                        'Pembatalan Perjanjian dengan Alasan' => [
-                            5,
-                            6,
-                        ],
-                        'Pembatalan Perjanjian Tanpa Alasan' => [
-                            6,
-                            7,
-                        ],
-                        'Ketentuan Perubahan' => [
-                            7,
-                        ],
-                        'Force Majeure' => [
-                            7,
-                            8,
-                        ],
-                        'Penyelesaian Sengketa' => [
-                            8,
-                        ],
-                        'Lain-Lain' => [
-                            8,
-                            9,
-                        ],
-                    ],
-                    'rules' => [
-                        'preserve_text' => true,
-                        'preserve_order' => true,
-                        'allow_section_split' => true,
-                        'avoid_table_split_when_possible' => true,
-                        'repeat_header_on_new_page' => true,
-                    ],
-                ],
-            ],
-            'kontrak-soho' => [
-                'title' => 'Perjanjian Berlangganan Jasa SOHO',
-                'header_data' => [
-                    'kopInstansi' => 'PT BINA INFORMATIKA SOLUSI',
-                    'kopAlamat' => 'Jl. Prakarsa Muda No. 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131',
-                    'kopKontrak' => 'PERJANJIAN BERLANGGANAN',
-                    'nomorSurat' => '[Nomor Perjanjian]',
-                    'perihalSurat' => 'Jasa SOHO',
-                    'sifatSurat' => 'Penting',
-                ],
-                'body_content' => [
-                    'cover' => 'PERJANJIAN BERLANGGANAN
-
-JASA SOHO
-
-PT BINA INFORMATIKA SOLUSI
-
-DENGAN
-
-[PIHAK KEDUA]
-
-Nomor: [Nomor Perjanjian]',
-                    'preamble' => 'PERJANJIAN BERLANGGANAN
-
-JASA SOHO
-
-Nomor: [Nomor Perjanjian]
-
-Pada hari ini, [Hari], tanggal [Tanggal], ber tempat di [Tempat], telah dibuat dan ditandatangani Perjanjian, oleh dan antara:
-
-I. PT Bina Informatika Solusi, berkedudukan di Jalan Prakarsa Muda Nomor 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T.,       M. Kom., selaku Direktur, sah bertindak untuk dan atas nama PT Bina Informatika Solusi, selanjutnya disebut sebagai “PIHAK PERTAMA”
-
-II. [PIHAK KEDUA], berkedudukan di Jalan Raya Laswi No. 8, Kec. Majalaya, Kab. Bandung. Dalam hal ini diwakili oleh Delly Yulia, dalam kedudukanya sebagai Manager Area Bandung, oleh karenanya bertindak atas nama [PIHAK KEDUA], selanjutnya disebut “PIHAK KEDUA”
-
-PIHAK KEDUA dan PIHAK PERTAMA secara bersama-sama selanjutnya disebut “PARA PIHAK”
-
-PARA PIHAK dengan ini menerangkan telah sepakat untuk mengikatkan diri pada syarat-syarat dan ketentuan-ketentuan sebagai berikut:',
-                    'isi' => [
-                        [
-                            'judul' => 'Definisi',
-                            'text' => '“Perjanjian” adalah Perjanjian ini berikut lampiran dan semua perubahan yang terkait dan merupakan bagian dari Perjanjian ini.
-
-“Jasa” adalah layanan yang harus dipenuhi oleh PIHAK PERTAMA sebagaimana diuraikan pada Lampiran A.
-
-“Biaya Jasa” adalah biaya yang harus dibayar oleh PIHAK KEDUA seperti diuraikan pada Lampiran A.',
-                            'blocks' => [
-                                [
-                                    'ol' => [
-                                        'type' => '1',
-                                        'items' => [
-                                            '“Perjanjian” adalah Perjanjian ini berikut lampiran dan semua perubahan yang terkait dan merupakan bagian dari Perjanjian ini.',
-                                            '“Jasa” adalah layanan yang harus dipenuhi oleh PIHAK PERTAMA sebagaimana diuraikan pada Lampiran A.',
-                                            '“Biaya Jasa” adalah biaya yang harus dibayar oleh PIHAK KEDUA seperti diuraikan pada Lampiran A.',
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Fasilitas PIHAK PERTAMA',
-                            'text' => 'PIHAK PERTAMA sepakat untuk menyediakan Jasa dan Fasilitas terkait (selanjutnya disebut “Jasa”) sebagaimana tercantum dalam Service Order Form yang dikeluarkan oleh PIHAK KEDUA yang menjadi bagian tak terpisahkan dari Perjanjian ini;
-
-Layanan Jasa yang disediakan PIHAK PERTAMA berdasarkan Perjanjian ini dapat digunakan oleh PIHAK KEDUA selama 24 jam/hari (7 hari/minggu);
-
-Penyediaan Fasilitas dan Jasa PIHAK PERTAMA akan dilakukan sesuai dengan konfigurasi teknis yang telah disepakati;
-
-Terminal dan perangkat antarmuka milik PIHAK KEDUA yang akan dihubungkan dengan perangkat/saluran PIHAK PERTAMA harus mendapat persetujuan terlebih dahulu dari PIHAK PERTAMA;
-
-Penyambungan pelayanan PIHAK PERTAMA akan dilaksanakan setelah PIHAK KEDUA mengeluarkan Service Order Form dan diterima oleh pihak PIHAK PERTAMA.',
-                            'blocks' => [
-                                [
-                                    'ol' => [
-                                        'type' => '1',
-                                        'items' => [
-                                            'PIHAK PERTAMA sepakat untuk menyediakan Jasa dan Fasilitas terkait (selanjutnya disebut “Jasa”) sebagaimana tercantum dalam Service Order Form yang dikeluarkan oleh PIHAK KEDUA yang menjadi bagian tak terpisahkan dari Perjanjian ini;',
-                                            'Layanan Jasa yang disediakan PIHAK PERTAMA berdasarkan Perjanjian ini dapat digunakan oleh PIHAK KEDUA selama 24 jam/hari (7 hari/minggu);',
-                                            'Penyediaan Fasilitas dan Jasa PIHAK PERTAMA akan dilakukan sesuai dengan konfigurasi teknis yang telah disepakati;',
-                                            'Terminal dan perangkat antarmuka milik PIHAK KEDUA yang akan dihubungkan dengan perangkat/saluran PIHAK PERTAMA harus mendapat persetujuan terlebih dahulu dari PIHAK PERTAMA;',
-                                            'Penyambungan pelayanan PIHAK PERTAMA akan dilaksanakan setelah PIHAK KEDUA mengeluarkan Service Order Form dan diterima oleh pihak PIHAK PERTAMA.',
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Aktivasi Layanan',
-                            'text' => 'Aktivasi Layanan akan dimulai setelah Fasilitas PIHAK PERTAMA siap dioperasikan dan dinyatakan dengan Berita Acara Aktivasi yang ditandatangani oleh PARA PIHAK.',
-                            'blocks' => [
-                                [
-                                    'p' => 'Aktivasi Layanan akan dimulai setelah Fasilitas PIHAK PERTAMA siap dioperasikan dan dinyatakan dengan Berita Acara Aktivasi yang ditandatangani oleh PARA PIHAK.',
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Jangka Waktu Berlangganan',
-                            'text' => 'Jangka Waktu Efektif Layanan sebagaimana dimaksud dalam Syarat dan Ketentuan Berlangganan ini adalah tanggal sebagaimana dimaksud dalam lampiran A Perjanjian Berlangganan Jasa ini dan atau Service Order Form.
-
-Apabila PIHAK KEDUA  mengakhiri Layanan sebelum Jangka Waktu berakhir sebagaimana dimaksud dalam lampiran A dan atau Service Order Form, maka PIHAK KEDUA akan dikenakan denda sebagaimana berikut:
-
-Apabila 30 (Tiga puluh) hari sebelum jangka waktu dalam pasal  4 ayat 1 ini berakhir PIHAK KEDUA tidak melakukan pemberitahuan pengakhiran Layanan, maka Syarat dan Ketentuan Berlangganan akan otomatis berlanjut selama 1 (Satu) tahun (“Jangka Waktu Perpanjangan”). Untuk menghindari keragu-raguan maka pemberitahuan pengakhiran Syarat dan Ketentuan Berlangganan dihitung 30 (tiga puluh) hari sejak diterimanya pemberitahuan pengakhiran Layanan.
-
-PIHAK PERTAMA akan melakukan penghentian sementara Layanan apabila PIHAK KEDUA terlambat melakukan pembayaran 30 (tiga puluh) hari sejak invoice oleh PIHAK KEDUA.',
-                            'blocks' => [
-                                [
-                                    'ol' => [
-                                        'type' => '1',
-                                        'items' => [
-                                            'Jangka Waktu Efektif Layanan sebagaimana dimaksud dalam Syarat dan Ketentuan Berlangganan ini adalah tanggal sebagaimana dimaksud dalam lampiran A Perjanjian Berlangganan Jasa ini dan atau Service Order Form.',
-                                            'Apabila PIHAK KEDUA  mengakhiri Layanan sebelum Jangka Waktu berakhir sebagaimana dimaksud dalam lampiran A dan atau Service Order Form, maka PIHAK KEDUA akan dikenakan denda sebagaimana berikut:',
-                                        ],
-                                    ],
-                                ],
-                                [
-                                    'table' => [
-                                        'rows' => [
-                                            [
-                                                [
-                                                    'c' => [
-                                                        '50% x Biaya Bulanan x Bulan yang belum terpenuhi',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                        ],
-                                        'bordered' => true,
-                                        'head' => false,
-                                    ],
-                                ],
-                                [
-                                    'ol' => [
-                                        'type' => '1',
-                                        'start' => 3,
-                                        'items' => [
-                                            'Apabila 30 (Tiga puluh) hari sebelum jangka waktu dalam pasal  4 ayat 1 ini berakhir PIHAK KEDUA tidak melakukan pemberitahuan pengakhiran Layanan, maka Syarat dan Ketentuan Berlangganan akan otomatis berlanjut selama 1 (Satu) tahun (“Jangka Waktu Perpanjangan”). Untuk menghindari keragu-raguan maka pemberitahuan pengakhiran Syarat dan Ketentuan Berlangganan dihitung 30 (tiga puluh) hari sejak diterimanya pemberitahuan pengakhiran Layanan.',
-                                            'PIHAK PERTAMA akan melakukan penghentian sementara Layanan apabila PIHAK KEDUA terlambat melakukan pembayaran 30 (tiga puluh) hari sejak invoice oleh PIHAK KEDUA.',
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Pembayaran',
-                            'text' => 'PIHAK KEDUA wajib melakukan pembayaran atas Layanan sebagaimana dimaksud dalam Service Order Form;
-
-Pembayaran dilakukan oleh PIHAK KEDUA selambat–lambatnya pada tanggal sesuai dengan invoice yang diterbitkan atau selambat-lambatnya 7 (tujuh) hari dari tanggal invoice diterbitkan;
-
-Atas setiap keterlambatan pembayaran dari tanggal sebagaimana dimaksud dalam Pasal 5.2, maka PIHAK KEDUA dikenakan denda keterlambatan pembayaran sebesar 1 (satu) permil setiap hari keterlambatan;
-
-Apabila dalam 1 (satu) bulan PIHAK KEDUA belum memenuhi kewajibannya tersebut, maka PIHAK PERTAMA akan melakukan pemutusan sementara (isolir) layanan tanpa pemberitahuan terlebih dahulu kepada PIHAK KEDUA;
-
-Apabila PIHAK KEDUA melunasi biaya-biaya dalam pasal ini, maka PIHAK PERTAMA akan membuka pemutusan sementara (isolir) dalam waktu selambat-lambatnya 1 (satu) hari kerja;
-
-Semua Biaya bank yang timbul dalam pembayaran tagihan merupakan tanggung jawab PIHAK KEDUA;
-
-Seluruh pembayaran dianggap telah dilakukan PIHAK KEDUA setelah pembayaran diterima di rekening PIHAK PERTAMA, dengan detail sebagai berikut:
-
-Bank Mandiri
-
-No. Rekening: 1340001209104
-
-Atas Nama   : PT Bina Informatika Solusi
-
-Bank Rakyat Indonesia (BRI)
-
-No. Rekening: 010701003038305
-
-Atas Nama   : PT Bina Informatika Solusi',
-                            'blocks' => [
-                                [
-                                    'ol' => [
-                                        'type' => '1',
-                                        'items' => [
-                                            'PIHAK KEDUA wajib melakukan pembayaran atas Layanan sebagaimana dimaksud dalam Service Order Form;',
-                                            'Pembayaran dilakukan oleh PIHAK KEDUA selambat–lambatnya pada tanggal sesuai dengan invoice yang diterbitkan atau selambat-lambatnya 7 (tujuh) hari dari tanggal invoice diterbitkan;',
-                                            'Atas setiap keterlambatan pembayaran dari tanggal sebagaimana dimaksud dalam Pasal 5.2, maka PIHAK KEDUA dikenakan denda keterlambatan pembayaran sebesar 1 (satu) permil setiap hari keterlambatan;',
-                                            'Apabila dalam 1 (satu) bulan PIHAK KEDUA belum memenuhi kewajibannya tersebut, maka PIHAK PERTAMA akan melakukan pemutusan sementara (isolir) layanan tanpa pemberitahuan terlebih dahulu kepada PIHAK KEDUA;',
-                                            'Apabila PIHAK KEDUA melunasi biaya-biaya dalam pasal ini, maka PIHAK PERTAMA akan membuka pemutusan sementara (isolir) dalam waktu selambat-lambatnya 1 (satu) hari kerja;',
-                                            'Semua Biaya bank yang timbul dalam pembayaran tagihan merupakan tanggung jawab PIHAK KEDUA;',
-                                            'Seluruh pembayaran dianggap telah dilakukan PIHAK KEDUA setelah pembayaran diterima di rekening PIHAK PERTAMA, dengan detail sebagai berikut:',
-                                        ],
-                                    ],
-                                ],
-                                [
-                                    'p' => 'Bank Mandiri',
-                                ],
-                                [
-                                    'p' => 'No. Rekening: 1340001209104',
-                                ],
-                                [
-                                    'p' => 'Atas Nama   : PT Bina Informatika Solusi',
-                                ],
-                                [
-                                    'p' => 'Bank Rakyat Indonesia (BRI)',
-                                ],
-                                [
-                                    'p' => 'No. Rekening: 010701003038305',
-                                ],
-                                [
-                                    'p' => 'Atas Nama   : PT Bina Informatika Solusi',
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Hak dan Kewajiban',
-                            'text' => 'PIHAK KEDUA wajib menyediakan perangkat yang dibutuhkan, sehingga fasilitas dan pelayanan PIHAK PERTAMA dapat diaktivasikan sesuai jadwal yang telah disepakati bersama;
-
-PIHAK KEDUA tidak diperkenankan memberi kesempatan kepada pihak ketiga untuk memanfaatkan fasilitas dan pelayanan PIHAK PERTAMA tanpa izin tertulis dari PIHAK PERTAMA;
-
-PIHAK KEDUA tidak diperkenankan mengadakan perubahan terhadap spesifikasi teknis, konfigurasi, dan fasilitas layanan PIHAK PERTAMA, termasuk menghubungkannya ke dalam jaringan PIHAK PERTAMA dengan cara apapun, kecuali atas izin tertulis dari PIHAK PERTAMA;
-
-PIHAK KEDUA tidak diperkenankan untuk menghubungkan jaringan dan/atau fasilitas PIHAK PERTAMA dengan jaringan telekomunikasi umum (PSTN) termasuk namun tidak terbatas kepada jaringan telepon, teleks, atau komunikasi data;
-
-PIHAK KEDUA akan memberikan izin wilayah kepada PIHAK PERTAMA  untuk memasuki fasilitas dan/atau lokasi milik PIHAK KEDUA sehubungan dengan keperluan pemeliharaan dan perbaikan;
-
-PIHAK PERTAMA bertanggung jawab terhadap pemeliharaan dan perbaikan atas kerusakan atau gangguan pada saluran dan fasilitas milik PIHAK PERTAMA. Apabila kerusakan atau gangguan tersebut disebabkan oleh kesalahan, kesengajaan, atau kelalaian PIHAK KEDUA, maka PIHAK PERTAMA berhak memungut biaya perbaikan;
-
-PIHAK PERTAMA tidak bertanggung jawab atas kebenaran, kerahasiaan dan atau kualitas informasi yang disalurkan melalui layanan PIHAK PERTAMA;
-
-PIHAK PERTAMA tidak bertanggung jawab atas kerugian–kerugian PIHAK KEDUA atau pihak ketiga yang timbul berkaitan dengan penggunaan jasa PIHAK PERTAMA.',
-                            'blocks' => [
-                                [
-                                    'ol' => [
-                                        'type' => '1',
-                                        'items' => [
-                                            'PIHAK KEDUA wajib menyediakan perangkat yang dibutuhkan, sehingga fasilitas dan pelayanan PIHAK PERTAMA dapat diaktivasikan sesuai jadwal yang telah disepakati bersama;',
-                                            'PIHAK KEDUA tidak diperkenankan memberi kesempatan kepada pihak ketiga untuk memanfaatkan fasilitas dan pelayanan PIHAK PERTAMA tanpa izin tertulis dari PIHAK PERTAMA;',
-                                            'PIHAK KEDUA tidak diperkenankan mengadakan perubahan terhadap spesifikasi teknis, konfigurasi, dan fasilitas layanan PIHAK PERTAMA, termasuk menghubungkannya ke dalam jaringan PIHAK PERTAMA dengan cara apapun, kecuali atas izin tertulis dari PIHAK PERTAMA;',
-                                            'PIHAK KEDUA tidak diperkenankan untuk menghubungkan jaringan dan/atau fasilitas PIHAK PERTAMA dengan jaringan telekomunikasi umum (PSTN) termasuk namun tidak terbatas kepada jaringan telepon, teleks, atau komunikasi data;',
-                                            'PIHAK KEDUA akan memberikan izin wilayah kepada PIHAK PERTAMA  untuk memasuki fasilitas dan/atau lokasi milik PIHAK KEDUA sehubungan dengan keperluan pemeliharaan dan perbaikan;',
-                                            'PIHAK PERTAMA bertanggung jawab terhadap pemeliharaan dan perbaikan atas kerusakan atau gangguan pada saluran dan fasilitas milik PIHAK PERTAMA. Apabila kerusakan atau gangguan tersebut disebabkan oleh kesalahan, kesengajaan, atau kelalaian PIHAK KEDUA, maka PIHAK PERTAMA berhak memungut biaya perbaikan;',
-                                            'PIHAK PERTAMA tidak bertanggung jawab atas kebenaran, kerahasiaan dan atau kualitas informasi yang disalurkan melalui layanan PIHAK PERTAMA;',
-                                            'PIHAK PERTAMA tidak bertanggung jawab atas kerugian–kerugian PIHAK KEDUA atau pihak ketiga yang timbul berkaitan dengan penggunaan jasa PIHAK PERTAMA.',
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Pembatalan',
-                            'text' => 'Jika PIHAK KEDUA mengakhiri layanan sebelum Jangka Waktu berakhir dan atau membatalkan layanan yang telah disepakati dalam Service order form sebelum aktivasi sebagaimana dimaksud dalam perjanjian atau berita acara atau Service Order Form, maka PIHAK KEDUA diwajibkan melakukan pelunasan atas biaya instalasi dan oleh karenanya dikenakan denda sebesar 50% x Biaya Bulanan x Bulan yang belum terpenuhi.',
-                            'blocks' => [
-                                [
-                                    'p' => 'Jika PIHAK KEDUA mengakhiri layanan sebelum Jangka Waktu berakhir dan atau membatalkan layanan yang telah disepakati dalam Service order form sebelum aktivasi sebagaimana dimaksud dalam perjanjian atau berita acara atau Service Order Form, maka PIHAK KEDUA diwajibkan melakukan pelunasan atas biaya instalasi dan oleh karenanya dikenakan denda sebesar 50% x Biaya Bulanan x Bulan yang belum terpenuhi.',
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Perpindahan dan Pengalihan',
-                            'text' => 'PIHAK KEDUA dapat meminta perpindahan lokasi fasilitas PIHAK PERTAMA serta penambahan kapasitas sepanjang teknis memungkinkan. Segala biaya yang timbul akibat perpindahan lokasi serta penambahan kapasitas tersebut akan dibebankan kepada PIHAK KEDUA; dan
-
-Pemindahan fasilitas PIHAK PERTAMA yang telah terpasang ke lokasi lainnya akan diperlakukan sebagai sambungan baru. Biaya berlangganan akan disesuaikan dengan penambahan kapasitas terpasang.',
-                            'blocks' => [
-                                [
-                                    'ol' => [
-                                        'type' => '1',
-                                        'items' => [
-                                            'PIHAK KEDUA dapat meminta perpindahan lokasi fasilitas PIHAK PERTAMA serta penambahan kapasitas sepanjang teknis memungkinkan. Segala biaya yang timbul akibat perpindahan lokasi serta penambahan kapasitas tersebut akan dibebankan kepada PIHAK KEDUA; dan',
-                                            'Pemindahan fasilitas PIHAK PERTAMA yang telah terpasang ke lokasi lainnya akan diperlakukan sebagai sambungan baru. Biaya berlangganan akan disesuaikan dengan penambahan kapasitas terpasang.',
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Pembatalan Perjanjian dengan Alasan',
-                            'text' => 'PIHAK PERTAMA dibebaskan dari penyebab pembatalan jika kegagalan disebabkan oleh sumber yang berasal dari PIHAK KEDUA seperti data, kegagalan Hardware, atau kegagalan internal PIHAK KEDUA;
-
-Apabila terjadi pelanggaran kewajiban dari PIHAK KEDUA yang mengakibatkan pembatalan perjanjian ini, maka PIHAK KEDUA wajib membayar penggunaan internet sampai dengan bulan terakhir pembatalan kontrak;
-
-Apabila salah satu pihak mengalami kegagalan keuangan atau berhenti beroperasi maka hal ini dapat menjadi penyebab pembatalan, dimana salah satu pihak atau lainnya dapat membatalkan perjanjian ini dengan melakukan pemberitahuan secara tertulis. Namun pihak yang mengalami keadaan insolven, kegagalan keuangan atau berhenti beroperasi tersebut tetap harus melaksanakan segala kewajiban hingga tanggal pemutusan kontrak berdasarkan peraturan perundang-undangan yang berlaku, termasuk akan tetapi tidak terbatas pada, Undang-undang Nomor 37 Tahun 2004 tentang Kepailitan dan Penundaan Kewajiban Pembayaran Utang;
-
-PIHAK KEDUA akan mengeluarkan Surat Teguran terhadap pelayanan PIHAK PERTAMA yang tidak memuaskan mencakup kegagalan fatal penyediaan jasa yang telah merugikan PIHAK KEDUA. Surat Teguran  disampaikan maksimum tiga kali. Dan Jika setelah Teguran Ketiga  tidak ada improvement dari layanan PIHAK PERTAMA maka PIHAK KEDUA berhak melakukan pemutusan sepihak dan dibebaskan dari kewajiban pembayaran apapun sebagaimana tersebut dalam ayat 2 dan 3 pasal ini dan pasal 10 ayat 3 perjanjian ini.',
-                            'blocks' => [
-                                [
-                                    'ol' => [
-                                        'type' => '1',
-                                        'items' => [
-                                            'PIHAK PERTAMA dibebaskan dari penyebab pembatalan jika kegagalan disebabkan oleh sumber yang berasal dari PIHAK KEDUA seperti data, kegagalan Hardware, atau kegagalan internal PIHAK KEDUA;',
-                                            'Apabila terjadi pelanggaran kewajiban dari PIHAK KEDUA yang mengakibatkan pembatalan perjanjian ini, maka PIHAK KEDUA wajib membayar penggunaan internet sampai dengan bulan terakhir pembatalan kontrak;',
-                                            'Apabila salah satu pihak mengalami kegagalan keuangan atau berhenti beroperasi maka hal ini dapat menjadi penyebab pembatalan, dimana salah satu pihak atau lainnya dapat membatalkan perjanjian ini dengan melakukan pemberitahuan secara tertulis. Namun pihak yang mengalami keadaan insolven, kegagalan keuangan atau berhenti beroperasi tersebut tetap harus melaksanakan segala kewajiban hingga tanggal pemutusan kontrak berdasarkan peraturan perundang-undangan yang berlaku, termasuk akan tetapi tidak terbatas pada, Undang-undang Nomor 37 Tahun 2004 tentang Kepailitan dan Penundaan Kewajiban Pembayaran Utang;',
-                                            'PIHAK KEDUA akan mengeluarkan Surat Teguran terhadap pelayanan PIHAK PERTAMA yang tidak memuaskan mencakup kegagalan fatal penyediaan jasa yang telah merugikan PIHAK KEDUA. Surat Teguran  disampaikan maksimum tiga kali. Dan Jika setelah Teguran Ketiga  tidak ada improvement dari layanan PIHAK PERTAMA maka PIHAK KEDUA berhak melakukan pemutusan sepihak dan dibebaskan dari kewajiban pembayaran apapun sebagaimana tersebut dalam ayat 2 dan 3 pasal ini dan pasal 10 ayat 3 perjanjian ini.',
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Pembatalan Perjanjian Tanpa Alasan',
-                            'text' => 'Kedua belah pihak dapat membatalkan Perjanjian tanpa alasan dengan pemberitahuan tertulis dimuka dengan ketentuan sebagai berikut:
-
-Jika PIHAK PERTAMA membatalkan Perjanjian, maka PIHAK PERTAMA akan memberitahukan 30 hari dimuka; dan
-
-Jika PIHAK KEDUA membatalkan Perjanjian, maka PIHAK KEDUA akan memberitahukan 30 hari dimuka.
-
-Jika PIHAK KEDUA membatalkan Perjanjian tanpa alasan, PIHAK KEDUA wajib membayar PIHAK PERTAMA atas seluruh biaya bulan berjalan di bulan terjadinya pembatalan hingga tanggal jatuh tempo perjanjian;
-
-Jika PIHAK PERTAMA membatalkan Perjanjian tanpa alasan maka PIHAK PERTAMA akan menyediakan Jasa secara gratis selama masa transisi sampai dengan PIHAK KEDUA menunjuk internet provider yang baru dan PIHAK PERTAMA mengembalikan biaya awal yang telah dibayarkan oleh PIHAK KEDUA di pemasangan awal.',
-                            'blocks' => [
-                                [
-                                    'ol' => [
-                                        'type' => '1',
-                                        'items' => [
-                                            [
-                                                'text' => 'Kedua belah pihak dapat membatalkan Perjanjian tanpa alasan dengan pemberitahuan tertulis dimuka dengan ketentuan sebagai berikut:',
-                                                'children' => [
-                                                    'type' => 'a',
-                                                    'items' => [
-                                                        'Jika PIHAK PERTAMA membatalkan Perjanjian, maka PIHAK PERTAMA akan memberitahukan 30 hari dimuka; dan',
-                                                        'Jika PIHAK KEDUA membatalkan Perjanjian, maka PIHAK KEDUA akan memberitahukan 30 hari dimuka.',
-                                                    ],
-                                                ],
-                                            ],
-                                            'Jika PIHAK KEDUA membatalkan Perjanjian tanpa alasan, PIHAK KEDUA wajib membayar PIHAK PERTAMA atas seluruh biaya bulan berjalan di bulan terjadinya pembatalan hingga tanggal jatuh tempo perjanjian;',
-                                            'Jika PIHAK PERTAMA membatalkan Perjanjian tanpa alasan maka PIHAK PERTAMA akan menyediakan Jasa secara gratis selama masa transisi sampai dengan PIHAK KEDUA menunjuk internet provider yang baru dan PIHAK PERTAMA mengembalikan biaya awal yang telah dibayarkan oleh PIHAK KEDUA di pemasangan awal.',
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Ketentuan Perubahan',
-                            'text' => 'Selama masa berlakunya Perjanjian, salah satu pihak dapat mengajukan usulan perubahan Perjanjian dengan mengajukan usulan secara tertulis kepada pihak lainnya;
-
-Dalam jangka waktu 30 hari setelah menerima pemberitahuan tertulis mengenai usulan perubahan dari PIHAK KEDUA, PIHAK PERTAMA akan memberitahu PIHAK KEDUA apakah perubahan dapat dilaksanakan atau tidak. Apabila perubahan tersebut dapat dilaksanakan, maka PIHAK PERTAMA berhak mengajukan perubahan atas biaya Jasa dan ketentuan lainnya dari Perjanjian ini;
-
-PIHAK KEDUA dapat mengajukan usulan upgrade dan downgrade layanan selama masa berlakunya perjanjian melalui pemberitahuan tertulis 30 hari sebelumnya;
-
-Penurunan kapasitas / bandwidth / downgrade apabila ada kapasitas bandwidth / downgrade layanan sebelum berakhirnya masa berlangganan minimal 1 tahun akan dikenakan penalti dengan ketentuan sebesar 50% X (biaya perbulan kecepatan lama-biaya perbulan kecepatan baru) X sisa masa berlangganan;
-
-Selama masa berlakunya Perjanjian ini Pihak Kedua tidak bisa mengajukan perubahan biaya layanan yang berjalan sampai dengan masa kontrak Perjanjian ini berakhir. Terkecuali adanya permohonan upgrade layanan;
-
-Apabila ada hal-hal  yang belum diatur dalam Kontrak ini. Maka hal-hal tersebut akan diatur dan ditetapkan kemudian secara tertulis tertuang dalam Amandemen dan atau Addendum dengan tetap memperhatikan ketentuan-ketentuan dan peraturan intern PIHAK PERTAMA dan hukum yang berlaku di Indonesia.',
-                            'blocks' => [
-                                [
-                                    'ol' => [
-                                        'type' => '1',
-                                        'items' => [
-                                            'Selama masa berlakunya Perjanjian, salah satu pihak dapat mengajukan usulan perubahan Perjanjian dengan mengajukan usulan secara tertulis kepada pihak lainnya;',
-                                            'Dalam jangka waktu 30 hari setelah menerima pemberitahuan tertulis mengenai usulan perubahan dari PIHAK KEDUA, PIHAK PERTAMA akan memberitahu PIHAK KEDUA apakah perubahan dapat dilaksanakan atau tidak. Apabila perubahan tersebut dapat dilaksanakan, maka PIHAK PERTAMA berhak mengajukan perubahan atas biaya Jasa dan ketentuan lainnya dari Perjanjian ini;',
-                                            'PIHAK KEDUA dapat mengajukan usulan upgrade dan downgrade layanan selama masa berlakunya perjanjian melalui pemberitahuan tertulis 30 hari sebelumnya;',
-                                            'Penurunan kapasitas / bandwidth / downgrade apabila ada kapasitas bandwidth / downgrade layanan sebelum berakhirnya masa berlangganan minimal 1 tahun akan dikenakan penalti dengan ketentuan sebesar 50% X (biaya perbulan kecepatan lama-biaya perbulan kecepatan baru) X sisa masa berlangganan;',
-                                            'Selama masa berlakunya Perjanjian ini Pihak Kedua tidak bisa mengajukan perubahan biaya layanan yang berjalan sampai dengan masa kontrak Perjanjian ini berakhir. Terkecuali adanya permohonan upgrade layanan;',
-                                            'Apabila ada hal-hal  yang belum diatur dalam Kontrak ini. Maka hal-hal tersebut akan diatur dan ditetapkan kemudian secara tertulis tertuang dalam Amandemen dan atau Addendum dengan tetap memperhatikan ketentuan-ketentuan dan peraturan intern PIHAK PERTAMA dan hukum yang berlaku di Indonesia.',
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Force Majeure',
-                            'text' => 'Yang dimaksud dengan Force Majeure dalam kontrak ini adalah keadaan-keadaan diluar kekuasaan salah satu pihak atau PARA PIHAK yang mengakibatkan pihak dimaksud tidak dapat melaksanakan kontrak ini, yaitu:
-
-Gempa bumi besar, angin ribut (topan), kebakaran besar, banjir  besar, tanah longsor, petir, wabah penyakit; dan
-
-Pemogokan umum, huru-hara, pemberontakan, perang, dan keadaan-keadaan lain yang oleh pejabat berwenang dinyatakan sebagai Force Majeure.
-
-Dalam hal terjadi Force Majeure dimaksud pada ayat 1 pasal ini, maka pihak yang mengalami Force Majeure berkewajiban memberitahukan secara tertulis kepada pihak lainnya dalam waktu 14 (empat belas) hari kalender sejak saat mulainya, begitu juga saat berakhirnya dan diterangkan secara resmi oleh pejabat pemerintah yang berwenang;
-
-Kelalaian atau keterlambatan dalam memenuhi kewajiban pemberitahuan dimaksud ayat 2 pasal ini, mengakibatkan tidak diakuinya peristiwa dimaksud ayat 1 pasal ini sebagai Force Majeure;
-
-Semua kerugian yang timbul atau diderita salah satu pihak karena  terjadi Force Majeure bukan merupakan tanggung jawab pihak lain;
-
-Force Majeure dimaksud ayat 1 pasal ini tidak dapat dijadikan alasan oleh salah satu pihak untuk menunda kewajiban pembayaran kepada pihak lainnya yang telah jatuh tempo sebelum terjadinya Force Majeure.',
-                            'blocks' => [
-                                [
-                                    'ol' => [
-                                        'type' => '1',
-                                        'items' => [
-                                            [
-                                                'text' => 'Yang dimaksud dengan Force Majeure dalam kontrak ini adalah keadaan-keadaan diluar kekuasaan salah satu pihak atau PARA PIHAK yang mengakibatkan pihak dimaksud tidak dapat melaksanakan kontrak ini, yaitu:',
-                                                'children' => [
-                                                    'type' => 'a',
-                                                    'items' => [
-                                                        'Gempa bumi besar, angin ribut (topan), kebakaran besar, banjir  besar, tanah longsor, petir, wabah penyakit; dan',
-                                                        'Pemogokan umum, huru-hara, pemberontakan, perang, dan keadaan-keadaan lain yang oleh pejabat berwenang dinyatakan sebagai Force Majeure.',
-                                                    ],
-                                                ],
-                                            ],
-                                            'Dalam hal terjadi Force Majeure dimaksud pada ayat 1 pasal ini, maka pihak yang mengalami Force Majeure berkewajiban memberitahukan secara tertulis kepada pihak lainnya dalam waktu 14 (empat belas) hari kalender sejak saat mulainya, begitu juga saat berakhirnya dan diterangkan secara resmi oleh pejabat pemerintah yang berwenang;',
-                                            'Kelalaian atau keterlambatan dalam memenuhi kewajiban pemberitahuan dimaksud ayat 2 pasal ini, mengakibatkan tidak diakuinya peristiwa dimaksud ayat 1 pasal ini sebagai Force Majeure;',
-                                            'Semua kerugian yang timbul atau diderita salah satu pihak karena  terjadi Force Majeure bukan merupakan tanggung jawab pihak lain;',
-                                            'Force Majeure dimaksud ayat 1 pasal ini tidak dapat dijadikan alasan oleh salah satu pihak untuk menunda kewajiban pembayaran kepada pihak lainnya yang telah jatuh tempo sebelum terjadinya Force Majeure.',
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Penyelesaian Sengketa',
-                            'text' => 'PERJANJIAN ini dibuat dengan itikad baik dan untuk dilaksanakan dan dijadikan landasan perjanjian kerjasama yang akan dibuat dalam rangka menindaklanjuti PERJANJIAN ini;
-
-Perubahan dan/atau penambahan syarat-syarat dan ketentuan-ketentuan dari PERJANJIAN ini hanya dapat dilakukan atas dasar persetujuan PARA PIHAK yang akan dituangkan dalam Addendum/Amandemen dari PERJANJIAN ini;
-
-Pelaksanaan atas PERJANJIAN ini PARA PIHAK sepakat untuk senantiasa menempuh cara musyawarah dan dengan itikad baik untuk mencapai mufakat;
-
-Apabila terjadi perselisihan yang tidak dapat diselesaikan secara musyawarah, maka PARA PIHAK sepakat untuk menyelesaikannya melalui Kantor Kepaniteraan Pengadilan Negeri Kota Cirebon.',
-                            'blocks' => [
-                                [
-                                    'ol' => [
-                                        'type' => '1',
-                                        'items' => [
-                                            'PERJANJIAN ini dibuat dengan itikad baik dan untuk dilaksanakan dan dijadikan landasan perjanjian kerjasama yang akan dibuat dalam rangka menindaklanjuti PERJANJIAN ini;',
-                                            'Perubahan dan/atau penambahan syarat-syarat dan ketentuan-ketentuan dari PERJANJIAN ini hanya dapat dilakukan atas dasar persetujuan PARA PIHAK yang akan dituangkan dalam Addendum/Amandemen dari PERJANJIAN ini;',
-                                            'Pelaksanaan atas PERJANJIAN ini PARA PIHAK sepakat untuk senantiasa menempuh cara musyawarah dan dengan itikad baik untuk mencapai mufakat;',
-                                            'Apabila terjadi perselisihan yang tidak dapat diselesaikan secara musyawarah, maka PARA PIHAK sepakat untuk menyelesaikannya melalui Kantor Kepaniteraan Pengadilan Negeri Kota Cirebon.',
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                        [
-                            'judul' => 'Lain-Lain',
-                            'text' => 'Perjanjian Berlangganan Jasa ini dapat ditambah, dimodifikasi, dan disesuaikan atas persetujuan kedua belah pihak;
-
-Lampiran-lampiran dalam Perjanjian Berlangganan Jasa ini merupakan bagian yang tidak dapat dipisahkan dan mempunyai kekuatan hukum yang sama;
-
-Bila terjadi perbedaan pengertian antara teks bahasa Inggris dan teks bahasa Indonesia dalam Perjanjian Berlangganan Jasa ini, maka teks bahasa Indonesia yang berlaku;
-
-Demikian Perjanjian ini dibuat dan ditandatangani, dibuat rangkap 2 (dua) dan memiliki kekuatan hukum yang sama, dibuat dengan itikad baik untuk dilaksanakan oleh kedua belah Pihak.',
-                            'blocks' => [
-                                [
-                                    'ol' => [
-                                        'type' => '1',
-                                        'items' => [
-                                            'Perjanjian Berlangganan Jasa ini dapat ditambah, dimodifikasi, dan disesuaikan atas persetujuan kedua belah pihak;',
-                                            'Lampiran-lampiran dalam Perjanjian Berlangganan Jasa ini merupakan bagian yang tidak dapat dipisahkan dan mempunyai kekuatan hukum yang sama;',
-                                            'Bila terjadi perbedaan pengertian antara teks bahasa Inggris dan teks bahasa Indonesia dalam Perjanjian Berlangganan Jasa ini, maka teks bahasa Indonesia yang berlaku;',
-                                            'Demikian Perjanjian ini dibuat dan ditandatangani, dibuat rangkap 2 (dua) dan memiliki kekuatan hukum yang sama, dibuat dengan itikad baik untuk dilaksanakan oleh kedua belah Pihak.',
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                    'tutup' => 'PIHAK PERTAMA
-
-PT Bina Informatika Solusi
-
-PIHAK KEDUA
-
-[PIHAK KEDUA]
-
-Ageng Bagja Priyadi, S.T.,M.Kom
-
-Direktur
-
-Delly Yulia
-
-Manager Area Bandung',
-                    'tutupBlocks' => [
-                        [
-                            'table' => [
-                                'rows' => [
-                                    [
-                                        [
-                                            'c' => [
-                                                'PIHAK PERTAMA',
-                                                'PT Bina Informatika Solusi',
-                                            ],
-                                            's' => 1,
-                                            'v' => null,
-                                        ],
-                                        [
-                                            'c' => [
-                                                'PIHAK KEDUA',
-                                                '[PIHAK KEDUA]',
-                                            ],
-                                            's' => 1,
-                                            'v' => null,
-                                        ],
-                                    ],
-                                    [
-                                        [
-                                            'c' => [
-                                                'Ageng Bagja Priyadi, S.T.,M.Kom',
-                                                'Direktur',
-                                            ],
-                                            's' => 1,
-                                            'v' => null,
-                                        ],
-                                        [
-                                            'c' => [
-                                                'Delly Yulia',
-                                                'Manager Area Bandung',
-                                            ],
-                                            's' => 1,
-                                            'v' => null,
-                                        ],
-                                    ],
-                                ],
-                                'bordered' => false,
-                                'head' => true,
-                            ],
-                        ],
-                    ],
-                    'lampiran' => [
-                        [
-                            'judul' => 'LAMPIRAN A',
-                            'text' => '',
-                            'blocks' => [
-                                [
-                                    'table' => [
-                                        'rows' => [
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Nomor Perjanjian Berlangganan',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        '[Nomor Perjanjian]',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Tanggal Awal Berlangganan',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        '1 September 2025',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Tanggal Akhir Berlangganan',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        '31 Agustus 2026',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Nama dan Alamat Pelanggan',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        '[PIHAK KEDUA]',
-                                                        'Jalan Raya Laswi No. 8, Kec. Majalaya, Kab. Bandung',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'NPWP',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        '02.735.813.4-444.000',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Nomor Telepon Pelanggan /',
-                                                        'Penanggungjawab',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        '022-5955078',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Nomor Handphone Pelanggan /',
-                                                        'Penanggungjawab',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        '0831-2089-9561',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Nama Penanggungjawab Administrasi/Keuangan',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        'Delly Yulia',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Nama Penanggungjawab Teknisi',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        'Sugiharto',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Jenis Layanan',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        'SOHO TIF 200Mbps',
-                                                        '(Rp5.000.000)',
-                                                        'SOHO TIF 50Mbps',
-                                                        '(Rp1.800.000)',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Biaya Layanan',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        'Rp6.800.000,- (Perbulan)',
-                                                        'Belum termasuk PPN',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                            [
-                                                [
-                                                    'c' => [
-                                                        'Biaya Instalasi',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                                [
-                                                    'c' => [
-                                                        'Rp2000000,- (one time charge)',
-                                                        'Belum termasuk PPN',
-                                                    ],
-                                                    's' => 1,
-                                                    'v' => null,
-                                                ],
-                                            ],
-                                        ],
-                                        'bordered' => true,
-                                        'head' => false,
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-                'source_layout' => [
-                    'page_count' => 10,
-                    'paper' => 'A4',
-                    'source' => 'PDF sumber',
-                    'cover_page' => 1,
-                    'appendix_pages' => [
-                        10,
-                    ],
-                    'section_pages' => [
-                        'Definisi' => [
-                            2,
-                        ],
-                        'Fasilitas PIHAK PERTAMA' => [
-                            3,
-                        ],
-                        'Aktivasi Layanan' => [
-                            3,
-                        ],
-                        'Jangka Waktu Berlangganan' => [
-                            3,
-                            4,
-                            5,
-                        ],
-                        'Pembayaran' => [
-                            4,
-                        ],
-                        'Hak dan Kewajiban' => [
-                            4,
-                            5,
-                        ],
-                        'Pembatalan' => [
-                            5,
-                        ],
-                        'Perpindahan dan Pengalihan' => [
-                            5,
-                        ],
-                        'Pembatalan Perjanjian dengan Alasan' => [
-                            6,
-                        ],
-                        'Pembatalan Perjanjian Tanpa Alasan' => [
-                            6,
-                        ],
-                        'Ketentuan Perubahan' => [
-                            7,
-                        ],
-                        'Force Majeure' => [
-                            7,
-                            8,
-                        ],
-                        'Penyelesaian Sengketa' => [
-                            8,
-                        ],
-                        'Lain-Lain' => [
-                            9,
-                        ],
-                    ],
-                    'rules' => [
-                        'preserve_text' => true,
-                        'preserve_order' => true,
-                        'allow_section_split' => true,
-                        'avoid_table_split_when_possible' => true,
-                        'repeat_header_on_new_page' => true,
-                    ],
-                ],
-            ],
             'kontrak-payung' => [
                 'title' => 'Perjanjian Kerja Sama (Kontrak Payung) Berlangganan Jasa Metro Fiber Optik',
                 'header_data' => [
@@ -6020,6 +4339,1687 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                         ],
                         'Lain-Lain' => [
                             11,
+                        ],
+                    ],
+                    'rules' => [
+                        'preserve_text' => true,
+                        'preserve_order' => true,
+                        'allow_section_split' => true,
+                        'avoid_table_split_when_possible' => true,
+                        'repeat_header_on_new_page' => true,
+                    ],
+                ],
+            ],
+            'kontrak-soho' => [
+                'title' => 'Perjanjian Berlangganan Jasa SOHO',
+                'header_data' => [
+                    'kopInstansi' => 'PT BINA INFORMATIKA SOLUSI',
+                    'kopAlamat' => 'Jl. Prakarsa Muda No. 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131',
+                    'kopKontrak' => 'PERJANJIAN BERLANGGANAN',
+                    'nomorSurat' => '[Nomor Perjanjian]',
+                    'perihalSurat' => 'Jasa SOHO',
+                    'sifatSurat' => 'Penting',
+                ],
+                'body_content' => [
+                    'cover' => 'PERJANJIAN BERLANGGANAN
+
+JASA SOHO
+
+PT BINA INFORMATIKA SOLUSI
+
+DENGAN
+
+[PIHAK KEDUA]
+
+Nomor: [Nomor Perjanjian]',
+                    'preamble' => 'PERJANJIAN BERLANGGANAN
+
+JASA SOHO
+
+Nomor: [Nomor Perjanjian]
+
+Pada hari ini, [Hari], tanggal [Tanggal], ber tempat di [Tempat], telah dibuat dan ditandatangani Perjanjian, oleh dan antara:
+
+I. PT Bina Informatika Solusi, berkedudukan di Jalan Prakarsa Muda Nomor 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T.,       M. Kom., selaku Direktur, sah bertindak untuk dan atas nama PT Bina Informatika Solusi, selanjutnya disebut sebagai “PIHAK PERTAMA”
+
+II. [PIHAK KEDUA], berkedudukan di Jalan Raya Laswi No. 8, Kec. Majalaya, Kab. Bandung. Dalam hal ini diwakili oleh Delly Yulia, dalam kedudukanya sebagai Manager Area Bandung, oleh karenanya bertindak atas nama [PIHAK KEDUA], selanjutnya disebut “PIHAK KEDUA”
+
+PIHAK KEDUA dan PIHAK PERTAMA secara bersama-sama selanjutnya disebut “PARA PIHAK”
+
+PARA PIHAK dengan ini menerangkan telah sepakat untuk mengikatkan diri pada syarat-syarat dan ketentuan-ketentuan sebagai berikut:',
+                    'isi' => [
+                        [
+                            'judul' => 'Definisi',
+                            'text' => '“Perjanjian” adalah Perjanjian ini berikut lampiran dan semua perubahan yang terkait dan merupakan bagian dari Perjanjian ini.
+
+“Jasa” adalah layanan yang harus dipenuhi oleh PIHAK PERTAMA sebagaimana diuraikan pada Lampiran A.
+
+“Biaya Jasa” adalah biaya yang harus dibayar oleh PIHAK KEDUA seperti diuraikan pada Lampiran A.',
+                            'blocks' => [
+                                [
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            '“Perjanjian” adalah Perjanjian ini berikut lampiran dan semua perubahan yang terkait dan merupakan bagian dari Perjanjian ini.',
+                                            '“Jasa” adalah layanan yang harus dipenuhi oleh PIHAK PERTAMA sebagaimana diuraikan pada Lampiran A.',
+                                            '“Biaya Jasa” adalah biaya yang harus dibayar oleh PIHAK KEDUA seperti diuraikan pada Lampiran A.',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Fasilitas PIHAK PERTAMA',
+                            'text' => 'PIHAK PERTAMA sepakat untuk menyediakan Jasa dan Fasilitas terkait (selanjutnya disebut “Jasa”) sebagaimana tercantum dalam Service Order Form yang dikeluarkan oleh PIHAK KEDUA yang menjadi bagian tak terpisahkan dari Perjanjian ini;
+
+Layanan Jasa yang disediakan PIHAK PERTAMA berdasarkan Perjanjian ini dapat digunakan oleh PIHAK KEDUA selama 24 jam/hari (7 hari/minggu);
+
+Penyediaan Fasilitas dan Jasa PIHAK PERTAMA akan dilakukan sesuai dengan konfigurasi teknis yang telah disepakati;
+
+Terminal dan perangkat antarmuka milik PIHAK KEDUA yang akan dihubungkan dengan perangkat/saluran PIHAK PERTAMA harus mendapat persetujuan terlebih dahulu dari PIHAK PERTAMA;
+
+Penyambungan pelayanan PIHAK PERTAMA akan dilaksanakan setelah PIHAK KEDUA mengeluarkan Service Order Form dan diterima oleh pihak PIHAK PERTAMA.',
+                            'blocks' => [
+                                [
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PIHAK PERTAMA sepakat untuk menyediakan Jasa dan Fasilitas terkait (selanjutnya disebut “Jasa”) sebagaimana tercantum dalam Service Order Form yang dikeluarkan oleh PIHAK KEDUA yang menjadi bagian tak terpisahkan dari Perjanjian ini;',
+                                            'Layanan Jasa yang disediakan PIHAK PERTAMA berdasarkan Perjanjian ini dapat digunakan oleh PIHAK KEDUA selama 24 jam/hari (7 hari/minggu);',
+                                            'Penyediaan Fasilitas dan Jasa PIHAK PERTAMA akan dilakukan sesuai dengan konfigurasi teknis yang telah disepakati;',
+                                            'Terminal dan perangkat antarmuka milik PIHAK KEDUA yang akan dihubungkan dengan perangkat/saluran PIHAK PERTAMA harus mendapat persetujuan terlebih dahulu dari PIHAK PERTAMA;',
+                                            'Penyambungan pelayanan PIHAK PERTAMA akan dilaksanakan setelah PIHAK KEDUA mengeluarkan Service Order Form dan diterima oleh pihak PIHAK PERTAMA.',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Aktivasi Layanan',
+                            'text' => 'Aktivasi Layanan akan dimulai setelah Fasilitas PIHAK PERTAMA siap dioperasikan dan dinyatakan dengan Berita Acara Aktivasi yang ditandatangani oleh PARA PIHAK.',
+                            'blocks' => [
+                                [
+                                    'p' => 'Aktivasi Layanan akan dimulai setelah Fasilitas PIHAK PERTAMA siap dioperasikan dan dinyatakan dengan Berita Acara Aktivasi yang ditandatangani oleh PARA PIHAK.',
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Jangka Waktu Berlangganan',
+                            'text' => 'Jangka Waktu Efektif Layanan sebagaimana dimaksud dalam Syarat dan Ketentuan Berlangganan ini adalah tanggal sebagaimana dimaksud dalam lampiran A Perjanjian Berlangganan Jasa ini dan atau Service Order Form.
+
+Apabila PIHAK KEDUA  mengakhiri Layanan sebelum Jangka Waktu berakhir sebagaimana dimaksud dalam lampiran A dan atau Service Order Form, maka PIHAK KEDUA akan dikenakan denda sebagaimana berikut:
+
+Apabila 30 (Tiga puluh) hari sebelum jangka waktu dalam pasal  4 ayat 1 ini berakhir PIHAK KEDUA tidak melakukan pemberitahuan pengakhiran Layanan, maka Syarat dan Ketentuan Berlangganan akan otomatis berlanjut selama 1 (Satu) tahun (“Jangka Waktu Perpanjangan”). Untuk menghindari keragu-raguan maka pemberitahuan pengakhiran Syarat dan Ketentuan Berlangganan dihitung 30 (tiga puluh) hari sejak diterimanya pemberitahuan pengakhiran Layanan.
+
+PIHAK PERTAMA akan melakukan penghentian sementara Layanan apabila PIHAK KEDUA terlambat melakukan pembayaran 30 (tiga puluh) hari sejak invoice oleh PIHAK KEDUA.',
+                            'blocks' => [
+                                [
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'Jangka Waktu Efektif Layanan sebagaimana dimaksud dalam Syarat dan Ketentuan Berlangganan ini adalah tanggal sebagaimana dimaksud dalam lampiran A Perjanjian Berlangganan Jasa ini dan atau Service Order Form.',
+                                            'Apabila PIHAK KEDUA  mengakhiri Layanan sebelum Jangka Waktu berakhir sebagaimana dimaksud dalam lampiran A dan atau Service Order Form, maka PIHAK KEDUA akan dikenakan denda sebagaimana berikut:',
+                                        ],
+                                    ],
+                                ],
+                                [
+                                    'table' => [
+                                        'rows' => [
+                                            [
+                                                [
+                                                    'c' => [
+                                                        '50% x Biaya Bulanan x Bulan yang belum terpenuhi',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                        ],
+                                        'bordered' => true,
+                                        'head' => false,
+                                    ],
+                                ],
+                                [
+                                    'ol' => [
+                                        'type' => '1',
+                                        'start' => 3,
+                                        'items' => [
+                                            'Apabila 30 (Tiga puluh) hari sebelum jangka waktu dalam pasal  4 ayat 1 ini berakhir PIHAK KEDUA tidak melakukan pemberitahuan pengakhiran Layanan, maka Syarat dan Ketentuan Berlangganan akan otomatis berlanjut selama 1 (Satu) tahun (“Jangka Waktu Perpanjangan”). Untuk menghindari keragu-raguan maka pemberitahuan pengakhiran Syarat dan Ketentuan Berlangganan dihitung 30 (tiga puluh) hari sejak diterimanya pemberitahuan pengakhiran Layanan.',
+                                            'PIHAK PERTAMA akan melakukan penghentian sementara Layanan apabila PIHAK KEDUA terlambat melakukan pembayaran 30 (tiga puluh) hari sejak invoice oleh PIHAK KEDUA.',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Pembayaran',
+                            'text' => 'PIHAK KEDUA wajib melakukan pembayaran atas Layanan sebagaimana dimaksud dalam Service Order Form;
+
+Pembayaran dilakukan oleh PIHAK KEDUA selambat–lambatnya pada tanggal sesuai dengan invoice yang diterbitkan atau selambat-lambatnya 7 (tujuh) hari dari tanggal invoice diterbitkan;
+
+Atas setiap keterlambatan pembayaran dari tanggal sebagaimana dimaksud dalam Pasal 5.2, maka PIHAK KEDUA dikenakan denda keterlambatan pembayaran sebesar 1 (satu) permil setiap hari keterlambatan;
+
+Apabila dalam 1 (satu) bulan PIHAK KEDUA belum memenuhi kewajibannya tersebut, maka PIHAK PERTAMA akan melakukan pemutusan sementara (isolir) layanan tanpa pemberitahuan terlebih dahulu kepada PIHAK KEDUA;
+
+Apabila PIHAK KEDUA melunasi biaya-biaya dalam pasal ini, maka PIHAK PERTAMA akan membuka pemutusan sementara (isolir) dalam waktu selambat-lambatnya 1 (satu) hari kerja;
+
+Semua Biaya bank yang timbul dalam pembayaran tagihan merupakan tanggung jawab PIHAK KEDUA;
+
+Seluruh pembayaran dianggap telah dilakukan PIHAK KEDUA setelah pembayaran diterima di rekening PIHAK PERTAMA, dengan detail sebagai berikut:
+
+Bank Mandiri
+
+No. Rekening: 1340001209104
+
+Atas Nama   : PT Bina Informatika Solusi
+
+Bank Rakyat Indonesia (BRI)
+
+No. Rekening: 010701003038305
+
+Atas Nama   : PT Bina Informatika Solusi',
+                            'blocks' => [
+                                [
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PIHAK KEDUA wajib melakukan pembayaran atas Layanan sebagaimana dimaksud dalam Service Order Form;',
+                                            'Pembayaran dilakukan oleh PIHAK KEDUA selambat–lambatnya pada tanggal sesuai dengan invoice yang diterbitkan atau selambat-lambatnya 7 (tujuh) hari dari tanggal invoice diterbitkan;',
+                                            'Atas setiap keterlambatan pembayaran dari tanggal sebagaimana dimaksud dalam Pasal 5.2, maka PIHAK KEDUA dikenakan denda keterlambatan pembayaran sebesar 1 (satu) permil setiap hari keterlambatan;',
+                                            'Apabila dalam 1 (satu) bulan PIHAK KEDUA belum memenuhi kewajibannya tersebut, maka PIHAK PERTAMA akan melakukan pemutusan sementara (isolir) layanan tanpa pemberitahuan terlebih dahulu kepada PIHAK KEDUA;',
+                                            'Apabila PIHAK KEDUA melunasi biaya-biaya dalam pasal ini, maka PIHAK PERTAMA akan membuka pemutusan sementara (isolir) dalam waktu selambat-lambatnya 1 (satu) hari kerja;',
+                                            'Semua Biaya bank yang timbul dalam pembayaran tagihan merupakan tanggung jawab PIHAK KEDUA;',
+                                            'Seluruh pembayaran dianggap telah dilakukan PIHAK KEDUA setelah pembayaran diterima di rekening PIHAK PERTAMA, dengan detail sebagai berikut:',
+                                        ],
+                                    ],
+                                ],
+                                [
+                                    'p' => 'Bank Mandiri',
+                                ],
+                                [
+                                    'p' => 'No. Rekening: 1340001209104',
+                                ],
+                                [
+                                    'p' => 'Atas Nama   : PT Bina Informatika Solusi',
+                                ],
+                                [
+                                    'p' => 'Bank Rakyat Indonesia (BRI)',
+                                ],
+                                [
+                                    'p' => 'No. Rekening: 010701003038305',
+                                ],
+                                [
+                                    'p' => 'Atas Nama   : PT Bina Informatika Solusi',
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Hak dan Kewajiban',
+                            'text' => 'PIHAK KEDUA wajib menyediakan perangkat yang dibutuhkan, sehingga fasilitas dan pelayanan PIHAK PERTAMA dapat diaktivasikan sesuai jadwal yang telah disepakati bersama;
+
+PIHAK KEDUA tidak diperkenankan memberi kesempatan kepada pihak ketiga untuk memanfaatkan fasilitas dan pelayanan PIHAK PERTAMA tanpa izin tertulis dari PIHAK PERTAMA;
+
+PIHAK KEDUA tidak diperkenankan mengadakan perubahan terhadap spesifikasi teknis, konfigurasi, dan fasilitas layanan PIHAK PERTAMA, termasuk menghubungkannya ke dalam jaringan PIHAK PERTAMA dengan cara apapun, kecuali atas izin tertulis dari PIHAK PERTAMA;
+
+PIHAK KEDUA tidak diperkenankan untuk menghubungkan jaringan dan/atau fasilitas PIHAK PERTAMA dengan jaringan telekomunikasi umum (PSTN) termasuk namun tidak terbatas kepada jaringan telepon, teleks, atau komunikasi data;
+
+PIHAK KEDUA akan memberikan izin wilayah kepada PIHAK PERTAMA  untuk memasuki fasilitas dan/atau lokasi milik PIHAK KEDUA sehubungan dengan keperluan pemeliharaan dan perbaikan;
+
+PIHAK PERTAMA bertanggung jawab terhadap pemeliharaan dan perbaikan atas kerusakan atau gangguan pada saluran dan fasilitas milik PIHAK PERTAMA. Apabila kerusakan atau gangguan tersebut disebabkan oleh kesalahan, kesengajaan, atau kelalaian PIHAK KEDUA, maka PIHAK PERTAMA berhak memungut biaya perbaikan;
+
+PIHAK PERTAMA tidak bertanggung jawab atas kebenaran, kerahasiaan dan atau kualitas informasi yang disalurkan melalui layanan PIHAK PERTAMA;
+
+PIHAK PERTAMA tidak bertanggung jawab atas kerugian–kerugian PIHAK KEDUA atau pihak ketiga yang timbul berkaitan dengan penggunaan jasa PIHAK PERTAMA.',
+                            'blocks' => [
+                                [
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PIHAK KEDUA wajib menyediakan perangkat yang dibutuhkan, sehingga fasilitas dan pelayanan PIHAK PERTAMA dapat diaktivasikan sesuai jadwal yang telah disepakati bersama;',
+                                            'PIHAK KEDUA tidak diperkenankan memberi kesempatan kepada pihak ketiga untuk memanfaatkan fasilitas dan pelayanan PIHAK PERTAMA tanpa izin tertulis dari PIHAK PERTAMA;',
+                                            'PIHAK KEDUA tidak diperkenankan mengadakan perubahan terhadap spesifikasi teknis, konfigurasi, dan fasilitas layanan PIHAK PERTAMA, termasuk menghubungkannya ke dalam jaringan PIHAK PERTAMA dengan cara apapun, kecuali atas izin tertulis dari PIHAK PERTAMA;',
+                                            'PIHAK KEDUA tidak diperkenankan untuk menghubungkan jaringan dan/atau fasilitas PIHAK PERTAMA dengan jaringan telekomunikasi umum (PSTN) termasuk namun tidak terbatas kepada jaringan telepon, teleks, atau komunikasi data;',
+                                            'PIHAK KEDUA akan memberikan izin wilayah kepada PIHAK PERTAMA  untuk memasuki fasilitas dan/atau lokasi milik PIHAK KEDUA sehubungan dengan keperluan pemeliharaan dan perbaikan;',
+                                            'PIHAK PERTAMA bertanggung jawab terhadap pemeliharaan dan perbaikan atas kerusakan atau gangguan pada saluran dan fasilitas milik PIHAK PERTAMA. Apabila kerusakan atau gangguan tersebut disebabkan oleh kesalahan, kesengajaan, atau kelalaian PIHAK KEDUA, maka PIHAK PERTAMA berhak memungut biaya perbaikan;',
+                                            'PIHAK PERTAMA tidak bertanggung jawab atas kebenaran, kerahasiaan dan atau kualitas informasi yang disalurkan melalui layanan PIHAK PERTAMA;',
+                                            'PIHAK PERTAMA tidak bertanggung jawab atas kerugian–kerugian PIHAK KEDUA atau pihak ketiga yang timbul berkaitan dengan penggunaan jasa PIHAK PERTAMA.',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Pembatalan',
+                            'text' => 'Jika PIHAK KEDUA mengakhiri layanan sebelum Jangka Waktu berakhir dan atau membatalkan layanan yang telah disepakati dalam Service order form sebelum aktivasi sebagaimana dimaksud dalam perjanjian atau berita acara atau Service Order Form, maka PIHAK KEDUA diwajibkan melakukan pelunasan atas biaya instalasi dan oleh karenanya dikenakan denda sebesar 50% x Biaya Bulanan x Bulan yang belum terpenuhi.',
+                            'blocks' => [
+                                [
+                                    'p' => 'Jika PIHAK KEDUA mengakhiri layanan sebelum Jangka Waktu berakhir dan atau membatalkan layanan yang telah disepakati dalam Service order form sebelum aktivasi sebagaimana dimaksud dalam perjanjian atau berita acara atau Service Order Form, maka PIHAK KEDUA diwajibkan melakukan pelunasan atas biaya instalasi dan oleh karenanya dikenakan denda sebesar 50% x Biaya Bulanan x Bulan yang belum terpenuhi.',
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Perpindahan dan Pengalihan',
+                            'text' => 'PIHAK KEDUA dapat meminta perpindahan lokasi fasilitas PIHAK PERTAMA serta penambahan kapasitas sepanjang teknis memungkinkan. Segala biaya yang timbul akibat perpindahan lokasi serta penambahan kapasitas tersebut akan dibebankan kepada PIHAK KEDUA; dan
+
+Pemindahan fasilitas PIHAK PERTAMA yang telah terpasang ke lokasi lainnya akan diperlakukan sebagai sambungan baru. Biaya berlangganan akan disesuaikan dengan penambahan kapasitas terpasang.',
+                            'blocks' => [
+                                [
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PIHAK KEDUA dapat meminta perpindahan lokasi fasilitas PIHAK PERTAMA serta penambahan kapasitas sepanjang teknis memungkinkan. Segala biaya yang timbul akibat perpindahan lokasi serta penambahan kapasitas tersebut akan dibebankan kepada PIHAK KEDUA; dan',
+                                            'Pemindahan fasilitas PIHAK PERTAMA yang telah terpasang ke lokasi lainnya akan diperlakukan sebagai sambungan baru. Biaya berlangganan akan disesuaikan dengan penambahan kapasitas terpasang.',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Pembatalan Perjanjian dengan Alasan',
+                            'text' => 'PIHAK PERTAMA dibebaskan dari penyebab pembatalan jika kegagalan disebabkan oleh sumber yang berasal dari PIHAK KEDUA seperti data, kegagalan Hardware, atau kegagalan internal PIHAK KEDUA;
+
+Apabila terjadi pelanggaran kewajiban dari PIHAK KEDUA yang mengakibatkan pembatalan perjanjian ini, maka PIHAK KEDUA wajib membayar penggunaan internet sampai dengan bulan terakhir pembatalan kontrak;
+
+Apabila salah satu pihak mengalami kegagalan keuangan atau berhenti beroperasi maka hal ini dapat menjadi penyebab pembatalan, dimana salah satu pihak atau lainnya dapat membatalkan perjanjian ini dengan melakukan pemberitahuan secara tertulis. Namun pihak yang mengalami keadaan insolven, kegagalan keuangan atau berhenti beroperasi tersebut tetap harus melaksanakan segala kewajiban hingga tanggal pemutusan kontrak berdasarkan peraturan perundang-undangan yang berlaku, termasuk akan tetapi tidak terbatas pada, Undang-undang Nomor 37 Tahun 2004 tentang Kepailitan dan Penundaan Kewajiban Pembayaran Utang;
+
+PIHAK KEDUA akan mengeluarkan Surat Teguran terhadap pelayanan PIHAK PERTAMA yang tidak memuaskan mencakup kegagalan fatal penyediaan jasa yang telah merugikan PIHAK KEDUA. Surat Teguran  disampaikan maksimum tiga kali. Dan Jika setelah Teguran Ketiga  tidak ada improvement dari layanan PIHAK PERTAMA maka PIHAK KEDUA berhak melakukan pemutusan sepihak dan dibebaskan dari kewajiban pembayaran apapun sebagaimana tersebut dalam ayat 2 dan 3 pasal ini dan pasal 10 ayat 3 perjanjian ini.',
+                            'blocks' => [
+                                [
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PIHAK PERTAMA dibebaskan dari penyebab pembatalan jika kegagalan disebabkan oleh sumber yang berasal dari PIHAK KEDUA seperti data, kegagalan Hardware, atau kegagalan internal PIHAK KEDUA;',
+                                            'Apabila terjadi pelanggaran kewajiban dari PIHAK KEDUA yang mengakibatkan pembatalan perjanjian ini, maka PIHAK KEDUA wajib membayar penggunaan internet sampai dengan bulan terakhir pembatalan kontrak;',
+                                            'Apabila salah satu pihak mengalami kegagalan keuangan atau berhenti beroperasi maka hal ini dapat menjadi penyebab pembatalan, dimana salah satu pihak atau lainnya dapat membatalkan perjanjian ini dengan melakukan pemberitahuan secara tertulis. Namun pihak yang mengalami keadaan insolven, kegagalan keuangan atau berhenti beroperasi tersebut tetap harus melaksanakan segala kewajiban hingga tanggal pemutusan kontrak berdasarkan peraturan perundang-undangan yang berlaku, termasuk akan tetapi tidak terbatas pada, Undang-undang Nomor 37 Tahun 2004 tentang Kepailitan dan Penundaan Kewajiban Pembayaran Utang;',
+                                            'PIHAK KEDUA akan mengeluarkan Surat Teguran terhadap pelayanan PIHAK PERTAMA yang tidak memuaskan mencakup kegagalan fatal penyediaan jasa yang telah merugikan PIHAK KEDUA. Surat Teguran  disampaikan maksimum tiga kali. Dan Jika setelah Teguran Ketiga  tidak ada improvement dari layanan PIHAK PERTAMA maka PIHAK KEDUA berhak melakukan pemutusan sepihak dan dibebaskan dari kewajiban pembayaran apapun sebagaimana tersebut dalam ayat 2 dan 3 pasal ini dan pasal 10 ayat 3 perjanjian ini.',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Pembatalan Perjanjian Tanpa Alasan',
+                            'text' => 'Kedua belah pihak dapat membatalkan Perjanjian tanpa alasan dengan pemberitahuan tertulis dimuka dengan ketentuan sebagai berikut:
+
+Jika PIHAK PERTAMA membatalkan Perjanjian, maka PIHAK PERTAMA akan memberitahukan 30 hari dimuka; dan
+
+Jika PIHAK KEDUA membatalkan Perjanjian, maka PIHAK KEDUA akan memberitahukan 30 hari dimuka.
+
+Jika PIHAK KEDUA membatalkan Perjanjian tanpa alasan, PIHAK KEDUA wajib membayar PIHAK PERTAMA atas seluruh biaya bulan berjalan di bulan terjadinya pembatalan hingga tanggal jatuh tempo perjanjian;
+
+Jika PIHAK PERTAMA membatalkan Perjanjian tanpa alasan maka PIHAK PERTAMA akan menyediakan Jasa secara gratis selama masa transisi sampai dengan PIHAK KEDUA menunjuk internet provider yang baru dan PIHAK PERTAMA mengembalikan biaya awal yang telah dibayarkan oleh PIHAK KEDUA di pemasangan awal.',
+                            'blocks' => [
+                                [
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            [
+                                                'text' => 'Kedua belah pihak dapat membatalkan Perjanjian tanpa alasan dengan pemberitahuan tertulis dimuka dengan ketentuan sebagai berikut:',
+                                                'children' => [
+                                                    'type' => 'a',
+                                                    'items' => [
+                                                        'Jika PIHAK PERTAMA membatalkan Perjanjian, maka PIHAK PERTAMA akan memberitahukan 30 hari dimuka; dan',
+                                                        'Jika PIHAK KEDUA membatalkan Perjanjian, maka PIHAK KEDUA akan memberitahukan 30 hari dimuka.',
+                                                    ],
+                                                ],
+                                            ],
+                                            'Jika PIHAK KEDUA membatalkan Perjanjian tanpa alasan, PIHAK KEDUA wajib membayar PIHAK PERTAMA atas seluruh biaya bulan berjalan di bulan terjadinya pembatalan hingga tanggal jatuh tempo perjanjian;',
+                                            'Jika PIHAK PERTAMA membatalkan Perjanjian tanpa alasan maka PIHAK PERTAMA akan menyediakan Jasa secara gratis selama masa transisi sampai dengan PIHAK KEDUA menunjuk internet provider yang baru dan PIHAK PERTAMA mengembalikan biaya awal yang telah dibayarkan oleh PIHAK KEDUA di pemasangan awal.',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Ketentuan Perubahan',
+                            'text' => 'Selama masa berlakunya Perjanjian, salah satu pihak dapat mengajukan usulan perubahan Perjanjian dengan mengajukan usulan secara tertulis kepada pihak lainnya;
+
+Dalam jangka waktu 30 hari setelah menerima pemberitahuan tertulis mengenai usulan perubahan dari PIHAK KEDUA, PIHAK PERTAMA akan memberitahu PIHAK KEDUA apakah perubahan dapat dilaksanakan atau tidak. Apabila perubahan tersebut dapat dilaksanakan, maka PIHAK PERTAMA berhak mengajukan perubahan atas biaya Jasa dan ketentuan lainnya dari Perjanjian ini;
+
+PIHAK KEDUA dapat mengajukan usulan upgrade dan downgrade layanan selama masa berlakunya perjanjian melalui pemberitahuan tertulis 30 hari sebelumnya;
+
+Penurunan kapasitas / bandwidth / downgrade apabila ada kapasitas bandwidth / downgrade layanan sebelum berakhirnya masa berlangganan minimal 1 tahun akan dikenakan penalti dengan ketentuan sebesar 50% X (biaya perbulan kecepatan lama-biaya perbulan kecepatan baru) X sisa masa berlangganan;
+
+Selama masa berlakunya Perjanjian ini Pihak Kedua tidak bisa mengajukan perubahan biaya layanan yang berjalan sampai dengan masa kontrak Perjanjian ini berakhir. Terkecuali adanya permohonan upgrade layanan;
+
+Apabila ada hal-hal  yang belum diatur dalam Kontrak ini. Maka hal-hal tersebut akan diatur dan ditetapkan kemudian secara tertulis tertuang dalam Amandemen dan atau Addendum dengan tetap memperhatikan ketentuan-ketentuan dan peraturan intern PIHAK PERTAMA dan hukum yang berlaku di Indonesia.',
+                            'blocks' => [
+                                [
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'Selama masa berlakunya Perjanjian, salah satu pihak dapat mengajukan usulan perubahan Perjanjian dengan mengajukan usulan secara tertulis kepada pihak lainnya;',
+                                            'Dalam jangka waktu 30 hari setelah menerima pemberitahuan tertulis mengenai usulan perubahan dari PIHAK KEDUA, PIHAK PERTAMA akan memberitahu PIHAK KEDUA apakah perubahan dapat dilaksanakan atau tidak. Apabila perubahan tersebut dapat dilaksanakan, maka PIHAK PERTAMA berhak mengajukan perubahan atas biaya Jasa dan ketentuan lainnya dari Perjanjian ini;',
+                                            'PIHAK KEDUA dapat mengajukan usulan upgrade dan downgrade layanan selama masa berlakunya perjanjian melalui pemberitahuan tertulis 30 hari sebelumnya;',
+                                            'Penurunan kapasitas / bandwidth / downgrade apabila ada kapasitas bandwidth / downgrade layanan sebelum berakhirnya masa berlangganan minimal 1 tahun akan dikenakan penalti dengan ketentuan sebesar 50% X (biaya perbulan kecepatan lama-biaya perbulan kecepatan baru) X sisa masa berlangganan;',
+                                            'Selama masa berlakunya Perjanjian ini Pihak Kedua tidak bisa mengajukan perubahan biaya layanan yang berjalan sampai dengan masa kontrak Perjanjian ini berakhir. Terkecuali adanya permohonan upgrade layanan;',
+                                            'Apabila ada hal-hal  yang belum diatur dalam Kontrak ini. Maka hal-hal tersebut akan diatur dan ditetapkan kemudian secara tertulis tertuang dalam Amandemen dan atau Addendum dengan tetap memperhatikan ketentuan-ketentuan dan peraturan intern PIHAK PERTAMA dan hukum yang berlaku di Indonesia.',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Force Majeure',
+                            'text' => 'Yang dimaksud dengan Force Majeure dalam kontrak ini adalah keadaan-keadaan diluar kekuasaan salah satu pihak atau PARA PIHAK yang mengakibatkan pihak dimaksud tidak dapat melaksanakan kontrak ini, yaitu:
+
+Gempa bumi besar, angin ribut (topan), kebakaran besar, banjir  besar, tanah longsor, petir, wabah penyakit; dan
+
+Pemogokan umum, huru-hara, pemberontakan, perang, dan keadaan-keadaan lain yang oleh pejabat berwenang dinyatakan sebagai Force Majeure.
+
+Dalam hal terjadi Force Majeure dimaksud pada ayat 1 pasal ini, maka pihak yang mengalami Force Majeure berkewajiban memberitahukan secara tertulis kepada pihak lainnya dalam waktu 14 (empat belas) hari kalender sejak saat mulainya, begitu juga saat berakhirnya dan diterangkan secara resmi oleh pejabat pemerintah yang berwenang;
+
+Kelalaian atau keterlambatan dalam memenuhi kewajiban pemberitahuan dimaksud ayat 2 pasal ini, mengakibatkan tidak diakuinya peristiwa dimaksud ayat 1 pasal ini sebagai Force Majeure;
+
+Semua kerugian yang timbul atau diderita salah satu pihak karena  terjadi Force Majeure bukan merupakan tanggung jawab pihak lain;
+
+Force Majeure dimaksud ayat 1 pasal ini tidak dapat dijadikan alasan oleh salah satu pihak untuk menunda kewajiban pembayaran kepada pihak lainnya yang telah jatuh tempo sebelum terjadinya Force Majeure.',
+                            'blocks' => [
+                                [
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            [
+                                                'text' => 'Yang dimaksud dengan Force Majeure dalam kontrak ini adalah keadaan-keadaan diluar kekuasaan salah satu pihak atau PARA PIHAK yang mengakibatkan pihak dimaksud tidak dapat melaksanakan kontrak ini, yaitu:',
+                                                'children' => [
+                                                    'type' => 'a',
+                                                    'items' => [
+                                                        'Gempa bumi besar, angin ribut (topan), kebakaran besar, banjir  besar, tanah longsor, petir, wabah penyakit; dan',
+                                                        'Pemogokan umum, huru-hara, pemberontakan, perang, dan keadaan-keadaan lain yang oleh pejabat berwenang dinyatakan sebagai Force Majeure.',
+                                                    ],
+                                                ],
+                                            ],
+                                            'Dalam hal terjadi Force Majeure dimaksud pada ayat 1 pasal ini, maka pihak yang mengalami Force Majeure berkewajiban memberitahukan secara tertulis kepada pihak lainnya dalam waktu 14 (empat belas) hari kalender sejak saat mulainya, begitu juga saat berakhirnya dan diterangkan secara resmi oleh pejabat pemerintah yang berwenang;',
+                                            'Kelalaian atau keterlambatan dalam memenuhi kewajiban pemberitahuan dimaksud ayat 2 pasal ini, mengakibatkan tidak diakuinya peristiwa dimaksud ayat 1 pasal ini sebagai Force Majeure;',
+                                            'Semua kerugian yang timbul atau diderita salah satu pihak karena  terjadi Force Majeure bukan merupakan tanggung jawab pihak lain;',
+                                            'Force Majeure dimaksud ayat 1 pasal ini tidak dapat dijadikan alasan oleh salah satu pihak untuk menunda kewajiban pembayaran kepada pihak lainnya yang telah jatuh tempo sebelum terjadinya Force Majeure.',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Penyelesaian Sengketa',
+                            'text' => 'PERJANJIAN ini dibuat dengan itikad baik dan untuk dilaksanakan dan dijadikan landasan perjanjian kerjasama yang akan dibuat dalam rangka menindaklanjuti PERJANJIAN ini;
+
+Perubahan dan/atau penambahan syarat-syarat dan ketentuan-ketentuan dari PERJANJIAN ini hanya dapat dilakukan atas dasar persetujuan PARA PIHAK yang akan dituangkan dalam Addendum/Amandemen dari PERJANJIAN ini;
+
+Pelaksanaan atas PERJANJIAN ini PARA PIHAK sepakat untuk senantiasa menempuh cara musyawarah dan dengan itikad baik untuk mencapai mufakat;
+
+Apabila terjadi perselisihan yang tidak dapat diselesaikan secara musyawarah, maka PARA PIHAK sepakat untuk menyelesaikannya melalui Kantor Kepaniteraan Pengadilan Negeri Kota Cirebon.',
+                            'blocks' => [
+                                [
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PERJANJIAN ini dibuat dengan itikad baik dan untuk dilaksanakan dan dijadikan landasan perjanjian kerjasama yang akan dibuat dalam rangka menindaklanjuti PERJANJIAN ini;',
+                                            'Perubahan dan/atau penambahan syarat-syarat dan ketentuan-ketentuan dari PERJANJIAN ini hanya dapat dilakukan atas dasar persetujuan PARA PIHAK yang akan dituangkan dalam Addendum/Amandemen dari PERJANJIAN ini;',
+                                            'Pelaksanaan atas PERJANJIAN ini PARA PIHAK sepakat untuk senantiasa menempuh cara musyawarah dan dengan itikad baik untuk mencapai mufakat;',
+                                            'Apabila terjadi perselisihan yang tidak dapat diselesaikan secara musyawarah, maka PARA PIHAK sepakat untuk menyelesaikannya melalui Kantor Kepaniteraan Pengadilan Negeri Kota Cirebon.',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Lain-Lain',
+                            'text' => 'Perjanjian Berlangganan Jasa ini dapat ditambah, dimodifikasi, dan disesuaikan atas persetujuan kedua belah pihak;
+
+Lampiran-lampiran dalam Perjanjian Berlangganan Jasa ini merupakan bagian yang tidak dapat dipisahkan dan mempunyai kekuatan hukum yang sama;
+
+Bila terjadi perbedaan pengertian antara teks bahasa Inggris dan teks bahasa Indonesia dalam Perjanjian Berlangganan Jasa ini, maka teks bahasa Indonesia yang berlaku;
+
+Demikian Perjanjian ini dibuat dan ditandatangani, dibuat rangkap 2 (dua) dan memiliki kekuatan hukum yang sama, dibuat dengan itikad baik untuk dilaksanakan oleh kedua belah Pihak.',
+                            'blocks' => [
+                                [
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'Perjanjian Berlangganan Jasa ini dapat ditambah, dimodifikasi, dan disesuaikan atas persetujuan kedua belah pihak;',
+                                            'Lampiran-lampiran dalam Perjanjian Berlangganan Jasa ini merupakan bagian yang tidak dapat dipisahkan dan mempunyai kekuatan hukum yang sama;',
+                                            'Bila terjadi perbedaan pengertian antara teks bahasa Inggris dan teks bahasa Indonesia dalam Perjanjian Berlangganan Jasa ini, maka teks bahasa Indonesia yang berlaku;',
+                                            'Demikian Perjanjian ini dibuat dan ditandatangani, dibuat rangkap 2 (dua) dan memiliki kekuatan hukum yang sama, dibuat dengan itikad baik untuk dilaksanakan oleh kedua belah Pihak.',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                    'tutup' => 'PIHAK PERTAMA
+
+PT Bina Informatika Solusi
+
+PIHAK KEDUA
+
+[PIHAK KEDUA]
+
+Ageng Bagja Priyadi, S.T.,M.Kom
+
+Direktur
+
+Delly Yulia
+
+Manager Area Bandung',
+                    'tutupBlocks' => [
+                        [
+                            'table' => [
+                                'rows' => [
+                                    [
+                                        [
+                                            'c' => [
+                                                'PIHAK PERTAMA',
+                                                'PT Bina Informatika Solusi',
+                                            ],
+                                            's' => 1,
+                                            'v' => null,
+                                        ],
+                                        [
+                                            'c' => [
+                                                'PIHAK KEDUA',
+                                                '[PIHAK KEDUA]',
+                                            ],
+                                            's' => 1,
+                                            'v' => null,
+                                        ],
+                                    ],
+                                    [
+                                        [
+                                            'c' => [
+                                                'Ageng Bagja Priyadi, S.T.,M.Kom',
+                                                'Direktur',
+                                            ],
+                                            's' => 1,
+                                            'v' => null,
+                                        ],
+                                        [
+                                            'c' => [
+                                                'Delly Yulia',
+                                                'Manager Area Bandung',
+                                            ],
+                                            's' => 1,
+                                            'v' => null,
+                                        ],
+                                    ],
+                                ],
+                                'bordered' => false,
+                                'head' => true,
+                            ],
+                        ],
+                    ],
+                    'lampiran' => [
+                        [
+                            'judul' => 'LAMPIRAN A',
+                            'text' => '',
+                            'blocks' => [
+                                [
+                                    'table' => [
+                                        'rows' => [
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Nomor Perjanjian Berlangganan',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        '[Nomor Perjanjian]',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Tanggal Awal Berlangganan',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        '1 September 2025',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Tanggal Akhir Berlangganan',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        '31 Agustus 2026',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Nama dan Alamat Pelanggan',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        '[PIHAK KEDUA]',
+                                                        'Jalan Raya Laswi No. 8, Kec. Majalaya, Kab. Bandung',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'NPWP',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        '02.735.813.4-444.000',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Nomor Telepon Pelanggan /',
+                                                        'Penanggungjawab',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        '022-5955078',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Nomor Handphone Pelanggan /',
+                                                        'Penanggungjawab',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        '0831-2089-9561',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Nama Penanggungjawab Administrasi/Keuangan',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        'Delly Yulia',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Nama Penanggungjawab Teknisi',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        'Sugiharto',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Jenis Layanan',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        'SOHO TIF 200Mbps',
+                                                        '(Rp5.000.000)',
+                                                        'SOHO TIF 50Mbps',
+                                                        '(Rp1.800.000)',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Biaya Layanan',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        'Rp6.800.000,- (Perbulan)',
+                                                        'Belum termasuk PPN',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Biaya Instalasi',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        'Rp2000000,- (one time charge)',
+                                                        'Belum termasuk PPN',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                        ],
+                                        'bordered' => true,
+                                        'head' => false,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+                'source_layout' => [
+                    'page_count' => 10,
+                    'paper' => 'A4',
+                    'source' => 'PDF sumber',
+                    'cover_page' => 1,
+                    'appendix_pages' => [
+                        10,
+                    ],
+                    'section_pages' => [
+                        'Definisi' => [
+                            2,
+                        ],
+                        'Fasilitas PIHAK PERTAMA' => [
+                            3,
+                        ],
+                        'Aktivasi Layanan' => [
+                            3,
+                        ],
+                        'Jangka Waktu Berlangganan' => [
+                            3,
+                            4,
+                            5,
+                        ],
+                        'Pembayaran' => [
+                            4,
+                        ],
+                        'Hak dan Kewajiban' => [
+                            4,
+                            5,
+                        ],
+                        'Pembatalan' => [
+                            5,
+                        ],
+                        'Perpindahan dan Pengalihan' => [
+                            5,
+                        ],
+                        'Pembatalan Perjanjian dengan Alasan' => [
+                            6,
+                        ],
+                        'Pembatalan Perjanjian Tanpa Alasan' => [
+                            6,
+                        ],
+                        'Ketentuan Perubahan' => [
+                            7,
+                        ],
+                        'Force Majeure' => [
+                            7,
+                            8,
+                        ],
+                        'Penyelesaian Sengketa' => [
+                            8,
+                        ],
+                        'Lain-Lain' => [
+                            9,
+                        ],
+                    ],
+                    'rules' => [
+                        'preserve_text' => true,
+                        'preserve_order' => true,
+                        'allow_section_split' => true,
+                        'avoid_table_split_when_possible' => true,
+                        'repeat_header_on_new_page' => true,
+                    ],
+                ],
+            ],
+            'kontrak-managed-service' => [
+                'title' => 'Perjanjian Berlangganan Jasa Dedicated, Metro, dan Managed Service',
+                'header_data' => [
+                    'kopInstansi' => 'PT BINA INFORMATIKA SOLUSI',
+                    'kopAlamat' => 'Jl. Prakarsa Muda No. 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131',
+                    'kopKontrak' => 'PERJANJIAN BERLANGGANAN',
+                    'nomorSurat' => '[Nomor Perjanjian]',
+                    'perihalSurat' => 'Jasa Dedicated, Metro, dan Managed Service',
+                    'sifatSurat' => 'Penting',
+                ],
+                'body_content' => [
+                    'preamble' => 'PERJANJIAN BERLANGGANAN
+
+JASA DEDICATED, METRO, DAN MANAGED SERVICE
+
+PT BINA INFORMATIKA SOLUSI
+
+DENGAN
+
+[PIHAK KEDUA]
+
+Nomor: [Nomor Perjanjian]
+
+Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Berlangganan Jasa Dedicated, Metro, dan Managed Service (selanjutnya disebut “Perjanjian”), oleh dan antara:
+
+PT Bina Informatika Solusindo, berkedudukan di Gedung Wisma Bumiputera Lantai 7 Suite #701B Jl. Asia-Afrika No.141-149 Kebon Pisang, Sumur, Kota Bandung. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T.,M.Kom., selaku Direktur, bertindak untuk dan atas nama PT Bina Informatika Solusindo, selanjutnya disebut “PIHAK PERTAMA”
+
+[PIHAK KEDUA], berkedudukan di Jl. Cetarip Barat (Cetarip raya) No. 15/200 Rt 05 Rw 10, Kopo, Kota Bandung. Berdasarkan Akta Perusahaan No: 16, Tanggal 12 Desember 2022, dibuat dihadapan Arief Karisma, S.H., M.Kn.,  notaris di Kabupaten Bandung. Dalam hal ini diwakili oleh Wildan Arief Santika Budi, selaku Direktur Utama, bertindak untuk dan atas nama [PIHAK KEDUA], selanjutnya disebut “PIHAK KEDUA”
+
+PIHAK PERTAMA dan PIHAK KEDUA secara bersama-sama selanjutnya disebut “PARA PIHAK”
+
+PARA PIHAK dengan ini menerangkan telah sepakat untuk mengikatkan diri pada syarat-syarat dan ketentuan-ketentuan sebagai berikut:',
+                    'isi' => [
+                        [
+                            'judul' => 'Definisi',
+                            'text' => '“Perjanjian” adalah Perjanjian ini berikut lampiran dan semua perubahan yang terkait dan merupakan bagian dari Perjanjian ini.
+
+“Jasa” adalah layanan yang harus dipenuhi oleh PIHAK PERTAMA sebagaimana diuraikan pada Lampiran A.
+
+“Biaya Jasa” adalah biaya yang harus dibayar oleh PIHAK KEDUA seperti diuraikan pada Lampiran A.
+
+“SLA” – Service Level Agreement adalah kriteria hasil kerja Jasa yang telah ditetapkan terlebih dahulu sebagaimana diuraikan pada Lampiran B.',
+                            'blocks' => [
+                                [
+                                    'p' => '“Perjanjian” adalah Perjanjian ini berikut lampiran dan semua perubahan yang terkait dan merupakan bagian dari Perjanjian ini.',
+                                ],
+                                [
+                                    'p' => '“Jasa” adalah layanan yang harus dipenuhi oleh PIHAK PERTAMA sebagaimana diuraikan pada Lampiran A.',
+                                ],
+                                [
+                                    'p' => '“Biaya Jasa” adalah biaya yang harus dibayar oleh PIHAK KEDUA seperti diuraikan pada Lampiran A.',
+                                ],
+                                [
+                                    'p' => '“SLA” – Service Level Agreement adalah kriteria hasil kerja Jasa yang telah ditetapkan terlebih dahulu sebagaimana diuraikan pada Lampiran B.',
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Fasilitas PIHAK PERTAMA',
+                            'text' => 'PIHAK PERTAMA sepakat untuk menyediakan Jasa dan Fasilitas terkait (selanjutnya disebut “Jasa”) sebagaimana tercantum dalam Service Order Form yang dikeluarkan oleh PIHAK KEDUA yang menjadi bagian tak terpisahkan dari Perjanjian ini;
+
+Layanan Jasa yang disediakan PIHAK PERTAMA berdasarkan Perjanjian ini dapat digunakan oleh PIHAK KEDUA selama 24 jam/hari (7 hari/minggu);
+
+Penyediaan Fasilitas dan Jasa PIHAK PERTAMA akan dilakukan sesuai dengan konfigurasi teknis yang telah disepakati;
+
+Terminal dan perangkat antarmuka milik PIHAK KEDUA yang akan dihubungkan dengan perangkat/saluran PIHAK PERTAMA harus mendapat persetujuan terlebih dahulu dari PIHAK PERTAMA;
+
+Penyambungan pelayanan PIHAK PERTAMA akan dilaksanakan setelah PIHAK KEDUA mengeluarkan Service Order Form dan diterima oleh pihak PIHAK PERTAMA.',
+                            'blocks' => [
+                                [
+                                    'p' => 'PIHAK PERTAMA sepakat untuk menyediakan Jasa dan Fasilitas terkait (selanjutnya disebut “Jasa”) sebagaimana tercantum dalam Service Order Form yang dikeluarkan oleh PIHAK KEDUA yang menjadi bagian tak terpisahkan dari Perjanjian ini;',
+                                ],
+                                [
+                                    'p' => 'Layanan Jasa yang disediakan PIHAK PERTAMA berdasarkan Perjanjian ini dapat digunakan oleh PIHAK KEDUA selama 24 jam/hari (7 hari/minggu);',
+                                ],
+                                [
+                                    'p' => 'Penyediaan Fasilitas dan Jasa PIHAK PERTAMA akan dilakukan sesuai dengan konfigurasi teknis yang telah disepakati;',
+                                ],
+                                [
+                                    'p' => 'Terminal dan perangkat antarmuka milik PIHAK KEDUA yang akan dihubungkan dengan perangkat/saluran PIHAK PERTAMA harus mendapat persetujuan terlebih dahulu dari PIHAK PERTAMA;',
+                                ],
+                                [
+                                    'p' => 'Penyambungan pelayanan PIHAK PERTAMA akan dilaksanakan setelah PIHAK KEDUA mengeluarkan Service Order Form dan diterima oleh pihak PIHAK PERTAMA.',
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Aktivasi Layanan',
+                            'text' => 'Aktivasi Layanan akan dimulai setelah Fasilitas PIHAK PERTAMA siap dioperasikan dan dinyatakan dengan Berita Acara Aktivasi yang ditandatangani oleh PARA PIHAK.',
+                            'blocks' => [
+                                [
+                                    'p' => 'Aktivasi Layanan akan dimulai setelah Fasilitas PIHAK PERTAMA siap dioperasikan dan dinyatakan dengan Berita Acara Aktivasi yang ditandatangani oleh PARA PIHAK.',
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Jangka Waktu Berlangganan',
+                            'text' => 'Jangka Waktu Efektif Layanan sebagaimana dimaksud dalam Syarat dan Ketentuan Berlangganan ini adalah tanggal sebagaimana dimaksud dalam lampiran A Perjanjian Berlangganan Jasa ini.
+
+Apabila PIHAK KEDUA  mengakhiri Layanan sebelum Jangka Waktu berakhir sebagaimana dimaksud dalam lampiran A dan atau Service Order Form, maka PIHAK KEDUA akan dikenakan denda sebagaimana berikut:
+
+Apabila 30 (Tiga puluh) hari sebelum jangka waktu dalam pasal  4 ayat 1 ini berakhir PIHAK KEDUA tidak melakukan pemberitahuan pengakhiran Layanan, maka Syarat dan Ketentuan Berlangganan akan otomatis berlanjut selama 1 (Satu) tahun (“Jangka Waktu Perpanjangan”). Pemberitahuan pengakhiran Berlangganan dihitung 30 (tiga puluh) hari sejak diterimanya pemberitahuan pengakhiran Layanan;',
+                            'blocks' => [
+                                [
+                                    'p' => 'Jangka Waktu Efektif Layanan sebagaimana dimaksud dalam Syarat dan Ketentuan Berlangganan ini adalah tanggal sebagaimana dimaksud dalam lampiran A Perjanjian Berlangganan Jasa ini.',
+                                ],
+                                [
+                                    'p' => 'Apabila PIHAK KEDUA  mengakhiri Layanan sebelum Jangka Waktu berakhir sebagaimana dimaksud dalam lampiran A dan atau Service Order Form, maka PIHAK KEDUA akan dikenakan denda sebagaimana berikut:',
+                                ],
+                                [
+                                    'table' => [
+                                        'rows' => [
+                                            [
+                                                [
+                                                    'c' => [
+                                                        '100% x Biaya Bulanan x Bulan yang belum terpenuhi',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                        ],
+                                        'bordered' => true,
+                                        'head' => false,
+                                    ],
+                                ],
+                                [
+                                    'p' => 'Apabila 30 (Tiga puluh) hari sebelum jangka waktu dalam pasal  4 ayat 1 ini berakhir PIHAK KEDUA tidak melakukan pemberitahuan pengakhiran Layanan, maka Syarat dan Ketentuan Berlangganan akan otomatis berlanjut selama 1 (Satu) tahun (“Jangka Waktu Perpanjangan”). Pemberitahuan pengakhiran Berlangganan dihitung 30 (tiga puluh) hari sejak diterimanya pemberitahuan pengakhiran Layanan;',
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Pembayaran',
+                            'text' => 'PIHAK KEDUA wajib melakukan pembayaran atas Layanan sebagaimana dimaksud dalam Service Order Form;
+
+Pembayaran dilakukan oleh PIHAK KEDUA selambat–lambatnya pada tanggal sesuai dengan invoice yang diterbitkan atau selambat-lambatnya 7 (tujuh) hari dari tanggal invoice diterbitkan;
+
+Atas setiap keterlambatan pembayaran dari tanggal sebagaimana dimaksud dalam Pasal 5.2, maka PIHAK KEDUA dikenakan denda keterlambatan pembayaran sebesar 1 (satu) permil setiap hari keterlambatan;
+
+Apabila PIHAK KEDUA terlambat melakukan pembayaran 30 (tiga puluh) hari sejak invoice diterima oleh PIHAK KEDUA, maka PIHAK PERTAMA akan melakukan pemutusan sementara (isolir) layanan tanpa pemberitahuan terlebih dahulu kepada PIHAK KEDUA;
+
+Apabila PIHAK KEDUA melunasi biaya-biaya dalam pasal ini, maka PIHAK PERTAMA akan membuka pemutusan sementara (isolir) dalam waktu selambat-lambatnya 1 (satu) hari kerja;
+
+Semua Biaya bank yang timbul dalam pembayaran tagihan merupakan tanggung jawab PIHAK KEDUA;
+
+Seluruh pembayaran dianggap telah dilakukan PIHAK KEDUA setelah pembayaran diterima di rekening PIHAK PERTAMA, dengan detail sebagai berikut:
+
+Bank Mandiri
+
+Nomor Rekening	: 130-00-2010068-4
+
+Nama Rekening	: PT Bina Informatika Solusindo
+
+Bank Rakyat Indonesia (BRI)
+
+Nomor Rekening	: 1317-01-000039-30-8
+
+Nama Rekening	: PT Bina Informatika Solusindo
+
+Bank Central Asia (BCA)
+
+Nomor Rekening	: 008-3982-397
+
+Nama Rekening	: PT Bina Informatika Solusindo
+
+Bank Pembangunan Daerah Jawa Barat dan Banten (BJB)
+
+Nomor Rekening	: 012-1989-247-001
+
+Nama Rekening	: PT Bina Informatika Solusindo',
+                            'blocks' => [
+                                [
+                                    'p' => 'PIHAK KEDUA wajib melakukan pembayaran atas Layanan sebagaimana dimaksud dalam Service Order Form;',
+                                ],
+                                [
+                                    'p' => 'Pembayaran dilakukan oleh PIHAK KEDUA selambat–lambatnya pada tanggal sesuai dengan invoice yang diterbitkan atau selambat-lambatnya 7 (tujuh) hari dari tanggal invoice diterbitkan;',
+                                ],
+                                [
+                                    'p' => 'Atas setiap keterlambatan pembayaran dari tanggal sebagaimana dimaksud dalam Pasal 5.2, maka PIHAK KEDUA dikenakan denda keterlambatan pembayaran sebesar 1 (satu) permil setiap hari keterlambatan;',
+                                ],
+                                [
+                                    'p' => 'Apabila PIHAK KEDUA terlambat melakukan pembayaran 30 (tiga puluh) hari sejak invoice diterima oleh PIHAK KEDUA, maka PIHAK PERTAMA akan melakukan pemutusan sementara (isolir) layanan tanpa pemberitahuan terlebih dahulu kepada PIHAK KEDUA;',
+                                ],
+                                [
+                                    'p' => 'Apabila PIHAK KEDUA melunasi biaya-biaya dalam pasal ini, maka PIHAK PERTAMA akan membuka pemutusan sementara (isolir) dalam waktu selambat-lambatnya 1 (satu) hari kerja;',
+                                ],
+                                [
+                                    'p' => 'Semua Biaya bank yang timbul dalam pembayaran tagihan merupakan tanggung jawab PIHAK KEDUA;',
+                                ],
+                                [
+                                    'p' => 'Seluruh pembayaran dianggap telah dilakukan PIHAK KEDUA setelah pembayaran diterima di rekening PIHAK PERTAMA, dengan detail sebagai berikut:',
+                                ],
+                                [
+                                    'p' => 'Bank Mandiri',
+                                ],
+                                [
+                                    'p' => 'Nomor Rekening	: 130-00-2010068-4',
+                                ],
+                                [
+                                    'p' => 'Nama Rekening	: PT Bina Informatika Solusindo',
+                                ],
+                                [
+                                    'p' => 'Bank Rakyat Indonesia (BRI)',
+                                ],
+                                [
+                                    'p' => 'Nomor Rekening	: 1317-01-000039-30-8',
+                                ],
+                                [
+                                    'p' => 'Nama Rekening	: PT Bina Informatika Solusindo',
+                                ],
+                                [
+                                    'p' => 'Bank Central Asia (BCA)',
+                                ],
+                                [
+                                    'p' => 'Nomor Rekening	: 008-3982-397',
+                                ],
+                                [
+                                    'p' => 'Nama Rekening	: PT Bina Informatika Solusindo',
+                                ],
+                                [
+                                    'p' => 'Bank Pembangunan Daerah Jawa Barat dan Banten (BJB)',
+                                ],
+                                [
+                                    'p' => 'Nomor Rekening	: 012-1989-247-001',
+                                ],
+                                [
+                                    'p' => 'Nama Rekening	: PT Bina Informatika Solusindo',
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Hak dan Kewajiban',
+                            'text' => 'PIHAK KEDUA wajib menyediakan perangkat yang dibutuhkan, sehingga fasilitas dan pelayanan PIHAK PERTAMA dapat diaktivasikan sesuai jadwal yang telah disepakati bersama;
+
+PIHAK KEDUA tidak diperkenankan memberi kesempatan kepada pihak ketiga untuk memanfaatkan fasilitas dan pelayanan PIHAK PERTAMA tanpa izin tertulis dari PIHAK PERTAMA;
+
+PIHAK KEDUA tidak diperkenankan mengadakan perubahan terhadap spesifikasi teknis, konfigurasi, dan fasilitas layanan PIHAK PERTAMA, termasuk menghubungkannya ke dalam jaringan PIHAK PERTAMA dengan cara apapun, kecuali atas izin tertulis dari PIHAK PERTAMA;
+
+PIHAK KEDUA tidak diperkenankan untuk menghubungkan jaringan dan/atau fasilitas PIHAK PERTAMA dengan jaringan telekomunikasi umum (PSTN) termasuk namun tidak terbatas kepada jaringan telepon, teleks, atau komunikasi data;
+
+PIHAK KEDUA akan memberikan izin wilayah kepada PIHAK PERTAMA  untuk memasuki fasilitas dan/atau lokasi milik PIHAK KEDUA sehubungan dengan keperluan pemeliharaan dan perbaikan;
+
+PIHAK PERTAMA bertanggung jawab terhadap pemeliharaan dan perbaikan atas kerusakan atau gangguan pada saluran dan fasilitas milik PIHAK PERTAMA. Apabila kerusakan atau gangguan tersebut disebabkan oleh kesalahan, kesengajaan, atau kelalaian PIHAK KEDUA, maka PIHAK PERTAMA berhak memungut biaya perbaikan;
+
+PIHAK KEDUA berhak memperoleh restitusi atas kerusakan atau gangguan yang terbukti bukan disebabkan oleh PIHAK KEDUA. Kompensasi akan diberikan sesuai ketentuan yang berlaku (Jaminan Pelayanan-SLA) dan tidak berlaku untuk kerusakan atau gangguan yang disebabkan oleh perangkat milik PIHAK KEDUA atau Force Majeure;
+
+PIHAK PERTAMA tidak bertanggung jawab atas kebenaran, kerahasiaan dan atau kualitas informasi yang disalurkan melalui layanan PIHAK PERTAMA;
+
+PIHAK PERTAMA tidak bertanggung jawab atas kerugian tidak langsung, kerugian konsekuensial, kehilangan keuntungan, kehilangan data, kehilangan peluang usaha, atau tuntutan pihak ketiga yang timbul akibat penggunaan atau ketidakmampuan penggunaan layanan oleh PIHAK KEDUA, kecuali apabila kerugian tersebut secara langsung disebabkan oleh kesalahan atau kelalaian berat PIHAK PERTAMA.',
+                            'blocks' => [
+                                [
+                                    'p' => 'PIHAK KEDUA wajib menyediakan perangkat yang dibutuhkan, sehingga fasilitas dan pelayanan PIHAK PERTAMA dapat diaktivasikan sesuai jadwal yang telah disepakati bersama;',
+                                ],
+                                [
+                                    'p' => 'PIHAK KEDUA tidak diperkenankan memberi kesempatan kepada pihak ketiga untuk memanfaatkan fasilitas dan pelayanan PIHAK PERTAMA tanpa izin tertulis dari PIHAK PERTAMA;',
+                                ],
+                                [
+                                    'p' => 'PIHAK KEDUA tidak diperkenankan mengadakan perubahan terhadap spesifikasi teknis, konfigurasi, dan fasilitas layanan PIHAK PERTAMA, termasuk menghubungkannya ke dalam jaringan PIHAK PERTAMA dengan cara apapun, kecuali atas izin tertulis dari PIHAK PERTAMA;',
+                                ],
+                                [
+                                    'p' => 'PIHAK KEDUA tidak diperkenankan untuk menghubungkan jaringan dan/atau fasilitas PIHAK PERTAMA dengan jaringan telekomunikasi umum (PSTN) termasuk namun tidak terbatas kepada jaringan telepon, teleks, atau komunikasi data;',
+                                ],
+                                [
+                                    'p' => 'PIHAK KEDUA akan memberikan izin wilayah kepada PIHAK PERTAMA  untuk memasuki fasilitas dan/atau lokasi milik PIHAK KEDUA sehubungan dengan keperluan pemeliharaan dan perbaikan;',
+                                ],
+                                [
+                                    'p' => 'PIHAK PERTAMA bertanggung jawab terhadap pemeliharaan dan perbaikan atas kerusakan atau gangguan pada saluran dan fasilitas milik PIHAK PERTAMA. Apabila kerusakan atau gangguan tersebut disebabkan oleh kesalahan, kesengajaan, atau kelalaian PIHAK KEDUA, maka PIHAK PERTAMA berhak memungut biaya perbaikan;',
+                                ],
+                                [
+                                    'p' => 'PIHAK KEDUA berhak memperoleh restitusi atas kerusakan atau gangguan yang terbukti bukan disebabkan oleh PIHAK KEDUA. Kompensasi akan diberikan sesuai ketentuan yang berlaku (Jaminan Pelayanan-SLA) dan tidak berlaku untuk kerusakan atau gangguan yang disebabkan oleh perangkat milik PIHAK KEDUA atau Force Majeure;',
+                                ],
+                                [
+                                    'p' => 'PIHAK PERTAMA tidak bertanggung jawab atas kebenaran, kerahasiaan dan atau kualitas informasi yang disalurkan melalui layanan PIHAK PERTAMA;',
+                                ],
+                                [
+                                    'p' => 'PIHAK PERTAMA tidak bertanggung jawab atas kerugian tidak langsung, kerugian konsekuensial, kehilangan keuntungan, kehilangan data, kehilangan peluang usaha, atau tuntutan pihak ketiga yang timbul akibat penggunaan atau ketidakmampuan penggunaan layanan oleh PIHAK KEDUA, kecuali apabila kerugian tersebut secara langsung disebabkan oleh kesalahan atau kelalaian berat PIHAK PERTAMA.',
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Pembatalan',
+                            'text' => 'Jika PIHAK KEDUA membatalkan layanan yang telah disepakati dalam Service Order Form sebelum dan atau sesudah aktivasi sebagaimana dimaksud dalam Service Order Form atau Berita Acara, maka PIHAK KEDUA diwajibkan melakukan pelunasan atas Biaya Instalasi',
+                            'blocks' => [
+                                [
+                                    'p' => 'Jika PIHAK KEDUA membatalkan layanan yang telah disepakati dalam Service Order Form sebelum dan atau sesudah aktivasi sebagaimana dimaksud dalam Service Order Form atau Berita Acara, maka PIHAK KEDUA diwajibkan melakukan pelunasan atas Biaya Instalasi',
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Perpindahan dan Pengalihan',
+                            'text' => 'PIHAK KEDUA dapat meminta perpindahan lokasi fasilitas PIHAK PERTAMA serta penambahan kapasitas sepanjang teknis memungkinkan. Segala biaya yang timbul akibat perpindahan lokasi serta penambahan kapasitas tersebut akan dibebankan kepada PIHAK KEDUA; dan
+
+Pemindahan fasilitas PIHAK PERTAMA yang telah terpasang ke lokasi lainnya akan diperlakukan sebagai sambungan baru. Biaya berlangganan akan disesuaikan dengan penambahan kapasitas terpasang.',
+                            'blocks' => [
+                                [
+                                    'p' => 'PIHAK KEDUA dapat meminta perpindahan lokasi fasilitas PIHAK PERTAMA serta penambahan kapasitas sepanjang teknis memungkinkan. Segala biaya yang timbul akibat perpindahan lokasi serta penambahan kapasitas tersebut akan dibebankan kepada PIHAK KEDUA; dan',
+                                ],
+                                [
+                                    'p' => 'Pemindahan fasilitas PIHAK PERTAMA yang telah terpasang ke lokasi lainnya akan diperlakukan sebagai sambungan baru. Biaya berlangganan akan disesuaikan dengan penambahan kapasitas terpasang.',
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Pembatalan Perjanjian dengan Alasan',
+                            'text' => 'PIHAK PERTAMA tidak dapat dianggap melakukan wanprestasi dan dibebaskan dari segala tanggung jawab atas kegagalan penyediaan Jasa yang disebabkan oleh tindakan, kelalaian, kesalahan, gangguan sistem, kegagalan perangkat keras (hardware), perangkat lunak (software), jaringan internal, sumber daya manusia, maupun sebab lainnya yang berasal dari PIHAK KEDUA atau pihak yang berada di bawah kendali PIHAK KEDUA;
+
+Apabila terjadi pelanggaran kewajiban dari PIHAK KEDUA yang mengakibatkan pembatalan perjanjian ini, maka PIHAK KEDUA wajib membayar penggunaan internet sampai dengan bulan terakhir pembatalan kontrak;
+
+Apabila salah satu pihak mengalami kegagalan keuangan atau berhenti beroperasi maka hal ini dapat menjadi penyebab pembatalan, dimana salah satu pihak atau lainnya dapat membatalkan perjanjian ini dengan melakukan pemberitahuan secara tertulis. Namun pihak yang mengalami keadaan insolven, kegagalan keuangan atau berhenti beroperasi tersebut tetap harus melaksanakan segala kewajiban hingga tanggal pemutusan kontrak berdasarkan peraturan perundang-undangan yang berlaku, termasuk akan tetapi tidak terbatas pada, Undang-undang Nomor 37 Tahun 2004 tentang Kepailitan dan Penundaan Kewajiban Pembayaran Utang;
+
+Apabila PIHAK PERTAMA gagal untuk menyediakan Jasa atau gagal mencapai SLA sebagaimana diuraikan pada Lampiran B, maka akan berlaku ketentuan denda sebagai berikut:
+
+Atas setiap akumulasi selama periode 30 hari kegagalan penyediaan Jasa, PIHAK PERTAMA akan memberikan potongan biaya Jasa secara prorata atas kegagalan penyediaan Jasa sesuai dengan skema restitusi yang dijelaskan dalam Lampiran B; dan
+
+Dalam hal pihak PIHAK PERTAMA gagal memenuhi minimum SLA sebesar 99.5% dalam jangka waktu sebulan berdasarkan pada laporan dan pembuktian, maka PIHAK KEDUA wajib memberikan teguran sebanyak 3 (tiga) kali secara berturut-turut dan jika tidak ada penyelesaian dari PIHAK PERTAMA, maka PIHAK KEDUA berhak memutuskan kontrak dan wajib membayar seluruh kewajiban sampai tanggal pemutusan kontrak.
+
+Apabila setelah 3 (tiga) surat teguran berturut-turut PIHAK PERTAMA tetap gagal memenuhi SLA sebagaimana diatur dalam Lampiran B, PIHAK KEDUA berhak mengakhiri Perjanjian tanpa dikenakan penalti terminasi dini. Namun PIHAK KEDUA tetap wajib melunasi seluruh tagihan yang telah jatuh tempo sampai dengan tanggal efektif pengakhiran layanan.',
+                            'blocks' => [
+                                [
+                                    'p' => 'PIHAK PERTAMA tidak dapat dianggap melakukan wanprestasi dan dibebaskan dari segala tanggung jawab atas kegagalan penyediaan Jasa yang disebabkan oleh tindakan, kelalaian, kesalahan, gangguan sistem, kegagalan perangkat keras (hardware), perangkat lunak (software), jaringan internal, sumber daya manusia, maupun sebab lainnya yang berasal dari PIHAK KEDUA atau pihak yang berada di bawah kendali PIHAK KEDUA;',
+                                ],
+                                [
+                                    'p' => 'Apabila terjadi pelanggaran kewajiban dari PIHAK KEDUA yang mengakibatkan pembatalan perjanjian ini, maka PIHAK KEDUA wajib membayar penggunaan internet sampai dengan bulan terakhir pembatalan kontrak;',
+                                ],
+                                [
+                                    'p' => 'Apabila salah satu pihak mengalami kegagalan keuangan atau berhenti beroperasi maka hal ini dapat menjadi penyebab pembatalan, dimana salah satu pihak atau lainnya dapat membatalkan perjanjian ini dengan melakukan pemberitahuan secara tertulis. Namun pihak yang mengalami keadaan insolven, kegagalan keuangan atau berhenti beroperasi tersebut tetap harus melaksanakan segala kewajiban hingga tanggal pemutusan kontrak berdasarkan peraturan perundang-undangan yang berlaku, termasuk akan tetapi tidak terbatas pada, Undang-undang Nomor 37 Tahun 2004 tentang Kepailitan dan Penundaan Kewajiban Pembayaran Utang;',
+                                ],
+                                [
+                                    'p' => 'Apabila PIHAK PERTAMA gagal untuk menyediakan Jasa atau gagal mencapai SLA sebagaimana diuraikan pada Lampiran B, maka akan berlaku ketentuan denda sebagai berikut:',
+                                ],
+                                [
+                                    'p' => 'Atas setiap akumulasi selama periode 30 hari kegagalan penyediaan Jasa, PIHAK PERTAMA akan memberikan potongan biaya Jasa secara prorata atas kegagalan penyediaan Jasa sesuai dengan skema restitusi yang dijelaskan dalam Lampiran B; dan',
+                                ],
+                                [
+                                    'p' => 'Dalam hal pihak PIHAK PERTAMA gagal memenuhi minimum SLA sebesar 99.5% dalam jangka waktu sebulan berdasarkan pada laporan dan pembuktian, maka PIHAK KEDUA wajib memberikan teguran sebanyak 3 (tiga) kali secara berturut-turut dan jika tidak ada penyelesaian dari PIHAK PERTAMA, maka PIHAK KEDUA berhak memutuskan kontrak dan wajib membayar seluruh kewajiban sampai tanggal pemutusan kontrak.',
+                                ],
+                                [
+                                    'p' => 'Apabila setelah 3 (tiga) surat teguran berturut-turut PIHAK PERTAMA tetap gagal memenuhi SLA sebagaimana diatur dalam Lampiran B, PIHAK KEDUA berhak mengakhiri Perjanjian tanpa dikenakan penalti terminasi dini. Namun PIHAK KEDUA tetap wajib melunasi seluruh tagihan yang telah jatuh tempo sampai dengan tanggal efektif pengakhiran layanan.',
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Pembatalan Perjanjian Tanpa Alasan',
+                            'text' => 'Para Pihak dapat membatalkan Perjanjian tanpa alasan dengan pemberitahuan tertulis dimuka dengan ketentuan sebagai berikut:
+
+Jika PIHAK PERTAMA membatalkan Perjanjian, maka PIHAK PERTAMA akan memberitahukan 30 hari dimuka; dan
+
+Jika PIHAK KEDUA membatalkan Perjanjian, maka PIHAK KEDUA akan memberitahukan 30 hari dimuka.
+
+Jika PIHAK KEDUA membatalkan Perjanjian tanpa alasan, PIHAK KEDUA wajib membayar PIHAK PERTAMA atas seluruh biaya bulan berjalan di bulan terjadinya pembatalan hingga tanggal jatuh tempo perjanjian;
+
+Dalam hal PIHAK PERTAMA mengakhiri Perjanjian tanpa alasan yang sah, PIHAK PERTAMA wajib memberikan pemberitahuan tertulis sekurang-kurangnya 30 (tiga puluh) hari kalender sebelumnya dan tetap memberikan layanan sampai dengan tanggal efektif pengakhiran. Kewajiban PIHAK PERTAMA terbatas pada pengembalian biaya layanan yang telah dibayar di muka untuk periode yang belum digunakan.',
+                            'blocks' => [
+                                [
+                                    'p' => 'Para Pihak dapat membatalkan Perjanjian tanpa alasan dengan pemberitahuan tertulis dimuka dengan ketentuan sebagai berikut:',
+                                ],
+                                [
+                                    'p' => 'Jika PIHAK PERTAMA membatalkan Perjanjian, maka PIHAK PERTAMA akan memberitahukan 30 hari dimuka; dan',
+                                ],
+                                [
+                                    'p' => 'Jika PIHAK KEDUA membatalkan Perjanjian, maka PIHAK KEDUA akan memberitahukan 30 hari dimuka.',
+                                ],
+                                [
+                                    'p' => 'Jika PIHAK KEDUA membatalkan Perjanjian tanpa alasan, PIHAK KEDUA wajib membayar PIHAK PERTAMA atas seluruh biaya bulan berjalan di bulan terjadinya pembatalan hingga tanggal jatuh tempo perjanjian;',
+                                ],
+                                [
+                                    'p' => 'Dalam hal PIHAK PERTAMA mengakhiri Perjanjian tanpa alasan yang sah, PIHAK PERTAMA wajib memberikan pemberitahuan tertulis sekurang-kurangnya 30 (tiga puluh) hari kalender sebelumnya dan tetap memberikan layanan sampai dengan tanggal efektif pengakhiran. Kewajiban PIHAK PERTAMA terbatas pada pengembalian biaya layanan yang telah dibayar di muka untuk periode yang belum digunakan.',
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Ketentuan Perubahan',
+                            'text' => 'Selama masa berlakunya Perjanjian, salah satu pihak dapat mengajukan usulan perubahan Perjanjian dengan mengajukan usulan secara tertulis kepada pihak lainnya;
+
+Dalam jangka waktu 30 hari setelah menerima pemberitahuan tertulis mengenai usulan perubahan dari PIHAK KEDUA, PIHAK PERTAMA akan memberitahu PIHAK KEDUA apakah perubahan dapat dilaksanakan atau tidak. Apabila perubahan tersebut dapat dilaksanakan, maka PIHAK PERTAMA berhak mengajukan perubahan atas biaya Jasa dan ketentuan lainnya dari Perjanjian ini;
+
+PIHAK KEDUA dapat mengajukan usulan upgrade dan downgrade layanan selama masa berlakunya perjanjian melalui pemberitahuan tertulis 30 hari sebelumnya;
+
+Permohonan downgrade layanan yang diajukan sebelum berakhirnya Masa Berlangganan Minimum sebagaimana ditentukan dalam Service Order Form atau Lampiran Perjanjian ini akan dianggap sebagai pengakhiran sebagian layanan dan dikenakan penalti sebesar (100% x biaya layanan perbulan x Bulan yang belum terpenuhi);
+
+Selama masa berlakunya Perjanjian ini Pihak Kedua tidak bisa mengajukan perubahan biaya layanan yang berjalan sampai dengan masa kontrak Perjanjian ini berakhir. Terkecuali adanya permohonan upgrade layanan;',
+                            'blocks' => [
+                                [
+                                    'p' => 'Selama masa berlakunya Perjanjian, salah satu pihak dapat mengajukan usulan perubahan Perjanjian dengan mengajukan usulan secara tertulis kepada pihak lainnya;',
+                                ],
+                                [
+                                    'p' => 'Dalam jangka waktu 30 hari setelah menerima pemberitahuan tertulis mengenai usulan perubahan dari PIHAK KEDUA, PIHAK PERTAMA akan memberitahu PIHAK KEDUA apakah perubahan dapat dilaksanakan atau tidak. Apabila perubahan tersebut dapat dilaksanakan, maka PIHAK PERTAMA berhak mengajukan perubahan atas biaya Jasa dan ketentuan lainnya dari Perjanjian ini;',
+                                ],
+                                [
+                                    'p' => 'PIHAK KEDUA dapat mengajukan usulan upgrade dan downgrade layanan selama masa berlakunya perjanjian melalui pemberitahuan tertulis 30 hari sebelumnya;',
+                                ],
+                                [
+                                    'p' => 'Permohonan downgrade layanan yang diajukan sebelum berakhirnya Masa Berlangganan Minimum sebagaimana ditentukan dalam Service Order Form atau Lampiran Perjanjian ini akan dianggap sebagai pengakhiran sebagian layanan dan dikenakan penalti sebesar (100% x biaya layanan perbulan x Bulan yang belum terpenuhi);',
+                                ],
+                                [
+                                    'p' => 'Selama masa berlakunya Perjanjian ini Pihak Kedua tidak bisa mengajukan perubahan biaya layanan yang berjalan sampai dengan masa kontrak Perjanjian ini berakhir. Terkecuali adanya permohonan upgrade layanan;',
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Force Majeure',
+                            'text' => 'Keadaan Memaksa (Force Majeure) adalah setiap peristiwa di luar kendali dan kemampuan wajar PARA PIHAK yang secara langsung mengakibatkan sebagian atau seluruh kewajiban dalam Perjanjian ini tidak dapat dilaksanakan, termasuk namun tidak terbatas pada bencana alam, kebakaran, perang, kerusuhan, wabah penyakit, pemogokan, gangguan jaringan berskala besar, kegagalan sistem di luar kendali PARA PIHAK, kebijakan Pemerintah, atau peristiwa lain yang sejenis.
+
+PIHAK yang mengalami Keadaan Memaksa wajib memberitahukan secara tertulis kepada pihak lainnya paling lambat 14 (empat belas) Hari Kalender sejak diketahui atau seharusnya diketahui terjadinya Keadaan Memaksa, disertai penjelasan mengenai dampak terhadap pelaksanaan Perjanjian.
+
+Selama Keadaan Memaksa berlangsung, kewajiban PARA PIHAK yang terdampak ditangguhkan sepanjang tidak dapat dilaksanakan akibat Keadaan Memaksa. Penangguhan tersebut tidak menghapus kewajiban yang telah timbul sebelum terjadinya Keadaan Memaksa.
+
+PARA PIHAK wajib melakukan upaya yang wajar untuk mengurangi dampak Keadaan Memaksa dan melanjutkan pelaksanaan Perjanjian segera setelah keadaan tersebut berakhir.
+
+Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender secara berturut-turut dan PARA PIHAK tidak mencapai kesepakatan mengenai kelanjutan Perjanjian, masing-masing pihak berhak mengakhiri Perjanjian dengan pemberitahuan tertulis tanpa dikenakan penalti, dengan tetap menyelesaikan seluruh hak dan kewajiban yang telah timbul sebelum tanggal efektif pengakhiran.',
+                            'blocks' => [
+                                [
+                                    'p' => 'Keadaan Memaksa (Force Majeure) adalah setiap peristiwa di luar kendali dan kemampuan wajar PARA PIHAK yang secara langsung mengakibatkan sebagian atau seluruh kewajiban dalam Perjanjian ini tidak dapat dilaksanakan, termasuk namun tidak terbatas pada bencana alam, kebakaran, perang, kerusuhan, wabah penyakit, pemogokan, gangguan jaringan berskala besar, kegagalan sistem di luar kendali PARA PIHAK, kebijakan Pemerintah, atau peristiwa lain yang sejenis.',
+                                ],
+                                [
+                                    'p' => 'PIHAK yang mengalami Keadaan Memaksa wajib memberitahukan secara tertulis kepada pihak lainnya paling lambat 14 (empat belas) Hari Kalender sejak diketahui atau seharusnya diketahui terjadinya Keadaan Memaksa, disertai penjelasan mengenai dampak terhadap pelaksanaan Perjanjian.',
+                                ],
+                                [
+                                    'p' => 'Selama Keadaan Memaksa berlangsung, kewajiban PARA PIHAK yang terdampak ditangguhkan sepanjang tidak dapat dilaksanakan akibat Keadaan Memaksa. Penangguhan tersebut tidak menghapus kewajiban yang telah timbul sebelum terjadinya Keadaan Memaksa.',
+                                ],
+                                [
+                                    'p' => 'PARA PIHAK wajib melakukan upaya yang wajar untuk mengurangi dampak Keadaan Memaksa dan melanjutkan pelaksanaan Perjanjian segera setelah keadaan tersebut berakhir.',
+                                ],
+                                [
+                                    'p' => 'Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender secara berturut-turut dan PARA PIHAK tidak mencapai kesepakatan mengenai kelanjutan Perjanjian, masing-masing pihak berhak mengakhiri Perjanjian dengan pemberitahuan tertulis tanpa dikenakan penalti, dengan tetap menyelesaikan seluruh hak dan kewajiban yang telah timbul sebelum tanggal efektif pengakhiran.',
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Penyelesaian Sengketa',
+                            'text' => 'PARA PIHAK sepakat bahwa Perjanjian ini dibuat dan dilaksanakan berdasarkan prinsip itikad baik, saling menguntungkan, serta tunduk pada ketentuan peraturan perundang-undangan yang berlaku di Republik Indonesia;
+
+Apabila timbul perselisihan, perbedaan penafsiran, atau sengketa yang berkaitan dengan pelaksanaan, pelanggaran, pengakhiran, maupun keabsahan Perjanjian ini, PARA PIHAK sepakat untuk terlebih dahulu menyelesaikannya secara musyawarah untuk mufakat dalam jangka waktu paling lama 30 (tiga puluh) hari kalender sejak salah satu pihak menyampaikan pemberitahuan tertulis mengenai adanya sengketa;
+
+Dalam hal musyawarah sebagaimana dimaksud pada ayat (2) tidak mencapai kesepakatan dalam jangka waktu tersebut, PARA PIHAK sepakat untuk menyelesaikan sengketa melalui Pengadilan Negeri Bandung, tanpa mengurangi hak PIHAK PERTAMA untuk melakukan upaya penagihan, pemutusan layanan, atau tindakan hukum lainnya sesuai ketentuan Perjanjian ini;
+
+Selama proses penyelesaian sengketa berlangsung, PARA PIHAK tetap berkewajiban melaksanakan bagian-bagian Perjanjian yang tidak dipersengketakan;
+
+PARA PIHAK sepakat bahwa pengajuan keberatan, klaim, atau sengketa oleh PIHAK KEDUA tidak menghapus, menangguhkan, atau mengurangi kewajiban PIHAK KEDUA untuk melakukan pembayaran atas tagihan yang telah jatuh tempo berdasarkan Perjanjian ini.',
+                            'blocks' => [
+                                [
+                                    'p' => 'PARA PIHAK sepakat bahwa Perjanjian ini dibuat dan dilaksanakan berdasarkan prinsip itikad baik, saling menguntungkan, serta tunduk pada ketentuan peraturan perundang-undangan yang berlaku di Republik Indonesia;',
+                                ],
+                                [
+                                    'p' => 'Apabila timbul perselisihan, perbedaan penafsiran, atau sengketa yang berkaitan dengan pelaksanaan, pelanggaran, pengakhiran, maupun keabsahan Perjanjian ini, PARA PIHAK sepakat untuk terlebih dahulu menyelesaikannya secara musyawarah untuk mufakat dalam jangka waktu paling lama 30 (tiga puluh) hari kalender sejak salah satu pihak menyampaikan pemberitahuan tertulis mengenai adanya sengketa;',
+                                ],
+                                [
+                                    'p' => 'Dalam hal musyawarah sebagaimana dimaksud pada ayat (2) tidak mencapai kesepakatan dalam jangka waktu tersebut, PARA PIHAK sepakat untuk menyelesaikan sengketa melalui Pengadilan Negeri Bandung, tanpa mengurangi hak PIHAK PERTAMA untuk melakukan upaya penagihan, pemutusan layanan, atau tindakan hukum lainnya sesuai ketentuan Perjanjian ini;',
+                                ],
+                                [
+                                    'p' => 'Selama proses penyelesaian sengketa berlangsung, PARA PIHAK tetap berkewajiban melaksanakan bagian-bagian Perjanjian yang tidak dipersengketakan;',
+                                ],
+                                [
+                                    'p' => 'PARA PIHAK sepakat bahwa pengajuan keberatan, klaim, atau sengketa oleh PIHAK KEDUA tidak menghapus, menangguhkan, atau mengurangi kewajiban PIHAK KEDUA untuk melakukan pembayaran atas tagihan yang telah jatuh tempo berdasarkan Perjanjian ini.',
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'Lain-Lain',
+                            'text' => 'Setiap perubahan, penambahan, pengurangan, atau penyesuaian terhadap ketentuan dalam Perjanjian ini hanya sah dan mengikat apabila dibuat secara tertulis serta disepakati dan ditandatangani oleh PARA PIHAK dalam bentuk Addendum dan/atau Amandemen yang menjadi bagian yang tidak terpisahkan dari Perjanjian ini;
+
+Seluruh Lampiran dalam Perjanjian ini merupakan satu kesatuan yang tidak terpisahkan dan mempunyai kekuatan hukum yang sama dengan Perjanjian ini;
+
+PARA PIHAK sepakat dan setuju untuk mengesampikan berlakunya Pasal 1266 KUHPerdata, sehingga Pemutusan Perjanjian ini dapat dilakukan oleh PARA PIHAK tanpa terlebih dahulu menunggu Putusan Pengadilan
+
+Para pihak menjamin bahwa penandatangan Perjanjian ini dan/atau Lampiran-Lampirannya adalah pihak yang sah dan berwenang secara hukum untuk mengikatkan diri dan/atau mewakili perusahaan masing-masing, baik berdasarkan anggaran dasar, keputusan organ perusahaan yang berwenang, maupun surat kuasa yang sah;
+
+Perjanjian ini dibuat dan ditandatangani dalam rangkap 2 (dua) asli, masing-masing bermeterai cukup dan mempunyai kekuatan hukum yang sama. Perjanjian ini dibuat dengan itikad baik untuk dilaksanakan oleh PARA PIHAK. Dalam hal ditandatangani secara elektronik, PARA PIHAK sepakat bahwa dokumen elektronik memiliki kekuatan hukum yang sah sesuai peraturan perundang-undangan yang berlaku.',
+                            'blocks' => [
+                                [
+                                    'p' => 'Setiap perubahan, penambahan, pengurangan, atau penyesuaian terhadap ketentuan dalam Perjanjian ini hanya sah dan mengikat apabila dibuat secara tertulis serta disepakati dan ditandatangani oleh PARA PIHAK dalam bentuk Addendum dan/atau Amandemen yang menjadi bagian yang tidak terpisahkan dari Perjanjian ini;',
+                                ],
+                                [
+                                    'p' => 'Seluruh Lampiran dalam Perjanjian ini merupakan satu kesatuan yang tidak terpisahkan dan mempunyai kekuatan hukum yang sama dengan Perjanjian ini;',
+                                ],
+                                [
+                                    'p' => 'PARA PIHAK sepakat dan setuju untuk mengesampikan berlakunya Pasal 1266 KUHPerdata, sehingga Pemutusan Perjanjian ini dapat dilakukan oleh PARA PIHAK tanpa terlebih dahulu menunggu Putusan Pengadilan',
+                                ],
+                                [
+                                    'p' => 'Para pihak menjamin bahwa penandatangan Perjanjian ini dan/atau Lampiran-Lampirannya adalah pihak yang sah dan berwenang secara hukum untuk mengikatkan diri dan/atau mewakili perusahaan masing-masing, baik berdasarkan anggaran dasar, keputusan organ perusahaan yang berwenang, maupun surat kuasa yang sah;',
+                                ],
+                                [
+                                    'p' => 'Perjanjian ini dibuat dan ditandatangani dalam rangkap 2 (dua) asli, masing-masing bermeterai cukup dan mempunyai kekuatan hukum yang sama. Perjanjian ini dibuat dengan itikad baik untuk dilaksanakan oleh PARA PIHAK. Dalam hal ditandatangani secara elektronik, PARA PIHAK sepakat bahwa dokumen elektronik memiliki kekuatan hukum yang sah sesuai peraturan perundang-undangan yang berlaku.',
+                                ],
+                            ],
+                        ],
+                    ],
+                    'tutup' => 'PIHAK PERTAMA
+
+PT Bina Informatika Solusindo
+
+PIHAK KEDUA
+
+[PIHAK KEDUA]
+
+Ageng Bagja Priyadi, S.T.,M.Kom
+
+Direktur
+
+Wildan Arief Santika Budi
+
+Direktur Utama',
+                    'tutupBlocks' => [
+                        [
+                            'table' => [
+                                'rows' => [
+                                    [
+                                        [
+                                            'c' => [
+                                                'PIHAK PERTAMA',
+                                                'PT Bina Informatika Solusindo',
+                                            ],
+                                            's' => 1,
+                                            'v' => null,
+                                        ],
+                                        [
+                                            'c' => [
+                                                'PIHAK KEDUA',
+                                                '[PIHAK KEDUA]',
+                                            ],
+                                            's' => 1,
+                                            'v' => null,
+                                        ],
+                                    ],
+                                    [
+                                        [
+                                            'c' => [
+                                                'Ageng Bagja Priyadi, S.T.,M.Kom',
+                                                'Direktur',
+                                            ],
+                                            's' => 1,
+                                            'v' => null,
+                                        ],
+                                        [
+                                            'c' => [
+                                                'Wildan Arief Santika Budi',
+                                                'Direktur Utama',
+                                            ],
+                                            's' => 1,
+                                            'v' => null,
+                                        ],
+                                    ],
+                                ],
+                                'bordered' => false,
+                                'head' => true,
+                            ],
+                        ],
+                    ],
+                    'lampiran' => [
+                        [
+                            'judul' => 'LAMPIRAN A',
+                            'text' => '',
+                            'blocks' => [
+                                [
+                                    'table' => [
+                                        'rows' => [
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Nomor Perjanjian Berlangganan',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        '[Nomor Perjanjian]',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Tanggal Awal Berlangganan',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        '1 April 2026',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Tanggal Akhir Berlangganan',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        '31 Maret 2027',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Nama dan Alamat Pelanggan',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        '[PIHAK KEDUA]',
+                                                        'Jl. Cetarip Barat (Cetarip raya) No. 15/200 Rt 05 Rw 10, Kopo, Kota Bandung',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'NPWP',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        '95.536.317.1-422.000',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Nomor Telepon Pelanggan /',
+                                                        'Penanggungjawab',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        '0889-9999-0707',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Nomor Handphone Pelanggan /',
+                                                        'Penanggungjawab',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        '0811-2236-799',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Nama Penanggungjawab Administrasi/Keuangan',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        'Wenni Kartina Pelita',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Nama Penanggungjawab Teknisi',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        'Firman Syahruman',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Jenis Layanan',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        'Meta Content 3 (tiga) Gbps',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Biaya Layanan',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        'Rp9,000,000,- (Perbulan)',
+                                                        'Belum termasuk PPN',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Biaya Instalasi',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                                [
+                                                    'c' => [
+                                                        '-',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                        ],
+                                        'bordered' => true,
+                                        'head' => false,
+                                    ],
+                                ],
+                            ],
+                        ],
+                        [
+                            'judul' => 'LAMPIRAN B',
+                            'text' => 'SLA = 99.5%
+
+Catatan :
+
+PIHAK PERTAMA tidak bertanggung jawab atas ketersediaan dari infrastruktur LAN (Local Area Network) sebagai dari Perjanjian ini. Target Availability terkait dengan sambungan internet dari sisi pemancar PIHAK PERTAMA hingga sisi PIHAK KEDUA dan koneksi fisik dari Ethernet port perangkat PIHAK PERTAMA hingga ke PIHAK KEDUA tapi tidak termasuk Ethernet port disisi PC maupun server PIHAK KEDUA.
+
+Downtime yang diperhitungkan tidak termasuk perawatan rutin.
+
+FORMULA PERHITUNGAN
+
+PIHAK PERTAMA memberikan jaminan Layanan yang tercantum dalam Service Order Form dengan rumusan sebagai berikut:
+
+Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, maka akan berlaku rumusan Restitusi sebagai berikut:',
+                            'blocks' => [
+                                [
+                                    'p' => 'SLA = 99.5%',
+                                ],
+                                [
+                                    'p' => 'Catatan :',
+                                ],
+                                [
+                                    'p' => 'PIHAK PERTAMA tidak bertanggung jawab atas ketersediaan dari infrastruktur LAN (Local Area Network) sebagai dari Perjanjian ini. Target Availability terkait dengan sambungan internet dari sisi pemancar PIHAK PERTAMA hingga sisi PIHAK KEDUA dan koneksi fisik dari Ethernet port perangkat PIHAK PERTAMA hingga ke PIHAK KEDUA tapi tidak termasuk Ethernet port disisi PC maupun server PIHAK KEDUA.',
+                                ],
+                                [
+                                    'p' => 'Downtime yang diperhitungkan tidak termasuk perawatan rutin.',
+                                ],
+                                [
+                                    'p' => 'FORMULA PERHITUNGAN',
+                                ],
+                                [
+                                    'p' => 'PIHAK PERTAMA memberikan jaminan Layanan yang tercantum dalam Service Order Form dengan rumusan sebagai berikut:',
+                                ],
+                                [
+                                    'table' => [
+                                        'rows' => [
+                                            [
+                                                [
+                                                    'c' => [
+                                                        'Service Level Guarantee(%): (usage minutes per month – down time) x 100',
+                                                        'Total minutes per month',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                        ],
+                                        'bordered' => true,
+                                        'head' => false,
+                                    ],
+                                ],
+                                [
+                                    'p' => 'Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, maka akan berlaku rumusan Restitusi sebagai berikut:',
+                                ],
+                                [
+                                    'table' => [
+                                        'rows' => [
+                                            [
+                                                [
+                                                    'c' => [
+                                                        '[Agreed Service Level – Actual Service Level] x Monthly Cost.',
+                                                    ],
+                                                    's' => 1,
+                                                    'v' => null,
+                                                ],
+                                            ],
+                                        ],
+                                        'bordered' => true,
+                                        'head' => false,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+                'source_layout' => [
+                    'page_count' => 11,
+                    'paper' => 'A4',
+                    'source' => 'PDF sumber',
+                    'cover_page' => 1,
+                    'appendix_pages' => [
+                        10,
+                        11,
+                    ],
+                    'section_pages' => [
+                        'Definisi' => [
+                            2,
+                        ],
+                        'Fasilitas PIHAK PERTAMA' => [
+                            3,
+                        ],
+                        'Aktivasi Layanan' => [
+                            3,
+                        ],
+                        'Jangka Waktu Berlangganan' => [
+                            3,
+                        ],
+                        'Pembayaran' => [
+                            3,
+                            4,
+                        ],
+                        'Hak dan Kewajiban' => [
+                            4,
+                            5,
+                        ],
+                        'Pembatalan' => [
+                            5,
+                        ],
+                        'Perpindahan dan Pengalihan' => [
+                            5,
+                        ],
+                        'Pembatalan Perjanjian dengan Alasan' => [
+                            5,
+                            6,
+                        ],
+                        'Pembatalan Perjanjian Tanpa Alasan' => [
+                            6,
+                            7,
+                        ],
+                        'Ketentuan Perubahan' => [
+                            7,
+                        ],
+                        'Force Majeure' => [
+                            7,
+                            8,
+                        ],
+                        'Penyelesaian Sengketa' => [
+                            8,
+                        ],
+                        'Lain-Lain' => [
+                            8,
+                            9,
                         ],
                     ],
                     'rules' => [
