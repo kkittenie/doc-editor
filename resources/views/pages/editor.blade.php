@@ -25,6 +25,11 @@
                         Dokumen #{{ $document->id }}
                     </p>
                 </div>
+
+                {{-- DROPDOWN INFO KONTRAK: pengingat detail kontrak + data
+                     barang/service yang tidak lagi terlihat di Tabel Pelanggan
+                     setelah status kontrak naik ke On Progress. --}}
+                @include('partials.editor.contract-info')
             </div>
 
             {{-- RIGHT --}}
@@ -333,6 +338,13 @@
 
 @push('styles')
 <style>
+    /* Alpine: sembunyikan elemen ber-x-cloak sebelum Alpine selesai init,
+       supaya chip sesi edit & panel Info Kontrak tidak berkedip saat halaman
+       dibuka (sebelumnya x-cloak dipakai tanpa rule CSS). */
+    [x-cloak] {
+        display: none !important;
+    }
+
     body.editor-readonly .doc-sheet,
     body.editor-readonly .doc-sheet * {
         pointer-events: none;
@@ -1456,6 +1468,11 @@
             footerHtml: @js($footerHtml ?? $document -> footer_data['content'] ?? ''),
 
             editSection: null,
+
+            // Panel "Info Kontrak" (dropdown di topbar) & tab data yang aktif.
+            // Isinya sudah dirender server lewat partials/editor/contract-info.
+            showContractInfo: false,
+            contractTab: 'barang',
 
             saveStatus: 'saved',
             changed: false,

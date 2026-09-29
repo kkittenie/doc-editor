@@ -440,3 +440,82 @@ test('membuka editor menormalkan lompatan nomor pasal (PASAL 1 lalu 15 jadi 1,2)
     // kemitraan: 18 pasal; heading lompat (…,2,15,…) harus kembali …,2,3,…
     expect(array_map('intval', $m[1]))->toBe(range(1, 18));
 });
+
+test('editor menampilkan dropdown info kontrak beserta data barang dan service', function () {
+    seedContractCustomer($this->customer);
+
+    $this->actingAs($this->user)
+        ->post(route('documents.store'), contractPayload($this->customer));
+
+    $document = Document::firstOrFail();
+
+    $this->actingAs($this->user)
+        ->get(route('documents.edit', $document))
+        ->assertOk()
+        // Pemicu + state Alpine panel.
+        ->assertSee('Info Kontrak')
+        ->assertSee('showContractInfo', false)
+        ->assertSee("contractTab: 'barang'", false)
+        // Detail kontrak: nomor, pelanggan, periode, template.
+        ->assertSee('KTR/001/IX/2026')
+        ->assertSee('PT Uji Coba')
+        ->assertSee('081234567890')
+        ->assertSee('01 Sep 2026')
+        ->assertSee('3 bulan')
+        ->assertSee('01 Dec 2026')
+        ->assertSee('Kontrak Kemitraan')
+        // Barang/service (salinan dokumen) + total terformat.
+        ->assertSee('Router Mikrotik')
+        ->assertSee('Internet Dedicated 100 Mbps')
+        ->assertSee('BRG-00001')
+        ->assertSee('SRV-00001')
+        ->assertSee('Rp 3.000.000')
+        ->assertSee('Rp 2.500.000')
+        ->assertSee('Lihat di Dokumen Saya');
+});
+
+test('panel info kontrak tetap tampil saat dokumen terkunci di tahap review', function () {
+    seedContractCustomer($this->customer);
+
+    $this->actingAs($this->user)
+        ->post(route('documents.store'), contractPayload($this->customer));
+
+    $document = Document::firstOrFail();
+    $document->update(['status' => 'on_review']);
+    $this->customer->update(['status' => 'on_review']);
+
+    $this->actingAs($this->user)
+        ->get(route('documents.edit', $document))
+        ->assertOk()
+        ->assertSee('Info Kontrak')
+        ->assertSee('KTR/001/IX/2026')
+        ->assertSee('Router Mikrotik')
+        ->assertSee('On Review');
+});
+
+test('panel info kontrak dokumen tanpa pelanggan tampil ringkas tanpa rincian barang', function () {
+    $document = Document::create([
+        'user_id' => $this->user->id,
+        'customer_id' => null,
+        'title' => 'Surat Mandiri Uji',
+        'type' => 'surat',
+        'header_data' => [
+            'nomorSurat' => 'SM/001/IX/2026',
+            'content' => '<p>Kop surat</p>',
+        ],
+        'body_content' => ['pages' => ['<p>Isi surat</p>']],
+        'footer_data' => ['content' => '<p></p>'],
+        'status' => 'draft',
+    ]);
+
+    $this->actingAs($this->user)
+        ->get(route('documents.edit', $document))
+        ->assertOk()
+        ->assertSee('Info Kontrak')
+        ->assertSee('SM/001/IX/2026')
+        ->assertSee('Jenis Dokumen')
+        ->assertSee('Jumlah Halaman')
+        // Tanpa pelanggan: seksi barang/service diganti catatan, bukan tabel kosong.
+        ->assertSee('tidak terhubung ke data pelanggan')
+        ->assertDontSee('Belum ada barang untuk kontrak ini.');
+});

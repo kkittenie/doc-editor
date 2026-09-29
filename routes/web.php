@@ -28,6 +28,9 @@ Route::middleware('auth')->group(function () {
 
         // Menu S.O.F — repositori berkas Order Formulir (entitas mandiri, CRUD + upload).
     Route::get('/sof', [SofController::class, 'index'])->name('sof.index');
+    Route::get('/sof', [SofController::class, 'index'])->name('sof.index');
+    Route::get('/sof/data', [SofController::class, 'data'])->name('sof.data');   // baru
+    Route::get('/sof/create', [SofController::class, 'create'])->name('sof.create');
     Route::get('/sof/create', [SofController::class, 'create'])->name('sof.create');
     Route::post('/sof', [SofController::class, 'store'])->name('sof.store');
     Route::post('/sof/upload', [SofController::class, 'uploadFile'])->name('sof.upload');
@@ -36,6 +39,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/sof/{sof}', [SofController::class, 'update'])->name('sof.update');
     Route::delete('/sof/{sof}', [SofController::class, 'destroy'])->name('sof.destroy');
     Route::get('/sof/{sof}/download', [SofController::class, 'download'])->name('sof.download');
+    Route::get('customers/data', [CustomerController::class, 'data'])->name('customers.data');
     Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
 

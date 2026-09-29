@@ -21,77 +21,134 @@ use Illuminate\Support\Str;
  */
 class SofController extends Controller
 {
-    /** Prefix nomor Order Form hasil auto-generate. */
+   
     private const ORDER_PREFIX = 'SOF';
 
-    /** Hanya admin pemilik data yang boleh mengakses semua aksi ini. */
     private function authorizeUser(): void
     {
         abort_unless(Auth::user()->hasRole('admin'), 403, 'Hanya admin yang dapat mengakses Menu S.O.F.');
     }
 
-    /** Pastikan user yang login adalah pemilik data S.O.F. */
+    
     private function ensureOwned(Sof $sof): void
     {
         abort_unless($sof->user_id === Auth::id(), 403);
     }
 
-    /**
-     * Daftar S.O.F milik user yang login (entitas mandiri).
-     */
-        public function index()
+  
+    public function index()
     {
         $this->authorizeUser();
 
-        $sofs = Sof::where('user_id', Auth::id())
-            ->withTrashed()
-            ->latest()
-            ->get();
-
-        // Petakan ke array terformat untuk frontend Alpine.js (mirip pola Tabel Pelanggan).
-        $sofData = $sofs->map(function (Sof $sof) {
-            $periode = '';
-            if ($sof->active_date) {
-                $periode = $sof->active_date->format('d M Y');
-                if ($sof->finish_date) {
-                    $periode .= ' — ' . $sof->finish_date->format('d M Y');
-                }
-                if ($sof->active_months) {
-                    $periode .= ' (' . $sof->active_months . ' bln)';
-                }
-            }
-
-            return [
-                'id'              => $sof->id,
-                'order_number'    => $sof->order_number,
-                'customer_number' => $sof->customer_number,
-                'customer_name'   => $sof->customer_name,
-                'contract_number' => $sof->contract_number,
-                'contract_name'   => $sof->contract_name,
-                'active_date'     => $sof->active_date ? $sof->active_date->format('Y-m-d') : null,
-                'finish_date'     => $sof->finish_date ? $sof->finish_date->format('Y-m-d') : null,
-                'active_months'   => $sof->active_months,
-                'total_value'     => (float) $sof->total_value,
-                'status'          => $sof->status,
-                'status_label'    => $sof->statusLabel(),
-                'has_file'        => $sof->hasFile(),
-                'periode_label'   => $periode ?: '—',
-                'detail_url'      => route('sof.show', $sof),
-                'edit_url'        => route('sof.edit', $sof),
-                'download_url'    => route('sof.download', $sof),
-                'delete_url'      => route('sof.destroy', $sof),
-            ];
-        })->toArray();
-
         return view('pages.sof', [
             'title' => 'Menu S.O.F',
-            'sofs'  => $sofData,
         ]);
     }
 
-    /**
-     * Form tambah S.O.F baru (CRUD create).
-     */
+    public function data(Request $request)
+    {
+        $this->authorizeUser();
+
+        $search = trim((string) $request->input('search', ''));
+
+        $berkas = $request->input('berkas', 'all');
+        $berkas = in_array($berkas, ['ready', 'pending'], true) ? $berkas : 'all';
+
+        $sortable = ['order_number', 'customer_name', 'contract_number', 'active_date', 'total_value', 'status'];
+        $sort = in_array($request->input('sort'), $sortable, true)
+            ? $request->input('sort')
+            : 'created_at';
+        $dir = $request->input('dir') === 'asc' ? 'asc' : 'desc';
+
+        $perPage = (int) $request->input('per_page', 10);
+        $perPage = in_array($perPage, [10,25,50], true) ? $perPage : 10;
+
+        $total  = Sof::where('user_id', Auth::id())->count();
+        $approved   = Sof::where('user_id', Auth::id())->where('status', 'approved')->count();
+        $withFile   = Sof::where('user_id', Auth::id())
+            ->whereNotNull('file_path')
+            ->where('file_path', '!=', '')
+            ->count();
+
+        $counts = [
+            'total' => $total,
+            'with_file' => $withFile,
+            'approved'  => $approved,
+            'pending'   =>  $total - $approved,
+        ];
+
+        $paginator = Sof::where('user_id', Auth::id())
+            ->when($berkas === 'ready', fn ($q) => $q
+                ->whereNotNull('file_path')
+                ->where('file_path', '!=', ''))
+            ->when($berkas === 'pending', fn ($q) => $q->where(function ($w){
+                $w->whereNull('file_path')->orWhere('file_path', '');
+            }))
+            ->when($search !== '', function ($q) use ($search) {
+                $like = '%' . $search . '%';
+
+                $q->where(function ($w) use ($like) {
+                    $w->where('order_number', 'like', $like)
+                        ->orWhere('customer_name', 'like', $like)
+                        ->orWhere('contract_number', 'like', $like)
+                        ->orWhere('contract_name', 'like', $like);
+                });
+            })
+            ->orderBy($sort, $dir)
+            ->orderBy('id', $dir)
+            ->paginate($perPage);
+
+            return response()->json([
+                'data' => $paginator->getCollection()
+                    ->map(fn (Sof $s) => $this->transformSof($s))
+                    ->values(),
+                'meta' => [
+                    'current_page'  => $paginator->currentPage(),
+                    'last_page'     => $paginator->lastPage(),
+                    'per_page'      => $paginator->perPage(),
+                    'total'         => $paginator->total(),
+                    'from'          => $paginator->firstItem(),
+                    'to'            => $paginator->lastItem(),
+                ],
+                'counts' => $counts
+            ]);
+    }
+
+    private function transformSof(Sof $sof): array
+    {
+        $periode = '';
+            if ($sof->active_date) {
+        $periode = $sof->active_date->format('d M Y');
+            if ($sof->finish_date) {
+                $periode .= ' — ' . $sof->finish_date->format('d M Y');
+            }
+            if ($sof->active_months) {
+            $periode .= ' (' . $sof->active_months . ' bln)';
+            }
+        }
+
+        return [
+            'id'              => $sof->id,
+            'order_number'    => $sof->order_number,
+            'customer_number' => $sof->customer_number,
+            'customer_name'   => $sof->customer_name,
+            'contract_number' => $sof->contract_number,
+            'contract_name'   => $sof->contract_name,
+            'active_date'     => $sof->active_date ? $sof->active_date->format('Y-m-d') : null,
+            'finish_date'     => $sof->finish_date ? $sof->finish_date->format('Y-m-d') : null,
+            'active_months'   => $sof->active_months,
+            'total_value'     => (float) $sof->total_value,
+            'status'          => $sof->status,
+            'status_label'    => $sof->statusLabel(),
+            'has_file'        => $sof->hasFile(),
+            'periode_label'   => $periode ?: '—',
+            'detail_url'      => route('sof.show', $sof),
+            'edit_url'        => route('sof.edit', $sof),
+            'download_url'    => route('sof.download', $sof),
+            'delete_url'      => route('sof.destroy', $sof),
+        ];
+    }
+
     public function create()
     {
         $this->authorizeUser();
@@ -105,9 +162,7 @@ class SofController extends Controller
         ]);
     }
 
-    /**
-     * Simpan entri S.O.F baru (CRUD store + upload file).
-     */
+   
     public function store(Request $request)
     {
         $this->authorizeUser();
@@ -129,9 +184,11 @@ class SofController extends Controller
             'active_months.integer'    => 'Masa Aktif harus berupa angka.',
         ]);
 
-                $orderNumber = $this->nextOrderNumber();
+        $data['total_value'] = $data['total_value'] ?? 0;
 
-        // Hitung finish_date otomatis dari active_date + active_months.
+            $orderNumber = $this->nextOrderNumber();
+
+        // Hitung finish_date otomatis dari active date + active months.
         if (!empty($data['active_date']) && !empty($data['active_months'])) {
             $data['finish_date'] = \Carbon\Carbon::parse($data['active_date'])
                 ->addMonths((int) $data['active_months'])
@@ -152,9 +209,7 @@ class SofController extends Controller
             ->route('sof.index')
             ->with('success', 'S.O.F "'.$sof->order_number.'" berhasil ditambahkan.');
     }
-        /**
-     * Detail / preview S.O.F (CRUD read detail).
-     */
+
     public function show(Sof $sof)
     {
         $this->authorizeUser();
@@ -205,6 +260,8 @@ class SofController extends Controller
             'customer_number.required' => 'Nomer Pelanggan wajib diisi.',
             'customer_name.required'   => 'Nama Pelanggan wajib diisi.',
         ]);
+
+        $data['total_value'] = $data['total_value'] ?? 0;
 
         // Hitung finish_date otomatis dari active_date + active_months.
         if (!empty($data['active_date']) && !empty($data['active_months'])) {

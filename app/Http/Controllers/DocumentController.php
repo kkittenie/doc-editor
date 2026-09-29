@@ -79,15 +79,29 @@ class DocumentController extends Controller
     }
 
     /**
-     * Hitung total one time & bulanan dari barang/service pelanggan.
-     * Barang: price × quantity, dikelompokkan per price_type.
+     * Hitung total one time & bulanan dari barang/service pelanggan
+     * (dipakai halaman "Buat Dokumen Baru").
      */
     private function contractTotals(Customer $customer): array
+    {
+        return $this->totalsFrom($customer->barang ?? [], $customer->services ?? []);
+    }
+
+    /**
+     * Total one time & bulanan dari kumpulan barang/service mana pun.
+     * Barang: price × quantity, service: price saja, dikelompokkan per
+     * price_type.
+     *
+     * Satu implementasi dipakai dua alur: master pelanggan (create) dan
+     * salinan barang/service milik dokumen (panel Info Kontrak di editor),
+     * supaya angka yang dilihat user selalu identik.
+     */
+    private function totalsFrom(iterable $barang, iterable $services): array
     {
         $oneTime = 0;
         $monthly = 0;
 
-        foreach ($customer->barang ?? [] as $item) {
+        foreach ($barang as $item) {
             $line = (float) ($item->price ?? 0) * (int) ($item->quantity ?? 1);
 
             if (($item->price_type ?? 'one_time') === 'monthly') {
@@ -97,7 +111,7 @@ class DocumentController extends Controller
             }
         }
 
-        foreach ($customer->services ?? [] as $item) {
+        foreach ($services as $item) {
             $line = (float) ($item->price ?? 0);
 
             if (($item->price_type ?? 'one_time') === 'monthly') {
@@ -131,6 +145,32 @@ class DocumentController extends Controller
         // 1..N setiap dokumen dibuka — dokumen lama langsung rapi di editor.
         $this->normalizeDocumentPasalOnOpen($document);
 
+        // Panel "Info Kontrak" di topbar: begitu kontrak berstatus On Progress
+        // user langsung masuk editor dan detail kontrak (nomor, pelanggan,
+        // periode) + data barang/service tidak lagi terlihat di halaman lain,
+        // jadi semuanya ikut dirender di sini (tanpa request tambahan).
+        $document->load(['customer', 'barang', 'services']);
+
+        $customer = $document->customer;
+
+        // Salinan per-dokumen = data yang benar-benar masuk kontrak ini.
+        $contractBarang = $document->barang;
+        $contractServices = $document->services;
+
+        // Dokumen lama sebelum salinan ada (atau salinan kosong): pakai data
+        // master pelanggan supaya panel tidak pernah salah bilang "belum ada".
+        $contractDataFromMaster = false;
+
+        if ($customer && $contractBarang->isEmpty() && $customer->barang->isNotEmpty()) {
+            $contractBarang = $customer->barang;
+            $contractDataFromMaster = true;
+        }
+
+        if ($customer && $contractServices->isEmpty() && $customer->services->isNotEmpty()) {
+            $contractServices = $customer->services;
+            $contractDataFromMaster = true;
+        }
+
         return view('pages.editor', [
             'title' => ($canEdit ? 'Edit: ' : 'Lihat: ') . $document->title,
             'document' => $document,
@@ -138,6 +178,11 @@ class DocumentController extends Controller
             // Footer efektif (dokumen cover dengan footer kosong otomatis
             // diregenerasi — lihat resolveFooterHtml()).
             'footerHtml' => $this->resolveFooterHtml($document),
+            'contractCustomer' => $customer,
+            'contractBarang' => $contractBarang,
+            'contractServices' => $contractServices,
+            'contractTotals' => $this->totalsFrom($contractBarang, $contractServices),
+            'contractDataFromMaster' => $contractDataFromMaster,
         ]);
     }
 
