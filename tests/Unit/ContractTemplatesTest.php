@@ -155,7 +155,8 @@ test('numeral & klaim untuk setiap template dipertahankan', function () use ($ke
     // Kemitraan
     $tpl = ContractTemplates::find('kontrak-kemitraan');
     expect($tpl['title'])->toBe('Perjanjian Kerjasama Jual Kembali Jasa Layanan Akses Internet');
-    expect($tpl['body_content']['preamble'])->toContain('Nomor: [Nomor Perjanjian]');
+    expect($tpl['body_content']['cover'])->toContain('Nomor: [Nomor Perjanjian]');
+    expect($tpl['body_content']['preamble'])->toStartWith('Pada hari');
     expect($tpl['body_content']['preamble'])->not->toContain('NOMOR: 196/FBT/PKS/III/2026');
     expect($tpl['body_content']['isi'][0]['judul'])->toBe('DEFINISI');
     expect(implode("\n", array_column($tpl['body_content']['isi'], 'text')))
@@ -164,7 +165,8 @@ test('numeral & klaim untuk setiap template dipertahankan', function () use ($ke
 
     // Colocation
     $tpl = ContractTemplates::find('kontrak-colocation');
-    expect($tpl['body_content']['preamble'])->toContain('Nomor: [Nomor Perjanjian]');
+    expect($tpl['body_content']['cover'])->toContain('Nomor: [Nomor Perjanjian]');
+    expect($tpl['body_content']['preamble'])->toStartWith('Pada hari');
     expect($tpl['body_content']['preamble'])->not->toContain('239/FBT/J.C/VII/2026');
     expect($tpl['body_content']['isi'][3]['judul'])
         ->toBe('JANGKA WAKTU PERJANJIAN, BERITA ACARA AKTIVASI, SUSPENSI LAYANAN DAN PEMBERHENTIAN');
@@ -173,23 +175,26 @@ test('numeral & klaim untuk setiap template dipertahankan', function () use ($ke
 
     // Managed Service
     $tpl = ContractTemplates::find('kontrak-managed-service');
-    expect($tpl['body_content']['preamble'])->toContain('Nomor: [Nomor Perjanjian]');
+    expect($tpl['body_content']['cover'])->toContain('Nomor: [Nomor Perjanjian]');
+    expect($tpl['body_content']['preamble'])->toStartWith('Pada hari');
     expect($tpl['body_content']['preamble'])->not->toContain('335/FBC/J.MS/IV/2026');
     expect(count($tpl['body_content']['isi']))->toBe(14);
     expect($tpl['body_content']['lampiran'][1]['judul'])->toBe('LAMPIRAN B');
 
     // SOHO
     $tpl = ContractTemplates::find('kontrak-soho');
-    expect($tpl['body_content']['preamble'])->toContain('Nomor: [Nomor Perjanjian]');
+    expect($tpl['body_content']['cover'])->toContain('Nomor: [Nomor Perjanjian]');
+    expect($tpl['body_content']['preamble'])->toStartWith('Pada hari');
     expect($tpl['body_content']['preamble'])->not->toContain('152/FBT/J.S/IX/2025');
     expect(implode("\n", array_column($tpl['body_content']['isi'], 'text')))->toContain('(isolir) dalam');
     expect(count($tpl['body_content']['isi']))->toBe(14);
 
     // Payung
     $tpl = ContractTemplates::find('kontrak-payung');
-    expect($tpl['body_content']['preamble'])
-        ->toContain("(KONTRAK PAYUNG)\nBERLANGGANAN JASA METRO FIBER OPTIK");
-    expect($tpl['body_content']['preamble'])->toContain('Nomor: [Nomor Perjanjian]');
+    expect($tpl['body_content']['cover'])
+        ->toContain("(KONTRAK PAYUNG)\n\nBERLANGGANAN JASA METRO FIBER OPTIK");
+    expect($tpl['body_content']['cover'])->toContain('Nomor: [Nomor Perjanjian]');
+    expect($tpl['body_content']['preamble'])->toStartWith('Pada hari');
     expect($tpl['body_content']['preamble'])->not->toContain('238/FBT/J.M/VI/2026');
     expect(count($tpl['body_content']['isi']))->toBe(15);
     expect($tpl['body_content']['lampiran'][0]['judul'])->toBe('LAMPIRAN BERLANGGANAN JASA I');
@@ -259,7 +264,7 @@ test('isi render HTML memuat teks asli verbatim', function () {
     $tpl  = ContractTemplates::find('kontrak-payung');
     $html = contractBuildBodyHtml($tpl, true);
 
-    expect($html)->toContain('PERJANJIAN KERJA SAMA (KONTRAK PAYUNG)');
+    // Judul kontrak kini hanya di sampul (cover) & kop, tidak diulang di body.
     expect($html)->toContain('Kontrak Payung Nomor: [Nomor Perjanjian]');
     expect($html)->not->toContain('238/FBT/J.M/VI/2026');
 });
@@ -361,14 +366,10 @@ test('house style kanonik: heading, judul, body, list & tabel dari token Contrac
             . '; margin-bottom:' . $cs::HEADING_SPACE_AFTER . ';'
         );
 
-        // Blok judul preamble: 16pt bold center, space-bawah 12pt.
-        expect($html)->toContain(
-            'text-align:' . $cs::ALIGN_TITLE
-            . '; font-size:' . $cs::SIZE_TITLE
-            . '; font-weight:bold;'
-            . ' margin-top:' . $cs::TITLE_SPACE_BEFORE
-            . '; margin-bottom:' . $cs::TITLE_SPACE_AFTER . ';'
-        );
+        // Blok judul TIDAK lagi muncul: judul kontrak kini hanya di sampul.
+        // Tokennya tetap diuji terpisah di bawah lewat input sintetis.
+        expect($html)->not->toContain('font-size:' . $cs::SIZE_TITLE . '; font-weight:bold;');
+
 
         // Sel tabel: ukuran & border dari token tabel.
         expect($html)->toContain('font-size:' . $cs::SIZE_TABLE . ';');
@@ -414,8 +415,8 @@ test('template kontrak bebas nomor kontrak hardcode', function () use ($keys) {
             expect($html)->not->toContain($nomor);
         }
 
-        // Tiap template tetap memuat placeholder untuk diisi form.
-        expect($tpl['body_content']['preamble'])->toContain('[Nomor Perjanjian]');
+        // Tiap template tetap memuat placeholder untuk diisi form, di cover.
+        expect($tpl['body_content']['cover'])->toContain('[Nomor Perjanjian]');
     }
 });
 
@@ -432,11 +433,58 @@ test('kontrak-soho punya kunci cover terpisah dari preamble (halaman 1 & 2 PDF s
     // Cover bebas nomor kontrak hardcode sumber.
     expect($cover)->not->toContain('152/FBT/J.S/IX/2025');
 
-    // Halaman 2 tetap dibuka judul + nomor + naratif pembuka verbatim.
-    expect($tpl['body_content']['preamble'])->toContain('Nomor: [Nomor Perjanjian]');
+    // Halaman 2 dibuka langsung naratif pembuka verbatim: blok display
+    // (judul / DENGAN / Nomor) hanya hidup di sampul halaman 1.
+    expect($tpl['body_content']['preamble'])->toStartWith('Pada hari');
     expect($tpl['body_content']['preamble'])->toContain('Pada hari ini, [Hari]');
     expect($tpl['body_content']['preamble'])->toContain('I. PT Bina Informatika Solusi');
     expect($tpl['body_content']['preamble'])->toContain('II. [PIHAK KEDUA]');
+});
+
+test('setiap template kontrak punya kunci cover terpisah dari preamble', function () use ($keys) {
+    foreach ($keys as $key) {
+        $tpl   = ContractTemplates::find($key);
+        $cover = (string) ($tpl['body_content']['cover'] ?? '');
+
+        expect($cover)->not->toBeEmpty("template {$key} harus punya cover");
+
+        // Blok display minimum: judul, PT BINA, DENGAN, pihak kedua, Nomor.
+        expect($cover)->toContain('PT BINA INFORMATIKA SOLUSI');
+        expect($cover)->toContain('DENGAN');
+        expect($cover)->toContain('[PIHAK KEDUA]');
+        expect($cover)->toContain('Nomor: [Nomor Perjanjian]');
+        // Cover bebas nomor kontrak hardcode sumber.
+        expect($cover)->not->toContain('152/FBT/J.S/IX/2025');
+
+        // Preamble = halaman 2: langsung naratif pembuka verbatim, TANPA
+        // mengulang blok display (judul / DENGAN / Nomor) milik sampul.
+        $preamble = (string) $tpl['body_content']['preamble'];
+        expect($preamble)->toStartWith('Pada hari');
+        expect($preamble)->not->toContain('DENGAN');
+        // Nomor kontrak TIDAK diulang sebagai baris display. Teks 'Nomor:'
+        // di dalam paragraf naratif tetap boleh ada (mis. 'Nomor: 1888').
+        expect($preamble)->not->toMatch('/^Nomor:/m');
+    }
+});
+
+test('contractPreambleHtml masih merender blok judul untuk input berblok display', function () {
+    // Template kontrak sekarang memulai preamble langsung dari naratif,
+    // dijaga: template tanpa cover, atau format lama, masih memakainya.
+    $cs   = \App\Data\ContractStyle::class;
+    $ctrl = new DocumentController();
+    $m    = new ReflectionMethod(DocumentController::class, 'contractPreambleHtml');
+
+    $html = $m->invoke($ctrl, "JUDUL DOKUMEN\n\nNomor: ABC/123\n\nPada hari ini, kontrak dibuat.");
+
+    expect($html)->toContain(
+        'text-align:' . $cs::ALIGN_TITLE
+        . '; font-size:' . $cs::SIZE_TITLE
+        . '; font-weight:bold;'
+        . ' margin-top:' . $cs::TITLE_SPACE_BEFORE
+        . '; margin-bottom:' . $cs::TITLE_SPACE_AFTER . ';'
+    );
+    // Blok display memuat judul + nomor, lalu paragraf naratif menutupnya.
+    expect($html)->toContain('JUDUL DOKUMEN')->toContain('Nomor: ABC/123');
 });
 
 test('buildContractCoverHtml merender baris sampul memakai token ContractStyle', function () {

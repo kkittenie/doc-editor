@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Data\DocumentTemplates;
 use App\Data\ContractStyle;
+use App\Data\ContractTemplates;
 
 class DocumentController extends Controller
 {
@@ -242,12 +243,20 @@ class DocumentController extends Controller
             // Sampul kontrak (halaman 1 PDF sumber): baris judul + pihak +
             // nomor dari kunci 'cover' template — terpisah dari preamble
             // supaya halaman 2 dibuka judul + nomor, persis dokumen sumber.
+            //
+            // Placeholder WAJIB digantikan pada teks mentah, sebelum
+            // buildContractCoverHtml() menebalkan penanda pihak: kalau
+            // dibalik, "[PIHAK KEDUA]" sudah jadi "[<strong>PIHAK KEDUA</strong>]"
+            // sehingga str_ireplace tidak pernah cocok dan sampul tetap
+            // menampilkan placeholder mentah.
+            $coverText = (string) ($template['body_content']['cover'] ?? '');
             $coverHtml = $this->buildContractCoverHtml(
-                (string) ($template['body_content']['cover'] ?? '')
+                $coverText === ''
+                    ? ''
+                    : $this->applyTemplateReplacements($coverText, $customer, $nomorSurat)
             );
 
             if ($coverHtml !== '') {
-                $coverHtml = $this->applyTemplateReplacements($coverHtml, $customer, $nomorSurat);
                 $pages = [$coverHtml, $bodyHtml];
                 $coverPages = 1;
             } else {
@@ -435,8 +444,14 @@ class DocumentController extends Controller
         $last = count($lines) - 1;
         $out = [];
 
+        // Jarak antar-baris dihitung sekali dari jumlah baris: sampul 6 baris
+        // tetap memakai COVER_SPACE_AFTER, sampul lebih panjang (mis.
+        // kontrak-kemitraan 7 baris) dipadatkan agar tidak meluber ke
+        // halaman kedua. Lihat ContractStyle::coverSpacing().
+        $space = ContractStyle::coverSpacing($lines);
+
         foreach ($lines as $i => $line) {
-            $style = ContractStyle::coverStyle($line, $i === 0, $i === $last);
+            $style = ContractStyle::coverStyle($line, $i === 0, $i === $last, $space);
             $inner = $this->styleContractPartyNames(e($line));
 
             if ($i === 0) {
@@ -485,9 +500,17 @@ class DocumentController extends Controller
         }
 
         $content['pages'] = array_values(array_slice($pages, 1));
-        $content['coverPages'] = 0;
         $content['contractTemplate'] = true;
         $content['templateKey'] = $templateKey;
+
+        // Penanda sampul dihitung ulang, bukan diturboalkan ke 0: dokumen
+        // baru sudah punya lembar sampul asli (semua template kontrak punya
+        // key 'cover'), jadi setelah placeholder lama dibuang halaman pertama
+        // yang tersisa ITU sampul dan harus tetap ditandai. Dokumen lama yang
+        // memang tidak punya sampul → sisanya cuma satu halaman body.
+        $template  = ContractTemplates::find($templateKey);
+        $hasCover  = trim((string) ($template['body_content']['cover'] ?? '')) !== '';
+        $content['coverPages'] = ($hasCover && count($content['pages']) > 1) ? 1 : 0;
 
         $headerData = $document->header_data ?? [];
         $headerData['content'] = $this->buildContractLetterheadHtml($templateKey);

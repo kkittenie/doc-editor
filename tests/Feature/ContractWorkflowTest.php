@@ -5,6 +5,10 @@ use App\Models\Customer;
 use App\Models\Document;
 use App\Models\Service;
 use App\Models\User;
+use App\Data\ContractStyle;
+use App\Data\ContractTemplates;
+use App\Http\Controllers\DocumentController;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Database\Seeders\RoleSeeder;
 
 /**
@@ -267,7 +271,7 @@ test('save di editor mengubah status dokumen dan pelanggan menjadi on progress',
         ->and($this->customer->refresh()->status)->toBe('on_progress');
 });
 
-test('template kontrak memakai halaman pertama sumber tanpa sampul placeholder', function () {
+test('template kontrak memakai sampul terpisah sebagai halaman 1', function () {
     seedContractCustomer($this->customer);
 
     $this->actingAs($this->user)
@@ -277,15 +281,66 @@ test('template kontrak memakai halaman pertama sumber tanpa sampul placeholder',
         ->assertRedirect();
 
     $document = Document::firstOrFail();
+    $pages    = $document->body_content['pages'];
 
     expect($document->body_content['contractTemplate'])->toBeTrue()
-        ->and($document->body_content['coverPages'])->toBe(0)
-        ->and($document->body_content['pages'])->toHaveCount(1)
-        ->and($document->body_content['pages'][0])->toContain('PERJANJIAN BERLANGGANAN')
-        ->and($document->body_content['pages'][0])->toContain('JASA COLOCATION')
-        ->and($document->header_data['content'])->toContain('Paraf PIHAK PERTAMA')
-        ->and($document->header_data['content'])->toContain('info@fibertrust.id')
+        ->and($document->body_content['coverPages'])->toBe(1)
+        ->and($pages)->toHaveCount(2);
+
+    // Halaman 1 = sampul: blok display saja, tanpa naratif kontrak.
+    expect($pages[0])->toContain('PERJANJIAN BERLANGGANAN')
+        ->and($pages[0])->toContain('JASA COLOCATION')
+        ->and($pages[0])->toContain('DENGAN')
+        // Placeholder pihak kedua sudah terisi nama pelanggan asli.
+        ->and($pages[0])->toContain($this->customer->name)
+        ->and($pages[0])->not->toContain('[PIHAK KEDUA]')
+        ->and($pages[0])->not->toContain('Pada hari')
+        ->and($pages[0])->not->toContain('[Ketik nama pihak pertama di sini]')
+        ->and($pages[0])->not->toContain('[Ketik nama pihak kedua di sini]');
+
+    // Halaman 2 = isi kontrak, blok display tidak diulang.
+    expect($pages[1])->toContain('Pada hari')
+        ->and($pages[1])->not->toContain('DENGAN');
+
+    // Kop kontrak = logo Fibertrust saja; paraf & identitas ada di footer.
+    expect($document->header_data['content'])->toContain('fibertrust')
+        ->and($document->footer_data['content'])->toContain('Paraf PIHAK PERTAMA')
+        ->and($document->footer_data['content'])->toContain('info@fibertrust.id')
         ->and($document->header_data['content'])->not->toContain('[ Foto / Ikon Pihak Pertama ]');
+});
+
+test('sampul tiap template kontrak muat utuh di satu halaman A4', function () {
+    $keys = [
+        'kontrak-kemitraan',
+        'kontrak-colocation',
+        'kontrak-payung',
+        'kontrak-soho',
+        'kontrak-managed-service',
+    ];
+
+    foreach ($keys as $key) {
+        $tpl  = ContractTemplates::find($key);
+        $ctrl = new DocumentController();
+        $m    = new ReflectionMethod(DocumentController::class, 'buildContractCoverHtml');
+
+        $coverHtml = $m->invoke($ctrl, (string) $tpl['body_content']['cover']);
+
+        // Render sampul dengan @page yang sama persis dengan pdf/document,
+        // lalu hitung halaman dari output dompdf. Kalau blok meluber ke
+        // halaman kedua, jumlah halaman > 1.
+        $pdf = Pdf::loadHTML(
+            '<style>@page{margin:' . ContractStyle::PAGE_MARGIN_TOP . ' '
+                . ContractStyle::PAGE_MARGIN_SIDE . ' '
+                . ContractStyle::PAGE_MARGIN_BOTTOM . ' '
+                . ContractStyle::PAGE_MARGIN_SIDE . ';}'
+                . 'body{line-height:' . ContractStyle::LINE_HEIGHT . ';font-family:DejaVu Sans,sans-serif;}</style>'
+                . $coverHtml
+        )->setPaper('a4', 'portrait')->output();
+
+        $pageCount = preg_match_all('/\/Type\s*\/Page[^s]/', $pdf);
+
+        expect($pageCount)->toBe(1, "sampul {$key} meluber ke halaman berikutnya");
+    }
 });
 
 test('dokumen template lama dengan sampul placeholder dirapikan saat dibuka', function () {
@@ -298,9 +353,10 @@ test('dokumen template lama dengan sampul placeholder dirapikan saat dibuka', fu
 
     $document = Document::firstOrFail();
     $content = $document->body_content;
+    // Sisipkan sampul placeholder legacy di depan sampul asli.
     $content['pages'] = [
         '<p>[Ketik nama pihak pertama di sini]</p><p>[Ketik nama pihak kedua di sini]</p>',
-        $content['pages'][0],
+        ...$content['pages'],
     ];
     $content['coverPages'] = 1;
     $document->update(['body_content' => $content]);
@@ -310,10 +366,48 @@ test('dokumen template lama dengan sampul placeholder dirapikan saat dibuka', fu
         ->assertOk();
 
     $document->refresh();
+    $pages = $document->body_content['pages'];
+
+    // Placeholder legacy dibuang; sampul asli tetap jadi halaman 1.
+    expect($document->body_content['coverPages'])->toBe(1)
+        ->and($pages)->toHaveCount(2)
+        ->and($pages[0])->not->toContain('[Ketik nama pihak pertama di sini]')
+        ->and($pages[0])->toContain('JASA COLOCATION')
+        ->and($document->body_content['templateKey'])->toBe('kontrak-colocation')
+        ->and($document->header_data['content'])->toContain('fibertrust');
+});
+
+test('dokumen lama tanpa sampul dirapikan tanpa memunculkan halaman tambahan', function () {
+    seedContractCustomer($this->customer);
+
+    $this->actingAs($this->user)
+        ->post(route('documents.store'), contractPayload($this->customer, [
+            'template' => 'kontrak-colocation',
+        ]));
+
+    $document = Document::firstOrFail();
+    $content = $document->body_content;
+    // Bentuk dokumen LAMA yang sesungguhnya: satu halaman body yang masih
+    // memuat blok judul, DAN sampul placeholder legacy di depannya.
+    $content['pages'] = [
+        '<p>[Ketik nama pihak pertama di sini]</p><p>[Ketik nama pihak kedua di sini]</p>',
+        '<p>PERJANJIAN BERLANGGANAN</p><p>JASA COLOCATION</p><p>Nomor: X/1</p>'
+            . $content['pages'][1],
+    ];
+    $content['coverPages'] = 1;
+    $document->update(['body_content' => $content]);
+
+    $this->actingAs($this->user)
+        ->get(route('documents.edit', $document))
+        ->assertOk();
+
+    $document->refresh();
+
+    // Tidak ada lembar sampul tersisa → coverPages 0, tetap 1 halaman.
     expect($document->body_content['coverPages'])->toBe(0)
         ->and($document->body_content['pages'])->toHaveCount(1)
-        ->and($document->body_content['templateKey'])->toBe('kontrak-colocation')
-        ->and($document->header_data['content'])->toContain('Paraf PIHAK KEDUA');
+        ->and($document->body_content['pages'][0])->toContain('Pada hari')
+        ->and($document->body_content['templateKey'])->toBe('kontrak-colocation');
 });
 
 test('status on progress tidak diturunkan saat dokumen disimpan ulang', function () {

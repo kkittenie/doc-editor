@@ -59,10 +59,89 @@ class ContractStyle
     public const TABLE_WIDTH  = '100%';
 
     /* ── Sampul kontrak (cover, halaman 1 PDF sumber) ──────────── */
-    /** Jarak antar-baris halaman sampul. */
+    /** Jarak antar-baris halaman sampul (batas atas, dipakai sampul 6 baris). */
     public const COVER_SPACE_AFTER = '80pt';
     /** Ukuran baris pihak (bukan judul, bukan "DENGAN"/"Nomor:") pada sampul. */
     public const SIZE_COVER_LINE = '13pt';
+    /**
+     * Batas bawah jarak antar-baris sampul. Sampul 6 baris tetap memakai
+     * COVER_SPACE_AFTER; sampul yang lebih panjang (mis. kontrak-kemitraan
+     * 7 baris) memakai jarak yang diturunkan rumus di coverSpacing() supaya
+     * bloknya tidak meluber ke halaman kedua.
+     */
+    public const COVER_SPACE_MIN = '34pt';
+
+    /**
+     * Faktor tinggi baris EFEKTIF saat menghitung ruang sampul.
+     *
+     * PENTING: ini BUKAN LINE_HEIGHT (1,15). DomPDF memberi tinggi baris
+     * riil ≈ 1,55 × font-size (leading + descent font, bukan sekadar
+     * line-height CSS), sehingga memakai 1,15 membuat perkiraan terlalu
+     * optimistis: sampul kontrak-kemitraan (7 baris) estimada 583pt dari
+     * 612pt tersedia, padahal render nyata sudah meluber di 80pt (limit
+     * terukur 79,8pt). Nilai ini dikalibrasi dari pengukuran output DomPDF
+     * dan dijaga oleh test "sampul tiap template kontrak muat utuh di satu
+     * halaman A4" — ubah salah satu, keduanya harus ikut disesuaikan.
+     */
+    private const COVER_LINE_BOX_FACTOR = 1.55;
+
+    /**
+     * Tinggi area teks satu halaman kontrak (pt) — dipakai menghitung
+     * jarak antar-baris sampul. A4 = 297mm = 841,89pt, dikurangi margin
+     * @page atas & bawah (lihat PAGE_MARGIN_TOP / PAGE_MARGIN_BOTTOM).
+     */
+    private const PAGE_TEXT_HEIGHT_PT = 841.89 - 107.72 - 121.89; // ≈ 612,3pt
+
+    /**
+     * Jarak antar-baris sampul yang muat di satu halaman.
+     *
+     * Sampul berisi N baris; total tinggi = Σ tinggi baris + (N-1) × jarak.
+     * Jarak dibatasi COVER_SPACE_AFTER di atas dan COVER_SPACE_MIN di bawah,
+     * jadi sampul pendek tetap tampil renggang seperti desain, sampul panjang
+     * hanya dipadatkan seperlunya.
+     *
+     * @param string[] $lines Baris sampul apa adanya, urutan sama dengan render.
+     */
+    public static function coverSpacing(array $lines): string
+    {
+        $n = count($lines);
+        if ($n < 2) {
+            return self::COVER_SPACE_AFTER;
+        }
+
+        // Tinggi teks: judul (baris pertama) memakai SIZE_TITLE, "DENGAN"/
+        // "Nomor:" memakai SIZE_BODY, sisanya SIZE_COVER_LINE. Faktor tinggi
+        // baris memakai COVER_LINE_BOX_FACTOR (ukuran riil DomPDF), bukan
+        // LINE_HEIGHT — lihat catatan pada konstanta itu.
+        $textHeight = 0.0;
+        foreach (array_values($lines) as $i => $line) {
+            $size = $i === 0
+                ? self::pt(self::SIZE_TITLE)
+                : (preg_match('/^(dengan|nomor\b)/iu', trim((string) $line)) === 1
+                    ? self::pt(self::SIZE_BODY)
+                    : self::pt(self::SIZE_COVER_LINE));
+
+            $textHeight += $size * self::COVER_LINE_BOX_FACTOR;
+        }
+
+        $gaps = $n - 1;
+        $fit  = (self::PAGE_TEXT_HEIGHT_PT - $textHeight) / $gaps;
+        $fit  = max(self::pt(self::COVER_SPACE_MIN), min(self::pt(self::COVER_SPACE_AFTER), $fit));
+
+        return self::round($fit) . 'pt';
+    }
+
+    /** Ubah token ukuran CSS ("13pt") jadi angka (13.0). */
+    private static function pt(string $token): float
+    {
+        return (float) preg_replace('/[^0-9.]/', '', $token);
+    }
+
+    /** Bulatkan ke 1 desimal supaya CSS rapi & deterministik. */
+    private static function round(float $value): string
+    {
+        return rtrim(rtrim(number_format($value, 1, '.', ''), '0'), '.') ?: '0';
+    }
 
     /* ── Kertas & kop berulang PDF kontrak (D3/D4) ─────────────── */
     /**
@@ -209,9 +288,17 @@ class ContractStyle
      * (SIZE_TITLE), baris "DENGAN"/"Nomor:" reguler (SIZE_BODY, tanpa tebal),
      * baris lain baris pihak (SIZE_COVER_LINE, tebal). Margin dipisah
      * top/bottom supaya selamat round-trip Quill (attributor phead/pbb).
+     *
+     * @param string $spaceAfter Jarak ke baris berikutnya; default COVER_SPACE_AFTER
+     *                           (sampul pendek). Sampul panjang memakai hasil
+     *                           ContractStyle::coverSpacing().
      */
-    public static function coverStyle(string $line, bool $first = false, bool $last = false): string
-    {
+    public static function coverStyle(
+        string $line,
+        bool $first = false,
+        bool $last = false,
+        string $spaceAfter = self::COVER_SPACE_AFTER
+    ): string {
         $plain = preg_match('/^(dengan|nomor\b)/iu', trim($line)) === 1;
 
         return 'text-align:' . self::ALIGN_TITLE . ';'
@@ -220,7 +307,7 @@ class ContractStyle
                 : ($plain ? self::SIZE_BODY : self::SIZE_COVER_LINE)) . ';'
             . ' font-weight:' . (($first || ! $plain) ? 'bold' : 'normal') . ';'
             . ' margin-top:0;'
-            . ' margin-bottom:' . ($last ? '0' : self::COVER_SPACE_AFTER) . ';';
+            . ' margin-bottom:' . ($last ? '0' : $spaceAfter) . ';';
     }
 
     /** CSS heading kontrak (PASAL n, judul pasal, LAMPIRAN, MENIMBANG). */

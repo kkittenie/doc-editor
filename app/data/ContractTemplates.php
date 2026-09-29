@@ -23,9 +23,14 @@ class ContractTemplates
                     'sifatSurat' => 'Penting',
                 ],
                 'body_content' => [
-                    'preamble' => 'PERJANJIAN KERJASAMA
+                    // Sampul (halaman 1): blok display yang tadinya mendahului
+                    // preamble. Dipisah supaya jadi lembar sendiri dengan jarak
+                    // ContractStyle::coverStyle() — sama seperti kontrak-soho.
+                    'cover' => 'PERJANJIAN KERJASAMA
 
-ANTARA
+TENTANG
+
+JUAL KEMBALI JASA LAYANAN AKSES INTERNET
 
 PT BINA INFORMATIKA SOLUSI
 
@@ -33,13 +38,14 @@ DENGAN
 
 [PIHAK KEDUA]
 
-TENTANG
-
-JUAL KEMBALI JASA LAYANAN AKSES INTERNET
-
-Nomor: [Nomor Perjanjian]
-
-Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Kerja Sama tentang Jual Kembali Jasa Layanan Akses Internet (selanjutnya disebut “Perjanjian”), oleh dan antara:
+Nomor: [Nomor Perjanjian]',
+                    // Preamble mulai di paragraf naratif: blok display (judul,
+                    // TENTANG, pihak, DENGAN, Nomor) kini hidup di sampul.
+                    // Preamble = halaman 2, dimulai langsung dari paragraf
+                    // naratif. Blok display (judul / TENTANG / Nomor) sudah
+                    // tampil penuh di sampul halaman 1, jadi tidak diulang
+                    // lagi di sini.
+                    'preamble' => 'Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Kerja Sama tentang Jual Kembali Jasa Layanan Akses Internet (selanjutnya disebut “Perjanjian”), oleh dan antara:
 
 PT Bina Informatika Solusi, suatu perseroan terbatas, yang didirikan berdasarkan Hukum Negara Republik Indonesia, berkedudukan di Jl. Prakarsa Muda No. 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T., M.Kom., selaku Direktur, sah bertindak untuk dan atas nama PT Bina Informatika Solusi, selanjutnya disebut sebagai “PIHAK PERTAMA”.
 
@@ -2179,7 +2185,8 @@ NOMOR: [Nomor Perjanjian]',
                     'sifatSurat' => 'Penting',
                 ],
                 'body_content' => [
-                    'preamble' => 'PERJANJIAN BERLANGGANAN
+                    // Sampul (halaman 1) — lihat kontrak-kemitraan.
+                    'cover' => 'PERJANJIAN BERLANGGANAN
 
 JASA COLOCATION
 
@@ -2189,9 +2196,9 @@ DENGAN
 
 [PIHAK KEDUA]
 
-Nomor: [Nomor Perjanjian]
-
-Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Berlangganan Jasa Colocation (selanjutnya disebut “Perjanjian”), oleh dan antara:
+Nomor: [Nomor Perjanjian]',
+                    // Preamble mulai dari naratif — lihat kontrak-kemitraan.
+                    'preamble' => 'Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Berlangganan Jasa Colocation (selanjutnya disebut “Perjanjian”), oleh dan antara:
 
 PT Bina Informatika Solusi, suatu perseroan terbatas, yang didirikan berdasarkan Hukum Negara Republik Indonesia, berkedudukan di Jalan Prakarsa Muda Nomor 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T., M.Kom, selaku Direktur, bertindak untuk dan atas nama PT Bina Informatika Solusi, selanjutnya disebut sebagai PIHAK PERTAMA.
 
@@ -3308,7 +3315,9 @@ Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjala
                     'sifatSurat' => 'Penting',
                 ],
                 'body_content' => [
-                    'preamble' => 'PERJANJIAN KERJA SAMA (KONTRAK PAYUNG)
+                    // Sampul (halaman 1) — lihat kontrak-kemitraan.
+                    'cover' => 'PERJANJIAN KERJA SAMA (KONTRAK PAYUNG)
+
 BERLANGGANAN JASA METRO FIBER OPTIK
 
 PT BINA INFORMATIKA SOLUSI
@@ -3317,9 +3326,9 @@ DENGAN
 
 [PIHAK KEDUA]
 
-Nomor: [Nomor Perjanjian]
-
-Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Kerja Sama Berlangganan Jasa Metro Fiber Optik (selanjutnya disebut “Perjanjian”), oleh dan antara:
+Nomor: [Nomor Perjanjian]',
+                    // Preamble mulai dari naratif — lihat kontrak-kemitraan.
+                    'preamble' => 'Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Kerja Sama Berlangganan Jasa Metro Fiber Optik (selanjutnya disebut “Perjanjian”), oleh dan antara:
 
 PT Bina Informatika Solusi, berkedudukan di Jalan Prakarsa Muda Nomor 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T., M. Kom., selaku Direktur, sah bertindak untuk dan atas nama PT Bina Informatika Solusi, selanjutnya disebut “PIHAK PERTAMA”
 
@@ -4372,13 +4381,8 @@ DENGAN
 [PIHAK KEDUA]
 
 Nomor: [Nomor Perjanjian]',
-                    'preamble' => 'PERJANJIAN BERLANGGANAN
-
-JASA SOHO
-
-Nomor: [Nomor Perjanjian]
-
-Pada hari ini, [Hari], tanggal [Tanggal], ber tempat di [Tempat], telah dibuat dan ditandatangani Perjanjian, oleh dan antara:
+                    // Preamble mulai dari naratif — lihat kontrak-kemitraan.
+                    'preamble' => 'Pada hari ini, [Hari], tanggal [Tanggal], ber tempat di [Tempat], telah dibuat dan ditandatangani Perjanjian, oleh dan antara:
 
 I. PT Bina Informatika Solusi, berkedudukan di Jalan Prakarsa Muda Nomor 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T.,       M. Kom., selaku Direktur, sah bertindak untuk dan atas nama PT Bina Informatika Solusi, selanjutnya disebut sebagai “PIHAK PERTAMA”
 
@@ -5139,7 +5143,8 @@ Manager Area Bandung',
                     'sifatSurat' => 'Penting',
                 ],
                 'body_content' => [
-                    'preamble' => 'PERJANJIAN BERLANGGANAN
+                    // Sampul (halaman 1) — lihat kontrak-kemitraan.
+                    'cover' => 'PERJANJIAN BERLANGGANAN
 
 JASA DEDICATED, METRO, DAN MANAGED SERVICE
 
@@ -5149,9 +5154,9 @@ DENGAN
 
 [PIHAK KEDUA]
 
-Nomor: [Nomor Perjanjian]
-
-Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Berlangganan Jasa Dedicated, Metro, dan Managed Service (selanjutnya disebut “Perjanjian”), oleh dan antara:
+Nomor: [Nomor Perjanjian]',
+                    // Preamble mulai dari naratif — lihat kontrak-kemitraan.
+                    'preamble' => 'Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Berlangganan Jasa Dedicated, Metro, dan Managed Service (selanjutnya disebut “Perjanjian”), oleh dan antara:
 
 PT Bina Informatika Solusindo, berkedudukan di Gedung Wisma Bumiputera Lantai 7 Suite #701B Jl. Asia-Afrika No.141-149 Kebon Pisang, Sumur, Kota Bandung. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T.,M.Kom., selaku Direktur, bertindak untuk dan atas nama PT Bina Informatika Solusindo, selanjutnya disebut “PIHAK PERTAMA”
 
