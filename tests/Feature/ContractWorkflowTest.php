@@ -299,14 +299,39 @@ test('template kontrak memakai sampul terpisah sebagai halaman 1', function () {
         ->and($pages[0])->not->toContain('[Ketik nama pihak kedua di sini]');
 
     // Halaman 2 = isi kontrak, blok display tidak diulang.
+    // Tanggalnya berbahasa Indonesia (bukan 'Pada hari Tuesday'):
+    // app.locale default 'en', jadi applyTemplateReplacements() memaksa 'id'.
     expect($pages[1])->toContain('Pada hari')
-        ->and($pages[1])->not->toContain('DENGAN');
+        ->and($pages[1])->not->toContain('DENGAN')
+        ->and($pages[1])->toContain(now()->locale('id')->translatedFormat('d F Y'));
 
     // Kop kontrak = logo Fibertrust saja; paraf & identitas ada di footer.
     expect($document->header_data['content'])->toContain('fibertrust')
         ->and($document->footer_data['content'])->toContain('Paraf PIHAK PERTAMA')
         ->and($document->footer_data['content'])->toContain('info@fibertrust.id')
         ->and($document->header_data['content'])->not->toContain('[ Foto / Ikon Pihak Pertama ]');
+});
+
+test('setiap template kontrak mengisi tanggal berbahasa Indonesia', function () {
+    // app.locale bawaan 'en' sempat membuat dokumen memuat
+    // 'Pada hari Tuesday' pada kelima template.
+    $ctrl = new DocumentController();
+    $m    = new ReflectionMethod(DocumentController::class, 'applyTemplateReplacements');
+
+    $hariIndo  = now()->locale('id')->translatedFormat('l');
+    $tanggalIndo = now()->locale('id')->translatedFormat('d F Y');
+    $hariEn = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+    foreach (ContractTemplates::all() as $key => $tpl) {
+        $out = $m->invoke($ctrl, (string) $tpl['body_content']['preamble'], null, 'X/1/2026');
+
+        expect($out)->toContain($hariIndo);
+        expect($out)->toContain($tanggalIndo);
+
+        foreach ($hariEn as $en) {
+            expect($out)->not->toContain($en);
+        }
+    }
 });
 
 test('sampul tiap template kontrak muat utuh di satu halaman A4', function () {

@@ -192,7 +192,7 @@ test('numeral & klaim untuk setiap template dipertahankan', function () use ($ke
     // Payung
     $tpl = ContractTemplates::find('kontrak-payung');
     expect($tpl['body_content']['cover'])
-        ->toContain("(KONTRAK PAYUNG)\n\nBERLANGGANAN JASA METRO FIBER OPTIK");
+        ->toMatch('/\(KONTRAK PAYUNG\)\s+BERLANGGANAN JASA METRO FIBER OPTIK/');
     expect($tpl['body_content']['cover'])->toContain('Nomor: [Nomor Perjanjian]');
     expect($tpl['body_content']['preamble'])->toStartWith('Pada hari');
     expect($tpl['body_content']['preamble'])->not->toContain('238/FBT/J.M/VI/2026');

@@ -631,13 +631,20 @@ class DocumentController extends Controller
      * [Hari], [Tanggal], [Tempat]) dengan data nyata supaya dokumen jadi
      * tidak lagi memuat placeholder mentah. Dipanggil di store() (dengan
      * data pelanggan) dan createFromTemplate() (tanpa pelanggan).
+     *
+     * CATATAN locale: [Hari] & [Tanggal] WAJIB dibungkus ->locale('id').
+     * Nilai bawaan aplikasi adalah 'en', jadi tanpa itu dokumen berbahasa
+     * Indonesia memuat "Pada hari Tuesday, tanggal 29 September 2026".
+     * ('September' kebetulan sama di keduanya, tetapi nama hari tidak.)
      */
     private function applyTemplateReplacements(string $bodyHtml, ?Customer $customer, string $nomorSurat): string
     {
+        $now = now()->locale('id');
+
         $placeholders = [
             '[Nomor Perjanjian]' => trim($nomorSurat),
-            '[Hari]'             => now()->translatedFormat('l'),
-            '[Tanggal]'          => now()->translatedFormat('d F Y'),
+            '[Hari]'             => $now->translatedFormat('l'),
+            '[Tanggal]'          => $now->translatedFormat('d F Y'),
             '[Tempat]'           => 'Cirebon',
         ];
 
