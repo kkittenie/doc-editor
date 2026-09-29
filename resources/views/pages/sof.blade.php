@@ -147,9 +147,9 @@ $isAdmin = auth()->user()->hasRole('admin');
                         </td>
                         <td class="px-4 py-3">
                             <span x-show="s.has_file"
-                                class="inline-flex items-center rounded bg-green-100 px-2 py-1 text-[10px] font-semibold text-green-800">Ada</span>
+                                class="inline-flex items-center rounded bg-green-100 px-2 py-1 text-[10px] font-semibold text-green-800">Tersedia</span>
                             <span x-show="!s.has_file"
-                                class="inline-flex items-center rounded bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-700">Kosong</span>
+                                class="inline-flex items-center rounded bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-700">-</span>
                         </td>
                         <td class="px-4 py-3">
                             <span class="inline-block rounded-full px-2.5 py-1 text-[10px] font-semibold"
