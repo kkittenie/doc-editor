@@ -1599,9 +1599,14 @@ class DocumentController extends Controller
         // kanan 50%.
         $footerHasTable = (bool) preg_match('/<table/i', $footerHtml);
         // Footer default baru (.fibertrust-footer) diulang di SETIAP halaman
-        // via .footer-fixed; margin-top inline 24px (ruang nomor editor)
-        // dilucuti jadi 0 karena nomor digambar callback kanvas di bawah.
-        // Footer lama/kustom (tanpa marker) tetap sekali di akhir dokumen.
+        // via .footer-fixed. Margin-top 24px pada tabel footer itu SIFATNYA
+        // hanya buat editor: di sana baris kosong itu diisi elemen "Page | n"
+        // (CSS counter). Di PDF nomor halaman digambar callback kanvas pada
+        // koordinat absolut (ContractStyle::FOOTER_NUM_Y), jadi margin 24px
+        // tidak menambah apa pun — hanya mendorong blok footer keluar area
+        // dan membuat dompdf spawn satu halaman kosong di akhir dokumen.
+        // Karena itu di sini dilucutkan ke 0. Footer lama/kustom (tanpa
+        // marker) tetap sekali di akhir dokumen.
         $isFibertrustFooter = str_contains($footerHtml, 'fibertrust-footer');
         if ($isFibertrustFooter) {
             $footerHtml = str_replace('margin:24px 0 0;', 'margin:0;', $footerHtml);

@@ -65,31 +65,62 @@ class ContractStyle
     public const SIZE_COVER_LINE = '13pt';
 
     /* ── Kertas & kop berulang PDF kontrak (D3/D4) ─────────────── */
-    /** Margin halaman — dipakai rule @page di views/pdf/document.blade.php. */
-    public const PAGE_MARGIN_TOP = '32mm';
-    public const PAGE_MARGIN_SIDE = '20mm';
-    public const PAGE_MARGIN_BOTTOM = '18mm';
-    /** Posisi kop position:fixed relatif tepi kertas (dompdf origin = kertas). */
-    public const RUNNING_HEADER_TOP = '5mm';
+    /**
+     * Margin halaman — dipakai rule @page di views/pdf/document.blade.php.
+     *
+     * Nilainya diturunkan dari PADDING KARTU DI EDITOR
+     * (resources/views/partials/contract-style.blade.php → `padding: 19mm 21mm`)
+     * ditambah ruang yang dipakai header & footer kartu:
+     *   - atas  : 19mm (padding kartu) + tinggi blok kop
+     *              (logo 56px = 14,82mm + padding-bottom kop 4mm)  ≈ 38mm
+     *              Sisa 0,2mm untuk garis 1px kop. Blok kop di PDF sengaja
+     *              memakai margin paragraf 0 & img display:block agar
+     *              blok kop setinggi persis nilai ini (lihat
+     *              views/pdf/document.blade.php).
+     *   - bawah : 19mm + blok footer (≈23mm: baris "Page | n" + margin
+     *              tabel 24px + 4 baris identitas 8,5pt)          ≈ 43mm
+     * Area teks PDF dengan demikian sama dengan area teks kartu di editor dan
+     * kop/footer tidak pernah bertabrakan dengan teks meski halaman penuh.
+     */
+    public const PAGE_MARGIN_TOP = '38mm';
+    public const PAGE_MARGIN_SIDE = '21mm';
+    public const PAGE_MARGIN_BOTTOM = '43mm';
+
+    /**
+     * Posisi kop & footer kontrak yang memakai `position: fixed`.
+     *
+     * PENTING: dompdf mengukur offset `fixed` dari AREA KONTEN (kotak halaman
+     * SETELAH dikurangi margin @page), BUKAN dari tepi kertas. Karena itu
+     * offset positif lama (top: 5mm) placing kop 5mm di DALAM area teks — itu
+     * penyebab logo menimpa paragraf di PDF. Nilai di bawah sengaja negatif
+     * supaya kop/footer duduk DI DALAM margin, persis seperti header/footer
+     * kartu di editor: 19mm dari tepi atas dan 19mm dari tepi bawah kertas.
+     */
+    public const RUNNING_HEADER_TOP = '-19mm';
+    public const FOOTER_BOTTOM        = '-24mm';
 
     /**
      * Nomor halaman "Page | n" digambar kanvas dompdf (callback end_document)
-     * karena counter(page) CSS selalu 1 di dompdf. Satuan titik (pt),
-     * origin kiri-atas halaman. X = margin kiri; Y = baris paraf kop.
+     * karena counter(page) CSS selalu bernilai 1 di dompdf. Satuan titik (pt),
+     * origin kiri-ATAS halaman (y bertambah ke bawah).
      */
-    public const PAGE_NUM_X = 56.0;   // 20mm — sejajar margin kiri
-    public const PAGE_NUM_Y = 15.0;    // kop mulai RUNNING_HEADER_TOP (5mm)
+    public const PAGE_NUM_X = 59.5;   // 21mm — sejajar margin kiri kartu
+    public const PAGE_NUM_Y = 78.0;   // di baris kop (kop mulai 19mm dari atas)
     public const PAGE_NUM_SIZE = 8.0;
     public const PAGE_NUM_PREFIX = 'Page | ';
 
     /**
-     * Nomor halaman footer default ("Page | n" di atas blok identitas,
-     * sejajar baris paraf). Satuan titik (pt), origin kiri-atas halaman.
-     * X = margin kiri (20mm). Y = baseline baris pertama blok footer-fixed
-     * (bottom:10mm + tinggi tabel ±55pt dari bawah kertas A4 842pt).
+     * Nomor halaman footer default ("Page | n"): baris PERTAMA di dalam blok
+     * footer-fixed — sama seperti CSS counter di editor
+     * (.doc-sheet-footer::before, `top: 8px`). Satuan titik (pt), origin
+     * kiri-atas halaman.
+     *
+     * X = margin kiri (21mm). Y = baseline ±8,5pt di bawah tepi atas blok
+     * footer; tepi atas blok itu 19mm + tinggi blok (≈42mm) dari tepi bawah
+     * kertas A4 (842pt) → 842 - 119 ≈ 722pt, + baseline ≈ 731pt.
      */
-    public const FOOTER_NUM_X = 56.0;   // 20mm — sejajar margin kiri
-    public const FOOTER_NUM_Y = 768.0;  // baseline baris "Page | n" footer
+    public const FOOTER_NUM_X = 59.5;  // 21mm — sejajar margin kiri kartu
+    public const FOOTER_NUM_Y = 731.0; // baseline baris "Page | n" di atas tabel footer
 
     /* ── Alignment ─────────────────────────────────────────────── */
     public const ALIGN_TITLE   = 'center';

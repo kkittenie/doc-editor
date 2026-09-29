@@ -57,10 +57,10 @@
                 @if(($document->status ?? '') === 'disetujui')
                 {{-- Dokumen sudah final (berkas kontrak hasil upload user):
                      unduhan mengambil berkas itu, bukan render ulang template. --}}
-                <a href="{{ route('documents.export', $document) }}" target="_blank"
+                <button type="button" @click="downloadPdf()"
                     class="rounded-xl border border-parchment-300 bg-white px-5 py-2.5 text-sm font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:bg-transparent dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900">
                     ⬇️ Unduh PDF
-                </a>
+                </button>
                 @endif
 
                 {{-- TAHAP REVIEW: tombol keputusan admin. Sengaja diletakkan di
@@ -76,11 +76,12 @@
                     class="rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 dark:bg-green-600 dark:text-white">
                     ✅ Setujui
                 </button>
-                {{-- Unduh PDF: render dari isi terkini, tanpa mengubah status. --}}
-                <a href="{{ route('documents.export', $document) }}" target="_blank"
+                {{-- Unduh PDF: simpan dulu bila ada perubahan, lalu render
+                     dari isi terkini — tanpa mengubah status. --}}
+                <button type="button" @click="downloadPdf()"
                     class="rounded-xl border border-parchment-300 bg-white px-5 py-2.5 text-sm font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:bg-transparent dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900">
                     ⬇️ Unduh PDF
-                </a>
+                </button>
                 @endif
 
                 @unless($readOnly ?? false)
@@ -2346,6 +2347,49 @@
                     this.saveStatus = 'error';
                 }
             },
+            /**
+             * Unduh PDF dari editor.
+             *
+             * Save DULU bila masih ada perubahan: exportPdf() merender isi
+             * yang tersimpan di database, jadi tanpa save ini PDF bisa lebih
+             * lama dari yang terlihat di layar. Setelah save sukses (atau
+             * tidak ada perubahan / mode baca) baru buka hasil export —
+             * sehingga file yang diunduh PERSIS sama dengan editor.
+             */
+            async downloadPdf() {
+
+                if (!this.documentId) {
+                    await Swal.fire({
+                        icon: 'warning',
+                        title: 'Belum disimpan',
+                        text: 'Simpan dokumen dulu sebelum export PDF.',
+                        confirmButtonColor: '#1B2A4A'
+                    });
+                    return;
+                }
+
+                const dirty = this.changed || window.hasUnsavedChanges === true;
+
+                if (!this.readOnly && dirty) {
+                    await this.saveDocument();
+
+                    if (this.saveStatus === 'error') {
+                        await Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal menyimpan',
+                            text: 'Perubahan belum tersimpan sehingga PDF tidak diunduh. Simpan dulu lalu coba lagi.',
+                            confirmButtonColor: '#1B2A4A'
+                        });
+                        return;
+                    }
+
+                    window.hasUnsavedChanges = false;
+                }
+
+                window.open(`/documents/${this.documentId}/export`, '_blank');
+            },
+
+
 
 
             async saveAsNewDocument(newTitle) {

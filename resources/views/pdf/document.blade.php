@@ -222,13 +222,14 @@
         /* FOOTER DEFAULT FIBERTRUST (.fibertrust-footer): diulang di SETIAP
            halaman via position:fixed (seperti .header-table kontrak di atas);
            dompdf mengulang elemen fixed per halaman. Nomor "Page | n" digambar
-           callback kanvas (bukan bagian HTML) di atas blok identitas, sejajar
-           baris paraf. margin-top 18px memberi ruang baris nomor. */
+           callback kanvas (bukan bagian HTML), tepat di atas blok ini.
+           left/right 0 = blok sejajar kolom teks (offset fixed dihitung dari
+           area konten, bukan dari tepi kertas — lihat ContractStyle). */
         .footer-fixed {
             position: fixed;
             bottom: 10mm;
-            left: {!! \App\Data\ContractStyle::PAGE_MARGIN_SIDE !!};
-            right: {!! \App\Data\ContractStyle::PAGE_MARGIN_SIDE !!};
+            left: 0;
+            right: 0;
             width: auto;
             margin-top: 18px;
             font-size: 8.5pt;
@@ -270,8 +271,29 @@
 
         .contract-document .header-table {
             border-bottom: 1px solid #000;
-            padding-bottom: 10px;
+            /* Samakan dengan editor (.doc-sheet-header padding-bottom: 4mm)
+               supaya garis kop jatuh di 37,8mm dari tepi atas — sama sungguhnya
+               di layar editor. */
+            padding-bottom: 4mm;
             margin-bottom: 14px;
+        }
+
+        /* Paragraf kop tidak boleh memakai margin bawaan apa pun.
+           Editor memberi paragraf kop `margin: 0 0 PARA_SPACE_AFTER`, tapi
+           di PDF blok kop diposition:fixed — setiap milimeter tambahan di
+           sini membuat border-bottom-nya turun dan memotong paragraf
+           pertama body. Logo juga dibuat display:block supaya gambar tidak
+           menambah ruang descender baris (inline-block vertical-align
+           middle menambah ±1,5mm di bawah gambar). Efeknya tinggi blok kop
+           = logo 14,82mm + padding 4mm = 18,82mm, sama persis dengan
+           .doc-sheet-header di editor, sehingga garis kop jatuh di 37,8mm
+           dari tepi atas — identik layar editor. */
+        .contract-document .header-table p {
+            margin: 0;
+        }
+
+        .contract-document .header-table img {
+            display: block;
         }
 
         .contract-document .body-content {
@@ -347,11 +369,17 @@
 
         /* ── D3 & D4: kertas & kop berulang — HANYA untuk lima template
            kontrak resmi (digate body class contract-document + flag
-           contractTemplate). Margin @page menyediakan ruang kop di atas
-           area teks; kop dipasang position:fixed dengan origin tepi kertas
-           sehingga dompdf mengulangnya di SETIAP halaman (termasuk sampul),
-           persis PDF sumber ("Page | n" + paraf + kop). Semua nilai dari
-           token ContractStyle. ── */
+           contractTemplate). Margin @page menyisakan ruang kop di atas dan
+           footer di bawah area teks; kop & footer dipasang position:fixed
+           supaya dompdf mengulangnya di SETIAP halaman (termasuk sampul),
+           persis PDF sumber ("Page | n" + paraf + kop).
+
+           CATATAN PENTING: dompdf mengukur offset `fixed` dari AREA KONTEN
+           (setelah margin @page dikurangi), bukan dari tepi kertas. Karena
+           itu top/bottom di bawah bernilai NEGATIF supaya kop & footer
+           duduk di dalam margin — persis letak header/footer kartu di
+           editor (19mm dari tepi atas & 19mm dari tepi bawah kertas).
+           left/right 0 supaya keduanya sejajar dengan kolom teks. ── */
         @if($document->body_content['contractTemplate'] ?? false)
         @page {
             margin: {!! $cs::PAGE_MARGIN_TOP !!} {!! $cs::PAGE_MARGIN_SIDE !!} {!! $cs::PAGE_MARGIN_BOTTOM !!} {!! $cs::PAGE_MARGIN_SIDE !!};
@@ -360,10 +388,19 @@
         .contract-document .header-table {
             position: fixed;
             top: {!! $cs::RUNNING_HEADER_TOP !!};
-            left: {!! $cs::PAGE_MARGIN_SIDE !!};
-            right: {!! $cs::PAGE_MARGIN_SIDE !!};
+            left: 0;
+            right: 0;
             width: auto;
             margin-bottom: 0;
+        }
+
+        /* Footer kontrak: meluncur ke dalam margin bawah (19mm dari tepi
+           bawah kertas = padding bawah kartu di editor) dan sejajar kolom
+           teks. margin-top 0 karena ruang baris "Page | n" sudah disediakan
+           margin-top 24px pada tabel footer itu sendiri. */
+        .contract-document .footer-fixed {
+            bottom: {!! $cs::FOOTER_BOTTOM !!};
+            margin-top: 0;
         }
         @endif
     </style>
@@ -402,6 +439,15 @@
     </div>
     @endif
 
+    {{-- Blok footer lama (footer-table): disembunyikan saat memakai footer
+         default Fibertrust yang sudah diulang tiap halaman lewat
+         .footer-fixed, KECUALI bila masih ada tembusan atau tanda tangan
+         yang harus ikut dirender. Tanpa syarat ini tabel kosong
+         (margin-top 30px + .signature-space 70px) ikut menambah tinggi
+         flow dan menciptakan satu halaman kosong di akhir dokumen. --}}
+    @if(!($isFibertrustFooter ?? false)
+        || !empty($document->footer_data['tembusan'])
+        || !empty($signaturePath))
     <table class="footer-table">
         <tr>
             <td class="left-col">
@@ -423,6 +469,7 @@
         </td>
         </tr>
     </table>
+    @endif
 
 </body>
 
