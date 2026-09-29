@@ -23,25 +23,123 @@ class CustomerController extends Controller
 
     public function index()
     {
-        $customers = Customer::where('user_id', Auth::id())
-            ->withCount(['barang', 'services', 'documents'])
-            // Dokumen terbaru dipakai untuk tombol aksi di Tabel Pelanggan:
-            // "Setujui" (dokumen On Review) dan "Unduh S.O.F" (sudah disetujui).
-            ->with(['documents' => fn ($query) => $query->orderByDesc('id')])
-            ->latest()
-            ->get();
-
         return view('pages.customers', [
             'title' => 'Dokumen Saya',
-            'customers' => $customers,
 
-            // Dipakai sebagai placeholder abu-abu pada input Nomor Kontrak:
-            // kalau user tidak mengetik apa pun, server memakai nilai ini.
+            // Placeholder input Nomor Kontrak & Pelanggan ID di Form Pelanggan.
             'nextContractNumber' => $this->nextContractNumber(),
-
-            // Perkiraan Pelanggan ID berikutnya (kolom auto).
-            'nextCustomerCode' => $this->peekNextCustomerCode(),
+            'nextCustomerCode'   => $this->peekNextCustomerCode(),
         ]);
+    }
+
+    public function data(Request $request) 
+    {
+        $isAdmin = Auth::user()->hasRole('admin');
+
+        $search = trim((string) $request->input('search', ''));
+        $status = $request->input('status', 'all');
+        $status = in_array($status, Customer::STATUSES, true) ? $status : 'all';
+
+        $sortable = ['id', 'customer_number', 'name', 'contract_number', 'contract_name', 'active_date', 'active_months', 'finish_date', 'status'];
+        $sort = in_array($request->input('sort'), $sortable, true)
+            ? $request->input('sort')
+            : 'created_at';
+        $dir = $request->input('dir') === 'asc' ? 'asc' : 'desc';
+
+        $perPage = (int) $request->input('per_page', 10);
+        $perPage = in_array($perPage, [10,25,50], true) ? $perPage : 10;
+
+        $rawCounts = Customer::where('user_id', Auth::id())
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $counts = ['all' => (int) $rawCounts->sum()];
+        foreach (Customer::STATUSES as $s) {
+            $counts[$s] = (int) ($rawCounts[$s] ?? 0);
+        }
+
+        $paginator = Customer::where('user_id', Auth::id())
+            ->withCount(['barang', 'services'])
+            ->withMax('documents', 'updated_at')
+            ->with(['latestDocument' => fn ($q) => $q->select('documents.id', 'documents.customer_id', 'documents.status')])
+            ->when($status !== 'all', fn ($q) => $q->where('status', $status))
+            ->when($search !== '', function ($q) use ($search) {
+                $like = '%' . $search . '%';
+
+                $q->where(function ($w) use ($like, $search) {
+                    $w->where('name', 'like', $like)
+                        ->orWhere('customer_number', 'like', $like)
+                        ->orWhere('contract_number', 'like', $like)
+                        ->orWhere('contract_name', 'like', $like);
+
+                        if (preg_match('/^plg-?0*(\d+)$/i', $search, $m)) {
+                            $w->orWhere('id', (int) $m[1]);
+                        }
+                });
+            })
+            ->orderBy($sort, $dir)
+            ->orderBy('id', $dir)
+            ->paginate($perPage);
+
+            return response()->json([
+                'data' => $paginator->getCollection()
+                    ->map(fn (Customer $c) => $this->transformCustomer($c, $isAdmin))
+                    ->values(),
+                'meta' => [
+                    'current_page' => $paginator->currentPage(),
+                    'last_page' => $paginator->lastPage(),
+                    'per_page' => $paginator->perPage(),
+                    'total' => $paginator->total(),
+                    'from' => $paginator->firstItem(),
+                    'to' => $paginator->lastItem(),
+                ],
+                'counts' => $counts,
+            ]);
+    }
+
+    private function transformCustomer(Customer $customer, bool $isAdmin): array
+    {
+        $status = strtolower($customer->status ?? 'draft');
+        $doc    = $customer->latestDocument;
+
+        $lastUpdate = $customer->documents_max_updated_at
+            ? \Carbon\Carbon::parse($customer->documents_max_updated_at)
+            : $customer->updated_at;
+
+        return [
+            'id'              => 'PLG-' . str_pad($customer->id, 5, '0', STR_PAD_LEFT),
+            'databaseId'      => $customer->id,
+            'customerNumber'  => $customer->customer_number,
+            'name'            => $customer->name,
+            'contractNumber'  => $customer->contract_number,
+            'contractName'    => $customer->contract_name ?? '—',
+            'activeDate'      => $customer->active_date ? $customer->active_date->format('d M Y') : '—',
+            'activeMonths'    => $customer->active_months ? $customer->active_months . ' bulan' : '—',
+            'finishDate'      => $customer->finish_date ? $customer->finish_date->format('d M Y') : '—',
+            'barangCount'     => $customer->barang_count ?? 0,
+            'serviceCount'    => $customer->services_count ?? 0,
+            'status'          => $status,
+            'statusUpdated'   => $lastUpdate ? $lastUpdate->format('d M Y H:i') : null,
+            'statusLabel'     => $customer->statusLabel(),
+
+            'createUrl'       => route('documents.create', $customer->id),
+            'deleteUrl'       => route('customers.destroy', $customer->id),
+
+            'documentId'      => $doc?->id,
+            'documentStatus'  => $doc?->status,
+
+            'canContinue'     => ! in_array($doc?->status, ['on_review', 'disetujui'], true),
+            'canView'         => $isAdmin && $doc !== null,
+            'viewUrl'         => $doc ? route('documents.edit', $doc->id) : null,
+
+            'canApprove'         => $isAdmin && $doc?->status === 'on_review',
+            'canRequestRevision' => $isAdmin && $doc?->status === 'on_review',
+            'canExportPdf'       => $isAdmin && $doc !== null,
+            'approveUrl'      => $doc ? route('documents.approve', $doc->id) : null,
+            'statusUrl'       => $doc ? route('documents.Status', $doc->id) : null,
+            'exportUrl'       => $doc ? route('documents.export', $doc->id) : null,
+        ];
     }
 
     public function store(Request $request)

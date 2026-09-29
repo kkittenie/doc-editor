@@ -2,88 +2,31 @@
 
 @section('content')
 
-@php
-    // Hanya admin yang boleh menyetujui / meminta revisi / mengunduh PDF:
-    // endpoint terkait memakai guard role:admin + kepemilikan dokumen.
-    $isAdmin = auth()->user()->hasRole('admin');
-
-    $customerData = $customers->map(function ($customer) use ($isAdmin) {
-        $status = strtolower($customer->status ?? 'draft');
-
-        // "Terakhir diubah" = dokumen terbaru yang diubah (max updated_at) -
-        // bukan updated_at pelanggan, supaya Save di editor selalu tercermin
-        // meski status tidak ikut berubah. Fallback ke updated_at pelanggan
-        // untuk baris yang belum punya dokumen.
-        $lastDocumentUpdate = $customer->documents->max('updated_at') ?? $customer->updated_at;
-
-        return [
-            'id' => 'PLG-' . str_pad($customer->id, 5, '0', STR_PAD_LEFT),
-            'databaseId' => $customer->id,
-            'customerNumber' => $customer->customer_number,
-            'name' => $customer->name,
-            'contractNumber' => $customer->contract_number,
-            'contractName' => $customer->contract_name ?? '—',
-            'activeDate' => $customer->active_date
-                ? $customer->active_date->format('d M Y')
-                : '—',
-            'activeMonths' => $customer->active_months
-                ? $customer->active_months . ' bulan'
-                : '—',
-            'finishDate' => $customer->finish_date
-                ? $customer->finish_date->format('d M Y')
-                : '—',
-            'barangCount' => $customer->barang_count ?? 0,
-            'serviceCount' => $customer->services_count ?? 0,
-            'status' => $status,
-            'statusUpdated' => $lastDocumentUpdate ? $lastDocumentUpdate->format('d M Y H:i') : null,
-            'statusLabel' => $customer->statusLabel(),
-            // Lanjut langsung ke halaman pilih template (tanpa pilihan upload/baru).
-            'createUrl' => route('documents.create', $customer->id),
-            'deleteUrl' => route('customers.destroy', $customer->id),
-
-            // Dokumen terbaru milik kontrak.
-            'documentId' => $customer->documents->first()?->id,
-            'documentStatus' => $customer->documents->first()?->status,
-
-            // Lanjut tidak dipakai saat dokumen menunggu keputusan review (On Review)
-            // maupun sudah final (Disetujui) - dokumen final hanya dibaca lewat
-            // Lihat / diunduh lewat Unduh PDF.
-            'canContinue' => ! in_array($customer->documents->first()?->status, ['on_review', 'disetujui'], true),
-            'canView' => $isAdmin && $customer->documents->first() !== null,
-            'viewUrl' => $customer->documents->first()
-                ? route('documents.edit', $customer->documents->first()->id)
-                : null,
-
-            // Aksi tahap On Review: Setujui (upload berkas kontrak), Minta Revisi,
-            // dan Unduh PDF. Semua hanya untuk admin pemilik dokumen karena
-            // endpoint-nya memakai guard role:admin.
-            'canApprove' => $isAdmin && $customer->documents->first()?->status === 'on_review',
-            'canRequestRevision' => $isAdmin && $customer->documents->first()?->status === 'on_review',
-            'canExportPdf' => $isAdmin && $customer->documents->first() !== null,
-            'approveUrl' => $customer->documents->first()
-                ? route('documents.approve', $customer->documents->first()->id)
-                : null,
-            'statusUrl' => $customer->documents->first()
-                ? route('documents.Status', $customer->documents->first()->id)
-                : null,
-            'exportUrl' => $customer->documents->first()
-                ? route('documents.export', $customer->documents->first()->id)
-                : null,
-
-        ];
-    })->toArray();
-@endphp
-
 <script>
-    window.customerPageData = @json($customerData);
+    window.customerDataUrl = @json(route('customers.data'));
     window.customerNextContract = @json($nextContractNumber);
     window.flashSuccess = @json(session('success'));
 
     function customersPage() {
         return {
-            customers: window.customerPageData,
+            //data dari server
+            customers: [],
+            counts: { all: 0, draft: 0, on_progress: 0, on_review: 0, revisi: 0, disetujui: 0 },
+            meta: { current_page: 1, last_page: 1, per_page: 10, total: 0, from: 0, to: 0 },
+            loading: true,
+
+            //kontrol table
             filterStatus: 'all',
             searchQuery: '',
+            sortKey: '',
+            sortDir: 'asc',
+            perPage: 10,
+            page: 1,
+
+            //internal
+            searchTimer: null,
+            requestId: 0,
+
             submitting: false,
             contractTyped: false,
             autoContractNumber: window.customerNextContract,
@@ -99,30 +42,79 @@
                         showConfirmButton: false,
                     });
                 }
-            },
 
-            get filteredCustomers() {
-                const search = this.searchQuery.toLowerCase();
+                this.fetchCustomers();
 
-                return this.customers.filter(customer => {
-                    const matchesStatus =
-                        this.filterStatus === 'all' ||
-                        customer.status === this.filterStatus;
-
-                    const matchesSearch =
-                        customer.name.toLowerCase().includes(search) ||
-                        customer.id.toLowerCase().includes(search) ||
-                        customer.customerNumber.toLowerCase().includes(search) ||
-                        customer.contractNumber.toLowerCase().includes(search) ||
-                        customer.contractName.toLowerCase().includes(search);
-
-                    return matchesStatus && matchesSearch;
+                this.$watch('searchQuery', () => {
+                    clearTimeout(this.searchTimer);
+                    this.searchTimer = setTimeout(() => {
+                        this.page = 1;
+                        this.fetchCustomers();
+                    }, 350);
                 });
+
+                this.$watch('filterStatus', () => { this.page = 1; this.fetchCustomers(); });
+                this.$watch('perPage', () => { this.page = 1; this.fetchCustomers(); });
             },
 
-            countByStatus(status) {
-                return this.customers.filter(c => c.status === status).length;
+            async fetchCustomers() {
+                const currentRequest = ++this.requestId;
+                this.loading = true;
+
+                try {
+                    const { data } = await window.axios.get(window.customerDataUrl, {
+                        params: {
+                            search: this.searchQuery.trim(),
+                            status: this.filterStatus,
+                            sort: this.sortKey || undefined,
+                            dir: this.sortKey ? this.sortDir : undefined,
+                            per_page: this.perPage,
+                            page: this.page,
+                        },
+                    });
+
+                    if (currentRequest !== this.requestId) return;
+
+                    if (this.page > data.meta.last_page) {
+                        this.page = data.meta.last_page;
+                        return this.fetchCustomers();
+                    }
+
+                    this.customers = data.data;
+                    this.meta = data.meta;
+                    this.counts = data.counts;
+                } catch (error) {
+                    if (currentRequest !== this.requestId) return;
+                    console.error(error);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal memuat data',
+                        text: error?.response?.data?.message || 'Data pelanggan gagal dimuat.',
+                        confirmButtonColor: '#1B2A4A',
+                    });
+                } finally {
+                    if (currentRequest === this.requestId) this.loading = false;
+                }
             },
+
+            sortBy(key) {
+                if (this.sortKey === key) {
+                    this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+                } else {
+                    this.sortKey = key;
+                    this.sortDir = 'asc';
+                }
+                this.page = 1;
+                this.fetchCustomers();
+            },
+
+            goToPage(p) {
+                if (p < 1 || p > this.meta.last_page || p === this.meta.current_page) return;
+                this.page = p;
+                this.fetchCustomers();
+            },
+
             async confirmSubmit(event) {
                 const form = event.target;
 
@@ -164,9 +156,7 @@
                 try {
                     await window.axios.delete(customer.deleteUrl);
 
-                    this.customers = this.customers.filter(
-                        c => c.databaseId !== customer.databaseId
-                    );
+                    await this.fetchCustomers();
 
                     Swal.fire({
                         icon: 'success',
@@ -242,7 +232,7 @@
                     });
 
                     // Muat ulang supaya badge status + kartu ringkasan terbarui.
-                    setTimeout(() => window.location.reload(), 1200);
+                    setTimeout(() => this.fetchCustomers(), 1200);
                 } catch (error) {
                     console.error(error);
 
@@ -282,7 +272,7 @@
                         showConfirmButton: false,
                     });
 
-                    setTimeout(() => window.location.reload(), 1200);
+                    setTimeout(() => this.fetchCustomers(), 1200);
                 } catch (error) {
                     console.error(error);
 
@@ -310,44 +300,55 @@
 </script>
 
 @php
-    $summaryCards = [
-        [
-            'key' => 'all',
-            'label' => 'Total Pelanggan',
-            'icon' => '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>',
-            'iconClass' => 'bg-parchment-100 text-ink-900 dark:bg-slate-warm-800 dark:text-parchment-200',
-        ],
-        [
-            'key' => 'draft',
-            'label' => 'Draft',
-            'icon' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-            'iconClass' => 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400',
-        ],
-        [
-            'key' => 'on_progress',
-            'label' => 'On Progress',
-            'icon' => '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
-            'iconClass' => 'bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-400',
-        ],
-        [
-            'key' => 'on_review',
-            'label' => 'On Review',
-            'icon' => '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
-            'iconClass' => 'bg-violet-50 text-violet-700 dark:bg-violet-900/20 dark:text-violet-400',
-        ],
-        [
-            'key' => 'revisi',
-            'label' => 'Revisi',
-            'icon' => '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
-            'iconClass' => 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400',
-        ],
-        [
-            'key' => 'disetujui',
-            'label' => 'Disetujui',
-            'icon' => '<path d="m20 6-11 11-5-5"/>',
-            'iconClass' => 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400',
-        ],
-    ];
+$summaryCards = [
+[
+'key' => 'all',
+'label' => 'Total Pelanggan',
+'icon' => '
+<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+<circle cx="9" cy="7" r="4" />',
+'iconClass' => 'bg-parchment-100 text-ink-900 dark:bg-slate-warm-800 dark:text-parchment-200',
+],
+[
+'key' => 'draft',
+'label' => 'Draft',
+'icon' => '
+<circle cx="12" cy="12" r="9" />
+<path d="M12 7v5l3 2" />',
+'iconClass' => 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400',
+],
+[
+'key' => 'on_progress',
+'label' => 'On Progress',
+'icon' => '
+<path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+<path d="M3 3v5h5" />',
+'iconClass' => 'bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-400',
+],
+[
+'key' => 'on_review',
+'label' => 'On Review',
+'icon' => '
+<circle cx="11" cy="11" r="7" />
+<path d="m20 20-4-4" />',
+'iconClass' => 'bg-violet-50 text-violet-700 dark:bg-violet-900/20 dark:text-violet-400',
+],
+[
+'key' => 'revisi',
+'label' => 'Revisi',
+'icon' => '
+<path d="M12 20h9" />
+<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />',
+'iconClass' => 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400',
+],
+[
+'key' => 'disetujui',
+'label' => 'Disetujui',
+'icon' => '
+<path d="m20 6-11 11-5-5" />',
+'iconClass' => 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400',
+],
+];
 @endphp
 
 <div x-data="customersPage()" class="space-y-6">
@@ -358,8 +359,7 @@
             <div class="mb-2 flex items-center gap-2">
                 <span
                     class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-ink-900 text-white dark:bg-bronze-500 dark:text-ink-900">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                         <circle cx="9" cy="7" r="4" />
                     </svg>
@@ -393,44 +393,40 @@
     {{-- SUMMARY CARDS --}}
     <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         @foreach ($summaryCards as $card)
-            @php
-                $counterExpression = $card['key'] === 'all'
-                    ? 'customers.length'
-                    : "countByStatus('" . $card['key'] . "')";
-            @endphp
+        @php
+        $counterExpression = "counts['" . $card['key'] . "']";
+        @endphp
 
-            <div
-                class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
-                <div class="flex items-start justify-between">
-                    <div>
-                        <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
-                            {{ $card['label'] }}
-                        </p>
+        <div
+            class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                        {{ $card['label'] }}
+                    </p>
 
-                        <p class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50"
-                            x-text="{!! $counterExpression !!}"></p>
-                    </div>
+                    <p class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50"
+                        x-text="{!! $counterExpression !!}"></p>
+                </div>
 
-                    <div class="flex h-9 w-9 items-center justify-center rounded-xl {{ $card['iconClass'] }}">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            {!! $card['icon'] !!}
-                        </svg>
-                    </div>
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl {{ $card['iconClass'] }}">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        {!! $card['icon'] !!}
+                    </svg>
                 </div>
             </div>
+        </div>
         @endforeach
     </div>
 
-{{-- FORM PELANGGAN --}}
+    {{-- FORM PELANGGAN --}}
     <div
         class="overflow-hidden rounded-2xl border border-parchment-300 bg-white shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
 
         <div class="flex items-start gap-3 border-b border-parchment-200 px-5 py-4 dark:border-slate-warm-800">
             <span
                 class="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-bronze-100 text-bronze-800 dark:bg-bronze-500/20 dark:text-bronze-300">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="12" y1="5" x2="12" y2="19" />
                     <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
@@ -448,8 +444,7 @@
         </div>
 
         <form method="POST" action="{{ route('customers.store') }}" @submit="confirmSubmit($event)"
-            x-data="customerForm()"
-            class="grid grid-cols-1 gap-4 p-5 md:grid-cols-2 xl:grid-cols-4">
+            x-data="customerForm()" class="grid grid-cols-1 gap-4 p-5 md:grid-cols-2 xl:grid-cols-4">
             @csrf
 
             {{-- Pelanggan ID (auto) --}}
@@ -479,7 +474,7 @@
                     class="h-11 w-full rounded-lg border border-parchment-300 bg-white px-3 text-sm text-ink-900 outline-none transition placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 dark:border-slate-warm-700 dark:bg-slate-warm-900 dark:text-parchment-100 dark:focus:border-bronze-500">
 
                 @error('customer_number')
-                    <p class="mt-1 text-[11px] font-medium text-red-600">{{ $message }}</p>
+                <p class="mt-1 text-[11px] font-medium text-red-600">{{ $message }}</p>
                 @enderror
             </div>
 
@@ -490,12 +485,12 @@
                     Nama Pelanggan <span class="text-red-500">*</span>
                 </label>
 
-                <input id="customer-name" name="name" type="text" required maxlength="150"
-                    value="{{ old('name') }}" placeholder="Contoh: Ahmad Junior"
+                <input id="customer-name" name="name" type="text" required maxlength="150" value="{{ old('name') }}"
+                    placeholder="Contoh: Ahmad Junior"
                     class="h-11 w-full rounded-lg border border-parchment-300 bg-white px-3 text-sm text-ink-900 outline-none transition placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 dark:border-slate-warm-700 dark:bg-slate-warm-900 dark:text-parchment-100 dark:focus:border-bronze-500">
 
                 @error('name')
-                    <p class="mt-1 text-[11px] font-medium text-red-600">{{ $message }}</p>
+                <p class="mt-1 text-[11px] font-medium text-red-600">{{ $message }}</p>
                 @enderror
             </div>
 
@@ -520,7 +515,7 @@
                 </p>
 
                 @error('contract_number')
-                    <p class="mt-1 text-[11px] font-medium text-red-600">{{ $message }}</p>
+                <p class="mt-1 text-[11px] font-medium text-red-600">{{ $message }}</p>
                 @enderror
             </div>
 
@@ -537,7 +532,7 @@
                 <input type="hidden" name="active_date" :value="activeDate">
 
                 @error('active_date')
-                    <p class="mt-1 text-[11px] font-medium text-red-600">{{ $message }}</p>
+                <p class="mt-1 text-[11px] font-medium text-red-600">{{ $message }}</p>
                 @enderror
             </div>
 
@@ -548,14 +543,14 @@
                     Masa Aktif (bulan) <span class="text-red-500">*</span>
                 </label>
 
-                <input id="customer-active-months" type="number" required min="1" max="120"
-                    x-model="activeMonths" placeholder="12"
+                <input id="customer-active-months" type="number" required min="1" max="120" x-model="activeMonths"
+                    placeholder="12"
                     class="h-11 w-full rounded-lg border border-parchment-300 bg-white px-3 text-sm text-ink-900 outline-none transition placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 dark:border-slate-warm-700 dark:bg-slate-warm-900 dark:text-parchment-100 dark:focus:border-bronze-500">
 
                 <input type="hidden" name="active_months" :value="activeMonths">
 
                 @error('active_months')
-                    <p class="mt-1 text-[11px] font-medium text-red-600">{{ $message }}</p>
+                <p class="mt-1 text-[11px] font-medium text-red-600">{{ $message }}</p>
                 @enderror
             </div>
 
@@ -563,7 +558,7 @@
             <div>
                 <label for="customer-finish-date"
                     class="mb-1.5 block text-xs font-semibold text-slate-warm-600 dark:text-parchment-300">
-                    Tanggal Selesai 
+                    Tanggal Selesai
                 </label>
 
                 <input id="customer-finish-date" type="text" readonly tabindex="-1" :value="finishDateLabel"
@@ -578,9 +573,9 @@
             @include('partials.customer.service-input')
 
             <div class="flex items-end md:col-span-2 xl:col-span-4">
-                <button type="submit" class="btn-primary text-xs" :disabled="submitting" :class="submitting ? 'opacity-70' : ''">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2">
+                <button type="submit" class="btn-primary text-xs" :disabled="submitting"
+                    :class="submitting ? 'opacity-70' : ''">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
                         <polyline points="17 21 17 13 7 13 7 21" />
                         <polyline points="7 3 7 8 15 8" />
@@ -594,7 +589,7 @@
         @include('partials.customer.form-script')
     </div>
 
-{{-- TABEL PELANGGAN --}}
+    {{-- TABEL PELANGGAN --}}
     <div
         class="overflow-hidden rounded-2xl border border-parchment-300 bg-white shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
 
@@ -614,8 +609,7 @@
                 {{-- SEARCH --}}
                 <div class="relative">
                     <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-warm-400"
-                        width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2">
+                        width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="7" />
                         <path d="m20 20-4-4" />
                     </svg>
@@ -627,53 +621,64 @@
         </div>
 
         {{-- FILTER STATUS --}}
-        <div class="flex flex-wrap items-center gap-2 border-b border-parchment-200 px-5 py-3 dark:border-slate-warm-800">
+        <div
+            class="flex flex-wrap items-center gap-2 border-b border-parchment-200 px-5 py-3 dark:border-slate-warm-800">
             @foreach ([
-                'all' => 'Semua',
-                'draft' => 'Draft',
-                'on_progress' => 'On Progress',
-                'on_review' => 'On Review',
-                'revisi' => 'Revisi',
-                'disetujui' => 'Disetujui',
+            'all' => 'Semua',
+            'draft' => 'Draft',
+            'on_progress' => 'On Progress',
+            'on_review' => 'On Review',
+            'revisi' => 'Revisi',
+            'disetujui' => 'Disetujui',
             ] as $value => $label)
-                <button type="button" @click="filterStatus = '{{ $value }}'"
-                    class="rounded-full border px-3 py-1.5 text-[11px] font-semibold transition"
-                    :class="filterStatus === '{{ $value }}'
+            <button type="button" @click="filterStatus = '{{ $value }}'"
+                class="rounded-full border px-3 py-1.5 text-[11px] font-semibold transition"
+                :class="filterStatus === '{{ $value }}'
                         ? 'border-ink-900 bg-ink-900 text-white dark:border-bronze-500 dark:bg-bronze-500 dark:text-ink-900'
                         : 'border-parchment-300 text-slate-warm-600 hover:border-ink-900 hover:text-ink-900 dark:border-slate-warm-700 dark:text-parchment-300 dark:hover:border-bronze-500'">
-                    {{ $label }}
-                </button>
+                {{ $label }}
+            </button>
             @endforeach
         </div>
 
         {{-- TABLE --}}
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto transition-opacity" :class="loading ? 'opacity-60' : ''">
             <table class="w-full min-w-[1180px] border-collapse text-left">
                 <thead>
                     <tr class="bg-parchment-50 dark:bg-slate-warm-800/60">
                         @foreach ([
-                            'Pelanggan ID',
-                            'Nomer Pelanggan',
-                            'Nama Pelanggan',
-                            'Nomor Kontrak',
-                            'Nama Kontrak',
-                            'Tanggal Aktif',
-                            'Masa Aktif',
-                            'Tanggal Selesai',
-                            'Status',
-                            'Action',
-                        ] as $heading)
-                            <th
-                                class="whitespace-nowrap border-b border-parchment-200 px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-slate-warm-500 dark:border-slate-warm-800 dark:text-parchment-400">
-                                {{ $heading }}
-                            </th>
+                        ['label' => 'Pelanggan ID', 'sort' => 'id'],
+                        ['label' => 'Nomer Pelanggan', 'sort' => 'customer_number'],
+                        ['label' => 'Nama Pelanggan', 'sort' => 'name'],
+                        ['label' => 'Nomor Kontrak', 'sort' => 'contract_number'],
+                        ['label' => 'Nama Kontrak', 'sort' => 'contract_name'],
+                        ['label' => 'Tanggal Aktif', 'sort' => 'active_date'],
+                        ['label' => 'Masa Aktif', 'sort' => 'active_months'],
+                        ['label' => 'Tanggal Selesai', 'sort' => 'finish_date'],
+                        ['label' => 'Status', 'sort' => 'status'],
+                        ['label' => 'Action', 'sort' => null],
+                        ] as $col)
+                        <th
+                            class="whitespace-nowrap border-b border-parchment-200 px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-slate-warm-500 dark:border-slate-warm-800 dark:text-parchment-400">
+                            @if ($col['sort'])
+                            <button type="button" @click="sortBy('{{ $col['sort'] }}')"
+                                class="inline-flex items-center gap-1 font-semibold uppercase tracking-wide hover:text-ink-900 dark:hover:text-parchment-50">
+                                {{ $col['label'] }}
+                                <span class="text-[9px]"
+                                    x-text="sortKey === '{{ $col['sort'] }}' ? (sortDir === 'asc' ? '▲' : '▼') : '↕'"></span>
+                            </button>
+                            @else
+                            {{ $col['label'] }}
+                            @endif
+                        </th>
                         @endforeach
                     </tr>
                 </thead>
 
                 <tbody>
-                    <template x-for="customer in filteredCustomers" :key="customer.databaseId">
-                        <tr class="border-b border-parchment-100 transition hover:bg-parchment-50/70 dark:border-slate-warm-800 dark:hover:bg-white/[0.03]">
+                    <template x-for="customer in customers" :key="customer.databaseId">
+                        <tr
+                            class="border-b border-parchment-100 transition hover:bg-parchment-50/70 dark:border-slate-warm-800 dark:hover:bg-white/[0.03]">
                             <td class="whitespace-nowrap px-4 py-3.5">
                                 <span class="font-mono text-xs font-semibold text-ink-900 dark:text-parchment-100"
                                     x-text="customer.id"></span>
@@ -711,8 +716,7 @@
                             <td class="whitespace-nowrap px-4 py-3.5">
                                 <span
                                     class="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold"
-                                    :class="statusClass(customer.status)"
-                                    x-text="customer.statusLabel"></span>
+                                    :class="statusClass(customer.status)" x-text="customer.statusLabel"></span>
                                 <p x-show="customer.status !== 'draft' && customer.statusUpdated"
                                     class="mt-1 text-[10px] leading-tight text-slate-warm-400 dark:text-parchment-500"
                                     x-text="'Update: ' + customer.statusUpdated"></p>
@@ -721,25 +725,25 @@
                             <td class="whitespace-nowrap px-4 py-3.5">
                                 <div class="flex items-center gap-2">
                                     {{-- Lanjut → pilih template (konteks pelanggan).
-                                         Tidak dipakai saat dokumen On Review maupun
-                                         Disetujui: aksi yang benar adalah Setujui
-                                         (review) / Revisi (final), isi dibaca
-                                         lewat Lihat. --}}
+                                    Tidak dipakai saat dokumen On Review maupun
+                                    Disetujui: aksi yang benar adalah Setujui
+                                    (review) / Revisi (final), isi dibaca
+                                    lewat Lihat. --}}
                                     <template x-if="customer.canContinue">
-                                    <a :href="customer.createUrl"
-                                        class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900">
-                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <path d="M12 20h9" />
-                                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                                        </svg>
+                                        <a :href="customer.createUrl"
+                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path d="M12 20h9" />
+                                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                                            </svg>
 
-                                        Lanjut
-                                    </a>
+                                            Lanjut
+                                        </a>
                                     </template>
 
                                     {{-- Lihat: buka dokumen dalam mode Lihat (read-only) supaya
-                                         reviewer bisa membaca isinya sebelum memutuskan. --}}
+                                    reviewer bisa membaca isinya sebelum memutuskan. --}}
                                     <template x-if="customer.canView">
                                         <a :href="customer.viewUrl"
                                             class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900"
@@ -755,7 +759,7 @@
                                     </template>
 
                                     {{-- Setujui: dokumen On Review disetujui dengan popup upload
-                                         berkas kontrak (PDF). --}}
+                                    berkas kontrak (PDF). --}}
                                     <template x-if="customer.canApprove">
                                         <button type="button" @click="approveCustomer(customer)"
                                             class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-green-500 bg-green-600 px-2.5 text-[11px] font-semibold text-white transition hover:bg-green-700 dark:border-green-500/60 dark:bg-green-600 dark:hover:bg-green-500"
@@ -785,7 +789,7 @@
                                     </template>
 
                                     {{-- Unduh PDF: berkas kontrak hasil upload (dokumen
-                                         disetujui) atau render dari isi terkini. --}}
+                                    disetujui) atau render dari isi terkini. --}}
                                     <template x-if="customer.canExportPdf">
                                         <a :href="customer.exportUrl" target="_blank"
                                             class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900"
@@ -823,12 +827,11 @@
         </div>
 
         {{-- EMPTY STATE --}}
-        <div x-show="filteredCustomers.length === 0" x-cloak
+        <div x-show="!loading && customers.length === 0" x-cloak
             class="border-t border-parchment-200 px-6 py-14 text-center dark:border-slate-warm-800">
             <div
                 class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-parchment-100 text-slate-warm-400 dark:bg-slate-warm-800">
-                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="1.7">
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
                     <circle cx="11" cy="11" r="7" />
                     <path d="m20 20-4-4" />
                 </svg>
@@ -841,6 +844,37 @@
             <p class="mt-1 text-xs text-slate-warm-500">
                 Tambahkan pelanggan baru lewat Form Pelanggan di atas, atau ubah kata pencarian/filter status.
             </p>
+        </div>
+        {{-- PAGINATION --}}
+        <div x-show="meta.total > 0"
+            class="flex flex-col gap-3 border-t border-parchment-200 px-5 py-3 text-xs text-slate-warm-500 dark:border-slate-warm-800 dark:text-parchment-400 sm:flex-row sm:items-center sm:justify-between">
+
+            <div class="flex items-center gap-3">
+                <span x-text="'Menampilkan ' + meta.from + '–' + meta.to + ' dari ' + meta.total + ' data'"></span>
+
+                <select x-model.number="perPage"
+                    class="h-8 rounded-lg border border-parchment-300 bg-white px-2 text-xs text-ink-900 outline-none focus:border-ink-900 dark:border-slate-warm-700 dark:bg-slate-warm-900 dark:text-parchment-100">
+                    <option value="10">10 / halaman</option>
+                    <option value="25">25 / halaman</option>
+                    <option value="50">50 / halaman</option>
+                </select>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button type="button" @click="goToPage(meta.current_page - 1)"
+                    :disabled="meta.current_page <= 1 || loading"
+                    class="inline-flex h-8 items-center rounded-lg border border-parchment-300 px-3 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-warm-700 dark:text-parchment-200">
+                    ‹ Sebelumnya
+                </button>
+
+                <span x-text="'Halaman ' + meta.current_page + ' / ' + meta.last_page"></span>
+
+                <button type="button" @click="goToPage(meta.current_page + 1)"
+                    :disabled="meta.current_page >= meta.last_page || loading"
+                    class="inline-flex h-8 items-center rounded-lg border border-parchment-300 px-3 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-warm-700 dark:text-parchment-200">
+                    Berikutnya ›
+                </button>
+            </div>
         </div>
     </div>
 </div>

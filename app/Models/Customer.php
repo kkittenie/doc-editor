@@ -76,6 +76,11 @@ class Customer extends Model
         return $this->hasMany(Document::class);
     }
 
+    public function latestDocument()
+    {
+        return $this->hasOne(Document::class)->latestOfMany();
+    }
+
     /** Label status untuk tampilan tabel. */
     public function statusLabel(): string
     {
