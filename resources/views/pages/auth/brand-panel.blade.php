@@ -26,19 +26,18 @@
                 <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 border border-white/15">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                 </span>
-                Susun &amp; kelola dokumen resmi perusahaan
+                Susun &amp; kelola dokumen resmi
             </li>
             <li class="flex items-center gap-3">
                 <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 border border-white/15">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-                </span>
-                Alur review &amp; tanda tangan yang tertib
+                </span>Review Dokumen Perjanjian
             </li>
             <li class="flex items-center gap-3">
                 <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 border border-white/15">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </span>
-                Arsip aman dalam satu tempat
+                Kelola Dokumen Perjanjian
             </li>
         </ul>
     </div>
