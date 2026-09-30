@@ -171,7 +171,7 @@
                                                 </p>
                                                 <p class="text-xs text-slate-warm-500 dark:text-parchment-400">
                                                     @if ($user->username)
-                                                        @{{ $user->username }}
+                                                        {{ $user->username }}
                                                     @else
                                                         <span class="italic">tanpa username</span>
                                                     @endif

@@ -30,15 +30,16 @@ class MenuHelper
         ];
     }
 
-        public static function getOthersItems()
+        /**
+     * Item navigasi tambahan di bagian paling bawah sidebar.
+     *
+     * Menu "Pengaturan" sengaja dikosongkan — halamannya tidak lagi dibutuhkan,
+     * jadi tidak ada lagi tautan yang ditampilkan di sidebar. Route /settings
+     * tetap ada (dilindungi middleware role:admin) dan bisa dibuka via URL.
+     */
+    public static function getOthersItems()
     {
-        return [
-            [
-                'icon' => 'settings',
-                'name' => 'Pengaturan',
-                'path' => '/settings',
-            ],
-        ];
+        return [];
     }
 
     /**
