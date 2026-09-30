@@ -2,23 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Yajra\DataTables\Facades\DataTables;
 use App\Models\Sof;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-/**
- * Menu S.O.F — repositori berkas Surat Order Formulir.
- *
- * Entitas MANDIRI: tidak ada relasi ke tabel Customer maupun Document.
- * Segala data (nomor pelanggan, nomor kontrak, nama, periode, nilai, berkas
- * PDF) diisi langsung di form ini — tidak bersinggungan dengan apa pun di
- * sidebar "Dokumen Saya".
- *
- * CRUD: index → daftar, create/store → input data + upload PDF,
- *       show/download → unduh berkas, edit/update → koreksi, destroy → hapus.
- */
 class SofController extends Controller
 {
    
@@ -49,23 +39,12 @@ class SofController extends Controller
     {
         $this->authorizeUser();
 
-        $search = trim((string) $request->input('search', ''));
-
         $berkas = $request->input('berkas', 'all');
         $berkas = in_array($berkas, ['ready', 'pending'], true) ? $berkas : 'all';
 
-        $sortable = ['order_number', 'customer_name', 'contract_number', 'active_date', 'total_value', 'status'];
-        $sort = in_array($request->input('sort'), $sortable, true)
-            ? $request->input('sort')
-            : 'created_at';
-        $dir = $request->input('dir') === 'asc' ? 'asc' : 'desc';
-
-        $perPage = (int) $request->input('per_page', 10);
-        $perPage = in_array($perPage, [10,25,50], true) ? $perPage : 10;
-
-        $total  = Sof::where('user_id', Auth::id())->count();
-        $approved   = Sof::where('user_id', Auth::id())->where('status', 'approved')->count();
-        $withFile   = Sof::where('user_id', Auth::id())
+        $total = Sof::where('user_id', Auth::id())->count();
+        $approved = Sof::where('user_id', Auth::id())->where('status', 'approved')->count();
+        $withFile = Sof::where('user_id', Auth::id())
             ->whereNotNull('file_path')
             ->where('file_path', '!=', '')
             ->count();
@@ -74,79 +53,59 @@ class SofController extends Controller
             'total' => $total,
             'with_file' => $withFile,
             'approved'  => $approved,
-            'pending'   =>  $total - $approved,
+            'pending'   => $total - $approved
         ];
 
-        $paginator = Sof::where('user_id', Auth::id())
+        $query = Sof::query()
+            ->where('user_id', Auth::id())
             ->when($berkas === 'ready', fn ($q) => $q
                 ->whereNotNull('file_path')
                 ->where('file_path', '!=', ''))
-            ->when($berkas === 'pending', fn ($q) => $q->where(function ($w){
-                $w->whereNull('file_path')->orWhere('file_path', '');
-            }))
-            ->when($search !== '', function ($q) use ($search) {
-                $like = '%' . $search . '%';
+            ->when($berkas === 'pending', fn ($q) => $q->where(
+                fn ($w) => $w->whereNull('file_path')->orWhere('file_path', '')
+            ));
 
-                $q->where(function ($w) use ($like) {
-                    $w->where('order_number', 'like', $like)
-                        ->orWhere('customer_name', 'like', $like)
-                        ->orWhere('contract_number', 'like', $like)
-                        ->orWhere('contract_name', 'like', $like);
-                });
-            })
-            ->orderBy($sort, $dir)
-            ->orderBy('id', $dir)
-            ->paginate($perPage);
-
-            return response()->json([
-                'data' => $paginator->getCollection()
-                    ->map(fn (Sof $s) => $this->transformSof($s))
-                    ->values(),
-                'meta' => [
-                    'current_page'  => $paginator->currentPage(),
-                    'last_page'     => $paginator->lastPage(),
-                    'per_page'      => $paginator->perPage(),
-                    'total'         => $paginator->total(),
-                    'from'          => $paginator->firstItem(),
-                    'to'            => $paginator->lastItem(),
-                ],
-                'counts' => $counts
-            ]);
-    }
-
-    private function transformSof(Sof $sof): array
-    {
-        $periode = '';
-            if ($sof->active_date) {
-        $periode = $sof->active_date->format('d M Y');
-            if ($sof->finish_date) {
-                $periode .= ' — ' . $sof->finish_date->format('d M Y');
+        return DataTables::eloquent($query)
+        ->orderColumn('order_number', 'id $1')
+        ->filterColumn('contract_number', function ($q, $keyword) {
+            $like = '%' . $keyword . '%';
+            $q->where(fn ($w) => $w->where('contract_number', 'like', $like)
+                ->orWhere('contract_name', 'like', $like));
+        })
+        ->editColumn('order_number', fn (Sof $s) =>
+            '<span class="font-mono text-xs text-ink-800 dark:text-parchment-200">' . e($s->order_number) . '</span>')
+        ->editColumn('customer_name', fn (Sof $s) => $s->customer_name ?: '—')
+        ->editColumn('contract_number', fn (Sof $s) =>
+            '<span class="text-xs text-slate-warm-600 dark:text-parchment-400">' . e($s->contract_number ?: '—') . '</span>'
+            . ($s->contract_name ? '<span class="block text-xs text-slate-warm-500">' . e($s->contract_name) . '</span>' : ''))
+        ->editColumn('active_date', function (Sof $s) {
+            if (! $s->active_date) {
+                return '—';
             }
-            if ($sof->active_months) {
-            $periode .= ' (' . $sof->active_months . ' bln)';
+            $periode = $s->active_date->format('d M Y');
+            if ($s->finish_date) {
+                $periode .= ' — ' . $s->finish_date->format('d M Y');
             }
-        }
+            if ($s->active_months) {
+                $periode .= ' (' . $s->active_months . ' bln)';
+            }
 
-        return [
-            'id'              => $sof->id,
-            'order_number'    => $sof->order_number,
-            'customer_number' => $sof->customer_number,
-            'customer_name'   => $sof->customer_name,
-            'contract_number' => $sof->contract_number,
-            'contract_name'   => $sof->contract_name,
-            'active_date'     => $sof->active_date ? $sof->active_date->format('Y-m-d') : null,
-            'finish_date'     => $sof->finish_date ? $sof->finish_date->format('Y-m-d') : null,
-            'active_months'   => $sof->active_months,
-            'total_value'     => (float) $sof->total_value,
-            'status'          => $sof->status,
-            'status_label'    => $sof->statusLabel(),
-            'has_file'        => $sof->hasFile(),
-            'periode_label'   => $periode ?: '—',
-            'detail_url'      => route('sof.show', $sof),
-            'edit_url'        => route('sof.edit', $sof),
-            'download_url'    => route('sof.download', $sof),
-            'delete_url'      => route('sof.destroy', $sof),
-        ];
+            return $periode;
+        })
+        ->editColumn('total_value', fn (Sof $s) => (float) $s->total_value > 0
+            ? 'Rp ' . number_format((float) $s->total_value, 0, ',', '.')
+            : '—')
+        ->addColumn('has_file', fn (Sof $s) => $s->hasFile()
+            ? '<span class="inline-flex items-center rounded bg-green-100 px-2 py-1 text-[10px] font-semibold text-green-800">Ada</span>'
+            : '<span class="inline-flex items-center rounded bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-700">Kosong</span>')
+        ->editColumn('status', fn (Sof $s) =>
+            '<span class="inline-block rounded-full px-2.5 py-1 text-[10px] font-semibold '
+            . ($s->status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-700') . '">'
+            . e($s->statusLabel()) . '</span>')
+        ->addColumn('action', fn (Sof $s) => view('partials.sof.row-actions', ['sof' => $s])->render())
+        ->rawColumns(['order_number', 'contract_number', 'has_file', 'status', 'action'])
+        ->with('counts', $counts)
+        ->make(true);
     }
 
     public function create()

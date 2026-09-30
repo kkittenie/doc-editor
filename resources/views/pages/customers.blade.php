@@ -3,30 +3,11 @@
 @section('content')
 
 <script>
-    window.customerDataUrl = @json(route('customers.data'));
     window.customerNextContract = @json($nextContractNumber);
     window.flashSuccess = @json(session('success'));
 
     function customersPage() {
         return {
-            //data dari server
-            customers: [],
-            counts: { all: 0, draft: 0, on_progress: 0, on_review: 0, revisi: 0, disetujui: 0 },
-            meta: { current_page: 1, last_page: 1, per_page: 10, total: 0, from: 0, to: 0 },
-            loading: true,
-
-            //kontrol table
-            filterStatus: 'all',
-            searchQuery: '',
-            sortKey: '',
-            sortDir: 'asc',
-            perPage: 10,
-            page: 1,
-
-            //internal
-            searchTimer: null,
-            requestId: 0,
-
             submitting: false,
             contractTyped: false,
             autoContractNumber: window.customerNextContract,
@@ -42,77 +23,6 @@
                         showConfirmButton: false,
                     });
                 }
-
-                this.fetchCustomers();
-
-                this.$watch('searchQuery', () => {
-                    clearTimeout(this.searchTimer);
-                    this.searchTimer = setTimeout(() => {
-                        this.page = 1;
-                        this.fetchCustomers();
-                    }, 350);
-                });
-
-                this.$watch('filterStatus', () => { this.page = 1; this.fetchCustomers(); });
-                this.$watch('perPage', () => { this.page = 1; this.fetchCustomers(); });
-            },
-
-            async fetchCustomers() {
-                const currentRequest = ++this.requestId;
-                this.loading = true;
-
-                try {
-                    const { data } = await window.axios.get(window.customerDataUrl, {
-                        params: {
-                            search: this.searchQuery.trim(),
-                            status: this.filterStatus,
-                            sort: this.sortKey || undefined,
-                            dir: this.sortKey ? this.sortDir : undefined,
-                            per_page: this.perPage,
-                            page: this.page,
-                        },
-                    });
-
-                    if (currentRequest !== this.requestId) return;
-
-                    if (this.page > data.meta.last_page) {
-                        this.page = data.meta.last_page;
-                        return this.fetchCustomers();
-                    }
-
-                    this.customers = data.data;
-                    this.meta = data.meta;
-                    this.counts = data.counts;
-                } catch (error) {
-                    if (currentRequest !== this.requestId) return;
-                    console.error(error);
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal memuat data',
-                        text: error?.response?.data?.message || 'Data pelanggan gagal dimuat.',
-                        confirmButtonColor: '#1B2A4A',
-                    });
-                } finally {
-                    if (currentRequest === this.requestId) this.loading = false;
-                }
-            },
-
-            sortBy(key) {
-                if (this.sortKey === key) {
-                    this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
-                } else {
-                    this.sortKey = key;
-                    this.sortDir = 'asc';
-                }
-                this.page = 1;
-                this.fetchCustomers();
-            },
-
-            goToPage(p) {
-                if (p < 1 || p > this.meta.last_page || p === this.meta.current_page) return;
-                this.page = p;
-                this.fetchCustomers();
             },
 
             async confirmSubmit(event) {
@@ -138,162 +48,6 @@
 
                 this.submitting = true;
                 form.submit();
-            },
-
-            async deleteCustomer(customer) {
-                const result = await Swal.fire({
-                    icon: 'warning',
-                    title: 'Hapus pelanggan?',
-                    html: `Pelanggan <strong>${customer.name}</strong> beserta barang & service-nya akan dihapus.`,
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, hapus',
-                    cancelButtonText: 'Batal',
-                    confirmButtonColor: '#dc2626',
-                });
-
-                if (!result.isConfirmed) return;
-
-                try {
-                    await window.axios.delete(customer.deleteUrl);
-
-                    await this.fetchCustomers();
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Terhapus',
-                        text: 'Pelanggan berhasil dihapus.',
-                        confirmButtonColor: '#1B2A4A',
-                        timer: 1600,
-                        showConfirmButton: false,
-                    });
-                } catch (error) {
-                    console.error(error);
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: 'Pelanggan gagal dihapus.',
-                        confirmButtonColor: '#1B2A4A',
-                    });
-                }
-            },
-
-            // Setujui dokumen On Review dengan popup upload: user memilih berkas
-            // kontrak (PDF, maks 10 MB). Berkas itu disimpan sebagai dokumen
-            // final kontrak ini dan dipakai tombol "Unduh PDF" (bukan dikirim
-            // sebagai berkas S.O.F ke Menu S.O.F).
-            async approveCustomer(customer) {
-                const konfirmasi = await Swal.fire({
-                    icon: 'question',
-                    title: 'Setujui dokumen',
-                    html: '<div style="text-align:left;font-size:13px;line-height:1.7">' +
-                        '<p>Upload berkas kontrak final (PDF, maks 10 MB). Berkas ini ' +
-                        'menggantikan dokumen kontrak pelanggan dan dipakai saat Unduh PDF.</p>' +
-                        '</div>',
-                    input: 'file',
-                    inputAttributes: {
-                        accept: 'application/pdf',
-                        'aria-label': 'Pilih berkas kontrak (PDF)',
-                    },
-                    inputValidator: (file) => {
-                        if (!file) return 'Pilih berkas kontrak terlebih dahulu.';
-                        if (file.type && file.type !== 'application/pdf') {
-                            return 'Berkas kontrak harus berformat PDF.';
-                        }
-                        if (file.size > 10 * 1024 * 1024) {
-                            return 'Ukuran berkas kontrak maksimal 10 MB.';
-                        }
-                        return null;
-                    },
-                    showCancelButton: true,
-                    confirmButtonText: 'Setujui & Upload',
-                    cancelButtonText: 'Batal',
-                    confirmButtonColor: '#16a34a',
-                });
-
-                if (!konfirmasi.isConfirmed || !konfirmasi.value) return;
-
-                try {
-                    const formData = new FormData();
-                    formData.append('file', konfirmasi.value);
-
-                    const { data } = await window.axios.post(customer.approveUrl, formData);
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Disetujui',
-                        html: 'Dokumen disetujui & berkas kontrak tersimpan.' +
-                            (data?.downloadUrl
-                                ? ' <a href="' + data.downloadUrl + '" target="_blank" style="color:#1B2A4A;font-weight:600;text-decoration:underline;">Unduh PDF</a>'
-                                : ''),
-                        confirmButtonColor: '#1B2A4A',
-                        timer: 1800,
-                        showConfirmButton: false,
-                    });
-
-                    // Muat ulang supaya badge status + kartu ringkasan terbarui.
-                    setTimeout(() => this.fetchCustomers(), 1200);
-                } catch (error) {
-                    console.error(error);
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: error?.response?.data?.message || 'Dokumen gagal disetujui.',
-                        confirmButtonColor: '#1B2A4A',
-                    });
-                }
-            },
-
-            // Minta revisi: dokumen On Review dikembalikan ke status Revisi
-            // supaya bisa diperbaiki lagi di Studio Editor.
-            async requestRevision(customer) {
-                const result = await Swal.fire({
-                    icon: 'warning',
-                    title: 'Minta revisi?',
-                    text: 'Dokumen akan dikembalikan ke status Revisi agar dapat diperbaiki.',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, minta revisi',
-                    cancelButtonText: 'Batal',
-                    confirmButtonColor: '#ea580c',
-                });
-
-                if (!result.isConfirmed) return;
-
-                try {
-                    await window.axios.patch(customer.statusUrl, { status: 'revisi' });
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Revisi diminta',
-                        text: 'Dokumen kembali ke status Revisi.',
-                        confirmButtonColor: '#1B2A4A',
-                        timer: 1600,
-                        showConfirmButton: false,
-                    });
-
-                    setTimeout(() => this.fetchCustomers(), 1200);
-                } catch (error) {
-                    console.error(error);
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: error?.response?.data?.message || 'Tidak dapat meminta revisi dokumen.',
-                        confirmButtonColor: '#1B2A4A',
-                    });
-                }
-            },
-
-            // Kelas badge status untuk tabel pelanggan.
-            statusClass(status) {
-                return {
-                    draft: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30',
-                    on_progress: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/30',
-                    on_review: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-500/15 dark:text-violet-300 dark:border-violet-500/30',
-                    revisi: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/30',
-                    disetujui: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/15 dark:text-green-300 dark:border-green-500/30',
-                }[status] || 'bg-parchment-100 text-slate-warm-600 border-parchment-300 dark:bg-slate-warm-800 dark:text-parchment-300 dark:border-slate-warm-700';
             },
         };
     }
@@ -384,10 +138,6 @@ $summaryCards = [
     {{-- SUMMARY CARDS --}}
     <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         @foreach ($summaryCards as $card)
-        @php
-        $counterExpression = "counts['" . $card['key'] . "']";
-        @endphp
-
         <div
             class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
@@ -396,8 +146,9 @@ $summaryCards = [
                         {{ $card['label'] }}
                     </p>
 
+                    {{-- Angka diisi dari JSON "counts" kiriman Yajra lewat event xhr.dt. --}}
                     <p class="mt-2 text-2xl font-bold text-ink-900 dark:text-parchment-50"
-                        x-text="{!! $counterExpression !!}"></p>
+                        data-count="{{ $card['key'] }}">0</p>
                 </div>
 
                 <div class="flex h-9 w-9 items-center justify-center rounded-xl {{ $card['iconClass'] }}">
@@ -587,287 +338,277 @@ $summaryCards = [
         <div
             class="flex flex-col gap-4 border-b border-parchment-200 px-5 py-4 dark:border-slate-warm-800 lg:flex-row lg:items-center lg:justify-between">
             <div>
-                <h2 class="text-sm font-semibold text-ink-900 dark:text-parchment-50">
-                    Tabel Pelanggan
-                </h2>
-
+                <h2 class="text-sm font-semibold text-ink-900 dark:text-parchment-50">Tabel Pelanggan</h2>
                 <p class="mt-0.5 text-xs text-slate-warm-500 dark:text-parchment-400">
                     Tekan <strong>Lanjut</strong> pada baris pelanggan untuk menyusun kontraknya di Studio Editor.
                 </p>
             </div>
 
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-                {{-- SEARCH --}}
-                <div class="relative">
-                    <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-warm-400"
-                        width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="7" />
-                        <path d="m20 20-4-4" />
-                    </svg>
+            <div class="relative">
+                <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-warm-400"
+                    width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="m20 20-4-4" />
+                </svg>
 
-                    <input type="search" x-model="searchQuery" placeholder="Cari pelanggan / kontrak..."
-                        class="h-10 w-full rounded-lg border border-parchment-300 bg-white pl-9 pr-3 text-sm text-ink-900 outline-none transition placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 dark:border-slate-warm-700 dark:bg-slate-warm-900 dark:text-parchment-100 sm:w-64">
-                </div>
+                <input id="customers-search" type="search" placeholder="Cari pelanggan / kontrak..."
+                    class="h-10 w-full rounded-lg border border-parchment-300 bg-white pl-9 pr-3 text-sm text-ink-900 outline-none transition placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 dark:border-slate-warm-700 dark:bg-slate-warm-900 dark:text-parchment-100 sm:w-64">
             </div>
         </div>
 
         {{-- FILTER STATUS --}}
-        <div
-            class="flex flex-wrap items-center gap-2 border-b border-parchment-200 px-5 py-3 dark:border-slate-warm-800">
+        <div class="flex flex-wrap items-center gap-2 border-b border-parchment-200 px-5 py-3 dark:border-slate-warm-800">
             @foreach ([
-            'all' => 'Semua',
-            'draft' => 'Draft',
-            'on_progress' => 'On Progress',
-            'on_review' => 'On Review',
-            'revisi' => 'Revisi',
-            'disetujui' => 'Disetujui',
+                'all' => 'Semua',
+                'draft' => 'Draft',
+                'on_progress' => 'On Progress',
+                'on_review' => 'On Review',
+                'revisi' => 'Revisi',
+                'disetujui' => 'Disetujui',
             ] as $value => $label)
-            <button type="button" @click="filterStatus = '{{ $value }}'"
-                class="rounded-full border px-3 py-1.5 text-[11px] font-semibold transition"
-                :class="filterStatus === '{{ $value }}'
-                        ? 'border-ink-900 bg-ink-900 text-white dark:border-bronze-500 dark:bg-bronze-500 dark:text-ink-900'
-                        : 'border-parchment-300 text-slate-warm-600 hover:border-ink-900 hover:text-ink-900 dark:border-slate-warm-700 dark:text-parchment-300 dark:hover:border-bronze-500'">
-                {{ $label }}
-            </button>
+                <button type="button" data-status-filter="{{ $value }}"
+                    class="rounded-full border px-3 py-1.5 text-[11px] font-semibold transition">
+                    {{ $label }}
+                </button>
             @endforeach
         </div>
 
-        {{-- TABLE --}}
-        <div class="overflow-x-auto transition-opacity" :class="loading ? 'opacity-60' : ''">
-            <table class="w-full min-w-[1180px] border-collapse text-left">
+        {{-- TABEL (diisi DataTables + Yajra) --}}
+        <div class="p-3">
+            <table id="customers-table" class="display w-full min-w-[1180px]">
                 <thead>
-                    <tr class="bg-parchment-50 dark:bg-slate-warm-800/60">
-                        @foreach ([
-                        ['label' => 'Pelanggan ID', 'sort' => 'id'],
-                        ['label' => 'Nomer Pelanggan', 'sort' => 'customer_number'],
-                        ['label' => 'Nama Pelanggan', 'sort' => 'name'],
-                        ['label' => 'Nomor Kontrak', 'sort' => 'contract_number'],
-                        ['label' => 'Nama Kontrak', 'sort' => 'contract_name'],
-                        ['label' => 'Tanggal Aktif', 'sort' => 'active_date'],
-                        ['label' => 'Masa Aktif', 'sort' => 'active_months'],
-                        ['label' => 'Tanggal Selesai', 'sort' => 'finish_date'],
-                        ['label' => 'Status', 'sort' => 'status'],
-                        ['label' => 'Action', 'sort' => null],
-                        ] as $col)
-                        <th
-                            class="whitespace-nowrap border-b border-parchment-200 px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-slate-warm-500 dark:border-slate-warm-800 dark:text-parchment-400">
-                            @if ($col['sort'])
-                            <button type="button" @click="sortBy('{{ $col['sort'] }}')"
-                                class="inline-flex items-center gap-1 font-semibold uppercase tracking-wide hover:text-ink-900 dark:hover:text-parchment-50">
-                                {{ $col['label'] }}
-                                <span class="text-[9px]"
-                                    x-text="sortKey === '{{ $col['sort'] }}' ? (sortDir === 'asc' ? '▲' : '▼') : '↕'"></span>
-                            </button>
-                            @else
-                            {{ $col['label'] }}
-                            @endif
-                        </th>
-                        @endforeach
+                    <tr>
+                        <th>Pelanggan ID</th>
+                        <th>Nomer Pelanggan</th>
+                        <th>Nama Pelanggan</th>
+                        <th>Nomor Kontrak</th>
+                        <th>Nama Kontrak</th>
+                        <th>Tanggal Aktif</th>
+                        <th>Masa Aktif</th>
+                        <th>Tanggal Selesai</th>
+                        <th>Status</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
-
-                <tbody>
-                    <template x-for="customer in customers" :key="customer.databaseId">
-                        <tr
-                            class="border-b border-parchment-100 transition hover:bg-parchment-50/70 dark:border-slate-warm-800 dark:hover:bg-white/[0.03]">
-                            <td class="whitespace-nowrap px-4 py-3.5">
-                                <span class="font-mono text-xs font-semibold text-ink-900 dark:text-parchment-100"
-                                    x-text="customer.id"></span>
-                            </td>
-
-                            <td class="whitespace-nowrap px-4 py-3.5 text-sm text-ink-800 dark:text-parchment-200"
-                                x-text="customer.customerNumber"></td>
-
-                            <td class="px-4 py-3.5">
-                                <div class="text-sm font-semibold text-ink-900 dark:text-parchment-50"
-                                    x-text="customer.name"></div>
-
-                                <div class="mt-0.5 text-[11px] text-slate-warm-400 dark:text-parchment-500">
-                                    <span x-text="customer.barangCount + ' barang'"></span>
-                                    <span class="mx-1">·</span>
-                                    <span x-text="customer.serviceCount + ' service'"></span>
-                                </div>
-                            </td>
-
-                            <td class="whitespace-nowrap px-4 py-3.5 font-mono text-xs text-slate-warm-600 dark:text-parchment-300"
-                                x-text="customer.contractNumber"></td>
-
-                            <td class="px-4 py-3.5 text-sm text-ink-800 dark:text-parchment-200"
-                                x-text="customer.contractName"></td>
-
-                            <td class="whitespace-nowrap px-4 py-3.5 text-sm text-ink-800 dark:text-parchment-200"
-                                x-text="customer.activeDate"></td>
-
-                            <td class="whitespace-nowrap px-4 py-3.5 text-sm text-ink-800 dark:text-parchment-200"
-                                x-text="customer.activeMonths"></td>
-
-                            <td class="whitespace-nowrap px-4 py-3.5 text-sm text-ink-800 dark:text-parchment-200"
-                                x-text="customer.finishDate"></td>
-
-                            <td class="whitespace-nowrap px-4 py-3.5">
-                                <span
-                                    class="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold"
-                                    :class="statusClass(customer.status)" x-text="customer.statusLabel"></span>
-                                <p x-show="customer.status !== 'draft' && customer.statusUpdated"
-                                    class="mt-1 text-[10px] leading-tight text-slate-warm-400 dark:text-parchment-500"
-                                    x-text="'Update: ' + customer.statusUpdated"></p>
-                            </td>
-
-                            <td class="whitespace-nowrap px-4 py-3.5">
-                                <div class="flex items-center gap-2">
-                                    {{-- Lanjut → pilih template (konteks pelanggan).
-                                    Tidak dipakai saat dokumen On Review maupun
-                                    Disetujui: aksi yang benar adalah Setujui
-                                    (review) / Revisi (final), isi dibaca
-                                    lewat Lihat. --}}
-                                    <template x-if="customer.canContinue">
-                                        <a :href="customer.createUrl"
-                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                                                stroke="currentColor" stroke-width="2">
-                                                <path d="M12 20h9" />
-                                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                                            </svg>
-
-                                            Lanjut
-                                        </a>
-                                    </template>
-
-                                    {{-- Lihat: buka dokumen dalam mode Lihat (read-only) supaya
-                                    reviewer bisa membaca isinya sebelum memutuskan. --}}
-                                    <template x-if="customer.canView">
-                                        <a :href="customer.viewUrl"
-                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900"
-                                            title="Lihat dokumen (read-only)">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                                                stroke="currentColor" stroke-width="2">
-                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                                <circle cx="12" cy="12" r="3" />
-                                            </svg>
-
-                                            Lihat
-                                        </a>
-                                    </template>
-
-                                    {{-- Setujui: dokumen On Review disetujui dengan popup upload
-                                    berkas kontrak (PDF). --}}
-                                    <template x-if="customer.canApprove">
-                                        <button type="button" @click="approveCustomer(customer)"
-                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-green-500 bg-green-600 px-2.5 text-[11px] font-semibold text-white transition hover:bg-green-700 dark:border-green-500/60 dark:bg-green-600 dark:hover:bg-green-500"
-                                            title="Setujui dokumen & upload berkas kontrak final">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                                                stroke="currentColor" stroke-width="2">
-                                                <path d="m20 6-11 11-5-5" />
-                                            </svg>
-
-                                            Setujui
-                                        </button>
-                                    </template>
-
-                                    {{-- Minta revisi: dokumen On Review kembali ke status Revisi. --}}
-                                    <template x-if="customer.canRequestRevision">
-                                        <button type="button" @click="requestRevision(customer)"
-                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-orange-400 bg-white px-2.5 text-[11px] font-semibold text-orange-700 transition hover:bg-orange-50 dark:border-orange-500/60 dark:bg-transparent dark:text-orange-300 dark:hover:bg-orange-500/10"
-                                            title="Kembalikan dokumen ke status Revisi">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                                                stroke="currentColor" stroke-width="2">
-                                                <path d="M12 20h9" />
-                                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                                            </svg>
-
-                                            Revisi
-                                        </button>
-                                    </template>
-
-                                    {{-- Unduh PDF: berkas kontrak hasil upload (dokumen
-                                    disetujui) atau render dari isi terkini. --}}
-                                    <template x-if="customer.canExportPdf">
-                                        <a :href="customer.exportUrl" target="_blank"
-                                            class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-parchment-300 px-2.5 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900"
-                                            title="Unduh berkas PDF dokumen">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                                                stroke="currentColor" stroke-width="2">
-                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                                <polyline points="7 10 12 15 17 10" />
-                                                <line x1="12" y1="15" x2="12" y2="3" />
-                                            </svg>
-
-                                            Unduh PDF
-                                        </a>
-                                    </template>
-
-                                    {{-- Hapus pelanggan --}}
-                                    <button type="button" @click="deleteCustomer(customer)"
-                                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-slate-warm-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:hover:border-red-900/40 dark:hover:bg-red-900/20"
-                                        title="Hapus pelanggan">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <polyline points="3 6 5 6 21 6" />
-                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                                            <path d="M10 11v6" />
-                                            <path d="M14 11v6" />
-                                            <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    </template>
-                </tbody>
             </table>
-        </div>
-
-        {{-- EMPTY STATE --}}
-        <div x-show="!loading && customers.length === 0" x-cloak
-            class="border-t border-parchment-200 px-6 py-14 text-center dark:border-slate-warm-800">
-            <div
-                class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-parchment-100 text-slate-warm-400 dark:bg-slate-warm-800">
-                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-                    <circle cx="11" cy="11" r="7" />
-                    <path d="m20 20-4-4" />
-                </svg>
-            </div>
-
-            <h3 class="mt-4 text-sm font-semibold text-ink-900 dark:text-parchment-50">
-                Pelanggan tidak ditemukan
-            </h3>
-
-            <p class="mt-1 text-xs text-slate-warm-500">
-                Tambahkan pelanggan baru lewat Form Pelanggan di atas, atau ubah kata pencarian/filter status.
-            </p>
-        </div>
-        {{-- PAGINATION --}}
-        <div x-show="meta.total > 0"
-            class="flex flex-col gap-3 border-t border-parchment-200 px-5 py-3 text-xs text-slate-warm-500 dark:border-slate-warm-800 dark:text-parchment-400 sm:flex-row sm:items-center sm:justify-between">
-
-            <div class="flex items-center gap-3">
-                <span x-text="'Menampilkan ' + meta.from + '–' + meta.to + ' dari ' + meta.total + ' data'"></span>
-
-                <select x-model.number="perPage"
-                    class="h-8 rounded-lg border border-parchment-300 bg-white px-2 text-xs text-ink-900 outline-none focus:border-ink-900 dark:border-slate-warm-700 dark:bg-slate-warm-900 dark:text-parchment-100">
-                    <option value="10">10 / halaman</option>
-                    <option value="25">25 / halaman</option>
-                    <option value="50">50 / halaman</option>
-                </select>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <button type="button" @click="goToPage(meta.current_page - 1)"
-                    :disabled="meta.current_page <= 1 || loading"
-                    class="inline-flex h-8 items-center rounded-lg border border-parchment-300 px-3 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-warm-700 dark:text-parchment-200">
-                    ‹ Sebelumnya
-                </button>
-
-                <span x-text="'Halaman ' + meta.current_page + ' / ' + meta.last_page"></span>
-
-                <button type="button" @click="goToPage(meta.current_page + 1)"
-                    :disabled="meta.current_page >= meta.last_page || loading"
-                    class="inline-flex h-8 items-center rounded-lg border border-parchment-300 px-3 text-[11px] font-semibold text-ink-900 transition hover:border-ink-900 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-warm-700 dark:text-parchment-200">
-                    Berikutnya ›
-                </button>
-            </div>
         </div>
     </div>
 </div>
+
+    @push('styles')
+<style>
+    [x-cloak] { display: none !important; }
+    .dt-container { font-size: 13px; }
+    .dt-container .dt-layout-table { overflow-x: auto; }
+    table.dataTable thead th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+    table.dataTable tbody td { vertical-align: middle; }
+</style>
+@endpush
+
+@push('scripts')
+@vite('resources/js/datatables.js')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const DataTable = window.DataTable;
+    let statusFilter = 'all';
+
+    // Error ditangani sendiri lewat 'dt-error.dt' di bawah, bukan alert() bawaan.
+    DataTable.ext.errMode = 'none';
+
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    const table = new DataTable('#customers-table', {
+        processing: true,
+        serverSide: true,
+        autoWidth: false,
+        ajax: {
+            url: @json(route('customers.data')),
+            data: (d) => { d.status = statusFilter; },
+        },
+        order: [[0, 'desc']],          // terbaru dulu
+        pageLength: 10,
+        lengthMenu: [10, 25, 50],
+        layout: {
+            topStart: null,            // search & length bawaan dimatikan,
+            topEnd: null,              // kita pakai input search sendiri
+            bottomStart: ['pageLength', 'info'],
+            bottomEnd: 'paging',
+        },
+        language: {
+            processing: 'Memuat data...',
+            zeroRecords: 'Pelanggan tidak ditemukan',
+            emptyTable: 'Belum ada pelanggan. Tambahkan lewat Form Pelanggan di atas.',
+            info: 'Menampilkan _START_–_END_ dari _TOTAL_ data',
+            infoEmpty: 'Tidak ada data',
+            infoFiltered: '',
+            lengthMenu: '_MENU_ / halaman',
+            paginate: { previous: '‹', next: '›' },
+        },
+        columnDefs: [{ targets: '_all', defaultContent: '—' }],
+        columns: [
+            { data: 'id', name: 'id' },
+            { data: 'customer_number', name: 'customer_number' },
+            { data: 'name', name: 'name' },
+            { data: 'contract_number', name: 'contract_number' },
+            { data: 'contract_name', name: 'contract_name' },
+            { data: 'active_date', name: 'active_date', searchable: false },
+            { data: 'active_months', name: 'active_months', searchable: false },
+            { data: 'finish_date', name: 'finish_date', searchable: false },
+            { data: 'status', name: 'status', searchable: false },
+            { data: 'action', name: 'action', orderable: false, searchable: false },
+        ],
+    });
+
+    // Kartu ringkasan: isi dari JSON "counts" yang dikirim Yajra.
+    table.on('xhr.dt', (e, settings, json) => {
+        if (!json || !json.counts) return;
+        document.querySelectorAll('[data-count]').forEach((el) => {
+            el.textContent = json.counts[el.dataset.count] ?? 0;
+        });
+    });
+
+    table.on('dt-error.dt', () => {
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal memuat data',
+            text: 'Data pelanggan gagal dimuat. Coba muat ulang halaman.',
+            confirmButtonColor: '#1B2A4A',
+        });
+    });
+
+    // Search (tunggu user berhenti mengetik 350 ms).
+    const search = document.getElementById('customers-search');
+    let searchTimer;
+    search.addEventListener('input', () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => table.search(search.value.trim()).draw(), 350);
+    });
+
+    // Filter status (pill).
+    const activeCls = ['border-ink-900', 'bg-ink-900', 'text-white', 'dark:border-bronze-500', 'dark:bg-bronze-500', 'dark:text-ink-900'];
+    const idleCls = ['border-parchment-300', 'text-slate-warm-600', 'hover:border-ink-900', 'hover:text-ink-900', 'dark:border-slate-warm-700', 'dark:text-parchment-300', 'dark:hover:border-bronze-500'];
+    const pills = document.querySelectorAll('[data-status-filter]');
+    const paintPills = () => pills.forEach((p) => {
+        const on = p.dataset.statusFilter === statusFilter;
+        activeCls.forEach((c) => p.classList.toggle(c, on));
+        idleCls.forEach((c) => p.classList.toggle(c, !on));
+    });
+    pills.forEach((p) => p.addEventListener('click', () => {
+        statusFilter = p.dataset.statusFilter;
+        paintPills();
+        table.draw();
+    }));
+    paintPills();
+
+    // Muat ulang data tanpa pindah halaman; kalau halaman sekarang sudah
+    // kosong (mis. setelah hapus data terakhir), mundur ke halaman terakhir.
+    const reloadTable = () => table.ajax.reload(() => {
+        const info = table.page.info();
+        const last = Math.max(info.pages - 1, 0);
+        if (info.page > last) table.page(last).draw('page');
+    }, false);
+
+    // ---- Aksi per baris ----
+    const deleteCustomer = async (url, name) => {
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: 'Hapus pelanggan?',
+            html: `Pelanggan <strong>${esc(name)}</strong> beserta barang & service-nya akan dihapus.`,
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#dc2626',
+        });
+        if (!result.isConfirmed) return;
+
+        try {
+            await window.axios.delete(url);
+            reloadTable();
+            Swal.fire({ icon: 'success', title: 'Terhapus', text: 'Pelanggan berhasil dihapus.', confirmButtonColor: '#1B2A4A', timer: 1600, showConfirmButton: false });
+        } catch (error) {
+            console.error(error);
+            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Pelanggan gagal dihapus.', confirmButtonColor: '#1B2A4A' });
+        }
+    };
+
+    const approveCustomer = async (url) => {
+        const konfirmasi = await Swal.fire({
+            icon: 'question',
+            title: 'Setujui dokumen',
+            html: '<div style="text-align:left;font-size:13px;line-height:1.7">' +
+                '<p>Upload berkas kontrak final (PDF, maks 10 MB). Berkas ini ' +
+                'menggantikan dokumen kontrak pelanggan dan dipakai saat Unduh PDF.</p></div>',
+            input: 'file',
+            inputAttributes: { accept: 'application/pdf', 'aria-label': 'Pilih berkas kontrak (PDF)' },
+            inputValidator: (file) => {
+                if (!file) return 'Pilih berkas kontrak terlebih dahulu.';
+                if (file.type && file.type !== 'application/pdf') return 'Berkas kontrak harus berformat PDF.';
+                if (file.size > 10 * 1024 * 1024) return 'Ukuran berkas kontrak maksimal 10 MB.';
+                return null;
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Setujui & Upload',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#16a34a',
+        });
+        if (!konfirmasi.isConfirmed || !konfirmasi.value) return;
+
+        try {
+            const formData = new FormData();
+            formData.append('file', konfirmasi.value);
+            const { data } = await window.axios.post(url, formData);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Disetujui',
+                html: 'Dokumen disetujui & berkas kontrak tersimpan.' +
+                    (data?.downloadUrl
+                        ? ' <a href="' + data.downloadUrl + '" target="_blank" style="color:#1B2A4A;font-weight:600;text-decoration:underline;">Unduh PDF</a>'
+                        : ''),
+                confirmButtonColor: '#1B2A4A',
+                timer: 1800,
+                showConfirmButton: false,
+            });
+            setTimeout(reloadTable, 1200);
+        } catch (error) {
+            console.error(error);
+            Swal.fire({ icon: 'error', title: 'Gagal', text: error?.response?.data?.message || 'Dokumen gagal disetujui.', confirmButtonColor: '#1B2A4A' });
+        }
+    };
+
+    const requestRevision = async (url) => {
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: 'Minta revisi?',
+            text: 'Dokumen akan dikembalikan ke status Revisi agar dapat diperbaiki.',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, minta revisi',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#ea580c',
+        });
+        if (!result.isConfirmed) return;
+
+        try {
+            await window.axios.patch(url, { status: 'revisi' });
+            Swal.fire({ icon: 'success', title: 'Revisi diminta', text: 'Dokumen kembali ke status Revisi.', confirmButtonColor: '#1B2A4A', timer: 1600, showConfirmButton: false });
+            setTimeout(reloadTable, 1200);
+        } catch (error) {
+            console.error(error);
+            Swal.fire({ icon: 'error', title: 'Gagal', text: error?.response?.data?.message || 'Tidak dapat meminta revisi dokumen.', confirmButtonColor: '#1B2A4A' });
+        }
+    };
+
+    // Satu listener untuk semua tombol di dalam tabel (baris dibuat ulang tiap draw).
+    document.getElementById('customers-table').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        const { action, url, name } = btn.dataset;
+        if (action === 'delete') deleteCustomer(url, name);
+        if (action === 'approve') approveCustomer(url);
+        if (action === 'revision') requestRevision(url);
+    });
+});
+</script>
+@endpush
 
 @endsection
