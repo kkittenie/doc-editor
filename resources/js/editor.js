@@ -3336,6 +3336,14 @@ function __takeoverBodyAsDom(bodyEl) {
 async function __domFlowPass(bodyEl) {
     const sheet = bodyEl ? bodyEl.closest('.doc-sheet') : null;
     if (!sheet) return false;
+
+    // Kertas sampul (data-flow-lock="cover" dari markLockedSheets()) tidak boleh
+    // DIKURAS paginasi. Tanpa guard ini, blok sampul yang melewati batas bawah
+    // (pihak kedua + "Nomor:") didorong ke kertas berikutnya — persis gejala
+    // sampul kontrak-kemitraan meluber ke halaman 2. __pullBackPass() sudah
+    // punya guard serupa (lihat di bawah); ini menutup sisi "dorong".
+    if (sheet.dataset?.flowLock) return false;
+
     if (__domContentOverflowPx(bodyEl) <= PAGE_FLOW_TOL) return false;
     const kids = __domKids(bodyEl);
     if (!kids.length) return false;
@@ -3659,6 +3667,11 @@ async function __flowPass(quill, bodyEl) {
 
     // Quill sudah dilepas dari DOM (body di-takeover sebagai DOM)?
     try { if (quill.root && !quill.root.isConnected) return false; } catch (err) { return false; }
+
+    // Kertas sampul dikunci dari paginasi — sama seperti __domFlowPass() dan
+    // __pullBackPass(). Tanpa ini blok sampul yang melewati batas bawah
+    // terdorong ke kertas berikutnya lewat jalur Quill.
+    if (sheet.dataset?.flowLock) return false;
 
     if (__contentOverflowPx(quill, bodyEl) <= PAGE_FLOW_TOL) return false;
 

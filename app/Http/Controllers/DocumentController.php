@@ -231,7 +231,7 @@ class DocumentController extends Controller
         $bodyHtml = $this->normalizePasalNumbering([$bodyHtml])[0];
 
         // Isi placeholder body template dengan data nyata (kontrak & pelanggan).
-        $bodyHtml = $this->applyTemplateReplacements($bodyHtml, $customer, $nomorSurat);
+        $bodyHtml = $this->applyTemplateReplacements($bodyHtml, $customer, $nomorSurat, $title);
 
         $isContractTemplate = \App\Data\ContractTemplates::find((string) $templateKey) !== null;
         $coverPages = 0;
@@ -253,7 +253,7 @@ class DocumentController extends Controller
             $coverHtml = $this->buildContractCoverHtml(
                 $coverText === ''
                     ? ''
-                    : $this->applyTemplateReplacements($coverText, $customer, $nomorSurat)
+                    : $this->applyTemplateReplacements($coverText, $customer, $nomorSurat, $title)
             );
 
             if ($coverHtml !== '') {
@@ -627,21 +627,33 @@ class DocumentController extends Controller
     }
 
     /**
-     * Isi placeholder body template ([PIHAK KEDUA], [Nomor Perjanjian],
-     * [Hari], [Tanggal], [Tempat]) dengan data nyata supaya dokumen jadi
-     * tidak lagi memuat placeholder mentah. Dipanggil di store() (dengan
-     * data pelanggan) dan createFromTemplate() (tanpa pelanggan).
+     * Isi placeholder body template ([Nama Kontrak], [PIHAK KEDUA],
+     * [Nomor Perjanjian], [Hari], [Tanggal], [Tempat]) dengan data nyata
+     * supaya dokumen jadi tidak lagi memuat placeholder mentah. Dipanggil
+     * di store() (dengan data pelanggan & judul dari form Detail Kontrak)
+     * dan createFromTemplate() (tanpa pelanggan).
+     *
+     * [Nama Kontrak] dipakai baris judul sampul (halaman 1): nilainya
+     * $title dari input "Nama Kontrak" di form Detail Kontrak, bukan
+     * hardcode per template — jadi judul sampul selalu sama dengan yang
+     * diketik user. Parameternya opsional supaya createFromTemplate()
+     * (yang belum punya judul final) tidak wajib mengisinya.
      *
      * CATATAN locale: [Hari] & [Tanggal] WAJIB dibungkus ->locale('id').
      * Nilai bawaan aplikasi adalah 'en', jadi tanpa itu dokumen berbahasa
      * Indonesia memuat "Pada hari Tuesday, tanggal 29 September 2026".
      * ('September' kebetulan sama di keduanya, tetapi nama hari tidak.)
      */
-    private function applyTemplateReplacements(string $bodyHtml, ?Customer $customer, string $nomorSurat): string
-    {
+    private function applyTemplateReplacements(
+        string $bodyHtml,
+        ?Customer $customer,
+        string $nomorSurat,
+        string $title = ''
+    ): string {
         $now = now()->locale('id');
 
         $placeholders = [
+            '[Nama Kontrak]'    => trim($title),
             '[Nomor Perjanjian]' => trim($nomorSurat),
             '[Hari]'             => $now->translatedFormat('l'),
             '[Tanggal]'          => $now->translatedFormat('d F Y'),

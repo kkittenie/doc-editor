@@ -2,6 +2,7 @@
 
 use App\Data\ContractTemplates;
 use App\Http\Controllers\DocumentController;
+use App\Models\Customer;
 
 /**
  * Uji konsistensi template kontrak hasil konversi dari dokumen .docx resmi.
@@ -191,8 +192,10 @@ test('numeral & klaim untuk setiap template dipertahankan', function () use ($ke
 
     // Payung
     $tpl = ContractTemplates::find('kontrak-payung');
+    // Baris judul sampul = placeholder (diisi form "Nama Kontrak"), sub-judul
+    // tetap hardcode tepat setelahnya.
     expect($tpl['body_content']['cover'])
-        ->toMatch('/\(KONTRAK PAYUNG\)\s+BERLANGGANAN JASA METRO FIBER OPTIK/');
+        ->toMatch('/\[Nama Kontrak\]\s+BERLANGGANAN JASA METRO FIBER OPTIK/');
     expect($tpl['body_content']['cover'])->toContain('Nomor: [Nomor Perjanjian]');
     expect($tpl['body_content']['preamble'])->toStartWith('Pada hari');
     expect($tpl['body_content']['preamble'])->not->toContain('238/FBT/J.M/VI/2026');
@@ -425,7 +428,8 @@ test('kontrak-soho punya kunci cover terpisah dari preamble (halaman 1 & 2 PDF s
     $cover = (string) ($tpl['body_content']['cover'] ?? '');
 
     expect($cover)->not->toBeEmpty();
-    expect($cover)->toContain('PERJANJIAN BERLANGGANAN');
+    // Baris judul sampul memakai placeholder, diisi dari form "Detail Kontrak".
+    expect($cover)->toContain('[Nama Kontrak]');
     expect($cover)->toContain('JASA SOHO');
     expect($cover)->toContain('DENGAN');
     expect($cover)->toContain('[PIHAK KEDUA]');
@@ -498,10 +502,71 @@ test('buildContractCoverHtml merender baris sampul memakai token ContractStyle',
     // 6 baris cover: judul, sub-judul, nama pihak pertama, DENGAN, pihak
     // kedua, nomor — masing-masing satu paragraf center.
     expect(substr_count($html, '<p '))->toBe(6);
-    expect($html)->toContain('<strong>PERJANJIAN BERLANGGANAN</strong>');
-    expect($html)->toContain($cs::coverStyle('PERJANJIAN BERLANGGANAN', true, false));
+    expect($html)->toContain('<strong>[Nama Kontrak]</strong>');
+    expect($html)->toContain($cs::coverStyle('[Nama Kontrak]', true, false));
     expect($html)->toContain($cs::coverStyle('Nomor: [Nomor Perjanjian]', false, true));
 
     // Baris kosong tidak menghasilkan paragraf kosong.
     expect($m->invoke($ctrl, "  \n "))->toBe('');
+});
+
+/**
+ * Judul sampul ikut nilai "Nama Kontrak" dari form Detail Kontrak —
+ * placeholder [Nama Kontrak] diisi $title, bukan hardcode per template.
+ */
+test('judul sampul mengikuti nama kontrak dari form detail kontrak', function () use ($keys) {
+    $ctrl = new DocumentController();
+
+    $replace = new ReflectionMethod(DocumentController::class, 'applyTemplateReplacements');
+    $render  = new ReflectionMethod(DocumentController::class, 'buildContractCoverHtml');
+
+    $title  = 'Perjanjian Kerjasama Layanan Internet Fibre Optik';
+    $nomor  = 'KTR/007/IX/2026';
+    $customer = new Customer(['name' => 'PT Contoh Mitra', 'customer_number' => '081234567890']);
+
+    foreach ($keys as $key) {
+        $cover = (string) (ContractTemplates::find($key)['body_content']['cover'] ?? '');
+
+        // 1. Sampul mentah masih memakai placeholder (belum di-fill).
+        expect($cover)->toContain('[Nama Kontrak]');
+
+        // 2. Setelah replacement, judul sampul = $title dari form.
+        $filled = $replace->invoke($ctrl, $cover, $customer, $nomor, $title);
+        expect($filled)->toContain($title);
+        expect($filled)->not->toContain('[Nama Kontrak]');
+
+        // 3. Placeholder lain tetap terisi normal.
+        expect($filled)->toContain('PT BINA INFORMATIKA SOLUSI');
+        expect($filled)->toContain('DENGAN');
+        expect($filled)->toContain('PT Contoh Mitra');
+        expect($filled)->toContain('Nomor: ' . $nomor);
+        expect($filled)->not->toContain('[PIHAK KEDUA]');
+
+        // 4. Judul dirender sebagai baris pertama, bold, dan jumlah baris
+        //    sampul tidak berubah karena penggantian judul (tetap utuh 1 halaman).
+        $html = $render->invoke($ctrl, $filled);
+        expect($html)->toContain('<strong>' . $title . '</strong>');
+    }
+});
+
+/**
+ * $title kosong (jalur createFromTemplate) tidak boleh menelan teks asli —
+ * placeholder dibiarkan, angka dan teks lain tidak ikut hilang.
+ */
+test('judul kontrak kosong tidak merusak isi sampul', function () use ($keys) {
+    $ctrl = new DocumentController();
+
+    $replace = new ReflectionMethod(DocumentController::class, 'applyTemplateReplacements');
+
+    foreach ($keys as $key) {
+        $cover = (string) (ContractTemplates::find($key)['body_content']['cover'] ?? '');
+
+        $filled = $replace->invoke($ctrl, $cover, null, 'KTR/008/IX/2026', '');
+
+        // Placeholder judul tetap ada (belum diisi), sisanya tidak rusak.
+        expect($filled)->toContain('[Nama Kontrak]');
+        expect($filled)->toContain('PT BINA INFORMATIKA SOLUSI');
+        expect($filled)->toContain('DENGAN');
+        expect($filled)->toContain('Nomor: KTR/008/IX/2026');
+    }
 });

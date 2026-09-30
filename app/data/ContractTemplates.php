@@ -26,7 +26,7 @@ class ContractTemplates
                     // Sampul (halaman 1): blok display yang tadinya mendahului
                     // preamble. Dipisah supaya jadi lembar sendiri dengan jarak
                     // ContractStyle::coverStyle() — sama seperti kontrak-soho.
-                    'cover' => 'PERJANJIAN KERJASAMA
+                    'cover' => '[Nama Kontrak]
 
 TENTANG
 
@@ -2186,7 +2186,7 @@ NOMOR: [Nomor Perjanjian]',
                 ],
                 'body_content' => [
                     // Sampul (halaman 1) — lihat kontrak-kemitraan.
-                    'cover' => 'PERJANJIAN BERLANGGANAN
+                    'cover' => '[Nama Kontrak]
 
 JASA COLOCATION
 
@@ -3316,7 +3316,7 @@ Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjala
                 ],
                 'body_content' => [
                     // Sampul (halaman 1) — lihat kontrak-kemitraan.
-                    'cover' => 'PERJANJIAN KERJA SAMA (KONTRAK PAYUNG)
+                    'cover' => '[Nama Kontrak]
 
 BERLANGGANAN JASA METRO FIBER OPTIK
 
@@ -4370,7 +4370,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                     'sifatSurat' => 'Penting',
                 ],
                 'body_content' => [
-                    'cover' => 'PERJANJIAN BERLANGGANAN
+                    'cover' => '[Nama Kontrak]
 
 JASA SOHO
 
@@ -5144,7 +5144,7 @@ Manager Area Bandung',
                 ],
                 'body_content' => [
                     // Sampul (halaman 1) — lihat kontrak-kemitraan.
-                    'cover' => 'PERJANJIAN BERLANGGANAN
+                    'cover' => '[Nama Kontrak]
 
 JASA DEDICATED, METRO, DAN MANAGED SERVICE
 

@@ -93,6 +93,22 @@ class ContractStyle
     private const PAGE_TEXT_HEIGHT_PT = 841.89 - 107.72 - 121.89; // ≈ 612,3pt
 
     /**
+     * Porsi area teks yang boleh dipakai blok sampul.
+     *
+     * Rumus coverSpacing() sengaja tidak lagi mengejar 100% area teks, karena
+     * margin @page di atas diperhitungkan untuk PDF (header/footer position:
+     * fixed, nol tinggi flow) — sedangkan di editor .doc-sheet membagi tinggi
+     * 297mm ke header + body + footer, dan footer tabel paraf bisa lebih tinggi
+     * dari 23mm yang diasumsikan PAGE_MARGIN_BOTTOM. Sampul yang tepat 100% punya
+     * nol cadangan, sehingga blok terakhir (pihak kedua + "Nomor:") terdorong
+     * ke halaman berikutnya begitu footer sedikit lebih tinggi.
+     *
+     * 0,94 menyisakan ±36pt (≈12,7mm) ruang aman. Sampul 6 baris tidak
+     * terpengaruh: hitungannya sudah ter-clamp ke COVER_SPACE_AFTER.
+     */
+    private const COVER_FIT_RATIO = 0.94;
+
+    /**
      * Jarak antar-baris sampul yang muat di satu halaman.
      *
      * Sampul berisi N baris; total tinggi = Σ tinggi baris + (N-1) × jarak.
@@ -125,8 +141,13 @@ class ContractStyle
         }
 
         $gaps = $n - 1;
-        $fit  = (self::PAGE_TEXT_HEIGHT_PT - $textHeight) / $gaps;
-        $fit  = max(self::pt(self::COVER_SPACE_MIN), min(self::pt(self::COVER_SPACE_AFTER), $fit));
+
+        // Area yang boleh dipakai = area teks × COVER_FIT_RATIO. Tanpa faktor
+        // ini blok sampul jadi tepat 100% dan blok terakhir bocor ke
+        // halaman berikutnya di editor (lihat catatan COVER_FIT_RATIO).
+        $budget = self::PAGE_TEXT_HEIGHT_PT * self::COVER_FIT_RATIO;
+        $fit    = ($budget - $textHeight) / $gaps;
+        $fit    = max(self::pt(self::COVER_SPACE_MIN), min(self::pt(self::COVER_SPACE_AFTER), $fit));
 
         return self::round($fit) . 'pt';
     }
