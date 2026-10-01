@@ -66,7 +66,7 @@ $isAdmin = auth()->user()->hasRole('admin');
                     <th>Nilai</th>
                     <th>Berkas</th>
                     <th>Status</th>
-                    <th class="text-right">Aksi</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
         </table>
@@ -142,7 +142,7 @@ $isAdmin = auth()->user()->hasRole('admin');
                 { data: 'total_value', name: 'total_value', searchable: false },
                 { data: 'has_file', name: 'has_file', orderable: false, searchable: false },
                 { data: 'status', name: 'status', searchable: false },
-                { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-right' },
+                { data: 'action', name: 'action', orderable: false, searchable: false },
             ],
         });
 

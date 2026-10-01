@@ -165,6 +165,67 @@ test('status berlabel selesai bukan disetujui', function () {
     expect($rows->first()['status'])->not->toContain('Disetujui');
 });
 
+test('tombol aksi s.o.f identik ikon dan tulisannya dengan tabel dokumen', function () {
+    Storage::disk('public')->put('sofs/1/SOF-001.pdf', '%PDF-1.4 uji');
+
+    makeSof([
+        'order_number' => 'SOF/010/IX/2026',
+        'file_path'    => 'sofs/1/SOF-001.pdf',
+        'file_name'    => 'SOF-001.pdf',
+    ]);
+
+    $rows = collect($this->actingAs($this->user)->getJson(route('sof.data'))->assertOk()->json('data'));
+    $actions = $rows->first()['action'];
+
+    // Class dasar tombol netral sama persis dengan Tabel Dokumen Saya
+    // (partials.customer.row-actions): px-2.5 + text-[11px], bukan w-8 ikon-saja.
+    foreach ([
+        'border-parchment-300',
+        'px-2.5',
+        'text-[11px]',
+        'font-semibold',
+        'hover:border-ink-900',
+        'hover:bg-ink-900',
+        'hover:text-white',
+        'rounded-lg',
+        'h-8',
+    ] as $needle) {
+        expect($actions)->toContain($needle);
+    }
+
+    // Kembali ke tombol berlabel -> tidak ada lagi w-8 (bentuk ikon telanjang).
+    expect($actions)->not->toContain('w-8');
+
+    // Tulisan tombol sama dengan Dokumen: "Unduh PDF" (bukan "Unduh"), bukan lagi ikon saja.
+    // Blade menulis label di baris berikutnya, jadi polanya harus toleran whitespace.
+    foreach (['Lihat', 'Edit', 'Unduh PDF', 'Hapus'] as $label) {
+        expect($actions)->toMatch('/>\s*'.preg_quote($label, '/').'\s*</');
+    }
+
+    // Ikon: eye (Lihat), pensil (Edit), download (Unduh PDF) — ukuran 13px seperti Dokumen.
+    expect($actions)->toContain('M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z')
+        ->and($actions)->toContain('M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z')
+        ->and($actions)->toContain('M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4')
+        // Ikon trash Bootstrap sama seperti tabel Dokumen.
+        ->and($actions)->toContain('bi bi-trash');
+
+    // Tombol Hapus merah, identik dengan Dokumen.
+    expect($actions)->toContain('border-red-300')
+        ->and($actions)->toContain('hover:bg-red-50')
+        ->and($actions)->toContain('text-red-600');
+});
+
+test('tombol unduh nonaktif tampil saat s.o.f belum punya berkas', function () {
+    makeSof(['order_number' => 'SOF/011/IX/2026']);
+
+    $rows = collect($this->actingAs($this->user)->getJson(route('sof.data'))->assertOk()->json('data'));
+    $actions = $rows->first()['action'];
+
+    expect($actions)->toContain('data-action="no-file"')
+        ->and($actions)->toContain('disabled')
+        ->and($actions)->toContain('cursor-not-allowed');
+});
+
 test('kartu ringkasan hanya total dan selesai', function () {
     makeSof(['order_number' => 'SOF/008/IX/2026']);
     makeSof(['order_number' => 'SOF/009/IX/2026', 'status' => 'selesai']);
