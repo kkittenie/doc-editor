@@ -404,7 +404,7 @@ $summaryCards = [
             language: {
                 processing: 'Memuat data...',
                 zeroRecords: 'Pelanggan tidak ditemukan',
-                emptyTable: 'Tidak ditemukan',
+                emptyTable: 'Tidak ada data',
                 info: 'Menampilkan _START_–_END_ dari _TOTAL_ data',
                 infoEmpty: 'Tidak ada data',
                 infoFiltered: '',
