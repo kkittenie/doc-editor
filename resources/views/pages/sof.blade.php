@@ -17,7 +17,7 @@ $isAdmin = auth()->user()->hasRole('admin');
 
 
     {{-- SUMMARY CARDS --}}
-    <div class="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <div class="mb-6 grid grid-cols-2 gap-4">
         <div
             class="rounded-xl border border-parchment-300 bg-white p-4 text-center dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <p class="text-2xl font-bold text-ink-900 dark:text-parchment-50" data-count="total">0</p>
@@ -25,18 +25,8 @@ $isAdmin = auth()->user()->hasRole('admin');
         </div>
         <div
             class="rounded-xl border border-parchment-300 bg-white p-4 text-center dark:border-slate-warm-800 dark:bg-slate-warm-900">
-            <p class="text-2xl font-bold text-green-700" data-count="with_file">0</p>
-            <p class="text-[10px] uppercase text-slate-warm-500">Dgn Berkas</p>
-        </div>
-        <div
-            class="rounded-xl border border-parchment-300 bg-white p-4 text-center dark:border-slate-warm-800 dark:bg-slate-warm-900">
-            <p class="text-2xl font-bold text-amber-700" data-count="approved">0</p>
-            <p class="text-[10px] uppercase text-slate-warm-500">Disetujui</p>
-        </div>
-        <div
-            class="rounded-xl border border-parchment-300 bg-white p-4 text-center dark:border-slate-warm-800 dark:bg-slate-warm-900">
-            <p class="text-2xl font-bold text-slate-700" data-count="pending">0</p>
-            <p class="text-[10px] uppercase text-slate-warm-500">Pending</p>
+            <p class="text-2xl font-bold text-green-700" data-count="selesai">0</p>
+            <p class="text-[10px] uppercase text-slate-warm-500">Selesai</p>
         </div>
     </div>
 

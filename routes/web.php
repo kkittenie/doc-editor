@@ -32,6 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/sof', [SofController::class, 'store'])->name('sof.store');
     Route::post('/sof/upload', [SofController::class, 'uploadFile'])->name('sof.upload');
     Route::get('/sof/{sof}', [SofController::class, 'show'])->name('sof.show');
+    Route::get('/sof/{sof}/view', [SofController::class, 'viewFile'])->name('sof.view');
     Route::get('/sof/{sof}/edit', [SofController::class, 'edit'])->name('sof.edit');
     Route::put('/sof/{sof}', [SofController::class, 'update'])->name('sof.update');
     Route::delete('/sof/{sof}', [SofController::class, 'destroy'])->name('sof.destroy');

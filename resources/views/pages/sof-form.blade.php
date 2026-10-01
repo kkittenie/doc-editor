@@ -75,8 +75,28 @@
                 </div>
                 <div>
                     <label class="mb-1 block text-xs text-ink-900">Tanggal Aktif</label>
-                    <input type="date" id="active_date" name="active_date" value="{{ $activeDate }}"
-                        class="w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-ink-900">
+                    {{-- Wrapper diberi class penanda agar override CSS di app.css hanya
+                         berlaku untuk kalender form S.O.F. Class `custom-datepicker`
+                         dipakai untuk aturan posisi `.static.open` yang sudah ada.
+                         Tanpa ini flatpickr menaruh kalender di <body> (bukan di
+                         dalam wrapper), sehingga selector `.sof-datepicker …`
+                         tidak akan cocok sama sekali. --}}
+                    <div class="sof-datepicker custom-datepicker relative">
+                        <input type="text" id="active_date" name="active_date" value="{{ $activeDate }}"
+                            placeholder="YYYY-MM-DD" autocomplete="off"
+                            class="w-full rounded-xl border bg-white px-4 py-2.5 pr-11 text-sm text-ink-900">
+                        {{-- Flatpickr dibuka lewat tombol kalender (tema sudah di app.css). --}}
+                        <button type="button" id="active_date_picker_btn" aria-label="Pilih tanggal" title="Pilih tanggal"
+                            class="absolute right-1 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-warm-500 hover:bg-parchment-100 hover:text-ink-900">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div>
                     <label class="mb-1 block text-xs text-ink-900">Masa Aktif (bln)</label>
@@ -147,6 +167,27 @@ document.addEventListener('DOMContentLoaded', function () {
     var filePathIn  = document.getElementById('file_path_input');
     var fileNameLbl = document.getElementById('file-name-label');
     var sofForm     = document.getElementById('sof-form');
+
+    // Tanggal Aktif — tombol kalender (flatpickr global dari app.js).
+    // Format Y-m-d dipertahankan agar nilai POST & validasi 'date' tidak berubah.
+    var activeDateInput = document.getElementById('active_date');
+    var activeDateBtn   = document.getElementById('active_date_picker_btn');
+
+    if (activeDateInput && activeDateBtn && window.flatpickr) {
+        var datePicker = window.flatpickr(activeDateInput, {
+            dateFormat: 'Y-m-d',
+            allowInput: true,
+            monthSelectorType: 'static',
+            // WAJIB: tanpa `static`, flatpickr menaruh kalender di <body>
+            // sehingga selector `.sof-datepicker .flatpickr-*` tidak cocok.
+            static: true
+        });
+
+        activeDateBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            datePicker.toggle();
+        });
+    }
 
     if (!uploadBtn || !fileInput) return;
     var resetFileSelection = function () { fileInput.value = ''; };

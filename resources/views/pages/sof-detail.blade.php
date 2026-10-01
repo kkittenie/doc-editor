@@ -32,7 +32,12 @@
             <div><span class="text-xs font-semibold uppercase text-slate-warm-500">Nilai Total</span>
                 <p class="mt-1 text-sm text-ink-900 dark:text-parchment-100">{{ $sof->total_value ? "Rp " . number_format((float) $sof->total_value, 0, ",", ".") : "—" }}</p></div>
             <div class="sm:col-span-2"><span class="text-xs font-semibold uppercase text-slate-warm-500">Status</span>
-                <span class="mt-1 inline-block rounded-full px-3 py-1 text-[10px] font-semibold {{ strtolower($sof->status) === "approved" ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-700" }}">{{ $sof->statusLabel() }}</span>
+                <div class="mt-2">
+                    @include('partials.sof.row-status', [
+                        'status' => strtolower($sof->status ?? 'draft'),
+                        'label'  => $sof->statusLabel(),
+                    ])
+                </div>
             </div>
         </div>
     </div>

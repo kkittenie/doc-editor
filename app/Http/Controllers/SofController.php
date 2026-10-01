@@ -43,7 +43,7 @@ class SofController extends Controller
         $berkas = in_array($berkas, ['ready', 'pending'], true) ? $berkas : 'all';
 
         $total = Sof::where('user_id', Auth::id())->count();
-        $approved = Sof::where('user_id', Auth::id())->where('status', 'approved')->count();
+        $selesai = Sof::where('user_id', Auth::id())->where('status', 'selesai')->count();
         $withFile = Sof::where('user_id', Auth::id())
             ->whereNotNull('file_path')
             ->where('file_path', '!=', '')
@@ -52,8 +52,8 @@ class SofController extends Controller
         $counts = [
             'total' => $total,
             'with_file' => $withFile,
-            'approved'  => $approved,
-            'pending'   => $total - $approved
+            'selesai'   => $selesai,
+            'pending'   => $total - $selesai
         ];
 
         $query = Sof::query()
@@ -96,12 +96,14 @@ class SofController extends Controller
             ? 'Rp ' . number_format((float) $s->total_value, 0, ',', '.')
             : '—')
         ->addColumn('has_file', fn (Sof $s) => $s->hasFile()
-            ? '<span class="inline-flex items-center rounded bg-green-100 px-2 py-1 text-[10px] font-semibold text-green-800">Ada</span>'
-            : '<span class="inline-flex items-center rounded bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-700">Kosong</span>')
-        ->editColumn('status', fn (Sof $s) =>
-            '<span class="inline-block rounded-full px-2.5 py-1 text-[10px] font-semibold '
-            . ($s->status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-700') . '">'
-            . e($s->statusLabel()) . '</span>')
+            ? '<a href="' . route('sof.view', $s) . '" target="_blank" rel="noopener"'
+                . ' class="inline-flex items-center rounded-lg bg-ink-900 px-2.5 py-1 text-[10px] font-semibold text-white hover:opacity-90">'
+                . 'Lihat File</a>'
+            : '—')
+        ->editColumn('status', fn (Sof $s) => view('partials.sof.row-status', [
+            'status' => strtolower($s->status ?? 'draft'),
+            'label'  => $s->statusLabel(),
+        ])->render())
         ->addColumn('action', fn (Sof $s) => view('partials.sof.row-actions', ['sof' => $s])->render())
         ->rawColumns(['order_number', 'contract_number', 'has_file', 'status', 'action'])
         ->with('counts', $counts)
@@ -253,6 +255,26 @@ class SofController extends Controller
         ]);
     }
 
+    /** Tampilkan berkas PDF di browser (inline), bukan diunduh. */
+    public function viewFile(Sof $sof)
+    {
+        $this->authorizeUser();
+        $this->ensureOwned($sof);
+
+        abort_unless($sof->hasFile(), 404, 'Belum ada berkas PDF untuk S.O.F ini.');
+        abort_unless(
+            Storage::disk('public')->exists($sof->file_path),
+            404,
+            'Berkas tidak ditemukan di penyimpanan.'
+        );
+
+        return Storage::disk('public')->response(
+            $sof->file_path,
+            $sof->fileName(),
+            ['inline' => true]
+        );
+    }
+
     public function download(Sof $sof)
     {
         $this->authorizeUser();
@@ -306,7 +328,7 @@ class SofController extends Controller
             'file_path'        => $finalPath,
             'file_name'        => $fileName,
             'file_uploaded_at' => now(),
-            'status'           => 'approved',
+            'status'           => 'selesai',
         ]);
     }
 

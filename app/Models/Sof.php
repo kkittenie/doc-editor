@@ -15,7 +15,7 @@ class Sof extends Model
 {
     use HasFactory, SoftDeletes;
 
-    public const STATUSES = ['draft', 'approved'];
+    public const STATUSES = ['draft', 'selesai'];
 
     protected $fillable = [
         'user_id',
@@ -53,7 +53,7 @@ class Sof extends Model
     {
         return match (strtolower($this->status ?? 'draft')) {
             'draft'     => 'Draft',
-            'approved'  => 'Disetujui',
+            'selesai'   => 'Selesai',
             default     => ucfirst((string) $this->status),
         };
     }
