@@ -1,15 +1,3 @@
-{{-- ============================================================================
-     DROPDOWN "INFO KONTRAK" PADA TOPBAR EDITOR
-     ----------------------------------------------------------------------------
-     Saat user menekan "Lanjut" di Tabel Pelanggan, status kontrak naik ke
-     On Progress dan mereka langsung masuk editor — sehingga nomor kontrak,
-     nama kontrak, periode, serta data barang & service tidak lagi terlihat
-     di halaman lain. Panel ini mengembalikannya sebagai dropdown read-only.
-
-     Data dirender server (tanpa request tambahan) dan TIDAK mengubah isi
-     dokumen. State Alpine (showContractInfo, contractTab) milik
-     wordDocumentEditor() di pages/editor.blade.php.
-     ============================================================================ --}}
 @php
     $infoCustomer = $contractCustomer ?? null;
     $infoBarang = $contractBarang ?? collect();
@@ -20,18 +8,15 @@
     $infoStatus = strtolower($infoCustomer->status ?? $document->status ?? 'draft');
     $infoStatusLabel = $infoCustomer?->statusLabel() ?? $document->statusLabel();
 
-    // Warna badge disalin dari statusClass() di pages/customers.blade.php
-    // supaya satu status selalu tampil dengan warna yang sama.
     $infoStatusClass = match ($infoStatus) {
         'draft' => 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30',
         'on_progress' => 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/30',
         'on_review' => 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-500/15 dark:text-violet-300 dark:border-violet-500/30',
         'revisi' => 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/30',
-        'disetujui' => 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/15 dark:text-green-300 dark:border-green-500/30',
+        'disetujui' => 'bg-green-100 text-green-800 border-green-200 dark:bg-green-500/15 dark:text-green-300 dark:border-green-500/30',
         default => 'bg-parchment-100 text-slate-warm-600 border-parchment-300 dark:bg-slate-warm-800 dark:text-parchment-300 dark:border-slate-warm-700',
     };
 
-    // Label pendek template kontrak (key = body_content['templateKey']).
     $infoTemplateLabels = [
         'kontrak-kemitraan' => 'Kontrak Kemitraan',
         'kontrak-colocation' => 'Kontrak Colocation',
@@ -49,8 +34,6 @@
     $infoPageCount = count(
         $document->body_content['pages'] ?? [$document->body_content['content'] ?? '']
     );
-    // Ringkasan dua kolom: detail kontrak kalau dokumen terhubung pelanggan,
-    // kalau tidak pakai identitas dokumen supaya panel tetap berguna.
     $infoFacts = $infoCustomer
         ? [
             ['label' => 'Pelanggan', 'value' => $infoCustomer->name],
@@ -71,7 +54,6 @@
 @endphp
 
 <div class="relative print:hidden">
-    {{-- TRIGGER: chip kecil di grup kiri topbar, sebelah judul dokumen. --}}
     <button type="button" @click="showContractInfo = !showContractInfo"
         :aria-expanded="showContractInfo ? 'true' : 'false'" aria-haspopup="true" title="Lihat informasi kontrak"
         class="inline-flex h-9 items-center gap-2 rounded-lg border border-parchment-300 bg-white px-3 text-[11px] font-semibold text-ink-700 transition hover:border-ink-900 hover:bg-ink-900 hover:text-white dark:border-slate-warm-700 dark:bg-transparent dark:text-parchment-200 dark:hover:border-bronze-500 dark:hover:bg-bronze-500 dark:hover:text-ink-900">
@@ -95,7 +77,6 @@
         </svg>
     </button>
 
-    {{-- PANEL --}}
     <div x-show="showContractInfo" x-cloak @click.outside="showContractInfo = false"
         @keydown.escape.window="showContractInfo = false"
         x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-1"
@@ -103,7 +84,6 @@
         x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1"
         class="custom-scrollbar absolute left-0 z-50 mt-2 max-h-[70vh] w-[min(92vw,420px)] overflow-y-auto rounded-xl border border-parchment-300 bg-white p-4 shadow-theme-lg dark:border-slate-warm-700 dark:bg-slate-warm-900">
 
-        {{-- KEPALA: status + nama & nomor kontrak --}}
         <div class="flex items-start justify-between gap-3">
             <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-warm-500 dark:text-parchment-400">
                 Info Kontrak
@@ -123,7 +103,6 @@
             {{ $infoContractNumber ?: 'Nomor kontrak belum diisi' }}
         </p>
 
-        {{-- RINGKASAN --}}
         <dl class="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 border-t border-parchment-200 pt-3 dark:border-slate-warm-800">
             @foreach ($infoFacts as $fact)
                 <div class="min-w-0">
@@ -139,7 +118,6 @@
         </dl>
 
         @if ($infoCustomer)
-        {{-- DATA BARANG & SERVICE (salinan dokumen; fallback master pelanggan) --}}
         <div class="mt-3 border-t border-parchment-200 pt-3 dark:border-slate-warm-800">
             <div
                 class="flex items-center gap-1 rounded-lg border border-parchment-200 bg-parchment-50 p-1 dark:border-slate-warm-800 dark:bg-slate-warm-800">
@@ -162,7 +140,6 @@
                 </p>
             @endif
 
-            {{-- BARANG --}}
             <div x-show="contractTab === 'barang'" class="mt-2 space-y-1.5">
                 @forelse ($infoBarang as $index => $item)
                     <div
@@ -193,7 +170,6 @@
                     </p>
                 @endforelse
             </div>
-            {{-- SERVICE --}}
             <div x-show="contractTab === 'service'" x-cloak class="mt-2 space-y-1.5">
                 @forelse ($infoServices as $index => $item)
                     <div
@@ -223,7 +199,6 @@
                 @endforelse
             </div>
 
-            {{-- TOTAL --}}
             <div class="mt-3 grid grid-cols-2 gap-2">
                 <div class="rounded-lg bg-parchment-50 px-2.5 py-2 dark:bg-slate-warm-800">
                     <p class="text-[10px] uppercase tracking-wide text-slate-warm-500 dark:text-parchment-400">
@@ -251,7 +226,6 @@
             </p>
         @endif
 
-        {{-- FOOTER: jalan pintas ke tabel pelanggan. --}}
         <div class="mt-3 border-t border-parchment-200 pt-2 dark:border-slate-warm-800">
             <a href="{{ route('documents') }}"
                 class="inline-flex items-center gap-1 text-[11px] font-semibold text-bronze-700 hover:underline dark:text-bronze-400">

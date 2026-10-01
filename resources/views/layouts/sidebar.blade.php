@@ -50,16 +50,11 @@
     @mouseenter="if (!$store.sidebar.isExpanded) $store.sidebar.setHovered(true)"
     @mouseleave="$store.sidebar.setHovered(false)">
 
-    {{-- Brand logo dipindahkan ke header (posisi tombol hamburger),
-         lihat resources/views/layouts/app-header.blade.php --}}
-
-    <!-- Navigation Menu — langsung di bagian paling atas sidebar -->
     <div class="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar pt-5 grow">
         <nav class="mb-6">
             <div class="flex flex-col gap-6">
                 @foreach ($menuGroups as $groupIndex => $menuGroup)
                     <div>
-                        <!-- Menu Items -->
                         <ul class="flex flex-col gap-1.5">
                             @foreach ($menuGroup['items'] as $itemIndex => $item)
                                 <li>
@@ -119,7 +114,6 @@
             </div>
         </nav>
 
-        <!-- Bottom Navigation — Pengaturan + Keluar (Sign Out) di paling bawah -->
         <div class="mt-auto border-t border-white/15 pt-4 pb-3">
             @if (!empty($bottomNavItems))
                 <ul class="flex flex-col gap-1.5">
@@ -143,7 +137,6 @@
                 </ul>
             @endif
 
-            <!-- Keluar (Sign Out) — aksi sesi, dibedakan dari navigasi biasa -->
             <form method="POST" action="{{ route('logout') }}" class="mt-1.5" @submit.prevent="
                     if (!window.Swal) { $el.submit(); return; }
                     Swal.fire({
@@ -165,7 +158,7 @@
                     </span>
                     <span x-show="$store.sidebar.isExpanded || $store.sidebar.isHovered || $store.sidebar.isMobileOpen"
                         class="menu-item-text flex items-center gap-2">
-                        Keluar
+                        Keluar Sesi
                     </span>
                 </button>
             </form>

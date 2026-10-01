@@ -84,30 +84,6 @@
         <!-- Right Side Header Actions -->
         <div class="flex items-center justify-between w-full gap-3 px-4 py-2.5 xl:flex xl:justify-end xl:px-0">
             <div class="flex items-center gap-2">
-                <!-- Export / Print Quick Action Button -->
-                <button @click="documentPrintArea()" class="btn-secondary text-xs px-3 py-1.5 h-9 shadow-xs">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="6 9 6 2 18 2 18 9" />
-                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-                        <rect x="6" y="14" width="12" height="8" />
-                    </svg>
-                    <span class="hidden sm:inline">Save As</span>
-                </button>
-
-                {{-- NOTE: Tombol "Save" di header global telah dihapus.
-                     Admin simpan via tombol "Save" di top bar editor sendiri;
-                     marketer (mode baca) tidak boleh simpan — hanya "Save As". --}}
-                
-                {{-- Tombol Save lama nonaktif — simpan via top bar editor.
-                <button @click="savedTime = 'Tersimpan ' + new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})" class="btn-primary text-xs px-3 py-1.5 h-9 shadow-xs">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                        <polyline points="17 21 17 13 7 13 7 21"/>
-                        <polyline points="7 3 7 8 15 8"/>
-                    </svg>
-                    <span>Simpan</span>
-                </button>
-                --}}
 
                 <div class="h-5 w-px bg-parchment-300 dark:bg-slate-warm-700 mx-1"></div>
 
@@ -128,7 +104,6 @@
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
                     </svg>
-                    <!-- Moon icon -->
                     <svg class="dark:hidden" width="18" height="18" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
@@ -183,12 +158,11 @@
         win.document.write(docHtml);
         win.document.close();
 
-        // Give the new window a moment to load styles, then print
+       
         win.focus();
         setTimeout(() => {
             try {
                 win.print();
-                // close after printing
                 win.close();
             } catch (e) {
                 console.error('Print failed', e);

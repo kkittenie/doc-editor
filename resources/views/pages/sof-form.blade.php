@@ -149,22 +149,16 @@ document.addEventListener('DOMContentLoaded', function () {
     var sofForm     = document.getElementById('sof-form');
 
     if (!uploadBtn || !fileInput) return;
-
-    // Bersihkan pilihan file (hidden file_path_input tetap menyimpan
-    // path dari upload sukses sebelumnya).
     var resetFileSelection = function () { fileInput.value = ''; };
 
-    // Tombol 📎 → buka dialog pemilih file native browser.
     uploadBtn.addEventListener('click', function () {
         fileInput.click();
     });
 
-    // File terpilih → validasi klien → konfirmasi → upload via axios.
     fileInput.addEventListener('change', function () {
         var file = fileInput.files && fileInput.files[0];
         if (!file) return;
 
-        // Validasi klien: PDF (cek MIME + ekstensi).
         var isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name || '');
         if (!isPdf) {
             resetFileSelection();
@@ -234,7 +228,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Guard e.submitter (bisa null bila form disubmit via tombol Enter).
     if (sofForm) {
         sofForm.addEventListener('submit', function (e) {
             var btn = e.submitter;
