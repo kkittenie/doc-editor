@@ -677,7 +677,6 @@
                                             Kirim Review
                                         </button>
 
-                                                                                {{-- Setujui (pending â†’ signed) --}}
                                         <button
                                             type="button"
                                             x-show="doc.status === 'pending'"
@@ -725,7 +724,7 @@
                                                 <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
                                             </svg>
                                         </button>
-                                                                        @endif
+                                    @endif
 
                                 </div>
 

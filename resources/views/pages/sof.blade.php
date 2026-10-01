@@ -9,9 +9,6 @@ $isAdmin = auth()->user()->hasRole('admin');
     <div class="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
             <h1 class="font-serif text-2xl font-bold text-ink-900 dark:text-parchment-50">Menu S.O.F</h1>
-            <p class="mt-1 text-sm text-slate-warm-500 dark:text-parchment-400">
-                Repositori berkas Order Formulir — entitas mandiri, tidak terhubung ke Tabel Pelanggan.
-            </p>
         </div>
         @if($isAdmin)
         <a href="{{ route('sof.create') }}" class="btn-primary shrink-0 text-xs">+ Tambah S.O.F</a>

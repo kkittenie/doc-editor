@@ -71,7 +71,7 @@
 
                 <tr x-show="barangRows.length === 0">
                     <td colspan="6" class="px-3 py-3 text-center text-[11px] text-slate-warm-400">
-                        Belum ada barang. Klik "Tambah Barang" bila pelanggan memiliki barang.
+                        Belum ada barang. Klik "Tambah Barang" bila memiliki barang.
                     </td>
                 </tr>
             </tbody>

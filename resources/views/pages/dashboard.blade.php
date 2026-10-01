@@ -12,33 +12,7 @@
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
                 Dashboard
             </h1>
-
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Kelola dan pantau dokumen legal Anda.
-            </p>
         </div>
-
-        {{-- Tambah Dokumen --}}
-
-        <a href="{{ route('documents.create') }}" class="btn-primary text-xs shadow-sm">
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 4v16m8-8H4"
-                />
-            </svg>
-
-            Tambah Dokumen Baru
-        </a>
-
     </div>
 
 

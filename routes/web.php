@@ -17,8 +17,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
     Route::patch('/documents/{document}/status', [DocumentController::class, 'updateStatus'])->name('documents.Status');
-    // Approval dokumen (on_review → disetujui) yang mewajibkan upload berkas
-    // kontrak; berkas itulah yang dipakai tombol "Unduh PDF" di Tabel Pelanggan.
+    // untuk upload doc buat menyetujui
     Route::post('/documents/{document}/approve', [DocumentController::class, 'approve'])->name('documents.approve');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
     Route::delete('/documents', [DocumentController::class, 'deleteAll'])->name('documents.deleteAll');
@@ -26,11 +25,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/documents', [CustomerController::class, 'index'])->name('documents');
 
-        // Menu S.O.F — repositori berkas Order Formulir (entitas mandiri, CRUD + upload).
-    Route::get('/sof', [SofController::class, 'index'])->name('sof.index');
-    Route::get('/sof', [SofController::class, 'index'])->name('sof.index');
-    Route::get('/sof/data', [SofController::class, 'data'])->name('sof.data');   // baru
-    Route::get('/sof/create', [SofController::class, 'create'])->name('sof.create');
+     // Menu S.O.F — repositori berkas Order Formulir (entitas mandiri, CRUD + upload).
+    Route::get('/sof', [SofController::class, 'index'])->name('sof.index'); 
+    Route::get('/sof/data', [SofController::class, 'data'])->name('sof.data');   
     Route::get('/sof/create', [SofController::class, 'create'])->name('sof.create');
     Route::post('/sof', [SofController::class, 'store'])->name('sof.store');
     Route::post('/sof/upload', [SofController::class, 'uploadFile'])->name('sof.upload');

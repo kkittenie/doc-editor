@@ -54,7 +54,7 @@
 
                 <tr x-show="serviceRows.length === 0">
                     <td colspan="4" class="px-3 py-3 text-center text-[11px] text-slate-warm-400">
-                        Belum ada service. Klik "Tambah Service" bila pelanggan memiliki service.
+                        Belum ada service. Klik "Tambah Service" bila pelanggan service.
                     </td>
                 </tr>
             </tbody>
