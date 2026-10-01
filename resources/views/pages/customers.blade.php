@@ -412,7 +412,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const DataTable = window.DataTable;
     let statusFilter = 'all';
 
-    // Error ditangani sendiri lewat 'dt-error.dt' di bawah, bukan alert() bawaan.
     DataTable.ext.errMode = 'none';
 
     const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -425,12 +424,12 @@ document.addEventListener('DOMContentLoaded', () => {
             url: @json(route('customers.data')),
             data: (d) => { d.status = statusFilter; },
         },
-        order: [[0, 'desc']],          // terbaru dulu
+        order: [[0, 'desc']],          
         pageLength: 10,
         lengthMenu: [10, 25, 50],
         layout: {
-            topStart: null,            // search & length bawaan dimatikan,
-            topEnd: null,              // kita pakai input search sendiri
+            topStart: null,           
+            topEnd: null,              
             bottomStart: ['pageLength', 'info'],
             bottomEnd: 'paging',
         },
@@ -459,7 +458,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ],
     });
 
-    // Kartu ringkasan: isi dari JSON "counts" yang dikirim Yajra.
     table.on('xhr.dt', (e, settings, json) => {
         if (!json || !json.counts) return;
         document.querySelectorAll('[data-count]').forEach((el) => {
@@ -476,7 +474,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Search (tunggu user berhenti mengetik 350 ms).
     const search = document.getElementById('customers-search');
     let searchTimer;
     search.addEventListener('input', () => {
@@ -500,8 +497,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
     paintPills();
 
-    // Muat ulang data tanpa pindah halaman; kalau halaman sekarang sudah
-    // kosong (mis. setelah hapus data terakhir), mundur ke halaman terakhir.
     const reloadTable = () => table.ajax.reload(() => {
         const info = table.page.info();
         const last = Math.max(info.pages - 1, 0);
@@ -598,7 +593,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Satu listener untuk semua tombol di dalam tabel (baris dibuat ulang tiap draw).
     document.getElementById('customers-table').addEventListener('click', (e) => {
         const btn = e.target.closest('[data-action]');
         if (!btn) return;

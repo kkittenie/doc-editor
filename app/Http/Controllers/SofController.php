@@ -180,9 +180,6 @@ class SofController extends Controller
         ]);
     }
 
-    /**
-     * Form edit S.O.F (CRUD edit).
-     */
     public function edit(Sof $sof)
     {
         $this->authorizeUser();
@@ -197,9 +194,6 @@ class SofController extends Controller
         ]);
     }
 
-    /**
-     * Update entri S.O.F (CRUD update + optional re-upload file).
-     */
     public function update(Request $request, Sof $sof)
     {
         $this->authorizeUser();
@@ -222,19 +216,15 @@ class SofController extends Controller
 
         $data['total_value'] = $data['total_value'] ?? 0;
 
-        // Hitung finish_date otomatis dari active_date + active_months.
         if (!empty($data['active_date']) && !empty($data['active_months'])) {
             $data['finish_date'] = \Carbon\Carbon::parse($data['active_date'])
                 ->addMonths((int) $data['active_months'])
                 ->toDateString();
         } else {
-            // Reset finish_date bila periode dikosongkan.
             $data['finish_date'] = null;
         }
 
         $sof->update($data);
-
-        // Jika ada berkas baru (via pop up upload), hapus berkas lama.
         if ($request->filled('file_path')) {
             if ($sof->file_path && Storage::disk('public')->exists($sof->file_path)) {
                 Storage::disk('public')->delete($sof->file_path);
@@ -247,9 +237,6 @@ class SofController extends Controller
             ->with('success', 'S.O.F "'.$sof->order_number.'" berhasil diperbarui.');
     }
 
-    /**
-     * Hapus S.O.F (CRUD delete — soft delete).
-     */
     public function destroy(Sof $sof)
     {
         $this->authorizeUser();
@@ -266,9 +253,6 @@ class SofController extends Controller
         ]);
     }
 
-    /**
-     * Unduh berkas PDF S.O.F yang sudah di-scan / di-upload.
-     */
     public function download(Sof $sof)
     {
         $this->authorizeUser();
@@ -286,10 +270,7 @@ class SofController extends Controller
             $sof->fileName()
         );
     }
-        /**
-     * Nomor Order Form berikutnya (auto-generate).
-     * Format sama seperti nomor kontrak: SOF/001/IX/2026 (per user, per bulan, per tahun).
-     */
+
     private function nextOrderNumber(): string
     {
         $romanMonths = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
@@ -310,12 +291,6 @@ class SofController extends Controller
         return self::ORDER_PREFIX . '/' . str_pad((string) $next, 3, '0', STR_PAD_LEFT) . '/' . $month . '/' . $year;
     }
 
-    /**
-     * Simpan berkas PDF hasil scan ke folder khusus S.O.F.
-     *
-     * $storedPath adalah path relatif pada disk 'public' yang sudah
-     * di-upload sebelumnya (oleh uploadFile()).
-     */
     private function storeUploadedFile(Sof $sof, string $storedPath): void
     {
         if (! Storage::disk('public')->exists($storedPath)) {
@@ -335,10 +310,6 @@ class SofController extends Controller
         ]);
     }
 
-    /**
-     * Upload temporer untuk pop up file (dipanggil oleh Swal modal).
-     * Validasi konsisten dengan DocumentController::approve().
-     */
     public function uploadFile(Request $request)
     {
         $this->authorizeUser();

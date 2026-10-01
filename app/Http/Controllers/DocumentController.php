@@ -462,7 +462,6 @@ class DocumentController extends Controller
     {
         $judul = trim($title) !== '' ? e($title) : '[Ketik judul dokumen di sini]';
 
-        // Tampilkan nomor dokumen yang dimasukkan admin (fallback ke placeholder).
         $nomor = trim((string) $nomorSurat) !== '' ? e($nomorSurat) : '[Ketik nomor dokumen di sini]';
 
         return <<<HTML
@@ -476,24 +475,6 @@ class DocumentController extends Controller
         HTML;
     }
 
-    /**
-     * Isi placeholder body template ([Nama Kontrak], [PIHAK KEDUA],
-     * [Nomor Perjanjian], [Hari], [Tanggal], [Tempat]) dengan data nyata
-     * supaya dokumen jadi tidak lagi memuat placeholder mentah. Dipanggil
-     * di store() (dengan data pelanggan & judul dari form Detail Kontrak)
-     * dan createFromTemplate() (tanpa pelanggan).
-     *
-     * [Nama Kontrak] dipakai baris judul sampul (halaman 1): nilainya
-     * $title dari input "Nama Kontrak" di form Detail Kontrak, bukan
-     * hardcode per template — jadi judul sampul selalu sama dengan yang
-     * diketik user. Parameternya opsional supaya createFromTemplate()
-     * (yang belum punya judul final) tidak wajib mengisinya.
-     *
-     * CATATAN locale: [Hari] & [Tanggal] WAJIB dibungkus ->locale('id').
-     * Nilai bawaan aplikasi adalah 'en', jadi tanpa itu dokumen berbahasa
-     * Indonesia memuat "Pada hari Tuesday, tanggal 29 September 2026".
-     * ('September' kebetulan sama di keduanya, tetapi nama hari tidak.)
-     */
     private function applyTemplateReplacements(
         string $bodyHtml,
         ?Customer $customer,
@@ -515,7 +496,6 @@ class DocumentController extends Controller
             $placeholders['[Nomer Pelanggan]'] = trim((string) ($customer->customer_number ?? ''));
         }
 
-        // Hanya ganti placeholder yang punya nilai (jangan menelan text asli).
         $replacements = array_filter($placeholders, fn ($v) => $v !== '');
 
         return str_ireplace(array_keys($replacements), array_values($replacements), $bodyHtml);
@@ -525,14 +505,8 @@ class DocumentController extends Controller
     {
         $counter = 0;
 
-        // Nomor: 'pasal' + (spasi | 0xA0 | &nbsp; | &#160;)* + angka.
-        // Sufiks [a-z] sengaja TIDAK ada: dengan /i ia ikut menelan kata
-        // pertama judul ('PASAL 7Judul' → mematahkan deteksi heading menempel).
         $num = 'pasal(?:\s|\x{00A0}|&nbsp;|&#160;)*\d+';
 
-        // Hanya ubah heading pasal yang benar-benar berdiri sendiri di tag
-        // <p> / <hN> — bukan teks isi biasa seperti "Dalam pasal 4 ayat (1)"
-        // yang muncul di template colocation dan template lain.
         $pattern = '/(<(?:p|h[1-6])\b[^>]*>\s*(?:<(?!\/(?:p|h[1-6])\b)[^>]+>\s*)*)'
             . '(' . $num . ')'
             . '([^<]*)'
@@ -554,24 +528,19 @@ class DocumentController extends Controller
                     // Bentuk heading:
                     $empty = trim($suffixVis) === '';
                     $sepLed = preg_match('/^\s*[\x{2013}\x{2014}.;,:-]/u', $suffixVis) === 1;
-                    // Judul huruf besar tanpa tanda: kata pertama seluruhnya
-                    // kapital ('BIAYA…'); 'KUHPerdata' sengaja TIDAK cocok.
+                    // Judul huruf besar tanpa tanda:
                     $lead = ltrim($suffixVis);
                     $upperTitle = preg_match('/^[A-Z]/u', $lead) === 1
                         && preg_match('/^[A-Z][A-Z0-9]*\b/u', $lead) === 1;
-                    // Heading menempel: huruf langsung menempel di angka ('PASAL 8Jika').
                     $glued = preg_match('/\d$/u', $m[2]) === 1
                         && preg_match('/^[A-Za-z]/', $suffixRaw) === 1;
 
                     if (!($empty || $sepLed || $upperTitle || $glued)) {
-                        return $m[0]; // paragraf isi/rujukan — biarkan apa adanya
+                        return $m[0]; 
                     }
 
                     $counter++;
 
-                    // Pertahankan trailing judul/teks setelah nomor,
-                    // mis. 'PASAL 3 — HAK DAN KEWAJIBAN' (perilaku lama: tanda
-                    // pemisah di depan dibuang, judulnya sendiri dipertahankan).
                     $suffix = $suffixRaw;
                     if ($sepLed) {
                         $suffix = preg_replace('/^\s*[:\-.;,\s]*/u', '', $suffix, 1);
@@ -586,12 +555,6 @@ class DocumentController extends Controller
         return $pages;
     }
 
-    /**
-     * Jaring pengaman urutan pasal: dinormalkan setiap kali dokumen dibuka
-     * di editor (bukan hanya saat simpan/export) sehingga lompatan nomor
-     * pada dokumen lama langsung rapi begitu dilihat. Tidak menulis apa pun
-     * bila tidak ada perubahan.
-     */
     private function normalizeDocumentPasalOnOpen(Document $document): void
     {
         $content = $document->body_content ?? [];
@@ -615,27 +578,22 @@ class DocumentController extends Controller
     {
         $parts = [];
 
-        // 1) Pembuka — blok judul (center, 18pt) + paragraf naratif (justify).
         $preamble = $body['preamble'] ?? $body['tujuanSurat'] ?? null;
         if (!empty($preamble)) {
             $parts[] = $this->contractPreambleHtml((string) $preamble);
         }
 
-        // 2) Para pihak (identitas pihak biasanya langsung setelah pembuka)
         if (!empty($body['paraPihak']) && is_array($body['paraPihak'])) {
             foreach ($body['paraPihak'] as $pihak) {
                 $parts[] = $this->contractPara($pihak);
             }
         }
 
-        // 2b) Blok definisi istilah (mis. template colocation) — dirender
-        //     sebelum pasal-pasal dan TIDAK ikut penomoran PASAL.
         if (!empty($body['definisi'])) {
             $parts[] = $this->contractHeadingHtml('DEFINISI DAN INTERPRETASI');
             $parts[] = $this->contractPara($body['definisi']);
         }
 
-        // 2c) Tabel spesifikasi (HTML mentah, mis. template colocation).
         if (!empty($body['spesifikasi'])) {
             $parts[] = $this->contractHeadingHtml('SPESIFIKASI');
             $spec = $body['spesifikasi'];
@@ -669,8 +627,6 @@ class DocumentController extends Controller
         $number = 1;
         foreach ($pasals as $pasal) {
             $judul = strtoupper(trim($pasal['judul'] ?? ''));
-            // Seragam untuk kelima template: baris PASAL n diikuti baris judul
-            // pasal, keduanya center 12pt (lihat App\Data\ContractStyle).
             $parts[] = $this->contractHeadingHtml('PASAL '.$number, true);
             if ($judul !== '') {
                 $parts[] = '<p style="'.ContractStyle::displayStyle().'"><strong>'
@@ -709,18 +665,14 @@ class DocumentController extends Controller
                 $hasP      = !empty($item['p']);
                 $hasOl     = !empty($item['ol']) && is_array($item['ol']);
 
-                // Blok terstruktur (paragraf + tabel asli dari .docx)
                 if ($hasBlocks) {
                     $parts[] = $this->renderBlocks($item['blocks']);
                 }
 
-                // Blok teks biasa (diparagraph-kan otomatis).
                 if (!$hasBlocks && $hasText) {
                     $parts[] = $this->contractPara($item['text']);
                 }
 
-                // Blok HTML mentah (mis. tabel pada lampiran template
-                // kontrak-kemitraan) — dirender apa adanya tanpa escape.
                 if ($hasHtml) {
                     $htmlBlocks = is_array($item['html']) ? $item['html'] : [$item['html']];
                     foreach ($htmlBlocks as $htmlBlock) {
@@ -728,10 +680,6 @@ class DocumentController extends Controller
                     }
                 }
 
-                // Paragraf tunggal (blok 'p') pada lampiran — penanganan
-                // tambahan untuk template kolocation yang memakai struktur
-                // array campuran (item pertama pakai 'blocks', item berikutnya
-                // pakai 'p'/'ol' langsung).
                 if (!$hasBlocks && !$hasText && !$hasHtml && $hasP) {
                     $parts[] = $this->contractPara((string) $item['p']);
                 }
@@ -744,7 +692,6 @@ class DocumentController extends Controller
                     }
                 }
 
-                // Lampiran kosong (judul saja) — kompatibel dengan perilaku lama.
                 if (!$hasText && !$hasHtml && !$hasP && !$hasOl) {
                     $parts[] = $this->contractPara('');
                 }
@@ -774,11 +721,6 @@ class DocumentController extends Controller
         return trim($html);
     }
 
-    /**
-     * Tebalkan penanda pihak secara konsisten (PARA PIHAK, PIHAK PERTAMA,
-     * PIHAK KEDUA). Hanya menyentuh simpul teks — markup yang sudah ada
-     * (mis. <strong> hasil render sebelumnya) tidak dibungkus ulang.
-     */
     private function styleContractPartyNames(string $text): string
     {
         if (stripos($text, 'pihak') === false) {
@@ -795,7 +737,7 @@ class DocumentController extends Controller
             if ($part === '') {
                 continue;
             }
-            if ($part[0] === '<') {           // tag: lewati apa adanya
+            if ($part[0] === '<') {           
                 $out .= $part;
                 continue;
             }
@@ -809,43 +751,24 @@ class DocumentController extends Controller
         return $out;
     }
 
-    /**
-     * Judul/heading template kontrak (PASAL N, DEFINISI, SPESIFIKASI,
-     * MENIMBANG, MENGINGAT, LAMPIRAN). Semua nilai format diambil dari
-     * App\Data\ContractStyle supaya kelima template identik.
-     * Style inline ini selamat dari konversi Quill karena text-align dipetakan
-     * ke class ql-align-* dan margin-top terdaftar sebagai attributor 'phead'.
-     */
     private function contractHeadingHtml(string $inner, bool $center = true): string
     {
         return '<p style="'.ContractStyle::headingStyle($center).'">'
             .'<strong>'.e($inner).'</strong></p>';
     }
 
-    /**
-     * Blok judul dokumen (baris pertama preamble): 18pt bold center.
-     */
     private function contractTitleHtml(string $text): string
     {
         return '<p style="'.ContractStyle::titleStyle().'">'
             .'<strong>'.e($text).'</strong></p>';
     }
 
-    /**
-     * Baris display di dalam blok judul (nama pihak, DENGAN, NOMOR dokumen):
-     * 12pt center.
-     */
     private function contractDisplayHtml(string $text): string
     {
         return '<p style="'.ContractStyle::displayStyle().'">'
             .$this->styleContractPartyNames(e($text)).'</p>';
     }
 
-    /**
-     * Baris preamble dianggap bagian blok judul bila pendek dan berupa baris
-     * display (huruf kapital seluruhnya, atau diawali "NOMOR"). Selain itu
-     * dianggap paragraf naratif biasa.
-     */
     private function isContractDisplayLine(string $line): bool
     {
         $line = trim($line);
@@ -857,15 +780,9 @@ class DocumentController extends Controller
             return true;
         }
 
-        // Tanpa huruf kecil sama sekali → baris display (judul, pihak, DENGAN).
         return preg_match('/\p{Ll}/u', $line) !== 1;
     }
 
-    /**
-     * Render preamble: blok judul (center, baris pertama 18pt) lalu paragraf
-     * naratif (justify). Menggantikan perlakuan lama yang menjadikan seluruh
-     * preamble paragraf 12pt biasa sehingga judul kehilangan ukurannya.
-     */
     private function contractPreambleHtml(string $preamble): string
     {
         $blocks = preg_split('/(\r?\n){2,}/', trim($preamble));
@@ -906,13 +823,6 @@ class DocumentController extends Controller
         return implode("\n", $out);
     }
 
-    /**
-     * Paragraf body kontrak. Alignment (justify) & ukuran (12pt) TIDAK
-     * ditulis inline di sini: keduanya disediakan CSS kontrak
-     * (partials/contract-style.blade.php) yang hanya berlaku bila pengguna
-     * belum mengubah alignment paragraf tersebut. Dengan begitu perubahan
-     * alignment oleh user (ql-align-*) tidak tertimpa.
-     */
     private function contractPara(string $text): string
     {
         $text = trim($text);
@@ -934,16 +844,6 @@ class DocumentController extends Controller
         return count($out) ? implode("\n", $out) : '';
     }
 
-    /**
-     * Render satu daftar bernomor kontrak menjadi <ol>.
-     * Bentuk data: ['type' => '1|a|A|i|I', 'start' => n, 'items' => [...]].
-     * Setiap item berupa string (satu <li>) atau array nested satu level:
-     * ['text' => '...', 'children' => ['type' => 'a', 'items' => [...]]].
-     *
-     * Tipe numbering & indent diambil dari App\Data\ContractStyle supaya
-     * kelima template identik; kelas ql-liststyle-* menjaga tipe tetap
-     * terbaca setelah round-trip Quill (Quill membuang atribut type/start).
-     */
     private function contractListHtml(array $list, int $level = 1): string
     {
         $type  = (string) ($list['type'] ?? '1');
@@ -991,12 +891,6 @@ class DocumentController extends Controller
         return $hasItems ? $html : '';
     }
 
-    /**
-     * Render blok terstruktur body template kontrak: urutan paragraf & tabel
-     * asli dari dokumen .docx, dipertahankan pada posisi aslinya.
-     * Blok 'ol' dipakai secara selektif hanya untuk bagian yang memang
-     * seharusnya bernomor (definisi, rincian hak/kewajiban, ayat, syarat).
-     */
     private function renderBlocks(array $blocks): string
     {
         $out = [];
@@ -1023,11 +917,6 @@ class DocumentController extends Controller
         return implode("\n", $out);
     }
 
-    /**
-     * Render satu tabel kontrak menjadi HTML. Tabel data memakai border
-     * hitam 1px (seperti dokumen asli), tabel tanda tangan tanpa border.
-     * Setiap sel mempertahankan baris-baris paragrafnya (<br>).
-     */
     private function contractTableHtml(array $table): string
     {
         $bordered = $table['bordered'] ?? true;
@@ -1070,15 +959,12 @@ class DocumentController extends Controller
                 $v    = $cell['v'] ?? null;
 
                 if ($v === 'c') {
-                    // continuation dari sel merge di atas — tidak dirender
                     $col += $span;
                     continue;
                 }
 
                 while (!empty($pending[$col])) { $col++; }
 
-                // hitung rowspan: hitung baris di bawah yang masih memuat
-                // sel continuation pada kolom yang sama
                 $rowspan = 1;
                 if ($v === 'r') {
                     for ($rr = $r + 1; $rr < $totalRows; $rr++) {
@@ -1123,10 +1009,6 @@ class DocumentController extends Controller
 
         $html = '<table class="'.$tableClass.'" style="'.ContractStyle::tableStyle($bordered).'"';
 
-        // Tabel formula satu baris (mis. LAMPIRAN B Managed Service /
-        // Kontrak Payung): tandai sebagai blok atomik agar paginasi editor
-        // tidak memindahkannya bolak-balik di batas halaman, yang terlihat
-        // seperti teks berkedip di akhir dokumen.
         if (count($byRow) === 1) {
             $html .= ' data-flow-atomic="1"';
         }
@@ -1161,11 +1043,6 @@ class DocumentController extends Controller
         return $html;
     }
 
-    /**
-     * Ubah daftar poin (satu poin per baris) menjadi daftar <ol> dengan tipe
-     * numbering dari App\Data\ContractStyle. Parameter $type memakai nilai
-     * data ('1|a|A|i|I') — sama seperti contractListHtml().
-     */
     private function contractRecitals(string $text, string $type): string
     {
         $lines = preg_split('/\r?\n/', $text);
@@ -1188,7 +1065,6 @@ class DocumentController extends Controller
 
     public function update(Request $request, Document $document)
     {
-        // Mengubah isi dokumen hanya untuk admin pemilik dokumen.
         abort_unless(
             Auth::user()->hasRole('admin') && $document->user_id === Auth::id(),
             403
@@ -1200,58 +1076,35 @@ class DocumentController extends Controller
             'body_content'   => ['nullable', 'array'],
             'footer_data'    => ['required', 'array'],
             'signature_data' => ['nullable', 'array'],
-                        'status'         => ['nullable', 'in:draft,on_progress,on_review,revisi,disetujui,archived'],
-            // Niat tombol yang ditekan di editor:
-            // - 'draft'  → Simpan Draf (status tetap Draft, tidak diajukan)
-            // - 'submit' → Save biasa (draft naik ke On Progress) — default,
-            //              supaya pemanggil lama (tanpa 'intent') tidak berubah.
+            'status'         => ['nullable', 'in:draft,on_progress,on_review,revisi,disetujui,archived'],
             'intent'         => ['nullable', 'in:draft,submit'],
         ]);
 
-        // Simpan Draf: status dokumen & pelanggan dibiarkan apa adanya.
         $saveAsDraft = ($data['intent'] ?? 'submit') === 'draft';
 
-        // Pastikan judul "PASAL n" berurutan KESELURUHAN dokumen (1,2,3...)
-        // melintasi batas halaman, bukan per halaman.
         if (!empty($data['body_content']['pages']) && is_array($data['body_content']['pages'])) {
             $data['body_content']['pages'] = $this->normalizePasalNumbering($data['body_content']['pages']);
         }
 
-        // Pertahankan penanda halaman sampul (cover): payload simpanan editor
-        // hanya membawa 'pages', tanpa flag ini sampul kehilangan kunci
-        // paginasi balik setiap kali dokumen disimpan.
         if (isset($data['body_content']) && is_array($data['body_content'])) {
             $data['body_content']['coverPages'] = (int) ($document->body_content['coverPages'] ?? 0);
-            // Flag tampilan adalah properti template, bukan input yang dapat
-            // diubah browser. Pertahankan saat editor menyimpan ulang.
             $data['body_content']['contractTemplate'] = (bool) ($document->body_content['contractTemplate'] ?? false);
             $data['body_content']['templateKey'] = $document->body_content['templateKey'] ?? null;
         }
 
-        // Dokumen cover tidak boleh kehilangan footer tabelnya: kalau payload
-        // simpanan membawa footer kosong/tanpa tabel (mis. hasil konversi
-        // Quill yang gagal senyap di masa lalu), regenerasi + backfill.
         if ((int) ($document->body_content['coverPages'] ?? 0) > 0
             && !preg_match('/<table/i', (string) ($data['footer_data']['content'] ?? ''))) {
             $data['footer_data']['content'] = $this->buildCoverFooterHtml();
         }
 
-        // Status & niat simpan tidak pernah diubah lewat payload konten; status
-        // hanya berubah melalui updateStatus(), approve(), atau aturan
-        // "On Progress" di bawah.
         unset($data['status'], $data['intent']);
 
         $document->update($data);
 
-        // Begitu dokumen disimpan (tombol Save di editor), kontrak dianggap
-        // sedang dikerjakan → status naik dari Draft ke On Progress.
-        // Status yang lebih jauh (On Review/Revisi/Disetujui) tidak diturunkan.
-        // Tombol "Simpan Draf" (intent=draft) sengaja tidak menaikkan status.
         if (! $saveAsDraft && $document->status === 'draft') {
             $document->update(['status' => 'on_progress']);
         }
 
-        // Sinkronkan status kontrak di Tabel Pelanggan.
         $customer = $document->customer;
         if (! $saveAsDraft && $customer && in_array($customer->status, ['draft', 'on_progress'], true)) {
             $customer->update(['status' => 'on_progress']);
@@ -1275,16 +1128,6 @@ class DocumentController extends Controller
         $from = $document->status;
         $to = $data['status'];
 
-        // Aturan transisi status (alur kontrak pelanggan):
-        // - draft|on_progress → on_review   (Kirim untuk Review)
-        // - on_review         → revisi      (Minta revisi)
-        // - revisi            → on_review   (Kirim ulang)
-        // - revisi            → on_progress (Lanjut dikerjakan)
-        // - draft|on_progress|disetujui → archived (Arsipkan)
-        //
-        // Catatan: on_review → disetujui SENGAJA tidak ada di sini. Status itu
-        // hanya bisa dicapai lewat approve() yang mewajibkan berkas kontrak
-        // di-upload, supaya tidak ada dokumen "Disetujui" tanpa berkas final.
         $allowed = false;
 
         if ($isAdmin && $document->user_id === $user->id) {
@@ -1308,8 +1151,6 @@ class DocumentController extends Controller
 
         $document->update(['status' => $to]);
 
-        // Tabel Pelanggan selalu mengikuti status dokumen ("archived" tidak
-        // punya padanan di kontrak, jadi status kontrak dibiarkan apa adanya).
         if ($document->customer && in_array($to, Customer::STATUSES, true)) {
             $document->customer->update(['status' => $to]);
         }
@@ -1320,7 +1161,7 @@ class DocumentController extends Controller
         ]);
     }
 
-        public function destroy(Document $document)
+    public function destroy(Document $document)
     {
         // Penghapusan dokumen hanya untuk admin pemilik dokumen.
         abort_unless(
@@ -1353,17 +1194,8 @@ class DocumentController extends Controller
         ]);
     }
 
-    /**
-     * Unduh berkas PDF dokumen.
-     *
-     * Dokumen yang sudah disetujui lewat upload → berkas final dari user
-     * (nama unduhan = nama asli berkasnya). Dokumen lain (draft / on progress /
-     * on review / dokumen lama) → tetap dirender dari isi terkini seperti
-     * sebelumnya.
-     */
     public function exportPdf(Document $document)
     {
-        // Admin pemilik dokumen boleh ekspor kapan pun.
         $user = Auth::user();
         $canAccess = $user->hasRole('admin') && $document->user_id === $user->id;
 
@@ -1381,21 +1213,6 @@ class DocumentController extends Controller
             ->download('dokumen-'.$document->id.'-'.now()->format('Ymd').'.pdf');
     }
 
-    /**
-     * Setujui dokumen (tahap On Review) dengan berkas kontrak hasil upload user.
-     *
-     * Alur: popup "Setujui" di Tabel Pelanggan / Studio Editor → user memilih
-     * berkas (PDF) → berkas disimpan di disk publik → status dokumen + kontrak
-     * menjadi `disetujui`.
-     *
-     * Berkas inilah yang menggantikan isi dokumen di Tabel Pelanggan ("Unduh
-     * PDF" mengambil berkas ini). Karena itu approval ini TIDAK merender maupun
-     * menyimpan berkas S.O.F: Menu S.O.F tetap eksklusif untuk dokumen yang
-     * berkasnya dibuat sistem (lihat SofController).
-     *
-     * Berkas wajib: kalau validasi gagal, status dokumen tidak berubah sama
-     * sekali → tidak ada approval tanpa berkas.
-     */
     public function approve(Request $request, Document $document)
     {
         $user = Auth::user();
@@ -1485,19 +1302,10 @@ class DocumentController extends Controller
         return $path;
     }
 
-    /**
-     * Bangun instance PDF dari dokumen: header + (opsional blok ringkasan
-     * S.O.F) + seluruh halaman canvas + footer + tanda tangan.
-     *
-     * Dipakai bersama oleh exportPdf() dan pembuatan berkas S.O.F supaya
-     * hasil cetaknya identik. Pemanggil WAJIB sudah memverifikasi hak akses.
-     */
     private function makeDocumentPdf(Document $document, array $extraData = [])
     {
         $this->repairLegacyContractTemplateLayout($document);
         $signaturePath = $this->resolvePublicPath($document->signature_data['signatureUrl'] ?? null);
-        // Renumber di saat ekspor juga, supaya dokumen lama (tersimpan sebelum
-        // ada normalisasi) tetap dicetak dengan PASAL 1, 2, 3, ... yang urut.
         $pages = $this->normalizePasalNumbering(
             $document->body_content['pages'] ?? [$document->body_content['content'] ?? '']
         );
@@ -1506,8 +1314,6 @@ class DocumentController extends Controller
         $isContract = (bool) ($document->body_content['contractTemplate'] ?? false);
 
         if ($isContract) {
-            // Ruang untuk nomor halaman "Page | n" di margin kiri: sel paraf
-            // kiri digeser masuk 32mm agar tidak bertabrakan dengan teks kanvas.
             $headerHtml = str_replace(
                 'border:none; padding:0; text-align:left; font-size:',
                 'border:none; padding:0 0 0 32mm; text-align:left; font-size:',
@@ -1516,19 +1322,7 @@ class DocumentController extends Controller
         }
 
         $footerHtml = $this->resolveImagePathsForPdf($this->resolveFooterHtml($document));
-        // Footer ber-tabel (default Fibertrust / cover: identitas | paraf)
-        // dirender full-width, sedangkan footer teks biasa tetap di kolom
-        // kanan 50%.
         $footerHasTable = (bool) preg_match('/<table/i', $footerHtml);
-        // Footer default baru (.fibertrust-footer) diulang di SETIAP halaman
-        // via .footer-fixed. Margin-top 24px pada tabel footer itu SIFATNYA
-        // hanya buat editor: di sana baris kosong itu diisi elemen "Page | n"
-        // (CSS counter). Di PDF nomor halaman digambar callback kanvas pada
-        // koordinat absolut (ContractStyle::FOOTER_NUM_Y), jadi margin 24px
-        // tidak menambah apa pun — hanya mendorong blok footer keluar area
-        // dan membuat dompdf spawn satu halaman kosong di akhir dokumen.
-        // Karena itu di sini dilucutkan ke 0. Footer lama/kustom (tanpa
-        // marker) tetap sekali di akhir dokumen.
         $isFibertrustFooter = str_contains($footerHtml, 'fibertrust-footer');
         if ($isFibertrustFooter) {
             $footerHtml = str_replace('margin:24px 0 0;', 'margin:0;', $footerHtml);
@@ -1546,13 +1340,6 @@ class DocumentController extends Controller
         ], $extraData))->setPaper('a4', 'portrait');
 
         if (($isFibertrustFooter ?? false) || $isContract) {
-            // Nomor halaman "Page | n" tiap halaman. counter(page) CSS selalu
-            // bernilai 1 di dompdf, jadi digambar lewat callback end_document —
-            // dipanggil dompdf untuk SETIAP halaman. Dokumen berfooter default
-            // (baru): nomor di baris footer bawah (token FOOTER_NUM_X/Y) —
-            // SATU nomor per halaman (kop atas tidak ikut bernomor agar tidak
-            // ganda dengan footer). Kontrak legacy TANPA footer default:
-            // nomor tetap di baris kop atas (token PAGE_NUM_X/Y).
             $useFooterNum = (bool) ($isFibertrustFooter ?? false);
             $pageNumX = $useFooterNum ? ContractStyle::FOOTER_NUM_X : ContractStyle::PAGE_NUM_X;
             $pageNumY = $useFooterNum ? ContractStyle::FOOTER_NUM_Y : ContractStyle::PAGE_NUM_Y;
@@ -1579,10 +1366,6 @@ class DocumentController extends Controller
         return $pdf;
     }
 
-    /**
-     * Fragmen HTML ringkasan S.O.F: identitas kontrak + tabel Barang & Service.
-     * Disisipkan di bawah kop pada PDF dokumen saat dokumen disetujui.
-     */
     private function buildSofSummaryHtml(Document $document, ?Customer $customer): string
     {
         if (! $customer) {
@@ -1597,14 +1380,6 @@ class DocumentController extends Controller
         ])->render();
     }
 
-    /**
-     * Path berkas S.O.F di disk 'public':
-     * sof/pelanggan-{id}/SOF-{nomor-kontrak}-{id-dokumen}.pdf
-     *
-     * Id dokumen ikut disertakan supaya dua dokumen berbeda milik pelanggan
-     * yang sama tidak saling menimpa, sedangkan approve ulang dokumen yang
-     * sama (mis. setelah revisi) tetap menimpa berkas lamanya.
-     */
     private function buildSofPdfPath(Document $document, ?Customer $customer): string
     {
         $label = trim((string) ($customer->contract_number ?? ''));
@@ -1634,25 +1409,18 @@ class DocumentController extends Controller
             $data['header_data']['nomorSurat'] = $this->nextDocumentNumber($prefix);
         }
 
-        // Template ber-cover: kirim isi section header (ikon) & footer
-        // (pihak/paraf/stample) supaya form create mengisinya otomatis
-        // sama seperti yang akan disimpan oleh store().
         if (in_array($template, $this->coverTemplateKeys(), true)) {
             $data['header_content'] = $this->buildCoverHeaderHtml();
             $data['footer_content'] = $this->buildCoverFooterHtml();
         }
 
-        // Template kontrak (ContractTemplates) hanya membawa body_content;
-        // bangun body_html untuk pratinjau di halaman create.
         if (empty($data['body_html'])) {
             $useCenter = \App\Data\ContractTemplates::find($template) !== null;
             $data['body_html'] = $this->buildTemplateBodyHtml($data['body_content'] ?? [], $useCenter);
         }
 
-        // Pastikan judul "PASAL n" berurutan pada pratinjau template juga.
         if (!empty($data['body_html'])) {
             $data['body_html'] = $this->normalizePasalNumbering([$data['body_html']])[0];
-            // Isi placeholder yang tidak butuh data pelanggan (nomor & tanggal hari ini).
             $data['body_html'] = $this->applyTemplateReplacements(
                 $data['body_html'],
                 null,
@@ -1707,7 +1475,7 @@ class DocumentController extends Controller
 
     public function saveAsNew(Request $request)
     {
-        // Membuat salinan dokumen hanya untuk admin.
+        // Membuat salinan dokumen buat admin
         abort_unless(Auth::user()->hasRole('admin'), 403);
 
         $data = $request->validate([
@@ -1735,8 +1503,6 @@ class DocumentController extends Controller
 
     public function chooseStart(?Customer $customer = null)
     {
-        // Alur baru: tombol Lanjut di Tabel Pelanggan langsung masuk ke
-        // halaman pilih template — tanpa pilihan upload / buat baru lagi.
         if ($customer) {
             abort_unless($customer->user_id === Auth::id(), 403);
 
@@ -1754,7 +1520,7 @@ class DocumentController extends Controller
         $zip = new \ZipArchive();
 
         if ($zip->open($sanitizedPath) !== true) {
-            return $sourcePath; // gagal buka sebagai zip, coba pakai file asli aja
+            return $sourcePath; 
         }
 
         for ($i = 0; $i < $zip->numFiles; $i++) {
@@ -1787,7 +1553,7 @@ class DocumentController extends Controller
 
     public function importDocument(Request $request)
     {
-        // Impor dokumen hanya untuk admin.
+        // Impor dokumen hanya buat admin
         abort_unless(Auth::user()->hasRole('admin'), 403);
 
         $request->validate([

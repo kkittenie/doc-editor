@@ -14,20 +14,16 @@ class DashboardController extends Controller
     {
         $userId = Auth::id();
 
-        // Semua dokumen milik user (dasar penghitungan kartu ringkasan).
         $documents = Document::where('user_id', $userId)->get();
 
         $totalDocuments = $documents->count();
 
-        // Jumlah dokumen per status — mengikuti enum kontrak terbaru
-        // (draft, on_progress, on_review, revisi, disetujui, archived).
         $draftDocuments = $documents->where('status', 'draft')->count();
         $onProgressDocuments = $documents->where('status', 'on_progress')->count();
         $reviewDocuments = $documents->where('status', 'on_review')->count();
         $revisiDocuments = $documents->where('status', 'revisi')->count();
         $disetujuiDocuments = $documents->where('status', 'disetujui')->count();
 
-        // Ringkasan pelanggan/kontrak (Tabel Pelanggan di halaman Dokumen Saya).
         $totalCustomers = Customer::where('user_id', $userId)->count();
 
         // 5 dokumen terbaru
