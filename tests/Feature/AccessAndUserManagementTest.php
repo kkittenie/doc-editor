@@ -22,11 +22,6 @@ if (! function_exists('accessRolelessUser')) {
     }
 }
 
-/**
- * Guard akses: fitur non-admin harus tetap terlindungi walau role marketer
- * sudah tidak ada. Studio Editor ("/") me-redirect non-admin ke halaman
- * dokumen mereka, sedangkan Dashboard/Settings tetap 403 (middleware role).
- */
 test('user tanpa role diarahkan ke dokumen saat membuka studio editor', function () {
     $this->seed(RoleSeeder::class);
 
@@ -57,7 +52,7 @@ test('user tanpa role tidak bisa membuka settings', function () {
         ->assertForbidden();
 });
 
-/** Pendaftaran (signup) langsung mendapat role admin — hanya ada satu role. */
+
 test('pendaftaran akun baru mendapat role admin', function () {
     $this->seed(RoleSeeder::class);
 
@@ -115,7 +110,6 @@ test('admin tidak bisa menghapus akun sendiri', function () {
     expect(User::find($admin->id))->not->toBeNull();
 });
 
-/** Dokumen hanya bisa diubah/dihapus oleh admin pemiliknya. */
 test('dokumen milik admin lain tidak bisa diubah atau dihapus', function () {
     $this->seed(RoleSeeder::class);
     $owner = accessAdmin();
@@ -148,7 +142,7 @@ test('dokumen milik admin lain tidak bisa diubah atau dihapus', function () {
     expect(Document::find($doc->id))->not->toBeNull();
 });
 
-/** Pelanggan hanya bisa dihapus oleh pemiliknya. */
+
 test('pelanggan milik admin lain tidak bisa dihapus', function () {
     $this->seed(RoleSeeder::class);
     $owner = accessAdmin();

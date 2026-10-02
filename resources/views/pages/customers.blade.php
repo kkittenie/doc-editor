@@ -51,6 +51,51 @@
             },
         };
     }
+
+    function sortMenuDropdown() {
+        return {
+            open: false,
+            top: 0,
+            left: 0,
+
+            toggle() {
+                if (this.open) {
+                    this.open = false;
+                    return;
+                }
+
+                this.open = true;
+                this.$nextTick(() => this.position());
+            },
+
+            close() {
+                this.open = false;
+            },
+
+            position() {
+                const button = this.$refs.button;
+                const menu = this.$refs.content;
+                if (!button || !menu) return;
+
+                const gap = 8;
+                const menuWidth = 224; // cocok dengan w-56
+                const rect = button.getBoundingClientRect();
+                const menuHeight = menu.offsetHeight;
+
+                // Geser mengikuti lebar viewport, rata kanan ke tombol.
+                this.left = Math.max(
+                    gap,
+                    Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - gap)
+                );
+
+                let top = rect.bottom + gap;
+                if (menuHeight && top + menuHeight > window.innerHeight - gap) {
+                    top = Math.max(gap, rect.top - gap - menuHeight);
+                }
+                this.top = top;
+            },
+        };
+    }
 </script>
 
 @php
@@ -102,6 +147,17 @@ $summaryCards = [
 <path d="m20 6-11 11-5-5" />',
 'iconClass' => 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400',
 ],
+];
+$sortOptions = [
+    'id'              => 'Pelanggan ID',
+    'customer_number' => 'Nomer Pelanggan',
+    'name'            => 'Nama Pelanggan',
+    'contract_number' => 'Nomor Kontrak',
+    'contract_name'   => 'Nama Kontrak',
+    'active_date'     => 'Tanggal Aktif',
+    'active_months'   => 'Masa Aktif',
+    'finish_date'     => 'Tanggal Selesai',
+    'status'          => 'Status',
 ];
 @endphp
 
@@ -242,8 +298,29 @@ $summaryCards = [
                     Tanggal Aktif <span class="text-red-500">*</span>
                 </label>
 
-                <input id="customer-active-date" type="date" required x-model="activeDate"
-                    class="h-11 w-full rounded-lg border border-parchment-300 bg-white px-3 text-sm text-ink-900 outline-none transition focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 dark:border-slate-warm-700 dark:bg-slate-warm-900 dark:text-parchment-100 dark:focus:border-bronze-500">
+                {{-- Wrapper penanda agar override tema kalender di app.css hanya
+                     berlaku untuk form pelanggan (class `custom-datepicker`
+                     mengatur posisi popup `static` yang sudah ada). --}}
+                <div class="customer-datepicker custom-datepicker relative">
+                    <input id="customer-active-date" type="text" required x-model="activeDate"
+                        value="{{ old('active_date', now()->toDateString()) }}" placeholder="YYYY-MM-DD"
+                        autocomplete="off"
+                        class="h-11 w-full rounded-lg border border-parchment-300 bg-white px-3 pr-11 text-sm text-ink-900 outline-none transition placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 dark:border-slate-warm-700 dark:bg-slate-warm-900 dark:text-parchment-100 dark:focus:border-bronze-500">
+
+                    {{-- Flatpickr dibuka lewat tombol kalender (tema di app.css). --}}
+                    <button type="button" id="customer-active-date-picker" aria-label="Pilih tanggal"
+                        title="Pilih tanggal"
+                        class="absolute right-1 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-warm-500 transition hover:bg-parchment-100 hover:text-ink-900 dark:text-parchment-400 dark:hover:bg-slate-warm-800 dark:hover:text-parchment-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            viewBox="0 0 24 24">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </button>
+                </div>
 
                 <input type="hidden" name="active_date" :value="activeDate">
 
@@ -312,15 +389,49 @@ $summaryCards = [
                 <h2 class="text-sm font-semibold text-ink-900 dark:text-parchment-50">Dokumen Kontrak</h2>
             </div>
 
-            <div class="relative">
-                <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-warm-400" width="15"
-                    height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="7" />
-                    <path d="m20 20-4-4" />
-                </svg>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div class="relative">
+                    <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-warm-400" width="15"
+                        height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="m20 20-4-4" />
+                    </svg>
 
-                <input id="customers-search" type="search" placeholder="Cari pelanggan / kontrak..."
-                    class="h-10 w-full rounded-lg border border-parchment-300 bg-white pl-9 pr-3 text-sm text-ink-900 outline-none transition placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 dark:border-slate-warm-700 dark:bg-slate-warm-900 dark:text-parchment-100 sm:w-64">
+                    <input id="customers-search" type="search" placeholder="Cari pelanggan / kontrak..."
+                        class="h-10 w-full rounded-lg border border-parchment-300 bg-white pl-9 pr-3 text-sm text-ink-900 outline-none transition placeholder:text-slate-warm-400 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 dark:border-slate-warm-700 dark:bg-slate-warm-900 dark:text-parchment-100 sm:w-64">
+                </div>
+
+                {{-- Dropdown pengurutan (menggantikan klik sort di header tabel). --}}
+                <div x-data="sortMenuDropdown()" @click.outside="close()" @keydown.escape.window="close()"
+                    @resize.window="close()" @scroll.window="close()">
+                    <button type="button" x-ref="button" @click="toggle()" :aria-expanded="open ? 'true' : 'false'"
+                        class="inline-flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-parchment-300 bg-white px-3 text-sm font-medium text-ink-900 transition hover:border-ink-900 focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 dark:border-slate-warm-700 dark:bg-slate-warm-900 dark:text-parchment-100 dark:hover:border-bronze-500 sm:w-auto">
+                        <span>Urutkan</span>
+
+                        <span id="customers-sort-current"
+                            class="max-w-[9rem] truncate text-xs font-normal text-slate-warm-500 dark:text-parchment-400"></span>
+
+                        <svg id="customers-sort-arrows" class="shrink-0 text-slate-warm-400 dark:text-parchment-500"
+                            width="10" height="14" viewBox="0 0 10 14" fill="currentColor" aria-hidden="true">
+                            <path data-sort-dir="asc" d="M5 0.5 9.5 6h-9z" />
+                            <path data-sort-dir="desc" d="M5 13.5 0.5 8h9z" />
+                        </svg>
+                    </button>
+
+                    <div id="customers-sort-menu" x-ref="content" x-show="open" x-cloak
+                        :style="`top: ${top}px; left: ${left}px;`"
+                        class="fixed z-50 max-h-[70vh] w-56 overflow-y-auto rounded-xl border border-parchment-300 bg-white p-1.5 shadow-theme-lg dark:border-slate-warm-800 dark:bg-slate-warm-900">
+                        @foreach ($sortOptions as $field => $label)
+                        <button type="button" data-sort="{{ $field }}" @click="close()"
+                            class="flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-warm-700 transition hover:bg-parchment-100 dark:text-parchment-300 dark:hover:bg-slate-warm-800">
+                            <span>{{ $label }}</span>
+
+                            <span data-sort-arrow
+                                class="hidden text-[10px] leading-none text-ink-900 dark:text-bronze-400"></span>
+                        </button>
+                        @endforeach
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -384,6 +495,25 @@ $summaryCards = [
 
         const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+        const activeDateInput = document.getElementById('customer-active-date');
+        const activeDateBtn = document.getElementById('customer-active-date-picker');
+
+        if (activeDateInput && activeDateBtn && window.flatpickr) {
+            const activeDatePicker = window.flatpickr(activeDateInput, {
+                dateFormat: 'Y-m-d',
+                allowInput: true,
+                monthSelectorType: 'static',
+                static: true,
+                defaultDate: activeDateInput.value || null,
+                onChange: () => activeDateInput.dispatchEvent(new Event('input', { bubbles: true })),
+            });
+
+            activeDateBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                activeDatePicker.toggle();
+            });
+        }
+
         const table = new DataTable('#customers-table', {
             processing: true,
             serverSide: true,
@@ -393,6 +523,10 @@ $summaryCards = [
                 data: (d) => { d.status = statusFilter; },
             },
             order: [[0, 'desc']],
+            ordering: {
+                handler: false,
+                indicators: false,
+            },
             pageLength: 10,
             lengthMenu: [10, 25, 50],
             layout: {
@@ -425,6 +559,60 @@ $summaryCards = [
                 { data: 'action', name: 'action', orderable: false, searchable: false },
             ],
         });
+
+        const sortColumns = {
+            id: 0,
+            customer_number: 1,
+            name: 2,
+            contract_number: 3,
+            contract_name: 4,
+            active_date: 5,
+            active_months: 6,
+            finish_date: 7,
+            status: 8,
+        };
+        const sortLabels = @json($sortOptions);
+        const sortState = { field: 'id', dir: 'desc' }; 
+
+        const sortMenu = document.getElementById('customers-sort-menu');
+        const sortCurrent = document.getElementById('customers-sort-current');
+        const sortArrows = document.querySelectorAll('#customers-sort-arrows [data-sort-dir]');
+        const sortActiveCls = ['bg-parchment-100', 'text-ink-900', 'dark:bg-slate-warm-800', 'dark:text-parchment-50'];
+
+        const paintSortMenu = () => {
+            sortMenu.querySelectorAll('[data-sort]').forEach((btn) => {
+                const active = btn.dataset.sort === sortState.field;
+                sortActiveCls.forEach((cls) => btn.classList.toggle(cls, active));
+
+                const arrow = btn.querySelector('[data-sort-arrow]');
+                if (arrow) {
+                    arrow.classList.toggle('hidden', !active);
+                    arrow.textContent = sortState.dir === 'asc' ? '▲' : '▼';
+                }
+            });
+
+            sortCurrent.textContent = sortLabels[sortState.field] ?? '';
+
+            sortArrows.forEach((path) => {
+                path.style.opacity = path.dataset.sortDir === sortState.dir ? '1' : '0.3';
+            });
+        };
+
+        sortMenu.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-sort]');
+            if (!btn) return;
+
+            const field = btn.dataset.sort;
+            if (!(field in sortColumns)) return;
+
+            sortState.dir = (sortState.field === field && sortState.dir === 'asc') ? 'desc' : 'asc';
+            sortState.field = field;
+
+            table.order([sortColumns[field], sortState.dir]).draw();
+            paintSortMenu();
+        });
+
+        paintSortMenu();
 
         table.on('xhr.dt', (e, settings, json) => {
             if (!json || !json.counts) return;
