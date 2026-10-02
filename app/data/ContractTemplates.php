@@ -828,6 +828,19 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                             'blocks' => [
                                 [
                                     'table' => [
+                                        // Bobot kolom relatif, disalin dari <colgroup>
+                                        // PDF sumber (6/6/2/16/3/64). Dinormalisasi ke
+                                        // persen saat render — total tidak wajib 100.
+                                        'cols' => [6, 6, 2, 16, 3, 64],
+                                        // Tabel KOMUNIKASI atomik: 14 baris tanpa
+                                        // rowspan (lihat kemitraan.html: <thead> 13
+                                        // baris + <tbody> 1 baris). Belah per-baris
+                                        // memindahkan ekor tabel sebagai continuation
+                                        // yang mendarat SEBELUM heading PASAL 17 di
+                                        // halaman tujuan (inversi). Pindah utuh
+                                        // bersama heading via keep-with-next grup.
+                                        'atomic' => true,
+
                                         'rows' => [
                                             [
                                                 [
@@ -835,7 +848,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                                                         '1.',
                                                     ],
                                                     's' => 1,
-                                                    'v' => 'r',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [
@@ -849,7 +862,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [
@@ -870,7 +883,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
@@ -908,7 +921,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
@@ -946,12 +959,12 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'r',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
@@ -984,12 +997,12 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
@@ -1022,12 +1035,12 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
@@ -1060,14 +1073,14 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [
                                                         'b.',
                                                     ],
                                                     's' => 1,
-                                                    'v' => 'r',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [
@@ -1081,12 +1094,12 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
@@ -1119,12 +1132,12 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
@@ -1157,12 +1170,12 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
@@ -1195,12 +1208,12 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
@@ -1233,12 +1246,12 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
                                                     's' => 1,
-                                                    'v' => 'c',
+                                                    'v' => null,
                                                 ],
                                                 [
                                                     'c' => [],
@@ -1360,6 +1373,8 @@ PIHAK KEDUA
                     'tutupBlocks' => [
                         [
                             'table' => [
+                                // Paraf/tanda tangan: label di kiri, tanda tangan di kanan.
+                                'cols' => [55, 44],
                                 'rows' => [
                                     [
                                         [
@@ -1402,6 +1417,8 @@ NOMOR: [Nomor Perjanjian]',
                                 ],
                                 [
                                     'table' => [
+                                        // Deskripsi layanan: label kiri vs isi kanan.
+                                        'cols' => [45, 54],
                                         'rows' => [
                                             [
                                                 [
@@ -1645,6 +1662,8 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                                 ],
                                 [
                                     'table' => [
+                                        // Kegiatan vs Tolak Ukur Layanan (hampir 50:50).
+                                        'cols' => [50, 49],
                                         'rows' => [
                                             [
                                                 [
@@ -1704,6 +1723,11 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                                 ],
                                 [
                                     'table' => [
+                                        // Matriks eskalasi: No / Fault time / Level / PoC.
+                                        'cols' => [7, 23, 20, 49],
+                                        // Baris 1-3 di-merge (rowspan 3); belah per-baris
+                                        // akan meninggakan sel merge di halaman asal.
+                                        'atomic' => true,
                                         'rows' => [
                                             [
                                                 [
@@ -1990,6 +2014,8 @@ NOMOR: [Nomor Perjanjian]',
                                 ],
                                 [
                                     'table' => [
+                                        // Perangkat: No / Deskripsi / Jumlah / Keterangan.
+                                        'cols' => [9, 46, 15, 28],
                                         'rows' => [
                                             [
                                                 [

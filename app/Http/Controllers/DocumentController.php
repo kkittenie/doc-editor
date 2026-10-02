@@ -937,6 +937,29 @@ class DocumentController extends Controller
         $colCount = max(1, $colCount);
         $colWidth = 100 / $colCount;
 
+        // Bobot kolom opsional per tabel ('cols'), disalin dari <colgroup>
+        // dokumen sumber. Nilainya RELATIF — author bebas menulis [9,46,15,28]
+        // tanpa perlu	totalnya 100; dinormalisasi ke persen di sini.
+        //
+        // Keamanan: hanya dipakai bila (a) bentuknya array/list dan (b) jumlah
+        // itemnya PERSIS sama dengan jumlah kolom tabel. Kalau tidak, diam-diam
+        // jatuh ke $colWidth seragam. Tanpa guard ini, satu 'cols' yang salah
+        // jumlah akan membuat seluruh baris melebar/mengecil dan merusak layout.
+        $colWidths = null;
+        if (isset($table['cols']) && is_array($table['cols']) && count($table['cols']) === $colCount) {
+            $weights = [];
+            foreach ($table['cols'] as $w) {
+                $w = max(0, (float) $w);
+                $weights[] = $w;
+            }
+            $weightSum = array_sum($weights);
+            if ($weightSum > 0) {
+                foreach ($weights as $i => $w) {
+                    $colWidths[$i] = 100 * $w / $weightSum;
+                }
+            }
+        }
+
         foreach ($rows as $ri => $row) {
             $w = 0;
             foreach ($row as $cell) {
@@ -987,6 +1010,7 @@ class DocumentController extends Controller
                 $rowOut[] = [
                     'cell'    => $cell,
                     'span'    => $span,
+                    'col'     => $col,
                     'rowspan' => ($rowspan > 1) ? $rowspan : null,
                 ];
 
@@ -1009,7 +1033,11 @@ class DocumentController extends Controller
 
         $html = '<table class="'.$tableClass.'" style="'.ContractStyle::tableStyle($bordered).'"';
 
-        if (count($byRow) === 1) {
+        // Tabel bertanda 'atomic' di data template tidak boleh dibelah per-baris
+        // oleh paginasi editor. Ditandai manual per tabel (bukan aturan umum
+        // "semua tabel ber-rowspan"), supaya hanya tabel yang benar-benar butuh
+        // ikut berubah — lihat editor.js __domSplitTable().
+        if (count($byRow) === 1 || !empty($table['atomic'])) {
             $html .= ' data-flow-atomic="1"';
         }
 
@@ -1030,7 +1058,22 @@ class DocumentController extends Controller
 
                 $isHeadCell = $head && $r === 0;
                 $tag   = $isHeadCell ? 'th' : 'td';
-                $style = ContractStyle::cellStyle($isHeadCell, $span * $colWidth, $bordered);
+
+                // Lebar sel = JUMLAH bobot kolom yang di-span, bukan
+                // span x lebar-seragam. Tanpa ini, sel ber-colspan (mis.
+                // kolom teks utama 64% di tabel Komunikasi) tetap salah
+                // walau tiap kolom individunya sudah benar.
+                $widthPercent = $span * $colWidth;
+                if ($colWidths !== null) {
+                    $startCol = (int) ($pc['col'] ?? 0);
+                    $w = 0.0;
+                    for ($ci = $startCol; $ci < $startCol + $span; $ci++) {
+                        $w += $colWidths[$ci] ?? 0;
+                    }
+                    $widthPercent = $w;
+                }
+
+                $style = ContractStyle::cellStyle($isHeadCell, $widthPercent, $bordered);
 
                 $html .= '<'.$tag.$spanAttr.' style="'.$style.'">'.$content.'</'.$tag.'>';
             }

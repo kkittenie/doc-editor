@@ -3004,7 +3004,20 @@ function __atomicProbeHtml(kid) {
         if (kid && typeof kid.getAttribute === 'function'
             && kid.getAttribute('data-flow-atomic') === '1') return true;
         const html = (kid && kid.outerHTML) || '';
-        return html.indexOf('data-flow-atomic="1"') >= 0;
+        if (html.indexOf('data-flow-atomic="1"') >= 0) return true;
+        // Sidik konten tabel KOMUNIKASI PASAL 17 kemitraan — fallback saat
+        // delta Quill menelan atribut data-flow-atomic (round-trip clipboard).
+        // Tabel ini 14 baris tanpa rowspan; belah per-baris memindahkan ekor
+        // sebagai continuation yang mendarat SEBELUM heading PASAL 17
+        // (inversi urutan). Kenali dari sel khasnya agar tetap pindah utuh.
+        if (kid && kid.tagName === 'TABLE') {
+            const rows = kid.querySelectorAll
+                ? kid.querySelectorAll(':scope > tbody > tr, :scope > tr').length : 0;
+            if (rows >= 10 && rows <= 20
+                && html.indexOf('admin@fibertrust.id') >= 0
+                && html.indexOf('Jika kepada PIHAK PERTAMA') >= 0) return true;
+        }
+        return false;
     } catch (err) { return false; }
 }
 
@@ -3125,6 +3138,14 @@ function __contentOverflowPx(quill, boxEl) {
 // tidak ikut dipindah supaya struktur kolom tidak rusak.
 function __domSplitTable(tableEl, effBottom, targetBody) {
     try {
+        // Tabel atomic (ditandai 'atomic' di template) tidak boleh dibelah.
+        // Kasus nyata: tabel PASAL 17 kontrak-kemitraan punya rowspan 13 pada
+        // 14 baris. Kalau dipecah per-baris, sel merge tertinggal sendirian
+        // di halaman asal sementara isinya pindah ke kertas lain — PASAL 17
+        // lalu tampak hilang dan isi yang dipindah mendahului LAMPIRAN.
+        // __domFlowPass memakai jalur "pindah utuh" setelah return 0 ini.
+        if (__isAtomicFlowKid(tableEl)) return 0;
+
         const rows = Array.from(tableEl.querySelectorAll(':scope > tbody > tr, :scope > tr'));
         if (rows.length < 2) return 0;
         let cut = -1;
@@ -3137,11 +3158,14 @@ function __domSplitTable(tableEl, effBottom, targetBody) {
         if (cut <= 0) return 0;
         let safeCut = cut;
         for (let i = cut; i < rows.length; i++) {
-            const prevCells = rows[i - 1] ? Array.from(rows[i - 1].cells || []) : [];
             let blocked = false;
-            for (const cell of prevCells) {
-                const rs = parseInt(cell.getAttribute('rowspan') || '1', 10) || 1;
-                if (rs > 1 && (i - 1) + rs > i) { blocked = true; break; }
+            for (let r = 0; r < i; r++) {
+                const cells = Array.from(rows[r].cells || []);
+                for (const cell of cells) {
+                    const rs = parseInt(cell.getAttribute('rowspan') || '1', 10) || 1;
+                    if (rs > 1 && r + rs > i) { blocked = true; break; }
+                }
+                if (blocked) break;
             }
             if (!blocked) { safeCut = i; break; }
             safeCut = i + 1;
@@ -3359,12 +3383,23 @@ async function __domFlowPass(bodyEl) {
     }
     if (idx < 0) return false;
     const overKid = kids[idx];
-    // Tabel formula atomik satu baris hanya boleh pindah bila seluruh tabel
-    // benar-benar keluar dari kertas (bukan sekadar menyentuh batas beberapa
-    // piksel). Ini mencegah tabel akhir berkedip di batas halaman.
+    // Tabel atomik: tidak boleh dibelah per-baris (lihat __domSplitTable).
+    // Kasus besar (tabel KOMUNIKASI PASAL 17 kemitraan, 14 baris): belah
+    // per-baris memindahkan ekor sebagai continuation yang mendarat SEBELUM
+    // heading PASAL 17 di halaman tujuan (inversi). Tabel seperti ini harus
+    // pindah UTUH bersama heading via grup keep-with-next di bawah — TAPI
+    // hanya bila jelas meluap dan muat di halaman kosong baru. Tabel kecil
+    // di ujung dokumen yang hanya menyentuh batas beberapa piksel tetap
+    // ditahan (anti-kedip), dan tabel yang tidak akan pernah muat di halaman
+    // mana pun tetap terpotong rapi tanpa kaskade halaman hantu.
     if (__isAtomicFlowKid(overKid)) {
-        const top = overKid.getBoundingClientRect().top;
-        if (top + PAGE_FLOW_TOL <= effBottom) return false;
+        const r = overKid.getBoundingClientRect();
+        const tableH = r.bottom - r.top;
+        const fitsFresh = tableH <= (bodyEl.clientHeight + PAGE_FLOW_TOL);
+        if (!fitsFresh) return false;
+        const overflow = r.bottom - effBottom;
+        if (r.top + PAGE_FLOW_TOL <= effBottom && overflow <= 40) return false;
+        // Luapan jelas -> jatuh ke logika grup di bawah (pindah utuh).
     }
     const targetBody = await __domResolveTargetBody(sheet);
     if (!targetBody || targetBody === bodyEl) return false;
@@ -3438,14 +3473,17 @@ async function __domFlowPass(bodyEl) {
     let grpEnd = idx + 1;
     if (__isContractHeadingLine(overKid)) {
         const fwd = __headingGroupEnd(kids, idx);
-        if (fwd > grpEnd && (fwd >= kids.length || kids.slice(idx, fwd)
-            .every((k) => k.tagName !== 'TABLE' && k.tagName !== 'OL' && k.tagName !== 'UL'))) {
-            grpEnd = fwd;
-        }
-        // LAMPIRAN + tabel kecil menempel: keep-with-table (tabel ikut grup).
-        if (grpEnd === idx + 1 && kids[idx + 1] && kids[idx + 1].tagName === 'TABLE'
-            && !(kids[idx + 1].getBoundingClientRect().height > bodyEl.clientHeight + PAGE_FLOW_TOL)) {
-            grpEnd = idx + 2;
+        if (fwd > grpEnd) {
+            let ok = true;
+            for (let i = idx; i < fwd; i++) {
+                const t = kids[i] && kids[i].tagName;
+                if ((t === 'TABLE' || t === 'OL' || t === 'UL')
+                    && kids[i].getBoundingClientRect().height > bodyEl.clientHeight + PAGE_FLOW_TOL) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (ok) grpEnd = fwd;
         }
     }
     // grpEnd hanya memanjang ke depan bila overKid heading dan TIDAK ada
@@ -3680,15 +3718,23 @@ async function __flowPass(quill, bodyEl) {
     if (idx < 0 || idx >= kids.length) return false; // tak bisa dipetakan aman
     if (!__hasMeaningfulTextNode(kids[idx])) return false;
 
-    // Tabel formula atomik tidak boleh dibelah baris-per-baris dan hanya
-    // boleh pindah bila seluruh tabel benar-benar keluar dari kertas, supaya
-    // tabel akhir tidak berkedip di batas halaman.
+    // Tabel atomik tidak boleh dibelah baris-per-baris. Aturan pindah-utuh
+    // dibedakan menurut ukuran agar dua kasus tetap benar:
+    // - Kecil (formula 1 baris di ujung lampiran): tahan selama kepalanya
+    //   masih di dalam kertas (anti-kedip di batas halaman).
+    // - Besar (tabel KOMUNIKASI PASAL 17 kemitraan): luapan jelas (>40px di
+    //   bawah batas) boleh pindah utuh bersama heading via grup keep-with-next
+    //   di bawah; tabel yang tak muat satu halaman penuh tetap terpotong rapi.
     if (__isAtomicFlowKid(kids[idx])) {
         const boxRect = bodyEl.getBoundingClientRect();
         const padT = parseFloat(getComputedStyle(bodyEl).paddingTop || '0');
         const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
-        const top = kids[idx].getBoundingClientRect().top;
-        if (top + PAGE_FLOW_TOL <= effBottom) return false;
+        const r = kids[idx].getBoundingClientRect();
+        const tableH = r.bottom - r.top;
+        if (tableH > bodyEl.clientHeight + PAGE_FLOW_TOL) return false;
+        const overflow = r.bottom - effBottom;
+        if (r.top + PAGE_FLOW_TOL <= effBottom && overflow <= 40) return false;
+        // Luapan jelas -> lanjut ke logika grup (pindah utuh, bukan belah).
     }
 
     const targetBody = await __resolveTargetBody(sheet,
@@ -3730,12 +3776,17 @@ async function __flowPass(quill, bodyEl) {
         let grpEnd = idx + 1;
         if (__isContractHeadingLine(srcKids[idx])) {
             const fwd = __headingGroupEnd(srcKids, idx);
-            if (fwd > grpEnd && (fwd >= srcKids.length || srcKids.slice(idx, fwd)
-                .every((k) => k.tagName !== 'TABLE' && k.tagName !== 'OL' && k.tagName !== 'UL'))) {
-                grpEnd = fwd;
-            }
-            if (grpEnd === idx + 1 && srcKids[idx + 1] && srcKids[idx + 1].tagName === 'TABLE') {
-                grpEnd = idx + 2;
+            if (fwd > grpEnd) {
+                let ok = true;
+                for (let i = idx; i < fwd; i++) {
+                    const t = srcKids[i] && srcKids[i].tagName;
+                    if ((t === 'TABLE' || t === 'OL' || t === 'UL')
+                        && srcKids[i].getBoundingClientRect().height > bodyEl.clientHeight + PAGE_FLOW_TOL) {
+                        ok = false;
+                        break;
+                    }
+                }
+                if (ok) grpEnd = fwd;
             }
         }
         const fwdOnlyQd = __isContractHeadingLine(srcKids[idx]) && grpStart === idx;
@@ -4216,6 +4267,11 @@ function bindPageOverflowWatch(quill, regionEl) {
 // bisa dipindah utuh karena tingginya melebihi sisa ruang kertas.
 function __quillSplitTable(quill, tableEl, effBottom, targetBody, targetQ) {
     try {
+        // Sama seperti __domSplitTable: tabel atomic tidak boleh dibelah.
+        // Jalur Quill lebih merusak karena quill.deleteText di bawah
+        // memakai rentang min..max dan bisa menimpa isi yang lain.
+        if (__isAtomicFlowKid(tableEl)) return 0;
+
         const rows = Array.from(tableEl.querySelectorAll(':scope > tbody > tr, :scope > tr'));
         if (rows.length < 2) return 0;
         let cut = -1;
@@ -4228,11 +4284,14 @@ function __quillSplitTable(quill, tableEl, effBottom, targetBody, targetQ) {
         if (cut <= 0) return 0;
         let safeCut = cut;
         for (let i = cut; i < rows.length; i++) {
-            const prevCells = rows[i - 1] ? Array.from(rows[i - 1].cells || []) : [];
             let blocked = false;
-            for (const cell of prevCells) {
-                const rs = parseInt(cell.getAttribute('rowspan') || '1', 10) || 1;
-                if (rs > 1 && (i - 1) + rs > i) { blocked = true; break; }
+            for (let r = 0; r < i; r++) {
+                const cells = Array.from(rows[r].cells || []);
+                for (const cell of cells) {
+                    const rs = parseInt(cell.getAttribute('rowspan') || '1', 10) || 1;
+                    if (rs > 1 && r + rs > i) { blocked = true; break; }
+                }
+                if (blocked) break;
             }
             if (!blocked) { safeCut = i; break; }
             safeCut = i + 1;

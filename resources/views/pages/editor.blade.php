@@ -1410,7 +1410,7 @@
         margin: 0.5rem 0;
     }
 
-    .ql-editor table[data-class*="contract-table"] {
+    .ql-editor table.contract-table {
         table-layout: fixed;
         width: 100% !important;
     }
@@ -1428,13 +1428,13 @@
         text-align: center;
     }
 
-    .ql-editor table[data-class*="contract-table-bordered"] td,
-    .ql-editor table[data-class*="contract-table-bordered"] th {
+    .ql-editor table.contract-table-bordered td,
+    .ql-editor table.contract-table-bordered th {
         border: 1px solid #374151;
     }
 
-    .ql-editor table[data-class*="contract-table-unstyled"] td,
-    .ql-editor table[data-class*="contract-table-unstyled"] th {
+    .ql-editor table.contract-table-unstyled td,
+    .ql-editor table.contract-table-unstyled th {
         border: none;
         background: transparent;
     }

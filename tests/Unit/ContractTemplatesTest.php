@@ -331,6 +331,31 @@ test('tabel formula satu baris ditandai atomik agar tidak berkedip di batas hala
         expect($html)->toContain('data-flow-atomic="1"');
     }
 });
+
+test('tabel komunikasi kemitraan ditandai atomik agar tidak terbelah sebelum heading', function () {
+    // Regresi inversi PASAL 17: tabel 14 baris tanpa rowspan dibelah per-baris
+    // sehingga ekornya mendarat SEBELUM heading di halaman tujuan.
+    $tpl = ContractTemplates::find('kontrak-kemitraan');
+    $komunikasi = null;
+    foreach ($tpl['body_content']['isi'] as $pasal) {
+        if (str_contains($pasal['judul'], 'KOMUNIKASI')) { $komunikasi = $pasal; }
+    }
+    expect($komunikasi)->not->toBeNull();
+    $tables = array_values(array_filter($komunikasi['blocks'], fn ($b) => isset($b['table'])));
+    expect(count($tables))->toBe(1);
+    expect($tables[0]['table']['atomic'] ?? false)->toBeTrue();
+
+    $html = contractBuildBodyHtml($tpl, true);
+    $tblPos = strpos($html, 'data-flow-atomic="1"');
+    $headPos = strpos($html, 'KOMUNIKASI/PEMBERITAHUAN');
+    $tailPos = strpos($html, 'adidarmawanspd@gmail.com');
+    expect($tblPos)->toBeInt();
+    expect($headPos)->toBeInt();
+    expect($tailPos)->toBeInt();
+    // Tabel utuh (kepala + ekor) muncul setelah heading, tidak terbelah.
+    expect($tblPos)->toBeGreaterThan($headPos);
+    expect($tailPos)->toBeGreaterThan($tblPos);
+});
 test('render numbering selektif: blok yang memang list me-render menjadi <ol>', function () use ($keys) {
     // kemitraan: definisi + hak/kewajiban secara selektif jadi daftar bernomor
     $tpl  = ContractTemplates::find('kontrak-kemitraan');
