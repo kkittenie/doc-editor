@@ -1,30 +1,8 @@
 ﻿<header
-    class="sticky top-0 flex w-full bg-parchment-50/90 border-parchment-200 backdrop-blur-md z-9999 border-b dark:border-slate-warm-800 dark:bg-slate-warm-900/90"
-    x-data="{
-        isApplicationMenuOpen: false,
-        docTitle: 'Surat Keputusan Direksi No. 042/SK-DIR/VIII/2026',
-        isEditingTitle: false,
-        savedTime: 'Tersimpan (Baru Saja)',
-        toggleApplicationMenu() {
-            this.isApplicationMenuOpen = !this.isApplicationMenuOpen;
-        }
-    }">
+    class="sticky top-0 flex w-full bg-parchment-50/90 border-parchment-200 backdrop-blur-md z-9999 border-b dark:border-slate-warm-800 dark:bg-slate-warm-900/90">
     <div class="flex flex-col items-center justify-between grow xl:flex-row xl:px-6">
         <div
             class="flex items-center justify-start w-full gap-3 px-4 py-3 border-b border-parchment-200 dark:border-slate-warm-800 xl:justify-normal xl:border-b-0 xl:px-0">
-
-            {{-- Desktop Sidebar Toggle Button —
-                 dinonaktifkan sementara; posisinya kini ditempati logo perusahaan.
-                 Untuk mengaktifkan kembali, hapus pembungkus komentar Blade ini.
-            <button
-                class="hidden xl:flex items-center justify-center w-10 h-10 text-slate-warm-500 border border-parchment-300 rounded-lg dark:border-slate-warm-700 dark:text-parchment-400 hover:bg-parchment-100 transition-colors"
-                :class="{ 'bg-parchment-200 dark:bg-slate-warm-800': !$store.sidebar.isExpanded }"
-                @click="$store.sidebar.toggleExpanded()" aria-label="Toggle Sidebar">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 6H20M4 12H14M4 18H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                </svg>
-            </button>
-            --}}
 
             <!-- Mobile Sidebar Toggle Button -->
             <button
@@ -41,44 +19,6 @@
                 <img src="{{ asset('images/aksesdigital-mark.webp') }}" alt="Akses Digital"
                     class="h-9 w-auto">
             </a>
-
-            {{-- Blok judul dokumen nonaktif (fitur mendatang) — disimpan sebagai
-                komentar Blade agar tidak pernah bocor ke HTML.
-            <div class="hidden sm:flex items-center gap-3 ml-2 lg:ml-4 grow max-w-xl">
-                <div
-                    class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-parchment-300 bg-white shadow-theme-xs dark:bg-slate-warm-800 dark:border-slate-warm-700 grow">
-                    <svg class="text-bronze-600 dark:text-bronze-400 shrink-0" width="16" height="16"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                        <polyline points="14 2 14 8 20 8" />
-                    </svg>
-                    <input type="text" x-model="docTitle"
-                        class="text-xs font-semibold text-ink-900 bg-transparent border-none focus:outline-none dark:text-parchment-100 truncate grow"
-                        placeholder="Judul Dokumen..." />
-                    <span class="text-[10px] font-mono text-slate-warm-400 shrink-0 hidden md:inline"
-                        x-text="savedTime"></span>
-                </div>
-            </div>
-            --}}
-
-            {{-- Pencarian cepat nonaktif (fitur mendatang).
-            <div class="hidden xl:block ml-auto">
-                <form @submit.prevent>
-                    <div class="relative">
-                        <span
-                            class="absolute -translate-y-1/2 pointer-events-none left-3.5 top-1/2 text-slate-warm-400">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <circle cx="11" cy="11" r="8" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                            </svg>
-                        </span>
-                        <input type="text" placeholder="Cari arsip & template..."
-                            class="h-9 w-48 rounded-lg border border-parchment-300 bg-white py-1.5 pl-10 pr-8 text-xs text-ink-900 shadow-theme-xs focus:border-bronze-500 focus:w-64 transition-all dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-100 dark:focus:border-bronze-400" />
-                    </div>
-                </form>
-            </div>
-            --}}
         </div>
 
         <!-- Right Side Header Actions -->

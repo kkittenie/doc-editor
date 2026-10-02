@@ -8,49 +8,31 @@ use Illuminate\View\Component;
 
 class Modal extends Component
 {
-    // /**
-    //  * Create a new component instance.
-    //  */
-    // public function __construct()
-    // {
-    //     //
-    // }
+    public $isOpen;
+    public $showCloseButton;
+    public $isFullscreen;
+    public $modalId;
 
-    // /**
-    //  * Get the view / contents that represent the component.
-    //  */
-    // public function render(): View|Closure|string
-    // {
-    //     return view('components.ui.modal');
-    // }
+    /**
+     * Create a new component instance.
+     */
+    public function __construct(
+        $isOpen = false,
+        $showCloseButton = true,
+        $isFullscreen = false,
+        $modalId = null
+    ) {
+        $this->isOpen = $isOpen;
+        $this->showCloseButton = $showCloseButton;
+        $this->isFullscreen = $isFullscreen;
+        $this->modalId = $modalId ?? 'modal-' . uniqid();
+    }
 
-
-
-        public $isOpen;
-        public $showCloseButton;
-        public $isFullscreen;
-        public $modalId;
-    
-        /**
-         * Create a new component instance.
-         */
-        public function __construct(
-            $isOpen = false,
-            $showCloseButton = true,
-            $isFullscreen = false,
-            $modalId = null
-        ) {
-            $this->isOpen = $isOpen;
-            $this->showCloseButton = $showCloseButton;
-            $this->isFullscreen = $isFullscreen;
-            $this->modalId = $modalId ?? 'modal-' . uniqid();
-        }
-    
-        /**
-         * Get the view / contents that represent the component.
-         */
-        public function render(): View|Closure|string
-        {
-            return view('components.ui.modal');
-        }
+    /**
+     * Get the view / contents that represent the component.
+     */
+    public function render(): View|Closure|string
+    {
+        return view('components.ui.modal');
+    }
 }
