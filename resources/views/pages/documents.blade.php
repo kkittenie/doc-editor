@@ -71,11 +71,11 @@
                 });
             },
 
-                        async updateDocumentStatus(docId, status, action) {
-                const konfirmasi = {
-                    kirim:   { icon: 'info',    title: 'Kirim untuk review?', text: 'Dokumen akan dikirim untuk review.', confirm: 'Ya, kirim', color: '#A8172A' },
-                    setujui: { icon: 'success', title: 'Setujui dokumen?',    text: 'Dokumen akan berstatus Disetujui.', confirm: 'Ya, setujui', color: '#059669' },
-                }[action];
+                async updateDocumentStatus(docId, status, action) {
+                    const konfirmasi = {
+                        kirim:   { icon: 'info',    title: 'Kirim untuk review?', text: 'Dokumen akan dikirim untuk review.', confirm: 'Ya, kirim', color: '#A8172A' },
+                        setujui: { icon: 'success', title: 'Setujui dokumen?',    text: 'Dokumen akan berstatus Disetujui.', confirm: 'Ya, setujui', color: '#059669' },
+                    }[action];
 
                 const result = await Swal.fire({
                     icon: konfirmasi.icon,
