@@ -3005,18 +3005,6 @@ function __atomicProbeHtml(kid) {
             && kid.getAttribute('data-flow-atomic') === '1') return true;
         const html = (kid && kid.outerHTML) || '';
         if (html.indexOf('data-flow-atomic="1"') >= 0) return true;
-        // Sidik konten tabel KOMUNIKASI PASAL 17 kemitraan — fallback saat
-        // delta Quill menelan atribut data-flow-atomic (round-trip clipboard).
-        // Tabel ini 14 baris tanpa rowspan; belah per-baris memindahkan ekor
-        // sebagai continuation yang mendarat SEBELUM heading PASAL 17
-        // (inversi urutan). Kenali dari sel khasnya agar tetap pindah utuh.
-        if (kid && kid.tagName === 'TABLE') {
-            const rows = kid.querySelectorAll
-                ? kid.querySelectorAll(':scope > tbody > tr, :scope > tr').length : 0;
-            if (rows >= 10 && rows <= 20
-                && html.indexOf('admin@fibertrust.id') >= 0
-                && html.indexOf('Jika kepada PIHAK PERTAMA') >= 0) return true;
-        }
         return false;
     } catch (err) { return false; }
 }

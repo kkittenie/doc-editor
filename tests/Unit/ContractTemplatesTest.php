@@ -61,7 +61,7 @@ test('setiap template punya minimal 14 pasal, judul & isi tidak kosong', functio
 test('setiap template memuat tabel sesuai dokumen asli pada posisi yang benar', function () use ($keys) {
     // jumlah tabel per template: [isi, tutup, lampiran]
     $expected = [
-        'kontrak-kemitraan'      => 6, // 1 pasal komunikasi + 1 ttd + 4 lampiran
+        'kontrak-kemitraan'      => 5, // PASAL 17 komunikasi = teks <ol>; 1 ttd + 4 lampiran
         'kontrak-colocation'     => 2, // 1 ttd + 1 deskripsi layanan
         'kontrak-managed-service'=> 5, // 1 pasal denda + 1 ttd + 3 lampiran
         'kontrak-soho'           => 3, // 1 pasal denda + 1 ttd + 1 lampiran
@@ -90,16 +90,16 @@ test('setiap template memuat tabel sesuai dokumen asli pada posisi yang benar', 
         expect($count)->toBe($expected[$key]);
     }
 
-    // Kemitraan: tabel pemberitahuan di dalam pasal KOMUNIKASI/PEMBERITAHUAN
+    // Kemitraan: teks pemberitahuan (<ol>) di dalam pasal KOMUNIKASI/PEMBERITAHUAN
     $tpl = ContractTemplates::find('kontrak-kemitraan');
     $komunikasi = null;
     foreach ($tpl['body_content']['isi'] as $pasal) {
         if (str_contains($pasal['judul'], 'KOMUNIKASI')) { $komunikasi = $pasal; }
     }
     expect($komunikasi)->not->toBeNull();
-    $tables = array_values(array_filter($komunikasi['blocks'], fn ($b) => isset($b['table'])));
-    expect(count($tables))->toBe(1);
-    expect(json_encode($tables[0]['table'], JSON_UNESCAPED_UNICODE))->toContain('admin@fibertrust.id');
+    $lists = array_values(array_filter($komunikasi['blocks'], fn ($b) => isset($b['ol'])));
+    expect(count($lists))->toBe(1);
+    expect(json_encode($lists[0]['ol'], JSON_UNESCAPED_UNICODE))->toContain('admin@fibertrust.id');
 
     // Colocation: tabel DESKRIPSI LAYANAN ber-border di lampiran
     $tpl = ContractTemplates::find('kontrak-colocation');
@@ -274,7 +274,7 @@ test('isi render HTML memuat teks asli verbatim', function () {
 
 test('render HTML memunculkan tabel asli dengan border & posisi yang benar', function () use ($keys) {
     $counts = [
-        'kontrak-kemitraan'       => 6,
+        'kontrak-kemitraan'       => 5, // PASAL 17 komunikasi kini teks <ol>, bukan tabel
         'kontrak-colocation'      => 2,
         'kontrak-managed-service' => 5,
         'kontrak-soho'            => 3,
@@ -295,7 +295,7 @@ test('render HTML memunculkan tabel asli dengan border & posisi yang benar', fun
         }
     }
 
-    // kemitraan: tabel pemberitahuan muncul SETELAH heading pasal KOMUNIKASI/PEMBERITAHUAN
+    // kemitraan: TEKS pemberitahuan (<ol>, bukan tabel) muncul SETELAH heading pasal KOMUNIKASI/PEMBERITAHUAN
     $tpl  = ContractTemplates::find('kontrak-kemitraan');
     $html = contractBuildBodyHtml($tpl, true);
     $pos  = strpos($html, 'KOMUNIKASI/PEMBERITAHUAN');
@@ -303,6 +303,8 @@ test('render HTML memunculkan tabel asli dengan border & posisi yang benar', fun
     expect($pos)->toBeInt();
     expect($tblPos)->toBeInt();
     expect($tblPos)->toBeGreaterThan($pos);
+    expect($html)->toContain('Jika kepada PIHAK PERTAMA');
+    expect($html)->toContain('Jika kepada PIHAK KEDUA');
 
     // sel tanda tangan mempertahankan baris paragraf (<br>) — penanda pihak
     // ditebalkan renderer (styleContractPartyNames) sehingga ber <strong>.
@@ -332,9 +334,9 @@ test('tabel formula satu baris ditandai atomik agar tidak berkedip di batas hala
     }
 });
 
-test('tabel komunikasi kemitraan ditandai atomik agar tidak terbelah sebelum heading', function () {
-    // Regresi inversi PASAL 17: tabel 14 baris tanpa rowspan dibelah per-baris
-    // sehingga ekornya mendarat SEBELUM heading di halaman tujuan.
+test('pasal komunikasi kemitraan berupa teks bernomor, bukan tabel', function () {
+    // PASAL 17 harus tampil sebagai teks <ol> 1. / a. / b. / 2. seperti PDF
+    // sumber — bukan tabel bergaris.
     $tpl = ContractTemplates::find('kontrak-kemitraan');
     $komunikasi = null;
     foreach ($tpl['body_content']['isi'] as $pasal) {
@@ -342,19 +344,30 @@ test('tabel komunikasi kemitraan ditandai atomik agar tidak terbelah sebelum hea
     }
     expect($komunikasi)->not->toBeNull();
     $tables = array_values(array_filter($komunikasi['blocks'], fn ($b) => isset($b['table'])));
-    expect(count($tables))->toBe(1);
-    expect($tables[0]['table']['atomic'] ?? false)->toBeTrue();
+    expect(count($tables))->toBe(0);
+    $lists = array_values(array_filter($komunikasi['blocks'], fn ($b) => isset($b['ol'])));
+    expect(count($lists))->toBe(1);
+    expect($lists[0]['ol']['type'] ?? '')->toBe('1');
+    expect($lists[0]['ol']['items'][0]['children']['type'] ?? '')->toBe('a');
 
     $html = contractBuildBodyHtml($tpl, true);
-    $tblPos = strpos($html, 'data-flow-atomic="1"');
     $headPos = strpos($html, 'KOMUNIKASI/PEMBERITAHUAN');
-    $tailPos = strpos($html, 'adidarmawanspd@gmail.com');
-    expect($tblPos)->toBeInt();
-    expect($headPos)->toBeInt();
-    expect($tailPos)->toBeInt();
-    // Tabel utuh (kepala + ekor) muncul setelah heading, tidak terbelah.
-    expect($tblPos)->toBeGreaterThan($headPos);
-    expect($tailPos)->toBeGreaterThan($tblPos);
+    $p1Pos = strpos($html, 'Segala pemberitahuan yang diisyaratkan');
+    $plain = strip_tags($html);
+    $paPos = strpos($plain, 'Jika kepada PIHAK PERTAMA');
+    $pbPos = strpos($plain, 'Jika kepada PIHAK KEDUA');
+    $p2Pos = strpos($plain, 'Jika salah satu pihak mengganti atau mengubah alamatnya');
+    foreach ([$headPos, $p1Pos, $paPos, $pbPos, $p2Pos] as $pp) { expect($pp)->toBeInt(); }
+    expect($p1Pos)->toBeGreaterThan($headPos);
+    expect($paPos)->toBeGreaterThan($p1Pos);
+    expect($pbPos)->toBeGreaterThan($paPos);
+    expect($p2Pos)->toBeGreaterThan($pbPos);
+    // Detail alamat multi-baris memakai <br>, bukan sel tabel. Nama pihak
+    // dibungkus <strong> oleh styleContractPartyNames, jadi cek tanpa tag.
+    expect($html)->toContain('Nama : PT Bina Informatika Solusi<br');
+    expect($html)->toContain('adidarmawanspd@gmail.com');
+    expect(strip_tags($html))->toContain('Jika kepada PIHAK PERTAMA');
+    expect(strip_tags($html))->toContain('Jika kepada PIHAK KEDUA');
 });
 test('render numbering selektif: blok yang memang list me-render menjadi <ol>', function () use ($keys) {
     // kemitraan: definisi + hak/kewajiban secara selektif jadi daftar bernomor

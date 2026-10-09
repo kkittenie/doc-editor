@@ -864,7 +864,7 @@ class DocumentController extends Controller
                 if ($item === '') {
                     continue;
                 }
-                $html .= '<li>'.$this->styleContractPartyNames(e($item)).'</li>';
+                $html .= '<li>'.nl2br($this->styleContractPartyNames(e($item))).'</li>';
                 $hasItems = true;
                 continue;
             }
@@ -874,7 +874,7 @@ class DocumentController extends Controller
                 if ($text === '' && empty($item['children'])) {
                     continue;
                 }
-                $html .= '<li>'.$this->styleContractPartyNames(e($text));
+                $html .= '<li>'.nl2br($this->styleContractPartyNames(e($text)));
                 if (!empty($item['children']) && is_array($item['children'])) {
                     $nested = $this->contractListHtml($item['children'], $level + 1);
                     if (trim(strip_tags($nested)) !== '') {
