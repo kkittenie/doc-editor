@@ -11,10 +11,7 @@ use App\Http\Controllers\DocumentController;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Database\Seeders\RoleSeeder;
 
-/**
- * Alur kontrak: Dokumen Saya (form + tabel pelanggan) → Studio Editor →
- * Buat Dokumen Baru (detail kontrak + barang/service) → Editor.
- */
+
 beforeEach(function () {
     $this->seed(RoleSeeder::class);
 
@@ -30,7 +27,6 @@ beforeEach(function () {
     ]);
 });
 
-/** Pelanggan uji: periode + barang/service diisi dari Form Pelanggan. */
 function seedContractCustomer(Customer $customer): Customer
 {
     $customer->update([
@@ -56,7 +52,6 @@ function seedContractCustomer(Customer $customer): Customer
     return $customer->refresh();
 }
 
-/** Payload form "Buat Dokumen Baru" (kontrak dibaca dari pelanggan). */
 function contractPayload(Customer $customer, array $overrides = []): array
 {
     return array_merge([
@@ -71,7 +66,6 @@ function contractPayload(Customer $customer, array $overrides = []): array
     ], $overrides);
 }
 
-/** Payload Form Pelanggan (periode + barang/service, tanggal selesai auto). */
 function customerPayload(array $overrides = []): array
 {
     return array_merge([
@@ -108,16 +102,12 @@ test('pelanggan baru tersimpan dengan nomor kontrak otomatis dan status draft', 
     $customer = Customer::where('name', 'CV Contoh Mandiri')->firstOrFail();
 
     expect($customer->status)->toBe('draft')
-        // beforeEach sudah memakai KTR/001/... → nomor berikutnya adalah 002
-        // (bulan dalam angka Romawi mengikuti bulan berjalan).
         ->and($customer->contract_number)->toMatch('/^KTR\/002\/[IVX]+\/\d{4}$/')
         ->and($customer->contract_name)->toBeNull()
-        // Periode & tanggal selesai terisi dari Form Pelanggan (auto).
         ->and($customer->active_date->toDateString())->toBe('2026-09-01')
         ->and($customer->active_months)->toBe(3)
         ->and($customer->finish_date->toDateString())->toBe('2026-12-01');
 
-    // Baris kosong dari repeater tidak ikut tersimpan.
     expect($customer->barang()->count())->toBe(1)
         ->and($customer->services()->count())->toBe(1);
 
@@ -157,7 +147,6 @@ test('lanjut kedua membuka editor dokumen yang sudah ada, barang tidak mengganda
 
     $document = Document::firstOrFail();
 
-    // Klik Lanjut lagi: redirect ke editor dokumen aktif, bukan buat baru.
     $this->actingAs($this->user)
         ->get(route('documents.create', $this->customer))
         ->assertRedirect(route('documents.edit', $document));
@@ -201,7 +190,6 @@ test('tanggal selesai dihitung otomatis dari data pelanggan', function () {
         ->and($this->customer->active_date->toDateString())->toBe('2026-09-01')
         ->and($this->customer->active_months)->toBe(3)
         ->and($this->customer->finish_date->toDateString())->toBe('2026-12-01')
-        // Lanjut ke editor langsung menaikkan status ke On Progress.
         ->and($this->customer->status)->toBe('on_progress')
         ->and($document->status)->toBe('on_progress');
 });
@@ -225,7 +213,6 @@ test('data barang dan service disalin dari pelanggan ke dokumen', function () {
 
     $document = Document::firstOrFail();
 
-    // Data master tetap di pelanggan + salinan yang terhubung ke dokumen.
     expect(Barang::count())->toBe(2)
         ->and(Service::count())->toBe(2);
 
@@ -287,25 +274,18 @@ test('template kontrak memakai sampul terpisah sebagai halaman 1', function () {
         ->and($document->body_content['coverPages'])->toBe(1)
         ->and($pages)->toHaveCount(2);
 
-    // Halaman 1 = sampul: blok display saja, tanpa naratif kontrak.
     expect($pages[0])->toContain('PERJANJIAN BERLANGGANAN')
         ->and($pages[0])->toContain('JASA COLOCATION')
         ->and($pages[0])->toContain('DENGAN')
-        // Placeholder pihak kedua sudah terisi nama pelanggan asli.
         ->and($pages[0])->toContain($this->customer->name)
         ->and($pages[0])->not->toContain('[PIHAK KEDUA]')
         ->and($pages[0])->not->toContain('Pada hari')
         ->and($pages[0])->not->toContain('[Ketik nama pihak pertama di sini]')
         ->and($pages[0])->not->toContain('[Ketik nama pihak kedua di sini]');
-
-    // Halaman 2 = isi kontrak, blok display tidak diulang.
-    // Tanggalnya berbahasa Indonesia (bukan 'Pada hari Tuesday'):
-    // app.locale default 'en', jadi applyTemplateReplacements() memaksa 'id'.
     expect($pages[1])->toContain('Pada hari')
         ->and($pages[1])->not->toContain('DENGAN')
         ->and($pages[1])->toContain(now()->locale('id')->translatedFormat('d F Y'));
 
-    // Kop kontrak = logo Fibertrust saja; paraf & identitas ada di footer.
     expect($document->header_data['content'])->toContain('fibertrust')
         ->and($document->footer_data['content'])->toContain('Paraf PIHAK PERTAMA')
         ->and($document->footer_data['content'])->toContain('info@fibertrust.id')
@@ -313,8 +293,6 @@ test('template kontrak memakai sampul terpisah sebagai halaman 1', function () {
 });
 
 test('setiap template kontrak mengisi tanggal berbahasa Indonesia', function () {
-    // app.locale bawaan 'en' sempat membuat dokumen memuat
-    // 'Pada hari Tuesday' pada kelima template.
     $ctrl = new DocumentController();
     $m    = new ReflectionMethod(DocumentController::class, 'applyTemplateReplacements');
 
@@ -349,10 +327,6 @@ test('sampul tiap template kontrak muat utuh di satu halaman A4', function () {
         $m    = new ReflectionMethod(DocumentController::class, 'buildContractCoverHtml');
 
         $coverHtml = $m->invoke($ctrl, (string) $tpl['body_content']['cover']);
-
-        // Render sampul dengan @page yang sama persis dengan pdf/document,
-        // lalu hitung halaman dari output dompdf. Kalau blok meluber ke
-        // halaman kedua, jumlah halaman > 1.
         $pdf = Pdf::loadHTML(
             '<style>@page{margin:' . ContractStyle::PAGE_MARGIN_TOP . ' '
                 . ContractStyle::PAGE_MARGIN_SIDE . ' '
@@ -378,7 +352,6 @@ test('dokumen template lama dengan sampul placeholder dirapikan saat dibuka', fu
 
     $document = Document::firstOrFail();
     $content = $document->body_content;
-    // Sisipkan sampul placeholder legacy di depan sampul asli.
     $content['pages'] = [
         '<p>[Ketik nama pihak pertama di sini]</p><p>[Ketik nama pihak kedua di sini]</p>',
         ...$content['pages'],
@@ -393,7 +366,6 @@ test('dokumen template lama dengan sampul placeholder dirapikan saat dibuka', fu
     $document->refresh();
     $pages = $document->body_content['pages'];
 
-    // Placeholder legacy dibuang; sampul asli tetap jadi halaman 1.
     expect($document->body_content['coverPages'])->toBe(1)
         ->and($pages)->toHaveCount(2)
         ->and($pages[0])->not->toContain('[Ketik nama pihak pertama di sini]')
@@ -412,8 +384,6 @@ test('dokumen lama tanpa sampul dirapikan tanpa memunculkan halaman tambahan', f
 
     $document = Document::firstOrFail();
     $content = $document->body_content;
-    // Bentuk dokumen LAMA yang sesungguhnya: satu halaman body yang masih
-    // memuat blok judul, DAN sampul placeholder legacy di depannya.
     $content['pages'] = [
         '<p>[Ketik nama pihak pertama di sini]</p><p>[Ketik nama pihak kedua di sini]</p>',
         '<p>PERJANJIAN BERLANGGANAN</p><p>JASA COLOCATION</p><p>Nomor: X/1</p>'
@@ -427,8 +397,6 @@ test('dokumen lama tanpa sampul dirapikan tanpa memunculkan halaman tambahan', f
         ->assertOk();
 
     $document->refresh();
-
-    // Tidak ada lembar sampul tersisa → coverPages 0, tetap 1 halaman.
     expect($document->body_content['coverPages'])->toBe(0)
         ->and($document->body_content['pages'])->toHaveCount(1)
         ->and($document->body_content['pages'][0])->toContain('Pada hari')
@@ -469,12 +437,10 @@ test('kirim untuk review menyinkronkan status pelanggan dan transisi tidak sah d
 
     $document = Document::firstOrFail();
 
-    // draft → disetujui tidak diizinkan.
     $this->actingAs($this->user)
         ->patch(route('documents.Status', $document), ['status' => 'disetujui'])
         ->assertForbidden();
 
-    // draft → on_review diizinkan.
     $this->actingAs($this->user)
         ->patch(route('documents.Status', $document), ['status' => 'on_review'])
         ->assertOk();
@@ -521,7 +487,6 @@ test('menghapus pelanggan ikut menghapus barang dan service', function () {
         ->and(Barang::count())->toBe(0)
         ->and(Service::count())->toBe(0);
 
-    // Dokumen tetap ada, hanya tautannya yang dilepas.
     expect(Document::firstOrFail()->customer_id)->toBeNull();
 });
 
@@ -534,7 +499,6 @@ test('membuka editor menormalkan lompatan nomor pasal (PASAL 1 lalu 15 jadi 1,2)
 
     $document = Document::where('title', 'Perjanjian Kerjasama Uji')->firstOrFail();
 
-    // Sengaja rusak seperti dokumen lama: heading kedua jadi "PASAL 15".
     $content = $document->body_content;
     $content['pages'][0] = str_replace(
         '<strong>PASAL 2</strong>',
@@ -544,7 +508,6 @@ test('membuka editor menormalkan lompatan nomor pasal (PASAL 1 lalu 15 jadi 1,2)
     $document->update(['body_content' => $content]);
     expect(implode("\n", $document->body_content['pages']))->toContain('PASAL 15');
 
-    // Buka editor → jaring pengaman menormalkan heading kembali 1..N.
     $this->actingAs($this->user)
         ->get(route('documents.edit', $document))
         ->assertOk();
@@ -556,7 +519,6 @@ test('membuka editor menormalkan lompatan nomor pasal (PASAL 1 lalu 15 jadi 1,2)
         $m
     );
 
-    // kemitraan: 18 pasal; heading lompat (…,2,15,…) harus kembali …,2,3,…
     expect(array_map('intval', $m[1]))->toBe(range(1, 18));
 });
 
@@ -571,11 +533,9 @@ test('editor menampilkan dropdown info kontrak beserta data barang dan service',
     $this->actingAs($this->user)
         ->get(route('documents.edit', $document))
         ->assertOk()
-        // Pemicu + state Alpine panel.
         ->assertSee('Info Kontrak')
         ->assertSee('showContractInfo', false)
         ->assertSee("contractTab: 'barang'", false)
-        // Detail kontrak: nomor, pelanggan, periode, template.
         ->assertSee('KTR/001/IX/2026')
         ->assertSee('PT Uji Coba')
         ->assertSee('081234567890')
@@ -583,7 +543,6 @@ test('editor menampilkan dropdown info kontrak beserta data barang dan service',
         ->assertSee('3 bulan')
         ->assertSee('01 Dec 2026')
         ->assertSee('Kontrak Kemitraan')
-        // Barang/service (salinan dokumen) + total terformat.
         ->assertSee('Router Mikrotik')
         ->assertSee('Internet Dedicated 100 Mbps')
         ->assertSee('BRG-00001')
@@ -634,7 +593,6 @@ test('panel info kontrak dokumen tanpa pelanggan tampil ringkas tanpa rincian ba
         ->assertSee('SM/001/IX/2026')
         ->assertSee('Jenis Dokumen')
         ->assertSee('Jumlah Halaman')
-        // Tanpa pelanggan: seksi barang/service diganti catatan, bukan tabel kosong.
         ->assertSee('tidak terhubung ke data pelanggan')
         ->assertDontSee('Belum ada barang untuk kontrak ini.');
 });

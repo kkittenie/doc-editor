@@ -1121,78 +1121,78 @@
   }
 }
 
-/* Kalender form S.O.F.
+/* Kalender bertema gelap (form S.O.F & tanggal Form Pelanggan).
    Latar gelap + seluruh teks putih: putih hanya terbaca di atas latar gelap,
    dan rasio kontras putih/ink-950 (~17:1) jauh di atas WCAG AA (4.5:1).
-   Selector `.sof-datepicker` dipakai supaya halaman lain (dashboard) tidak
-   ikut berubah. */
-.sof-datepicker .flatpickr-calendar {
+   Selector `.sof-datepicker` / `.customer-datepicker` dipakai supaya halaman
+   lain (dashboard) tidak ikut berubah. */
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-calendar {
   background: var(--color-ink-950) !important;
   border-color: rgb(255 255 255 / 0.08) !important;
   color: var(--color-white) !important;
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.25) !important;
 }
 /* Nama bulan, tahun, dan judul bulan berjalan. */
-.sof-datepicker .flatpickr-months,
-.sof-datepicker .flatpickr-weekdays,
-.sof-datepicker .flatpickr-current-month,
-.sof-datepicker .flatpickr-current-month .flatpickr-monthDropdown-months,
-.sof-datepicker .flatpickr-current-month input.cur-year,
-.sof-datepicker .flatpickr-current-month .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month {
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-months,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-weekdays,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-current-month,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-current-month .flatpickr-monthDropdown-months,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-current-month input.cur-year,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-current-month .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month {
   color: var(--color-white) !important;
   background: transparent !important;
 }
 /* Kotak isian tahun & dropdown bulan: harus lebih terang dari latar agar
    tidak menyatu dengannya. */
-.sof-datepicker .flatpickr-current-month .flatpickr-monthDropdown-months select,
-.sof-datepicker .flatpickr-current-month input.cur-year {
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-current-month .flatpickr-monthDropdown-months select,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-current-month input.cur-year {
   background: var(--color-ink-800) !important;
   border-color: rgb(255 255 255 / 0.15) !important;
   color: var(--color-white) !important;
 }
 /* Nama hari (Min, Sen, …). */
-.sof-datepicker .flatpickr-weekday {
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-weekday {
   color: var(--color-white) !important;
   font-weight: 600;
 }
 /* Angka tanggal. */
-.sof-datepicker .flatpickr-day {
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-day {
   color: var(--color-white) !important;
   border-color: rgb(255 255 255 / 0.08) !important;
 }
-.sof-datepicker .flatpickr-day:hover,
-.sof-datepicker .flatpickr-day:focus,
-.sof-datepicker .flatpickr-day.today:hover {
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-day:hover,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-day:focus,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-day.today:hover {
   background: var(--color-ink-800) !important;
   border-color: rgb(255 255 255 / 0.2) !important;
   color: var(--color-white) !important;
 }
-.sof-datepicker .flatpickr-day.today {
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-day.today {
   border-color: var(--color-white) !important;
 }
 /* Tanggal terpilih: dibalik — latar putih + teks navy. Kalau tetap navy di atas
    navy, tanggal yang terpilih justru tidak kelihatan. */
-.sof-datepicker .flatpickr-day.selected,
-.sof-datepicker .flatpickr-day.startRange,
-.sof-datepicker .flatpickr-day.endRange,
-.sof-datepicker .flatpickr-day.selected.inRange,
-.sof-datepicker .flatpickr-day.startRange.inRange,
-.sof-datepicker .flatpickr-day.selected.prevMonthDay,
-.sof-datepicker .flatpickr-day.startRange.prevMonthDay,
-.sof-datepicker .flatpickr-day.endRange.prevMonthDay,
-.sof-datepicker .flatpickr-day.selected.nextMonthDay,
-.sof-datepicker .flatpickr-day.startRange.nextMonthDay,
-.sof-datepicker .flatpickr-day.endRange.nextMonthDay {
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-day.selected,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-day.startRange,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-day.endRange,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-day.selected.inRange,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-day.startRange.inRange,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-day.selected.prevMonthDay,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-day.startRange.prevMonthDay,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-day.endRange.prevMonthDay,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-day.selected.nextMonthDay,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-day.startRange.nextMonthDay,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-day.endRange.nextMonthDay {
   background: var(--color-white) !important;
   color: var(--color-ink-900) !important;
 }
 /* Panah bulan sebelumnya / berikutnya (SVG fill). */
-.sof-datepicker .flatpickr-prev-month svg,
-.sof-datepicker .flatpickr-next-month svg {
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-prev-month svg,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-next-month svg {
   fill: var(--color-white);
 }
-.sof-datepicker .flatpickr-prev-month:hover svg,
-.sof-datepicker .flatpickr-next-month:hover svg {
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-prev-month:hover svg,
+:is(.sof-datepicker, .customer-datepicker) .flatpickr-next-month:hover svg {
   fill: var(--color-ink-200);
 }
 /* Dark mode memakai palet yang sama, jadi mode ini tidak perlu override lagi. */

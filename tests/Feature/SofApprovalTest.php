@@ -7,14 +7,6 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * Tombol "Setujui" (tabel pelanggan & Studio Editor): user meng-upload berkas
- * kontrak (PDF) lewat popup, berkas itu disimpan sebagai dokumen final kontrak
- * (kolom final_file_path) dan dipakai tombol "Unduh PDF".
- *
- * Berkas upload bukan berkas S.O.F: Menu S.O.F tetap eksklusif untuk dokumen
- * yang berkasnya dibuat sistem (pdf_path).
- */
 beforeEach(function () {
     $this->seed(RoleSeeder::class);
 
