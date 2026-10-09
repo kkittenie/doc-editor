@@ -93,6 +93,11 @@
             font-size: 11px;
             line-height: 1.6;
             margin-top: 8px;
+            /* Jarak garis header ke isi pertama template non-kontrak
+               (±6mm ≈ 17pt): padding container supaya berlaku untuk
+               paragraf pertama apa pun jenisnya. Sampul dikecualikan
+               (rule .cover-page di bawah menimpanya kembali). */
+            padding-top: 17pt;
         }
 
         /* Alignment Quill disimpan sebagai class ql-align-*, bukan style
@@ -106,6 +111,7 @@
         /* Halaman SAMPUL (cover): judul melekat di atas (dekat kop),
            baris-baris pihak direntangkan dengan jarak lega hingga
            "Dengan" berada di sekitar tengah-ke-atas kertas.
+           Dikecualikan dari padding-top BODY_SPACE_BEFORE / 17pt di atas.
            dompdf mematuhi style inline dari buildCoverPageHtml() (baru),
            jadi rule di sini TANPA !important agar tidak menimpa inline —
            hanya berlaku sebagai fallback untuk dokumen lama yang inline
@@ -113,7 +119,6 @@
         .body-content.cover-page {
             padding-top: 4px;
         }
-
         .body-content.cover-page h1 {
             margin: 8px 0 70px;
         }
@@ -222,7 +227,8 @@
         /* FOOTER DEFAULT FIBERTRUST (.fibertrust-footer): diulang di SETIAP
            halaman via position:fixed (seperti .header-table kontrak di atas);
            dompdf mengulang elemen fixed per halaman. Nomor "Page | n" digambar
-           callback kanvas (bukan bagian HTML), tepat di atas blok ini.
+           callback kanvas (bukan bagian HTML), pojok kanan bawah di bawah
+           blok ini (rata kanan kolom teks).
            left/right 0 = blok sejajar kolom teks (offset fixed dihitung dari
            area konten, bukan dari tepi kertas — lihat ContractStyle). */
         .footer-fixed {
@@ -300,6 +306,11 @@
             font-size: {!! $cs::SIZE_BODY !!};
             line-height: {!! $cs::LINE_HEIGHT !!};
             margin-top: 0;
+            /* Jarak garis kop ke isi pertama (token BODY_SPACE_BEFORE):
+               padding container — bukan margin paragraf — supaya berlaku
+               untuk isi pertama apa pun jenisnya dan tidak kalah oleh
+               inline style Quill. */
+            padding-top: {!! $cs::BODY_SPACE_BEFORE !!};
         }
 
         .contract-document .body-content p {
@@ -396,8 +407,8 @@
 
         /* Footer kontrak: meluncur ke dalam margin bawah (19mm dari tepi
            bawah kertas = padding bawah kartu di editor) dan sejajar kolom
-           teks. margin-top 0 karena ruang baris "Page | n" sudah disediakan
-           margin-top 24px pada tabel footer itu sendiri. */
+           teks. Nomor "Page | n" digambar callback kanvas di bawah blok
+           footer (pojok kanan bawah), bukan di atasnya. */
         .contract-document .footer-fixed {
             bottom: {!! $cs::FOOTER_BOTTOM !!};
             margin-top: 0;

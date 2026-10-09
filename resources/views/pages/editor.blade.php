@@ -888,33 +888,47 @@
         flex: 1;
         min-height: 0;
         overflow: hidden !important;
+        /* Jarak garis header ke isi pertama (±6mm) untuk template
+           non-kontrak; kontrak memakai token BODY_SPACE_BEFORE via
+           contract-style. Padding container — bukan margin paragraf —
+           supaya tidak kalah oleh inline style Quill. */
+        padding-top: 6mm;
+    }
+
+    /* Sampul dikecualikan — judul sampul tetap menempel di atas. */
+    .doc-sheet.doc-cover .doc-sheet-body {
+        padding-top: 0;
     }
 
     .doc-sheet-footer {
         position: relative;
         min-height: 40px;
         padding-top: 8px;
+        padding-bottom: 20px;
     }
 
     /* Nomor halaman footer default ("Page | n"): counter CSS per kertas —
        otomatis urut 1..N saat tambah/hapus kertas, tanpa menyentuh isi
        Quill (aman untuk mirror antar-halaman). Hanya tampil bila footer
        berisi tabel .fibertrust-footer (footer default baru); footer lama /
-       kustom tidak ikut bernomor. Dihilangkan saat sesi edit footer supaya
-       tidak ikut tersalin ke isi, dan di media cetak (PDF pakai callback
-       kanvas makeDocumentPdf, bukan CSS counter). */
+       kustom tidak ikut bernomor. Posisi: pojok kanan bawah kertas, di bawah
+       tabel footer (::after absolute). Dihilangkan saat sesi edit footer
+       supaya tidak ikut tersalin ke isi, dan di media cetak (PDF pakai
+       callback kanvas makeDocumentPdf, bukan CSS counter). */
     #document-editor { counter-reset: ft-page; }
     .doc-sheet { counter-increment: ft-page; }
-    .doc-sheet-footer:has(table.fibertrust-footer)::before {
+    .doc-sheet-footer:has(table.fibertrust-footer)::after {
         content: "Page | " counter(ft-page);
         position: absolute;
-        top: 8px;
-        left: 0;
+        bottom: 0;
+        right: 0;
+        left: auto;
+        text-align: right;
         font-size: 8.5pt;
         color: #111827;
         pointer-events: none;
     }
-    .editing-footer .doc-sheet-footer:has(table.fibertrust-footer)::before {
+    .editing-footer .doc-sheet-footer:has(table.fibertrust-footer)::after {
         display: none;
     }
 
@@ -1248,9 +1262,9 @@
     }
 
     /* Footer default Fibertrust (.fibertrust-footer): tabel identitas +
-       paraf, tanpa gambar. Ruang nomor "Page | n" (::before absolute di atas)
-       disediakan via margin-top inline tabel (24px) — bukan padding footer —
-       supaya ikut tersimpan & dirender konsisten. Quill men-strip class pada
+       paraf, tanpa gambar. Ruang nomor "Page | n" (::after absolute di bawah)
+       disediakan via padding-bottom footer — bukan margin tabel — supaya ikut
+       tersimpan & dirender konsisten. Quill men-strip class pada
        <table> saat round-trip tertentu, jadi samakan juga tampilan tabel
        polos di footer. */
     .doc-sheet-footer table.fibertrust-footer,
@@ -1270,6 +1284,20 @@
     .doc-sheet-footer table:not([class]) td p {
         margin: 0;
         font-size: 8.5pt;
+    }
+
+    /* Tabel-dalam paraf (kolom kanan fibertrust-footer): hapus margin 24px
+       warisan rule di atas supaya menempel di sel induk, font 8pt sesuai
+       inline style, dan sel-nya tanpa border. */
+    .doc-sheet-footer table.fibertrust-footer td table,
+    .doc-sheet-footer table:not([class]) td table {
+        margin: 0;
+        width: 100%;
+    }
+
+    .doc-sheet-footer table.fibertrust-footer td table td p,
+    .doc-sheet-footer table:not([class]) td table td p {
+        font-size: 8pt;
     }
 
     .editing-header .doc-sheet-body,
@@ -1339,7 +1367,7 @@
 
         /* Nomor halaman cetak tidak pakai CSS counter (PDF memakai callback
            kanvas; cetak browser memakai aturan di bawah bila footer default). */
-        .doc-sheet-footer:has(table.fibertrust-footer)::before {
+        .doc-sheet-footer:has(table.fibertrust-footer)::after {
             display: none !important;
         }
 

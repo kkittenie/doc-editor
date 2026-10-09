@@ -22,6 +22,12 @@ class ContractStyle
     public const HEADING_SPACE_AFTER  = '4pt';
     public const TABLE_SPACE          = '5pt 0';
 
+    /* Jarak garis header/garis kop ke paragraf pertama body (±4,2mm).
+       Dipakai sebagai padding-top container body (bukan margin paragraf)
+       supaya tidak kalah oleh inline style Quill dan tidak ikut tersalin
+       ke isi. Sampul (cover-page) dikecualikan — tetap menempel di atas. */
+    public const BODY_SPACE_BEFORE    = '12pt';
+
     public const HEADING_TOP_MARGIN = self::HEADING_SPACE_BEFORE;
 
     public const LIST_INDENT = [
@@ -102,14 +108,21 @@ class ContractStyle
     public const RUNNING_HEADER_TOP = '-19mm';
     public const FOOTER_BOTTOM        = '-24mm';
 
-    public const PAGE_NUM_X = 59.5;   
-    public const PAGE_NUM_Y = 78.0;   
+    public const PAGE_NUM_X = 59.5;
+    public const PAGE_NUM_Y = 810.0;
     public const PAGE_NUM_SIZE = 8.0;
     public const PAGE_NUM_PREFIX = 'Page | ';
 
+    /* Nomor halaman PDF: pojok kanan bawah kertas, di bawah blok footer.
+       X dihitung dinamis (rata kanan) di DocumentController — konstanta X
+       di bawah hanya fallback bila lebar teks tak terukur. Y 810pt ≈ 9,5mm
+       dari tepi bawah A4 (841,89pt), masih di dalam area cetak aman. */
+    public const FOOTER_NUM_X = 59.5;
+    public const FOOTER_NUM_Y = 810.0;
 
-    public const FOOTER_NUM_X = 59.5;  
-    public const FOOTER_NUM_Y = 731.0; 
+    /* Geometri kertas A4 portrait dalam pt (dipakai kalkulasi rata kanan). */
+    public const PAGE_WIDTH_PT = 595.28;
+    public const PAGE_MARGIN_RIGHT_PT = 59.53;
 
    
     public const ALIGN_TITLE   = 'center';

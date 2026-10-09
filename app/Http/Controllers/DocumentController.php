@@ -427,11 +427,23 @@ class DocumentController extends Controller
             '<p style="margin:0; font-size:8.5pt;">Kota Cirebon, Jawa Barat 45131</p>',
             '<p style="margin:0; font-size:8.5pt;">Tlp. 0231-247618 | email : info@fibertrust.id | www.fibertrust.id</p>',
             '</td>',
-            '<td style="width:42%; vertical-align:top; text-align:right; padding:0; font-size:8.5pt; border:none;">',
-            '<p style="margin:0; font-size:8.5pt;">'
-                .'<span style="display:inline-block; text-align:left; margin-right:14px;">Paraf PIHAK PERTAMA: ________</span>'
-                .'<span style="display:inline-block; text-align:left;">Paraf PIHAK KEDUA: ________</span>'
-                .'</p>',
+            '<td style="width:42%; vertical-align:top; text-align:left; padding:0; font-size:8.5pt; border:none;">',
+            // Paraf kiri–kanan bersebelahan: tabel-dalam 2 kolom fixed (bukan
+            // dua inline-block — di dompdf lebar gabungan inline-block
+            // melebihi kolom lalu wrap jadi atas-bawah). Ruang kosong di
+            // bawah tiap teks paraf bisa ditumpuk stempel fisik.
+            '<table style="width:100%; table-layout:fixed; border-collapse:collapse; margin:0; padding:0; page-break-inside:avoid;">',
+            '<tbody>',
+            '<tr>',
+            '<td style="width:50%; vertical-align:top; text-align:left; padding:0 6px 0 0; font-size:8pt; border:none;">',
+            '<p style="margin:0; font-size:8pt;">Paraf PIHAK<br>PERTAMA: ______</p>',
+            '</td>',
+            '<td style="width:50%; vertical-align:top; text-align:left; padding:0 0 0 6px; font-size:8pt; border:none;">',
+            '<p style="margin:0; font-size:8pt;">Paraf PIHAK<br>KEDUA: ______</p>',
+            '</td>',
+            '</tr>',
+            '</tbody>',
+            '</table>',
             '</td>',
             '</tr>',
             '</tbody>',
@@ -439,18 +451,55 @@ class DocumentController extends Controller
         ]);
     }
 
+    /**
+     * Normalisasi footer lama (dua span inline-block "Paraf PIHAK ...") jadi
+     * tabel-dalam 2 kolom agar PERTAMA & KEDUA bersebelahan kiri–kanan di
+     * PDF. Hanya render-time (tidak mengubah data tersimpan); footer kustom
+     * tanpa pola paraf lama dikembalikan apa adanya.
+     */
+    private function normalizeLegacyParafFooterHtml(string $footerHtml): string
+    {
+        if (!str_contains($footerHtml, 'Paraf PIHAK PERTAMA')
+            || !str_contains($footerHtml, 'Paraf PIHAK KEDUA')
+            || !preg_match('/display\s*:\s*inline-block/i', $footerHtml)) {
+            return $footerHtml;
+        }
+
+        $replacement = '<table style="width:100%; table-layout:fixed; border-collapse:collapse; margin:0; padding:0; page-break-inside:avoid;">'
+            . '<tbody><tr>'
+            . '<td style="width:50%; vertical-align:top; text-align:left; padding:0 6px 0 0; font-size:8pt; border:none;">'
+            . '<p style="margin:0; font-size:8pt;">Paraf PIHAK<br>PERTAMA: ______</p>'
+            . '</td>'
+            . '<td style="width:50%; vertical-align:top; text-align:left; padding:0 0 0 6px; font-size:8pt; border:none;">'
+            . '<p style="margin:0; font-size:8pt;">Paraf PIHAK<br>KEDUA: ______</p>'
+            . '</td>'
+            . '</tr></tbody></table>';
+
+        $normalized = preg_replace(
+            '/<p[^>]*>\s*'
+            . '<span[^>]*>\s*Paraf PIHAK PERTAMA:[^<]*<\/span>\s*'
+            . '<span[^>]*>\s*Paraf PIHAK KEDUA:[^<]*<\/span>\s*'
+            . '<\/p>/is',
+            $replacement,
+            $footerHtml
+        );
+
+        return is_string($normalized) && $normalized !== '' ? $normalized : $footerHtml;
+    }
+
     private function resolveFooterHtml(Document $document): string
     {
         $footerHtml = (string) ($document->footer_data['content'] ?? '');
 
         if ((bool) ($document->body_content['contractTemplate'] ?? false)) {
-            return trim(strip_tags($footerHtml)) === '' && !preg_match('/<table/i', $footerHtml)
-                ? $this->buildDefaultFooterHtml()
-                : $footerHtml;
+            if (trim(strip_tags($footerHtml)) === '' && !preg_match('/<table/i', $footerHtml)) {
+                return $this->buildDefaultFooterHtml();
+            }
+
+            return $this->normalizeLegacyParafFooterHtml($footerHtml);
         }
 
         $isCover = (int) ($document->body_content['coverPages'] ?? 0) > 0;
-
         if ($isCover && !preg_match('/<table/i', $footerHtml)) {
             $footerHtml = $this->buildCoverFooterHtml();
         }
@@ -1384,19 +1433,36 @@ class DocumentController extends Controller
 
         if (($isFibertrustFooter ?? false) || $isContract) {
             $useFooterNum = (bool) ($isFibertrustFooter ?? false);
-            $pageNumX = $useFooterNum ? ContractStyle::FOOTER_NUM_X : ContractStyle::PAGE_NUM_X;
             $pageNumY = $useFooterNum ? ContractStyle::FOOTER_NUM_Y : ContractStyle::PAGE_NUM_Y;
             $pdf->setCallbacks([
                 [
                     'event' => 'end_document',
-                    'f' => function (int $pageNumber, int $pageCount, $canvas, $fontMetrics) use ($pageNumX, $pageNumY): void {
+                    'f' => function (int $pageNumber, int $pageCount, $canvas, $fontMetrics) use ($pageNumY): void {
                         $font = $fontMetrics->getFont('times')
                             ?? $fontMetrics->getFont(null);
+
+                        // Pojok kanan bawah kertas, di bawah blok footer:
+                        // X rata kanan terhadap kolom teks (lebar kertas -
+                        // margin kanan - lebar teks) agar "Page | 1" s.d.
+                        // "Page | 100" tetap mepet kanan & tidak goyang.
+                        $text = ContractStyle::PAGE_NUM_PREFIX . $pageNumber;
+                        $pageNumX = ContractStyle::FOOTER_NUM_X;
+                        try {
+                            $textWidth = $fontMetrics->getTextWidth(
+                                $text,
+                                $font,
+                                ContractStyle::PAGE_NUM_SIZE
+                            );
+                            $pageNumX = ContractStyle::PAGE_WIDTH_PT
+                                - ContractStyle::PAGE_MARGIN_RIGHT_PT
+                                - $textWidth;
+                        } catch (\Throwable $e) {
+                        }
 
                         $canvas->text(
                             $pageNumX,
                             $pageNumY,
-                            ContractStyle::PAGE_NUM_PREFIX . $pageNumber,
+                            $text,
                             $font,
                             ContractStyle::PAGE_NUM_SIZE,
                             [0, 0, 0]

@@ -43,6 +43,13 @@
         border-bottom: 1px solid #000;
     }
 
+    /* Jarak garis kop ke isi pertama (token BODY_SPACE_BEFORE): padding di
+       container body supaya berlaku untuk paragraf pertama apa pun jenisnya
+       (judul, tabel, list, teks) dan tidak kalah oleh inline style Quill. */
+    .contract-template-canvas .doc-sheet-body {
+        padding-top: {!! $cs::BODY_SPACE_BEFORE !!};
+    }
+
     .contract-template-canvas .doc-sheet-footer {
         min-height: 0;
         padding-top: 4mm;
