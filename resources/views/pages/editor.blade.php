@@ -875,9 +875,9 @@
     }
 
     .doc-sheet-header img {
-        height: 56px;
+        height: 72px;
         width: auto;
-        max-width: 260px;
+        max-width: 340px;
         display: inline-block;
         vertical-align: middle;
         margin: 0;

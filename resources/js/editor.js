@@ -1,15 +1,9 @@
-import Quill from 'quill';
+﻿import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import QuillTableBetter, { ToolbarTable } from 'quill-table-better';
 import 'quill-table-better/dist/quill-table-better.css';
 
 QuillTableBetter.register();
-// ---- Guard: blot tabel (core & table-better) adalah Container TANPA
-// formats(); saat HTML berisi struktur tabel tak didukung (tabel di dalam
-// sel / campuran blot core+table-better) optimize() pihak ketiga memanggil
-// child.formats() -> "i.formats is not a function" dan SELURUH region gagal
-// dipasang (error berulang tiap paginasi/mirror). Wrapper ini membuat
-// optimize tahan-gagal agar editor tetap hidup.
 const __guardBlotOptimize = (blotName) => {
     const BlotClass = Quill.import(blotName);
     if (!BlotClass || !BlotClass.prototype || typeof BlotClass.prototype.optimize !== 'function') return;
@@ -19,7 +13,7 @@ const __guardBlotOptimize = (blotName) => {
         try {
             return __originalOptimize.call(this, context);
         } catch (err) {
-            return undefined; // struktur blot campuran - jangan matikan editor
+            return undefined;
         }
     };
     BlotClass.prototype.__docQuillGuard = true;
@@ -64,15 +58,9 @@ const LineHeightStyle = new Parchment.StyleAttributor('lineheight', 'line-height
 });
 Quill.register(LineHeightStyle, true);
 
-// Jarak paragraf template kontrak (PASAL, DEFINISI, SPESIFIKASI, MENIMBANG,
-// MENGINGAT, LAMPIRAN, judul & baris display): DocumentController merender
-// blok itu dengan style inline margin-top/margin-bottom dari
-// App\Data\ContractStyle (headingStyle/titleStyle/displayStyle). Tanpa
-// kedua attributor berikut, Quill membuang margin saat clipboard.convert ->
-// jarak judul hilang di editor dan di HTML tersimpan (ikut ke PDF).
 const ParaHeadMargin = new Parchment.StyleAttributor('phead', 'margin-top', {
     scope: Parchment.Scope.BLOCK,
-    whitelist: null, // terima nilai pt/px apa pun (pola sama dengan SizeAttributor)
+    whitelist: null, 
 });
 Quill.register(ParaHeadMargin, true);
 
@@ -84,10 +72,6 @@ Quill.register(ParaHeadBottomMargin, true);
 
 const ListStyleAttributor = new Parchment.ClassAttributor('liststyle', 'ql-liststyle', {
     scope: Parchment.Scope.BLOCK,
-    // Nilai WAJIB satu token tanpa tanda hubung — sama dengan
-    // ContractStyle::listQuillValue() — karena ClassAttributor.keys()
-    // memotong segmen terakhir nama class ('ql-liststyle-upper-alpha'
-    // terbaca sebagai 'ql-liststyle-upper' dan gugur dari whitelist).
     whitelist: ['decimal', 'alpha', 'upperalpha', 'lowerroman', 'roman'],
 });
 Quill.register(ListStyleAttributor, true);
@@ -283,10 +267,6 @@ const clampPosToRegion = (regionEl, left, top, w, h) => {
     const r = regionEl?.getBoundingClientRect?.();
     if (!r || !r.width || !r.height) return [Math.max(0, left), Math.max(0, top)];
 
-    // Header & footer boleh "menjelajah" seluruh kertas agar gambar bisa
-    // ditarik ke margin atas/bawah dan pojok kertas (seperti di halaman
-    // biasa). Body tetap dikunci di dalam zona karena tubuh halaman
-    // memakai overflow:hidden.
     const role = regionEl.dataset?.region;
     const isZone = role === 'header' || role === 'footer';
     const sheet = isZone ? regionEl.closest('.doc-sheet') : null;
@@ -297,35 +277,24 @@ const clampPosToRegion = (regionEl, left, top, w, h) => {
     let maxY = r.height - h;
 
     if (sRect) {
-        // Offset posisi region relatif terhadap kertas (jarak margin).
         const offX = r.left - sRect.left;
         const offY = r.top - sRect.top;
         minX = -offX;
         maxX = sRect.width - w - offX;
 
         if (role === 'header') {
-            // Atas tetap bebas ke margin/pojok kertas (fix sebelumnya).
             minY = -offY;
-            // Batas bawah = tidak boleh melewati garis pemisah header->body.
-            // Sertakan padding-bottom header (8px) agar berhenti di atas garis.
             const padB = parseFloat(getComputedStyle(regionEl).paddingBottom) || 0;
-            const bottomMax = r.height - padB - h;
-            // Kalau gambar terlalu tinggi untuk header, biarkan overflow ke
-            // ATAS (terpotong di tepi kertas), BUKAN bleber ke body.
+            const bottomMax = Math.max(0, r.height - padB - h);
             minY = Math.min(minY, bottomMax);
             maxY = bottomMax;
         } else if (role === 'footer') {
-            // Bawah tetap bebas ke margin bawah kertas.
             maxY = sRect.height - h - offY;
-            // Batas atas = tidak boleh melewati garis pemisah footer<-body.
             const padT = parseFloat(getComputedStyle(regionEl).paddingTop) || 0;
             const topBound = padT;
-            // Kalau terlalu tinggi, overflow ke BAWAH (terpotong di tepi
-            // kertas), BUKAN bleber ke body.
             minY = topBound;
             maxY = Math.max(maxY, topBound);
         } else {
-            // Body: tetap terkunci di dalam zona (overflow:hidden di kertas).
             minY = -offY;
             maxY = sRect.height - h - offY;
         }
@@ -470,7 +439,6 @@ const returnImageToFlow = (editor, img) => {
     const qlEditor = region?.querySelector('.ql-editor');
     if (!qlEditor || qlEditor.contains(img)) return;
 
-    // Selipkan di awal blok pertama; bila editor kosong, buat paragraf baru
     let firstBlock = qlEditor.querySelector('p, h1, h2, h3, h4, h5, h6, li');
     if (!firstBlock) {
         firstBlock = editor.dom.create('p');
@@ -679,7 +647,6 @@ const showImageTools = (editor, img) => {
         panelEl ? (panelEl.remove(), panelEl = null) : buildPanel();
     });
 
-    // Tombol hapus cepat di samping anchor
     removeBtnEl = document.createElement('div');
     removeBtnEl.title = 'Hapus gambar';
     removeBtnEl.style.cssText =
@@ -775,11 +742,9 @@ const mulaiFlowDrag = () => {
     flowDragOffsetX = flowStartX - rect.left;
     flowDragOffsetY = flowStartY - rect.top;
 
-    // Kunci ukuran supaya tidak berubah saat pindah induk
     img.style.width = rect.width + 'px';
     img.style.height = rect.height + 'px';
 
-    // Angkat dari aliran teks
     img.style.position = 'fixed';
     img.style.margin = '0';
     img.style.zIndex = '999997';
@@ -836,7 +801,6 @@ const cariRegionTitik = (x, y, skipEl = null) => {
             if (sheet) return regionTerdekat(sheet, x, y);
         }
     } catch (err) {
-        /* noop */
     }
     return null;
 };
@@ -1018,7 +982,6 @@ const domPosToQuillIndex = (q, node, offset) => {
     }
 };
 
-// Range dari titik layar (cross-browser).
 const caretRangeAtPoint = (x, y) => {
     try {
         if (document.caretRangeFromPoint) return document.caretRangeFromPoint(x, y);
@@ -1041,7 +1004,6 @@ const indexInSlot = (q, el, x, y) => {
     const blot = Quill.find(el);
     const base = blot ? q.getIndex(blot) : 0;
 
-    // Embed tunggal (garis kop / gambar): sebelum atau sesudah embed
     if (el.nodeName === 'HR' || el.nodeName === 'IMG') {
         return y > r.top + r.height / 2
             ? Math.min(base + 1, Math.max(0, q.getLength() - 1))
@@ -1137,7 +1099,6 @@ const placeCaretAtPoint = (x, y) => {
     const index = quillIndexAtPoint(q, x, y);
     if (index == null) return false;
 
-    // Pasang caret lewat Quill (bukan DOM mentah) agar semuanya konsisten
     q.focus();
     q.setSelection(index, 0);
     return true;
@@ -1163,9 +1124,6 @@ const quillIndexAtPoint = (q, x, y) => {
     return Math.max(0, Math.min(index, Math.max(0, q.getLength() - 1)));
 };
 
-// LISTENER GLOBAL (dipasang sekali)
-
-// HMR/eval-ulang aman: handler lama dilepas dulu, lalu dipasang ulang.
 if (typeof window.__imageToolsUnbind === 'function') window.__imageToolsUnbind();
 const __imageToolsUnbinds = [];
 window.__imageToolsUnbind = () => {
@@ -1188,12 +1146,8 @@ const __bind = (target, type, fn, opts) => {
         const region = img.closest(FLOAT_REGION_SELECTOR) || img.closest('.doc-sheet');
         if (!region) return;
         
-        // preventDefault: cegah seleksi teks & drag bawaan browser.
         e.preventDefault();
         
-        // Tampilkan tools (drag surface + resize handles) untuk gambar floating.
-        // Bila press ini MENSELEKSI (bukan sudah terpilih), click berikutnya
-        // tidak boleh langsung melepas (guard).
         const wasSelectedBefore = activeImage === img;
         showImageTools(activeEditor || findEditorContaining(region), img);
         if (!wasSelectedBefore) imgToggleGuard = true;
@@ -1207,7 +1161,6 @@ const __bind = (target, type, fn, opts) => {
         floatBaseTop = parseFloat(img.style.top) || 0;
     });
 
-    // Siapkan drag angkat & jatuhkan saat menekan gambar biasa
     __bind(document, 'mousedown', (e) => {
         if (e.target?.nodeName !== 'IMG') return;
         if (e.button !== 0) return;
@@ -1247,7 +1200,6 @@ const __bind = (target, type, fn, opts) => {
         e.preventDefault();
     });
 
-    // TITIK SISIP DI MANA SAJA: SEMUA klik kiri di kertas dihitung lewat
     __bind(document,
         'mousedown',
         (e) => {
@@ -1300,8 +1252,6 @@ const __bind = (target, type, fn, opts) => {
             const q = quillsByRegion.get(region);
             if (!q || !q.isEnabled()) return;
 
-            // Hanya titik di ATAS teks. Titik di area kosong kertas ->
-            // biarkan fitur clickAndType (double-click area kosong) bekerja.
             const native = caretRangeAtPoint(e.clientX, e.clientY);
             const overText = !!(
                 native &&
@@ -1318,7 +1268,6 @@ const __bind = (target, type, fn, opts) => {
             if (index == null) return;
             const text = q.getText();
 
-            // TRIPLE-CLICK: blok satu baris/paragraf (tanpa newline penutup)
             if (e.detail >= 3) {
                 const start = text.lastIndexOf('\n', index - 1) + 1;
                 let end = text.indexOf('\n', index);
@@ -1336,15 +1285,12 @@ const __bind = (target, type, fn, opts) => {
             let s = idx;
             let t = idx;
             if (__wordChar(text[idx])) {
-                // kata: huruf/angka
                 while (s > 0 && __wordChar(text[s - 1])) s--;
                 while (t < text.length && __wordChar(text[t])) t++;
             } else if (/\s/.test(text[idx] || '')) {
-                // whitespace: blok run whitespace (meniru perilaku Word)
                 while (s > 0 && /\s/.test(text[s - 1]) && !__wordChar(text[s - 1])) s--;
                 while (t < text.length && /\s/.test(text[t]) && !__wordChar(text[t])) t++;
             } else {
-                // tanda baca: blok run karakter yang sama
                 const ch = text[idx] || '';
                 while (s > 0 && text[s - 1] === ch) s--;
                 while (t < text.length && text[t] === ch) t++;
@@ -1356,10 +1302,8 @@ const __bind = (target, type, fn, opts) => {
     );
 
     __bind(document, 'mousemove', (e) => {
-        // ---- DRAG ANGKAT GAMBAR FLOW: trigger saat digeser + ghost ikut kursor ----
         if (flowDragArmed && !isDraggingFlowImage && flowDragSourceImg) {
             if (e.buttons === 0) {
-                // Tombol sudah dilepas tanpa mouseup -> batalkan arm-nya saja
                 flowDragArmed = false;
                 flowDragSourceImg = null;
             } else if (Math.hypot(e.clientX - flowStartX, e.clientY - flowStartY) >= 4) {
@@ -1369,14 +1313,11 @@ const __bind = (target, type, fn, opts) => {
 
         if (isDraggingFlowImage && flowDragSourceImg) {
             e.preventDefault();
-            // Ghost mengikuti kursor dengan offset genggaman yang sama
             flowDragSourceImg.style.left = (e.clientX - flowDragOffsetX) + 'px';
             flowDragSourceImg.style.top = (e.clientY - flowDragOffsetY) + 'px';
         }
 
-        // ---- RESIZE: tumbuh menuju handle, sudut oposisi tetap sebagai anchor ----
         if (isResizingImage && activeImage) {
-            // Proyeksikan pergerakan kursor ke vektor handle->anchor (skala seragam)
             const vx = e.clientX - resizeAnchorX;
             const vy = e.clientY - resizeAnchorY;
             const denom = resizeBaseVecX * resizeBaseVecX + resizeBaseVecY * resizeBaseVecY;
@@ -1390,7 +1331,6 @@ const __bind = (target, type, fn, opts) => {
             const dW = newW - resizeStartW;
             const dH = newH - resizeStartH;
 
-            // Sisi yang bergerak tergantung handle yang ditarik
             const shiftLeft = resizeCorner === 'nw' || resizeCorner === 'sw';
             const shiftTop = resizeCorner === 'nw' || resizeCorner === 'ne';
 
@@ -1398,7 +1338,6 @@ const __bind = (target, type, fn, opts) => {
                 const region = activeImage.closest(FLOAT_REGION_SELECTOR);
                 const regionW = region ? region.getBoundingClientRect().width : Infinity;
 
-                // Lebar dibatasi selebar section (kertas tidak ikut melebar).
                 let fW = newW;
                 let fH = newH;
                 if (regionW > 0 && fW > regionW) {
@@ -1412,12 +1351,9 @@ const __bind = (target, type, fn, opts) => {
                 activeImage.style.width = fW + 'px';
                 activeImage.style.height = fH + 'px';
 
-                // Anchor diam: geser left/top hanya bila sisi kiri/atas yang bergerak
                 if (shiftLeft) activeImage.style.left = (resizeStartLeft - dW2) + 'px';
                 if (shiftTop) activeImage.style.top = (resizeStartTop - dH2) + 'px';
 
-                // Saat resize: kunci gambar tetap di dalam kertas (header/footer
-                // boleh masuk margin & pojok, body tetap di dalam zona).
                 const [cL, cT] = clampPosToRegion(
                     region,
                     parseFloat(activeImage.style.left) || 0,
@@ -1428,21 +1364,16 @@ const __bind = (target, type, fn, opts) => {
                 activeImage.style.left = cL + 'px';
                 activeImage.style.top = cT + 'px';
 
-                // Garis batas bawah section mengikuti ukuran gambar
+
                 if (region) fitRegionToImage(region);
             } else {
                 activeImage.style.width = newW + 'px';
                 activeImage.style.height = newH + 'px';
-
-                // Gambar di aliran teks: kompensasi margin agar anchor tak bergeser visual
-                if (shiftLeft) activeImage.style.marginLeft = (resizeStartMarginLeft - dW) + 'px';
-                if (shiftTop) activeImage.style.marginTop = (resizeStartMarginTop - dH) + 'px';
             }
 
             positionImageTools();
         }
 
-        // ---- DRAG FLOATING ----
         if (!floatingImg) return;
 
         if (floatingDragArmed && !isDraggingFloating) {
@@ -1456,8 +1387,6 @@ const __bind = (target, type, fn, opts) => {
         if (!isDraggingFloating) return;
         e.preventDefault();
 
-        // Gambar dikunci di dalam kotak section-nya: tidak boleh
-        // melewati garis section saat di-drag.
         const [nextLeft, nextTop] = clampPosToRegion(
             floatingRegion,
             floatBaseLeft + (e.clientX - floatStartX),
@@ -1472,7 +1401,6 @@ const __bind = (target, type, fn, opts) => {
     });
 
     __bind(document, 'mouseup', (e) => {
-        // Selesaikan drag floating
         if (floatingImg) {
             const draggedImg = floatingImg;
             const wasDragged = isDraggingFloating;
@@ -1483,24 +1411,19 @@ const __bind = (target, type, fn, opts) => {
             isDraggingFloating = false;
 
             if (wasDragged) {
-                // Drag sungguhan: click berikutnya tidak boleh melepas.
                 imgToggleGuard = true;
                 document.body.style.userSelect = '';
-                // Lepas di atas region lain (body <-> kop/footer) ->
-                // pindahkan induk gambarnya, bukan sekadar geser left/top.
                 pindahkanFloatingKeRegion(draggedImg, e);
                 notifyDirty();
             }
         }
 
-        // Selesaikan drag angkat & jatuhkan gambar biasa
         if (flowDragArmed || isDraggingFlowImage) {
             const wasDragging = isDraggingFlowImage;
             flowDragArmed = false;
             isDraggingFlowImage = false;
 
             if (wasDragging) {
-                // Drag sungguhan: click berikutnya tidak boleh melepas.
                 imgToggleGuard = true;
                 document.body.style.userSelect = '';
                 selesaiFlowDrag(e);
@@ -1510,11 +1433,13 @@ const __bind = (target, type, fn, opts) => {
         }
 
         if (isResizingImage) {
-            // Finalisasi: tinggi section disesuaikan dengan ukuran akhir
             const resizedImg = activeImage;
             if (resizedImg) {
                 const region = resizedImg.closest(FLOAT_REGION_SELECTOR);
                 if (region) fitRegionToImage(region);
+
+                const bodyRegion = resizedImg.closest('.doc-sheet-body');
+                if (bodyRegion && typeof bodyRegion.__scheduleFlow === 'function') bodyRegion.__scheduleFlow();
             }
             notifyDirty();
             document.body.style.userSelect = '';
@@ -1525,14 +1450,8 @@ const __bind = (target, type, fn, opts) => {
     __bind(document, 'scroll', () => positionImageTools(), true);
     __bind(window, 'resize', () => positionImageTools());
 
-    // Reset guard per-press: setiap mousedown baru memulai siklus seleksi.
-    // lastImgToggleGuard juga direset agar tidak lekat ke press berikutnya.
     __bind(document, 'mousedown', () => { imgToggleGuard = false; lastImgToggleGuard = false; }, true);
 
-    // Klik di luar gambar & alatnya -> tutup mode edit gambar.
-    // Klik SINGKAT pada gambar yang sedang terpilih (termasuk lewat
-    // permukaan drag gambar floating) = toggle-lepas; press yang baru
-    // saja menseleksi / drag sungguhan dipertahankan.
     __bind(document, 'click', (e) => {
         if (e.target === bubbleEl || bubbleEl?.contains(e.target)) return;
         if (e.target === removeBtnEl || removeBtnEl?.contains(e.target)) return;
@@ -1548,10 +1467,6 @@ const __bind = (target, type, fn, opts) => {
             return;
         }
         if (e.target.nodeName === 'IMG') return;
-        // Press yang baru menseleksi gambar via mousedown (floating/zona
-        // terkunci) bisa menembakkan click ke BODY: target mouseup adalah
-        // drag-surface yang baru dibuat, sehingga click jatuh ke common
-        // ancestor (BODY). Itu BUKAN klik-luar - jangan tutup tools.
         if (imgToggleGuard || lastImgToggleGuard) {
             imgToggleGuard = false;
             lastImgToggleGuard = false;
@@ -1566,7 +1481,6 @@ const __bind = (target, type, fn, opts) => {
         const img = stack.find((el) => el.nodeName === 'IMG');
         if (!img) return;
 
-        // Gambar yang terlihat ditangani klik tunggal per-editor
         if (stack[0] === img) return;
 
         if (img.closest('.doc-signature')) return;
@@ -1580,12 +1494,9 @@ const __bind = (target, type, fn, opts) => {
         showImageTools(editor, img);
     });
 
-// TOOLBAR QUILL (satu toolbar bersama untuk semua region)
 
 let activeQuill = null;
 const quillsByRegion = new Map();
-// BODY fallback DOM (tanpa Quill): dideklarasikan di sini supaya
-// unregisterRegion di bawah bisa mengaksesnya tanpa TDZ.
 const domFlowBodies = new Set();
 
 let hiddenImageInput = null;
@@ -1689,7 +1600,6 @@ const insertTableAtSelection = (rows, cols) => {
     const table = q.getModule('table-better');
     if (!table) return;
 
-    // Bila sudah di dalam tabel, tabel baru tidak boleh ditumpuk
     const sel = q.getSelection(true);
     if (sel && q.getFormat(sel.index, sel.length || 1).table) return;
 
@@ -1762,15 +1672,11 @@ const applyCmd = (cmd) => {
             q.format(cmd, !q.getFormat(sel)[cmd]);
             break;
         case 'underline': {
-            // Toggle default solid underline. Juga bersihkan variasi kelas (ul-*)
-            // bila sedang aktif.
             const fmt = q.getFormat(sel);
             if (fmt.underline || fmt.ul) {
-                // Remove all underline formatting (default <u> + variasi kelas)
                 q.format('underline', false);
                 q.formatText(sel.index, sel.length, 'ul', false);
             } else {
-                // Apply solid underline (default)
                 q.format('underline', true);
             }
             break;
@@ -1808,7 +1714,6 @@ const applyCmd = (cmd) => {
         }
         case 'outdent':
         case 'indent': {
-            // Whitelist indent Quill = angka 1..8; string '+1'/'-1' tidak valid.
             const curIndent = q.getFormat(sel).indent;
             const level = typeof curIndent === 'number' ? curIndent : 0;
             const nextLevel =
@@ -1866,10 +1771,8 @@ const bindToolbar = () => {
             const q = getActiveQuill();
             if (!q) return;
 
-            // Tombol mencuri fokus dari editor -> pulihkan seleksi terakhir
             if (!q.getSelection(true)) return;
 
-            // Rata kiri = default = HAPUS atribut align.
             const val = btn.dataset.align;
             q.format('align', val === 'left' ? false : val);
 
@@ -1969,7 +1872,6 @@ const bindToolbar = () => {
         refreshToolbarStates();
     });
 
-    // Klik kanan pada swatch warna = hapus warna
     [colorInput, bgColorInput].forEach((input) => {
         input?.addEventListener('contextmenu', (e) => {
             e.preventDefault();
@@ -1982,14 +1884,12 @@ const bindToolbar = () => {
         });
     });
 
-    // TOOL TABEL: dropdown grid picker + aksi baris/kolom
     const tableDd = document.getElementById('tb-table-dd');
     if (tableDd) {
         const menu = tableDd.querySelector('.toolbar-dropdown-menu');
         const grid = tableDd.querySelector('.table-grid-picker');
         const label = tableDd.querySelector('.table-grid-label');
 
-        // Bangun grid picker 10 x 8 (baris x kolom) sekali saja
         if (grid && grid.children.length === 0) {
             const GRID_COLS = 10;
             const GRID_ROWS = 8;
@@ -2038,24 +1938,19 @@ const bindToolbar = () => {
             menu?.classList.remove('open');
         };
 
-        // Toggle dropdown — tombol utama punya data-cmd="table" yang no-op
-        // di applyCmd, jadi aman dipasangi listener terpisah di sini.
         const mainBtn = tableDd.querySelector('[data-cmd="table"]');
         mainBtn?.addEventListener('click', () => {
             menu?.classList.toggle('open');
-            // Disable aksi baris/kolom bila caret tidak di dalam tabel
             const inside = isInsideTable();
             menu?.querySelectorAll('[data-table-action]').forEach((btn) => {
                 btn.classList.toggle('disabled', !inside);
             });
         });
 
-        // Tutup dropdown saat klik di luar
         document.addEventListener('click', (e) => {
             if (!tableDd.contains(e.target)) closeTableMenu();
         });
 
-        // Aksi baris/kolom/hapus tabel
         menu?.querySelectorAll('[data-table-action]').forEach((btn) => {
             btn.addEventListener('click', (e) => {
                 if (btn.classList.contains('disabled')) {
@@ -2068,25 +1963,19 @@ const bindToolbar = () => {
         });
     }
 
-    // UNDERLINE DROPDOWN
     const underlineDd = document.getElementById('tb-underline-dd');
     if (underlineDd) {
         const underlineMenu = underlineDd.querySelector('.underline-menu');
         const underlineToggle = document.getElementById('tb-underline-toggle');
 
-        // Apply underline style
         const applyUnderlineStyle = (style) => {
             const q = getActiveQuill();
             if (!q) return;
             const sel = q.getSelection(true);
             if (!sel) return;
 
-            // Hapus underline bawaan (<u> blot) terlebih dahulu
             q.format('underline', false);
 
-            // Hapus variasi garis bawah yang sedang aktif, lalu terapkan
-            // variasi baru. ClassAttributor 'ul' (prefix 'ul') menghasilkan
-            // kelas ul-<style> yang cocok dengan CSS yang ada.
             q.formatText(sel.index, sel.length, 'ul', false);
             q.formatText(sel.index, sel.length, 'ul', style);
 
@@ -2094,20 +1983,17 @@ const bindToolbar = () => {
             refreshToolbarStates();
         };
 
-        // Toggle dropdown
         underlineToggle?.addEventListener('click', (e) => {
             e.stopPropagation();
             underlineMenu?.classList.toggle('open');
         });
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!underlineDd.contains(e.target)) {
                 underlineMenu?.classList.remove('open');
             }
         });
 
-        // Handle underline style selection
         underlineMenu?.querySelectorAll('.underline-dd-item').forEach((btn) => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -2170,11 +2056,8 @@ const syncMirrorsFrom = (sourceQ) => {
                     srcImgs.forEach((im) => m.regionEl.appendChild(im.cloneNode(true)));
                 }
             } catch (err) {
-                /* noop */
             }
 
-            // Salin juga tinggi minimum region (garis section yang
-            // "mengikuti" gambar floating) ke semua halaman konsisten.
             if (m.regionEl && entry.regionEl &&
                 (m.regionEl.style.minHeight || entry.regionEl.style.minHeight)) {
                 m.regionEl.style.minHeight = entry.regionEl.style.minHeight;
@@ -2186,7 +2069,6 @@ const syncMirrorsFrom = (sourceQ) => {
                 const maxIndex = Math.max(0, m.q.getLength() - 1);
                 m.q.setSelection(Math.min(m.lastCaret, maxIndex), 'silent');
             } catch (err) {
-                /* noop: caret basi tidak wajib dipulihkan */
             }
         });
     } finally {
@@ -2255,9 +2137,6 @@ const normalizeTableGrid = (table) => {
     });
     if (maxCols < 1) maxCols = 1;
 
-    // Hitung lebar setiap sel berdasarkan posisi kolom & colspan.
-    // Jika <colgroup> ada, jumlahkan lebar kolom yang dicakup sel.
-    // Jika tidak, gunakan lebar seragam (fallback).
     const getCellWidth = (ci, colspan) => {
         if (colWidths.length >= maxCols) {
             let total = 0;
@@ -2281,11 +2160,8 @@ const normalizeTableGrid = (table) => {
             if (cd && cd.style) cell.setAttribute('style', cd.style);
             const colspan = (cd && cd.colspan) || 1;
             cell.style.width = getCellWidth(ci, colspan);
-            // Pertahankan rowspan agar kolom kanan tampil sebagai satu cell menyatu.
             if (cd && cd.rowspan > 1) cell.setAttribute('rowspan', String(cd.rowspan));
             const html = (cd && cd.html) ? cd.html.trim() : '';
-            // Sel kosong (baris pendek / colspan lanjutan) diberi <br>: quill-table-better
-            // membuang style sel tanpa konten.
             cell.innerHTML = html || '<br>';
             frag.appendChild(cell);
         }
@@ -2322,9 +2198,6 @@ const preprocessContractTables = (html) => {
         normalizeTableGrid(table);
         table.querySelectorAll('caption').forEach((el) => el.remove());
 
-        // Pertahankan penanda blok atomik paginasi (data-flow-atomic) saat
-        // tabel dinormalisasi sebelum masuk Quill. Tanpa ini, tabel formula
-        // satu baris kehilangan penandanya dan bisa berkedip di batas halaman.
         try {
             if (table.querySelectorAll(':scope > tbody > tr, :scope > tr').length <= 1) {
                 const src = table.outerHTML || '';
@@ -2383,11 +2256,6 @@ const attachQuillToRegion = (regionEl) => {
 
         let q;
         try {
-            // Zona header/footer TIDAK memakai modul table-better: matchers-nya
-            // mengubah tabel polos menjadi cangkang <temporary> kosong (tinggi
-            // 0px, konten hilang) pada quill 2.0.1 + quill-table-better 1.2.3.
-            // Dengan table blots bawaan Quill core, tabel polos footer/header
-            // terkonversi utuh dan tetap bisa diedit sebagai teks.
             const zoneRole = regionEl.dataset?.region;
             const isZone = zoneRole === 'header' || zoneRole === 'footer';
             q = new Quill(host, {
@@ -2416,15 +2284,6 @@ const attachQuillToRegion = (regionEl) => {
             return null;
         }
 
-        // TableClipboard (modules/clipboard milik quill-table-better yang
-        // terdaftar GLOBAL via QuillTableBetter.register()) menyuntikkan
-        // matchers tabelnya ke SETIAP instance Quill. Delta hasil campuran
-        // format table-better ('table-cell'/'table-cell-block') dengan
-        // format 'table' bawaan core GAGAL dimaterialisasi setContents:
-        // isi sel hilang dan tabel menjadi cangkang tinggi 0px.
-        // Dedupe: sisakan matcher core pertama per selector + matcher
-        // 'td, th' milik editor ini (yang ditambahkan paling akhir),
-        // buang matcher table-better ('table' & 'col' dan duplikatnya).
         {
             const ms = q.clipboard.matchers || [];
             const firstOf = (sel) => ms.find(([s]) => s === sel);
@@ -2432,8 +2291,8 @@ const attachQuillToRegion = (regionEl) => {
             q.clipboard.matchers = [
                 ...ms.filter(([s]) =>
                     s !== 'tr' && s !== 'td, th' && s !== 'table' && s !== 'col'),
-                firstOf('tr'),   // matcher core: format 'table' (nomor baris)
-                lastOf('td, th'), // matcher editor: align/bold/rowspan sel
+                firstOf('tr'),   
+                lastOf('td, th'),
             ].filter(Boolean);
         }
 
@@ -2452,7 +2311,6 @@ const attachQuillToRegion = (regionEl) => {
                     }
                 });
             }
-            // Pertahankan font-weight:bold untuk <th> header cells
             if (node.tagName === 'TH' && /font-weight:\s*bold/i.test(style)) {
                 if (delta.ops && delta.ops.length) {
                     delta.ops.forEach((op) => {
@@ -2487,11 +2345,6 @@ const attachQuillToRegion = (regionEl) => {
             return delta;
         });
 
-        // Pra-cek: struktur tabel yang TIDAK didukung (tabel di dalam sel)
-        // atau HTML ZONA ber-tabel (header/footer dokumen kontrak) membentuk
-        // blot campuran -> optimize() melempar "formats is not a function".
-        // Zona memang non-editable (cermin): simpan HTML apa adanya, pakai
-        // paginasi DOM.
         {
             const __role = regionEl.dataset ? regionEl.dataset.region : null;
             const __nestedTable = /<(?:td|th)\b[^>]*>[\s\S]*?<table/i.test(existingHtml);
@@ -2520,26 +2373,9 @@ const attachQuillToRegion = (regionEl) => {
     
             pasteHtmlSafely(q, existingHtml);
 
-            // Guard anti-hilang: clipboard.convert bisa GAGAL SENYAP (delta
-            // kosong / tabel ditelan) tanpa melempar error apa pun. Zona
-            // header/footer ber-tabel wajib selamat — kalau tabelnya hilang
-            // setelah konversi, pulihkan HTML asli dan lepas region dari
-            // Quill (getHtml() tetap membaca innerHTML region sehingga
-            // simpanan tidak kehilangan tabel).
-            // CATATAN: bindDomPageOverflowWatch hoisted — aman dipanggil
-            // dari sini walau definisinya di bawah (function declaration).
             if (/<table/i.test(existingHtml)
                 && (!q.root.querySelector('table') || !q.root.querySelector('table tr'))) {
                 const failedRole = regionEl.dataset?.region;
-                // Zona header/footer ber-tabel memang dirancang tetap HTML
-                // asli (footer cover: identitas | paraf/stempel).
-                // BODY ber-tabel juga NORMAL jatuh ke jalur ini: matchers
-                // table-better (quill 2.0.1 + quill-table-better 1.2.3) menelan
-                // tabel menjadi cangkang kosong. Konversi ulang memakai Quill
-                // core DITOLAK karena core tidak mengenal <ol start>/type dan
-                // tidak mendukung list bersarang — penomoran ayat kontrak
-                // (colocation: start="8"/start="3", kemitraan: list bersarang)
-                // akan rusak. HTML dipulihkan utuh; paginasi jalan lewat DOM.
                 if (failedRole === 'body') {
                     const tableCount = (existingHtml.match(/<table/gi) || []).length;
                     console.info(
@@ -2558,10 +2394,6 @@ const attachQuillToRegion = (regionEl) => {
                 regionEl.setAttribute('contenteditable', 'true');
                 regionEl.classList.add('ql-editor');
                 if (failedRole === 'body') {
-                    // BODY fallback (tanpa Quill) TETAP ikut paginasi otomatis
-                    // lewat alur DOM — tanpa ini isi template ber-tabel besar
-                    // tidak pernah dipindah ke kertas berikut dan tumpah
-                    // keluar kertas secara visual.
                     regionEl.dataset.domFlow = '1';
                     bindDomPageOverflowWatch(regionEl);
                 }
@@ -2591,8 +2423,6 @@ const attachQuillToRegion = (regionEl) => {
             seenFloatImgs.add(key);
         });
 
-        // Pulihkan tinggi section yang "mengikuti" gambar floating
-        // (garis batas bawah section tetap rapi setelah reload).
         fitRegionToImage(regionEl);
 
         const zoneRole = regionEl.dataset?.region;
@@ -2639,22 +2469,33 @@ const attachQuillToRegion = (regionEl) => {
 
 let autoPaginationApi = null;
 
-const PAGE_FLOW_TOL = 4;        // toleransi ukur (px)
-const PAGE_FLOW_PULL_MARGIN = 10; // hysteresis tarik-balik (px): blok hanya
-                                  // ditarik balik bila muat dengan sisa ruang
-                                  // lega, supaya tidak langsung meluap lagi
-                                  // dan memicu ping-pong push<->pull yang
-                                  // terlihat seperti teks berkedip.
-const PAGE_FLOW_MAX_STEPS = 24; // pengaman anti-loop per kali jalan
-const PAGE_FLOW_MAX_REQUEUES = 200; // pengaman antre-ulang (dokumen panjang)
-const PAGE_FLOW_MAX_TOTAL    = 50;  // batas total iterasi paginasi per siklus
+const PAGE_FLOW_TOL = 4;        
+const PAGE_FLOW_PULL_MARGIN = 10; 
+const PAGE_FLOW_MAX_STEPS = 24; 
+const PAGE_FLOW_MAX_REQUEUES = 200; 
+const PAGE_FLOW_MAX_TOTAL    = 50; 
 let   pageFlowTotalRuns      = 0;
-let   pageFlowHalted         = false; // kunci keras: berhenti total sampai sesi paginasi baru
-let   pageFlowJustPushed     = new WeakMap(); // sheet -> blok yang barusan didorong ke kertas berikut
-const pageFlowJustPushedSig  = new Map(); // pageUid -> sidik konten blok terakhir
+let   pageFlowHalted         = false;
+let   pageFlowJustPushed     = new WeakMap(); 
+const pageFlowJustPushedSig  = new Map();
 
-// Sesi paginasi baru (edit user / resize): memori anti-flip lama dibuang
-// agar tidak menghalangi pemindahan yang sah setelah konten berubah.
+// Batas bawah AREA KONTEN yang benar-benar terlihat (px).
+//
+// clientHeight sebuah elemen SUDAH MEMUAT padding-top + padding-bottom, jadi
+// menambahkan padT lagi (pola lama: boxRect.top + padT + clientHeight) membuat
+// garis deteksi turun sebesar ±1 baris. Akibatnya blok yang meluap sedikit
+// tidak pernah dianggap melintasi batas -> paginasi "tidak menemukan" blok
+// untuk didorong -> teks meluap kecil tertinggal ter-clip di bawah footer
+// (gejala "teks terkubur di footer/header"). Kurangi paddingBottom agar garis
+// jatuh tepat di tepi bawah area isi yang terlihat.
+function __flowEffBottom(boxEl) {
+    try {
+        const boxRect = boxEl.getBoundingClientRect();
+        const padB = parseFloat(getComputedStyle(boxEl).paddingBottom || '0') || 0;
+        return boxRect.top + (boxEl.clientHeight || 0) - padB - PAGE_FLOW_TOL;
+    } catch (err) { return 0; }
+} 
+
 function __resetPushMemory() {
     pageFlowJustPushed = new WeakMap();
     pageFlowJustPushedSig.clear();
@@ -2686,13 +2527,6 @@ function __rememberPushedGroup(sheet, sig) {
     if (key && sig) pageFlowJustPushedSig.set(key, sig);
 }
 
-// ---------------------------------------------------------------------------
-// Atribut internal pagination. WAJIB dihapus dari HTML yang disimpan/di-ekspor.
-//
-// Kalau bocor ke body_html, saat dokumen dimuat ulang atribut-atribut ini ikut
-// terbawa dan alur flow akan salah membaca batas continuation — gejalanya
-// urutan pasal/lampiran kembali "acak" meski sudah disimpan rapi. Jadi
-// Kehadiran atribut ini di HTML tersimpan selalu berarti bug.
 const __FLOW_INTERNAL_ATTRS = [
     'data-flow-cont',
     'data-split-from',
@@ -2701,8 +2535,6 @@ const __FLOW_INTERNAL_ATTRS = [
     'data-domflow-marker',
 ];
 
-// Buang atribut internal dari string HTML TANPA menyentuh DOM yang hidup
-// (parse ke elemen terpisah, serialize ulang).
 function __stripFlowInternalAttrs(html) {
     if (!html || typeof html !== 'string') return html || '';
     if (!__FLOW_INTERNAL_ATTRS.some((a) => html.indexOf(a) >= 0)) return html;
@@ -2718,42 +2550,17 @@ function __stripFlowInternalAttrs(html) {
         });
         return holder.innerHTML;
     } catch (err) {
-        // Kalau parsing gagal, lebih baik kirim HTML mentah daripada kosong.
         return html;
     }
 }
 
-// Anchor insertion blok lanjutan (fix urutan isi antar-halaman)
-// ---------------------------------------------------------------------------
-//
-// Riwayat bug: SELURUH blok lanjutan disisipkan dengan
-// `targetBody.insertBefore(node, targetBody.firstChild)` — selalu di depan.
-// Itu benar untuk satu blok, tapi salah begitu satu halaman menerima luapan
-// dari lebih dari satu blok: tiap sisipan baru masuk paling depan, sehingga
-// blok yang menyusul MENDOMINASI blok sebelumnya.
-//
-// Contoh nyata (soho): satu halaman penuh -> PASAL 4, isi pasal 4, lalu tabel
-// lampiran sama-sama meluap ke halaman berikutnya. Blok terakhir yang diproses
-// mendarat di depan => isi pasal mendahului judul pasal, dan lampiran
-// mendahului pasal. Hasinya urutan terasa "acak".
-//
-// Perbaikannya: sisipkan di BATAS run continuation, bukan di firstChild.
-// `__flowContBoundary` mencari anak pertama target yang BUKAN continuation;
-// blok baru disisipkan tepat DI DEPATNYA. Continuation yang sudah ada tetap
-// di depan (memang harus mendahului konten lama halaman tersebut) dan
-// continuation baru menyusul di PATENTinya — jadi urutannya sesuai urutan
-// sumber dokumen.
 function __isFlowContinuation(node) {
     try {
         if (!node || !node.dataset) return false;
-        // Tabel/list lanjutan hasil belah => sudah ada(splitFrom).
-        // Blok utuh yang didorong dari halaman sebelumnya => flowCont.
         return !!(node.dataset.splitFrom || node.dataset.flowCont);
     } catch (err) { return false; }
 }
 
-// Anak pertama `root` yang bukan continuation; null bila seluruh isi root
-// adalah continuation (atau root kosong) => sisip di akhir.
 function __flowContBoundary(root) {
     try {
         const kids = Array.from(root.children || []);
@@ -2764,8 +2571,6 @@ function __flowContBoundary(root) {
     return null;
 }
 
-// Sisipkan `nodes` (DocumentFragment/Element/array) di batas continuation,
-// dijaga urutannya, lalu tandai sebagai continuation.
 function __domFlowInsertContinuation(targetBody, nodes) {
     try {
         const list = Array.isArray(nodes) ? nodes : [nodes];
@@ -2778,22 +2583,6 @@ function __domFlowInsertContinuation(targetBody, nodes) {
     } catch (err) { /* noop */ }
 }
 
-// Rencana sisipkan continuation di targetQ: indeks Quill (bukan 0) + penanda
-// blok mana yang harus ditandai sebagai continuation.
-//
-// Tanpa `retain` di depan, `updateContents()` selalu menyisipkan di index 0 —
-// persis sumber bug yang sudah diperbaiki di jalur DOM. Plan ini menyamakan
-// kedua jalur: konten lanjutan menyusul continuation sebelumnya, dan mendahului
-// konten lama halaman tujuan.
-//
-// Kasus `boundary == null` (seluruh isi target adalah continuation, atau
-// target kosong): batch baru wajib APPEND DI AKHIR, bukan sisip di 0.
-// Jalur DOM memakai `insertBefore(node, null)` (= append) sehingga benar;
-// jalur Quill sebelumnya memakai `retain(0)` (= sisip paling depan) sehingga
-// tiap batch susulan (Pasal 4, isi, tabel Lampiran SOHO) membalik batch
-// sebelumnya — gejala "pasal acak + lampiran di tengah pasal". Perbaikan:
-// kembalikan indeks akhir dokumen (`getLength()`), mirroring pola append
-// yang dipakai `__pullBackPass` (`retain(quill.getLength())`).
 function __flowContInsertPlan(targetQ) {
     try {
         const boundary = __flowContBoundary(targetQ.root);
@@ -2815,7 +2604,6 @@ function __flowContInsertPlan(targetQ) {
     }
 }
 
-// Susun delta continuation: ops dari `delta` didorong setelah `plan.index`.
 function __flowContDelta(DeltaCtor, delta, plan) {
     const chg = new DeltaCtor();
     if (plan && plan.index > 0) chg.retain(plan.index);
@@ -2827,28 +2615,9 @@ function __flowContDelta(DeltaCtor, delta, plan) {
     return chg;
 }
 
-// Tandai run continuation teratas pada targetQ sebagai `data-flow-cont`.
-//
-// Dipanggil SESUDAH guard jumlah baris/item lolos, supaya blok yang gagal
-// mendarat tidak ikut tertandai.
-//
-// PENTING: batasannya harus diambil dari `plan` (yang dihitung SEBELUM sisip),
-// bukan dihitung ulang di sini. Kalau dihitung ulang setelah sisip, anak
-// pertama target adalah blok yang baru saja disisip dan belum bertanda, jadi
-//helper ini langsung berhenti di blok itu dan tidak menandai apa pun —
-// akibatnya __flowContInsertPlan selalu mengembalikan 0 pada pemanggilan
-// berikutnya dan urutan blok lanjutan kembali terbalik.
-//
-// Kalau plan tidak diberikan (fallback), batasannya dihitung ulang dari DOM.
-//
-// Atribut ini sengaja masuk daftar __FLOW_INTERNAL_ATTRS: ia hanya hidup di
-// DOM aktif dan WAJIB dibuang sebelum HTML disimpan/di-ekspor.
 function __markFlowContinuationRun(targetQ, plan) {
     try {
         const kids = Array.from(targetQ.root.children || []);
-        // `hasPlan` membedakan "plan diberikan dengan boundary null" (seluruh
-        // isi target adalah continuation => tandai SEMUA anak) dari "plan tidak
-        // diberikan" (fallback: hitung ulang batas dari DOM).
         const hasPlan = !!(plan && typeof plan === 'object');
         let boundary;
         if (hasPlan) {
@@ -2863,8 +2632,6 @@ function __markFlowContinuationRun(targetQ, plan) {
     } catch (err) { /* noop */ }
 }
 
-// Total panjang delta hasil konversi (dipakai untuk memperbarui anchor
-// quaternion setelah sisipan).
 function __flowDeltaLength(delta) {
     let total = 0;
     for (const op of (delta && delta.ops) || []) {
@@ -2874,7 +2641,7 @@ function __flowDeltaLength(delta) {
 }
 
 const pageFlowTimers = new WeakMap();
-const pageFlowRequeues = new WeakMap(); // bodyEl -> jumlah antre-ulang aktif
+const pageFlowRequeues = new WeakMap(); 
 const pageFlowQueue = Promise.resolve();
 
 const __nextFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
@@ -2884,8 +2651,8 @@ function __flowDeltaCtor(quill) {
     try {
         const sample = quill.getContents();
         if (sample && typeof sample.constructor === 'function') return sample.constructor;
-    } catch (err) { /* coba jalur lain */ }
-    try { return Quill.import('delta'); } catch (err) { /* kalah */ }
+    } catch (err) { }
+    try { return Quill.import('delta'); } catch (err) {  }
     return null;
 }
 
@@ -2929,19 +2696,12 @@ function __cloneOps(ops) {
     return ops.map((o) => Object.assign({}, o));
 }
 
-// Judul/heading kontrak (PASAL N, baris judul pasal, DEFINISI, SPESIFIKASI,
-// MENIMBANG, MENGINGAT, LAMPIRAN): paragraf pendek yang SELURUH teksnya
-// bold. Dipakai keep-with-next paginasi agar heading tidak tertinggal
-// sendirian di dasar kertas saat isinya pindah ke kertas berikutnya.
 function __isContractHeadingLine(el) {
     try {
         if (!el || el.tagName !== 'P') return false;
         const txt = (el.textContent || '').replace(/\u00a0/g, ' ').trim();
         if (!txt || txt.length > 64) return false;
         if (!el.querySelector('strong, b')) return false;
-        // Seluruh teks harus berada di dalam <strong>/<b>: setelah elemen
-        // bold dihapus, tidak boleh ada sisa teks sama sekali (bold inline
-        // pada "PIHAK KEDUA" dsb. tidak dianggap heading).
         const probe = el.cloneNode(true);
         probe.querySelectorAll('strong, b').forEach((s) => s.remove());
         if ((probe.textContent || '').replace(/\u00a0/g, ' ').trim()) return false;
@@ -2949,14 +2709,6 @@ function __isContractHeadingLine(el) {
     } catch (err) { return false; }
 }
 
-// Awal grup heading yang menempel tepat di atas blok yang akan dipindah
-// (PASAL N + baris judul pasal = 1-2 baris). Nilai kembalian <= idx.
-//
-// Aturan dua arah (keep-with-next atomik):
-// - Mundur: serap heading yang menempel di atas idx (PASAL N + judul).
-// - Maju: bila kids[idx] SENDIRI adalah heading, serap 1 blok konten tepat
-//   di bawahnya supaya heading tidak pernah pindah sendirian (yatim) dan
-//   urutan PASAL N + judul + isi selalu utuh sebagai satu grup.
 function __headingGroupStart(kids, idx) {
     try {
         let start = idx;
@@ -2965,29 +2717,17 @@ function __headingGroupStart(kids, idx) {
     } catch (err) { return idx; }
 }
 
-// Akhir (eksklusif) grup heading atomik: bila blok pada `idx` adalah heading,
-// grup mencakup 1 blok konten berikutnya (judul -> isi, atau PASAL N ->
-// judul bila judul tidak terdeteksi sebagai heading oleh Quill). Dipakai
-// sisi pull-back agar blok yang ditarik balik tidak memisahkan heading dari
-// isinya, dan sisi push agar heading yang meluap sendiri ikut membawa isinya.
 function __headingGroupEnd(kids, idx) {
     try {
         if (!kids || idx < 0 || idx >= kids.length) return idx + 1;
         if (!__isContractHeadingLine(kids[idx])) return idx + 1;
         let end = idx + 1;
-        // Serap baris heading lanjutan (PASAL N diikuti baris judul).
         while (end < kids.length && __isContractHeadingLine(kids[end])) end++;
-        // Serap tepat 1 blok konten non-heading (isi / tabel lampiran) agar
-        // grup tetap atomik; tabel/list ikut sebagai satu kesatuan.
         if (end < kids.length && !__isContractHeadingLine(kids[end])) end++;
         return Math.min(end, kids.length);
     } catch (err) { return idx + 1; }
 }
 
-// Blok atomik paginasi (mis. tabel formula satu baris di akhir LAMPIRAN B):
-// tidak boleh dipindah/dibelah bolak-balik di batas halaman. Blok ini hanya
-// berpindah bila jelas meluap penuh ke halaman berikutnya, sehingga tabel
-// akhir tidak berkedip.
 function __isAtomicFlowKid(kid) {
     try {
         if (kid && kid.dataset && kid.dataset.flowAtomic === '1') return true;
@@ -2995,10 +2735,6 @@ function __isAtomicFlowKid(kid) {
     } catch (err) { return false; }
 }
 
-// Blok atomik Quill menyimpan atribut data-flow-atomic di dalam delta,
-// sehingga node hasil konversi Quill kadang tidak membawa dataset-nya.
-// Gunakan probe HTML mentah sebagai fallback agar tabel formula satu baris
-// tetap dikenali sebagai blok atomik di semua jalur paginasi.
 function __atomicProbeHtml(kid) {
     try {
         if (kid && typeof kid.getAttribute === 'function'
@@ -3009,10 +2745,6 @@ function __atomicProbeHtml(kid) {
     } catch (err) { return false; }
 }
 
-// Sidik konten blok untuk anti-flip paginasi: pemindahan jalur Quill
-// menyalin delta ke kertas berikut sebagai node DOM BARU, sehingga
-// perbandingan identitas objek saja tidak cukup untuk mengenali blok
-// yang barusan didorong (push -> pull -> push berulang = teks berkedip).
 function __flowSig(el) {
     try {
         if (!el || !el.tagName) return '';
@@ -3053,13 +2785,6 @@ function __looksEmptyBody(bodyEl) {
     } catch (err) { return false; }
 }
 
-// ─── PAGINASI DOM (untuk BODY fallback tanpa Quill) ───
-// Dipakai saat konversi tabel template gagal senyap: region BODY berisi
-// HTML mentah + contenteditable (tanpa instance Quill), sehingga alur
-// paginasi Quill (delta/blot) tidak bisa dipakai. Alur ini memindahkan
-// node DOM tingkat-atas ke kertas berikut, termasuk MEMBELAH <table>
-// besar baris-per-baris (<tr>) supaya tabel spesifikasi bisa mengalir
-// ke halaman 2, 3, dst.
 
 function __domKids(bodyEl) {
     try {
@@ -3081,9 +2806,7 @@ async function __domResolveTargetBody(sheet) {
         const nb = nextSheet.querySelector('.doc-sheet-body[data-region="body"]');
         if (nb && (quillsByRegion.has(nb) || nb.dataset?.domFlow === '1')) return nb;
     }
-    // Kertas berikut ada tapi body-nya belum terinisialisasi (mis. baru
-    // dibuat createPageAfter lalu attachRegion gagal sebelum bind): pakai
-    // langsung sebagai target DOM + pasang watcher agar alirannya jalan.
+
     if (nextSheet && nextSheet.classList.contains('doc-sheet')) {
         const nb = nextSheet.querySelector('.doc-sheet-body[data-region="body"]');
         if (nb && !quillsByRegion.has(nb)) {
@@ -3101,9 +2824,7 @@ async function __domResolveTargetBody(sheet) {
         if (quillsByRegion.has(created) || created.dataset?.domFlow === '1') return created;
         await __waitMs(25);
     }
-    // createPageAfter membuat body Quill kosong; kalau attach-nya belum
-    // terdaftar saat kita cek, jadikan target DOM sementara supaya flow
-    // tidak mati (nanti Quill attach saat rebuild / watcher jalan).
+
     if (created && !quillsByRegion.has(created)) {
         created.dataset.domFlow = '1';
         bindDomPageOverflowWatch(created);
@@ -3115,23 +2836,16 @@ async function __domResolveTargetBody(sheet) {
 function __contentOverflowPx(quill, boxEl) {
     try {
         if (!boxEl || __looksEmptyBody(boxEl)) return 0;
-        const inner = (quill.root && quill.root !== boxEl) ? Math.max(0, quill.root.scrollHeight) : 0;
-        const outer = Math.max(boxEl.scrollHeight || 0, inner);
+        const cs = getComputedStyle(boxEl);
+        const pad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+        const inner = (quill.root && quill.root !== boxEl) ? Math.max(0, quill.root.scrollHeight) + pad : 0;
+        const outer = Math.max(boxEl.ScrollHeight || 0, inner);
         return outer - (boxEl.clientHeight || 0);
     } catch (err) { return 0; }
 }
 
-// Belah <table> besar: pindahkan baris (<tr>) yang meluap ke tabel baru
-// di kertas berikut. Baris yang "digantung" rowspan dari baris sebelumnya
-// tidak ikut dipindah supaya struktur kolom tidak rusak.
 function __domSplitTable(tableEl, effBottom, targetBody) {
     try {
-        // Tabel atomic (ditandai 'atomic' di template) tidak boleh dibelah.
-        // Kasus nyata: tabel PASAL 17 kontrak-kemitraan punya rowspan 13 pada
-        // 14 baris. Kalau dipecah per-baris, sel merge tertinggal sendirian
-        // di halaman asal sementara isinya pindah ke kertas lain — PASAL 17
-        // lalu tampak hilang dan isi yang dipindah mendahului LAMPIRAN.
-        // __domFlowPass memakai jalur "pindah utuh" setelah return 0 ini.
         if (__isAtomicFlowKid(tableEl)) return 0;
 
         const rows = Array.from(tableEl.querySelectorAll(':scope > tbody > tr, :scope > tr'));
@@ -3164,8 +2878,6 @@ function __domSplitTable(tableEl, effBottom, targetBody) {
                 Math.floor(Math.random() * 1e6).toString(36);
         }
         let targetTable = null;
-        // Cari tabel lanjutan yang sudah ada (bisa di posisi mana pun karena
-        // tiap siklus menyisipkan di depan): cocokkan penanda splitFrom.
         const prevKids = Array.from(targetBody.children || []);
         for (const kid of prevKids) {
             if (kid.tagName === 'TABLE' && kid.dataset?.splitFrom === tableEl.dataset.splitId) {
@@ -3185,14 +2897,8 @@ function __domSplitTable(tableEl, effBottom, targetBody) {
             const tbody = document.createElement('tbody');
             targetTable.appendChild(tbody);
             targetTable.dataset.splitFrom = tableEl.dataset.splitId;
-            // Sisipkan di BATAS run continuation (bukan firstChild) supaya
-            // beberapa tabel lanjutan yang masuk ke halaman yang sama tetap
-            // berurutan sesuai urutan sumber. Lihat __domFlowInsertContinuation.
             __domFlowInsertContinuation(targetBody, targetTable);
         }
-        // Tabel lanjutan yang sudah ada TIDAK dipindahkan lagi: posisinya sudah
-        // benar di run continuation. Baris baru cukup di-append (lihat bawah)
-        // sehingga urutan baris tetap terjaga.
         let targetTbody = targetTable.querySelector(':scope > tbody');
         if (!targetTbody) {
             targetTbody = document.createElement('tbody');
@@ -3207,8 +2913,6 @@ function __domSplitTable(tableEl, effBottom, targetBody) {
     } catch (err) { return 0; }
 }
 
-// Belah <ol>/<ul> besar pada body DOM-fallback: pindahkan <li> yang meluap
-// ke list baru di kertas berikut. Analog __domSplitTable untuk blok list.
 function __domSplitList(listEl, effBottom, targetBody) {
     try {
         const items = Array.from(listEl.children || []).filter((c) => c.tagName === 'LI');
@@ -3238,23 +2942,12 @@ function __domSplitList(listEl, effBottom, targetBody) {
             targetList = listEl.cloneNode(false);
             targetList.removeAttribute('id');
             targetList.dataset.splitFrom = listEl.dataset.splitId;
-            // Nomor ayat harus BERSAMBUNG: list lanjutan mulai dari item
-            // (cut + 1) list asal. `start` list asal bisa non-1 (ayat pasal
-            // colocation bersambung antar pasal, mis. start="8"), jadi
-            // dasarnya atribut start asal, bukan 1.
             if (listEl.tagName === 'OL') {
                 const startBase = parseInt(listEl.getAttribute('start') || '1', 10) || 1;
                 targetList.setAttribute('start', String(startBase + cut));
             }
-            // Sisipkan di BATAS run continuation (bukan firstChild) supaya
-            // beberapa list lanjutan di halaman yang sama tetap berurutan
-            // sesuai urutan sumber.
             __domFlowInsertContinuation(targetBody, targetList);
         }
-        // List lanjutan yang sudah ada (belah bertahap) tidak dipindahkan
-        // lagi — posisinya sudah benar di run continuation. Nilai `start` dari
-        // belah pertama juga tidak ditimpa: item target sudah memulai
-        // penomoran dari posisi itu.
         let moved = 0;
         for (let i = cut; i < items.length; i++) {
             targetList.appendChild(items[i]);
@@ -3264,9 +2957,6 @@ function __domSplitList(listEl, effBottom, targetBody) {
     } catch (err) { return 0; }
 }
 
-// Belah <ol>/<ul> besar pada body DOM-fallback menuju TARGET QUILL:
-// konversi item yang meluap ke delta target (sinkron blot), verifikasi
-// benar-benar mendarat, BARU hapus <li> asal dari DOM (tidak ada data hilang).
 function __domSplitListToQuill(listEl, effBottom, targetQ) {
     try {
         const items = Array.from(listEl.children || []).filter((c) => c.tagName === 'LI');
@@ -3292,7 +2982,6 @@ function __domSplitListToQuill(listEl, effBottom, targetQ) {
         const DeltaCtor = __flowDeltaCtor(targetQ);
         if (!DeltaCtor) return 0;
         const liBefore = targetQ.root.querySelectorAll('li').length;
-        // Sisipkan di indeks setelah run continuation teratas (bukan index 0).
         const contPlan = __flowContInsertPlan(targetQ);
         targetQ.updateContents(__flowContDelta(DeltaCtor, delta, contPlan), 'silent');
         const liAfter = targetQ.root.querySelectorAll('li').length;
@@ -3310,17 +2999,11 @@ function __domSplitListToQuill(listEl, effBottom, targetQ) {
     } catch (err) { return 0; }
 }
 
-// Ambil alih BODY Quill menjadi BODY fallback DOM (round-trip innerHTML —
-// tanpa kehilangan data). Dipakai saat tabel besar tidak bisa dibelah lewat
-// delta Quill (lookup blot baris gagal / konversi menelan tabel); alur DOM
-// kemudian membelah baris tabel secara native dan terbukti jalan.
 function __takeoverBodyAsDom(bodyEl) {
     try {
         if (!bodyEl || !bodyEl.isConnected) return false;
         const q = quillsByRegion.get(bodyEl);
         let html = '';
-        // Gambar floating hidup sebagai :scope > img region (di luar q.root)
-        // — kumpulkan dulu supaya tidak hilang saat innerHTML ditimpa.
         const floatImgs = Array.from(bodyEl.querySelectorAll(':scope > img'));
         if (q) {
             html = q.root ? q.root.innerHTML : '';
@@ -3349,19 +3032,12 @@ async function __domFlowPass(bodyEl) {
     const sheet = bodyEl ? bodyEl.closest('.doc-sheet') : null;
     if (!sheet) return false;
 
-    // Kertas sampul (data-flow-lock="cover" dari markLockedSheets()) tidak boleh
-    // DIKURAS paginasi. Tanpa guard ini, blok sampul yang melewati batas bawah
-    // (pihak kedua + "Nomor:") didorong ke kertas berikutnya — persis gejala
-    // sampul kontrak-kemitraan meluber ke halaman 2. __pullBackPass() sudah
-    // punya guard serupa (lihat di bawah); ini menutup sisi "dorong".
     if (sheet.dataset?.flowLock) return false;
 
     if (__domContentOverflowPx(bodyEl) <= PAGE_FLOW_TOL) return false;
     const kids = __domKids(bodyEl);
     if (!kids.length) return false;
-    const boxRect = bodyEl.getBoundingClientRect();
-    const padT = parseFloat(getComputedStyle(bodyEl).paddingTop || '0');
-    const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
+    const effBottom = __flowEffBottom(bodyEl);
     let idx = -1;
     for (let i = 0; i < kids.length; i++) {
         if (kids[i].getBoundingClientRect().bottom - PAGE_FLOW_TOL > effBottom) {
@@ -3371,15 +3047,6 @@ async function __domFlowPass(bodyEl) {
     }
     if (idx < 0) return false;
     const overKid = kids[idx];
-    // Tabel atomik: tidak boleh dibelah per-baris (lihat __domSplitTable).
-    // Kasus besar (tabel KOMUNIKASI PASAL 17 kemitraan, 14 baris): belah
-    // per-baris memindahkan ekor sebagai continuation yang mendarat SEBELUM
-    // heading PASAL 17 di halaman tujuan (inversi). Tabel seperti ini harus
-    // pindah UTUH bersama heading via grup keep-with-next di bawah — TAPI
-    // hanya bila jelas meluap dan muat di halaman kosong baru. Tabel kecil
-    // di ujung dokumen yang hanya menyentuh batas beberapa piksel tetap
-    // ditahan (anti-kedip), dan tabel yang tidak akan pernah muat di halaman
-    // mana pun tetap terpotong rapi tanpa kaskade halaman hantu.
     if (__isAtomicFlowKid(overKid)) {
         const r = overKid.getBoundingClientRect();
         const tableH = r.bottom - r.top;
@@ -3406,13 +3073,8 @@ async function __domFlowPass(bodyEl) {
                 __runDomFlow(targetBody);
                 return true;
             }
-            // Tak bisa dibelah DAN tak akan pernah muat di halaman mana pun
-            // -> jangan pindah utuh (memicu kaskade pembuatan halaman);
-            // biarkan terpotong rapi di dalam kertas.
             if (!fitsFreshPage) return false;
         } else {
-            // Target Quill: kalau tabel tidak muat di halaman kosong baru,
-            // ambil alih target sebagai DOM lalu belah barisnya native.
             if (!fitsFreshPage) {
                 if (__takeoverBodyAsDom(targetBody)) {
                     const movedRows = __domSplitTable(overKid, effBottom, targetBody);
@@ -3425,7 +3087,6 @@ async function __domFlowPass(bodyEl) {
                 }
                 return false;
             }
-            // Tabel muat di halaman kosong -> boleh pindah utuh (jalur di bawah).
         }
     }
     if ((overKid.tagName === 'OL' || overKid.tagName === 'UL') && targetIsDom) {
@@ -3437,8 +3098,6 @@ async function __domFlowPass(bodyEl) {
             return true;
         }
     }
-    // List raksasa pada body DOM-fallback dengan TARGET QUILL: konversi
-    // item meluap ke delta target (sinkron blot) — JANGAN pindah utuh.
     if ((overKid.tagName === 'OL' || overKid.tagName === 'UL') && targetQ) {
         const movedItems = __domSplitListToQuill(overKid, effBottom, targetQ);
         if (movedItems > 0) {
@@ -3448,11 +3107,6 @@ async function __domFlowPass(bodyEl) {
             return true;
         }
     }
-    // Keep-with-next DUA ARAH (atomik): mundur serap heading di atas blok
-    // yang pindah; maju serap 1 konten di bawah heading yang meluap
-    // (PASAL N / LAMPIRAN A tidak pernah pindah yatim). Heading di PUNCAK
-    // kertas tidak dipaksa turun (grpStart===0) supaya tidak menciptakan
-    // kertas kosong.
     let grpStart = idx;
     if (idx > 0 && __isContractHeadingLine(kids[idx - 1])) {
         grpStart = __headingGroupStart(kids, idx);
@@ -3474,18 +3128,9 @@ async function __domFlowPass(bodyEl) {
             if (ok) grpEnd = fwd;
         }
     }
-    // grpEnd hanya memanjang ke depan bila overKid heading dan TIDAK ada
-    // heading menempel di atas (mundur); bila keduanya ada, seluruh sisa
-    // tetap pindah seperti semula. Bila overKid bukan heading, seluruh sisa
-    // (kids.slice(grpStart)) tetap pindah.
     const fwdOnly = __isContractHeadingLine(overKid) && grpStart === idx;
     const moving = fwdOnly ? kids.slice(grpStart, grpEnd) : kids.slice(grpStart);
     if (!moving.length) return false;
-    // Guard anti-halaman-hantu: blok ISI raksasa yang tidak bisa dibelah
-    // dan tingginya melebihi satu halaman kosong penuh — jangan buat kertas
-    // baru (kertas lama akan selalu kosong, proses berulang tanpa akhir).
-    // Dinilai pada overKid (BUKAN panjang moving) supaya keep-with-next
-    // tidak bisa mem-bypass guard ini.
     if (overKid.tagName !== 'TABLE'
         && overKid.tagName !== 'OL'
         && overKid.tagName !== 'UL'
@@ -3494,8 +3139,6 @@ async function __domFlowPass(bodyEl) {
         return false;
     }
     if (targetIsDom) {
-        // Sisipkan di batas run continuation (bukan firstChild): blok
-        // lanjutan baru menyusul continuation sebelumnya, bukan mendahuluinya.
         __domFlowInsertContinuation(targetBody, moving);
     } else {
         const wrap = document.createElement('div');
@@ -3511,19 +3154,13 @@ async function __domFlowPass(bodyEl) {
         probe.innerHTML = wrap.innerHTML;
         const hadTable = !!probe.querySelector('table tr');
         const trBefore = targetQ.root.querySelectorAll('table tr').length;
-        // Sisipkan di indeks setelah run continuation teratas (bukan index 0).
         const contPlan = __flowContInsertPlan(targetQ);
         targetQ.updateContents(__flowContDelta(DeltaCtor, delta, contPlan), 'silent');
         if (hadTable) {
             const trAfter = targetQ.root.querySelectorAll('table tr').length;
             if (!(trAfter > trBefore)) {
                 console.warn('[DocQuill] Paginasi DOM->Quill menelan tabel — target diambil alih sebagai DOM.');
-                // Node sumber BELUM dihapus (removal terjadi setelah guard),
-                // jadi cukup pindahkan via DOM murni.
                 if (__takeoverBodyAsDom(targetBody)) {
-                    // Sisipkan di batas run continuation (bukan firstChild):
-                    // batch lanjutan baru menyusul continuation yang sudah ada,
-                    // bukan mendahuluinya (bug urutan pasal/lampiran acak).
                     __domFlowInsertContinuation(targetBody, moving);
                     __runDomFlow(targetBody);
                     return true;
@@ -3532,9 +3169,6 @@ async function __domFlowPass(bodyEl) {
             }
         }
         moving.forEach((kid) => kid.remove());
-        // Guard jumlah baris lolos -> blok yang mendarat ditandai continuation
-        // supaya penyisipan berikutnya (__flowContInsertPlan) menghitung batas
-        // dengan benar dan tidak kembali ke index 0.
         __markFlowContinuationRun(targetQ, contPlan);
     }
     __rememberPushedBlock(sheet, overKid);
@@ -3544,8 +3178,6 @@ async function __domFlowPass(bodyEl) {
     return true;
 }
 
-// Wrapper hoisted: __runDomFlow dipakai lebih awal (attachQuillToRegion),
-// implementasi engine ada di __domRunFlow di bawah.
 function __runDomFlow(bodyEl) {
     __domRunFlow(bodyEl);
 }
@@ -3569,9 +3201,6 @@ function __domRunFlow(bodyEl) {
                 const moved = await __domFlowPass(bodyEl);
                 if (!moved) break;
                 movedAny = true;
-                // Ada kemajuan -> reset kuota iterasi global. Batas 50 hanya
-                // menghentikan run TANPA kemajuan beruntun (anti-runaway),
-                // bukan mengunci dokumen panjang di tengah alur.
                 pageFlowTotalRuns = 0;
                 await __nextFrame();
             }
@@ -3612,17 +3241,28 @@ function bindDomPageOverflowWatch(bodyEl) {
         schedule();
     });
     window.addEventListener('resize', () => schedule(), { passive: true });
+
+    if (bodyEl.dataset?.region === 'body') {
+        bodyEl.__scheduleFlow = schedule;
+        bodyEl.addEventListener('load', schedule, true);
+        if ('ResizeObserver' in window) {
+            let lastH = bodyEl.clientHeight;
+            new ResizeObserver(() => {
+                const h = bodyEl.clientHeight;
+                if (Math.abs(h - lastH) < 2) return;
+                lastH = h;
+                schedule();
+            }).observe(bodyEl);
+        }
+    }
     setTimeout(() => __runDomFlow(bodyEl), 350);
 }
 
-// ─── Paginasi Quill: hanya untuk BODY ber-Quill ───
 function __firstOverflowIndex(quill, boxEl) {
     const root = quill.root;
     if (!root || !root.children || !root.children.length) return -1;
     const kids = Array.from(root.children);
-    const boxRect = boxEl.getBoundingClientRect();
-    const padT = parseFloat(getComputedStyle(boxEl).paddingTop || '0');
-    const effBottom = boxRect.top + padT + boxEl.clientHeight - PAGE_FLOW_TOL;
+    const effBottom = __flowEffBottom(boxEl);
     for (let i = 0; i < kids.length; i++) {
         if (__isFloatingKid(kids[i])) continue;
         if (!__hasMeaningfulTextNode(kids[i])) continue;
@@ -3654,15 +3294,11 @@ function __blockRangeOf(quill, kidEl) {
 }
 
 async function __resolveTargetBody(sheet, apiCreate) {
-    // Kertas berikutnya yang sudah ada?
     const nextSheet = sheet.nextElementSibling;
     if (nextSheet && nextSheet.classList.contains('doc-sheet')) {
         const nb = nextSheet.querySelector('.doc-sheet-body[data-region="body"]');
         if (nb && (quillsByRegion.has(nb) || nb.dataset?.domFlow === '1')) return nb;
     }
-    // Kertas berikut ada tapi body-nya belum terdaftar (mis. attach Quill
-    // gagal / tertunda): daftarkan sebagai target DOM sementara supaya flow
-    // tidak mati.
     if (nextSheet && nextSheet.classList.contains('doc-sheet')) {
         const nb = nextSheet.querySelector('.doc-sheet-body[data-region="body"]');
         if (nb && !quillsByRegion.has(nb)) {
@@ -3691,12 +3327,7 @@ async function __flowPass(quill, bodyEl) {
     const sheet = bodyEl.closest('.doc-sheet');
     if (!sheet) return false;
 
-    // Quill sudah dilepas dari DOM (body di-takeover sebagai DOM)?
     try { if (quill.root && !quill.root.isConnected) return false; } catch (err) { return false; }
-
-    // Kertas sampul dikunci dari paginasi — sama seperti __domFlowPass() dan
-    // __pullBackPass(). Tanpa ini blok sampul yang melewati batas bawah
-    // terdorong ke kertas berikutnya lewat jalur Quill.
     if (sheet.dataset?.flowLock) return false;
 
     if (__contentOverflowPx(quill, bodyEl) <= PAGE_FLOW_TOL) return false;
@@ -3706,17 +3337,8 @@ async function __flowPass(quill, bodyEl) {
     if (idx < 0 || idx >= kids.length) return false; // tak bisa dipetakan aman
     if (!__hasMeaningfulTextNode(kids[idx])) return false;
 
-    // Tabel atomik tidak boleh dibelah baris-per-baris. Aturan pindah-utuh
-    // dibedakan menurut ukuran agar dua kasus tetap benar:
-    // - Kecil (formula 1 baris di ujung lampiran): tahan selama kepalanya
-    //   masih di dalam kertas (anti-kedip di batas halaman).
-    // - Besar (tabel KOMUNIKASI PASAL 17 kemitraan): luapan jelas (>40px di
-    //   bawah batas) boleh pindah utuh bersama heading via grup keep-with-next
-    //   di bawah; tabel yang tak muat satu halaman penuh tetap terpotong rapi.
     if (__isAtomicFlowKid(kids[idx])) {
-        const boxRect = bodyEl.getBoundingClientRect();
-        const padT = parseFloat(getComputedStyle(bodyEl).paddingTop || '0');
-        const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
+        const effBottom = __flowEffBottom(bodyEl);
         const r = kids[idx].getBoundingClientRect();
         const tableH = r.bottom - r.top;
         if (tableH > bodyEl.clientHeight + PAGE_FLOW_TOL) return false;
@@ -3731,15 +3353,10 @@ async function __flowPass(quill, bodyEl) {
     const targetQ = quillsByRegion.get(targetBody);
     if (targetQ && !targetQ.isEnabled()) return false;
 
-    // Target body-DOM (fallback tanpa Quill): pindahkan node DOM mentah.
     if (!targetQ) {
         if (targetBody.dataset?.domFlow !== '1') return false;
-        // Tabel besar: belah langsung barisnya ke target DOM — JANGAN pindah
-        // tabel utuh yang lebih tinggi dari satu halaman (kaskade halaman).
         if (kids[idx].tagName === 'TABLE') {
-            const boxRect = bodyEl.getBoundingClientRect();
-            const padT = parseFloat(getComputedStyle(bodyEl).paddingTop || '0');
-            const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
+            const effBottom = __flowEffBottom(bodyEl);
             const movedRows = __domSplitTable(kids[idx], effBottom, targetBody);
             if (movedRows > 0) {
                 __rememberPushedBlock(sheet, kids[idx]);
@@ -3749,17 +3366,13 @@ async function __flowPass(quill, bodyEl) {
             }
             const tooBig = kids[idx].getBoundingClientRect().height
                 > (bodyEl.clientHeight + PAGE_FLOW_TOL);
-            if (tooBig) return false; // terpotong rapi, tanpa kaskade
+            if (tooBig) return false; 
         }
-        // Petakan blok Quill -> node DOM: pindahkan berdasar urutan dengan
-        // menandai node asal supaya tidak salah bila ada kembaran isi.
         const srcKids = Array.from(quill.root.children || []);
-        // Keep-with-next DUA ARAH (atomik): mundur serap heading di atas;
-        // maju serap 1 konten di bawah heading yang meluap (anti-yatim).
         let grpStart = idx;
         if (idx > 0 && __isContractHeadingLine(srcKids[idx - 1])) {
             grpStart = __headingGroupStart(srcKids, idx);
-            if (grpStart === 0) grpStart = idx; // heading di puncak kertas: jangan dipaksa turun
+            if (grpStart === 0) grpStart = idx; 
         }
         let grpEnd = idx + 1;
         if (__isContractHeadingLine(srcKids[idx])) {
@@ -3780,9 +3393,6 @@ async function __flowPass(quill, bodyEl) {
         const fwdOnlyQd = __isContractHeadingLine(srcKids[idx]) && grpStart === idx;
         const moving = fwdOnlyQd ? srcKids.slice(grpStart, grpEnd) : srcKids.slice(grpStart);
         const moveSet = new Set(moving);
-        // Kumpulkan node salinan sesuai urutan sumber, lalu sisipkan SEKALIGUS
-        // di batas run continuation (bukan firstChild): batch baru menyusul
-        // continuation yang sudah ada, bukan mendahuluinya (bug urutan acak).
         const freshNodes = [];
         srcKids.forEach((kid) => {
             if (!moveSet.has(kid)) return;
@@ -3794,8 +3404,6 @@ async function __flowPass(quill, bodyEl) {
             if (node) freshNodes.push(node);
         });
         if (freshNodes.length) __domFlowInsertContinuation(targetBody, freshNodes);
-        // Hapus dari Quill asal via delta (tetap sinkron dengan blot).
-        // fwdOnly: hapus HANYA rentang grup (jangan bulk-hapus sisa dokumen).
         const firstRange = __blockRangeOf(quill, moving[0]);
         if (firstRange) {
             const lastRange = (moving.length > 1)
@@ -3815,12 +3423,8 @@ async function __flowPass(quill, bodyEl) {
     const firstRange = __blockRangeOf(quill, kids[idx]);
     if (!firstRange) return false;
 
-    // Tabel raksasa yang meluap: belah baris-per-baris, JANGAN pindah utuh
-    // (pindah utuh tidak akan pernah muat -> kaskade pembuatan halaman).
     if (kids[idx].tagName === 'TABLE' && targetQ) {
-        const boxRect = bodyEl.getBoundingClientRect();
-        const padT = parseFloat(getComputedStyle(bodyEl).paddingTop || '0');
-        const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
+        const effBottom = __flowEffBottom(bodyEl);
         const movedRows = __quillSplitTable(quill, kids[idx], effBottom, targetBody, targetQ);
         if (movedRows > 0) {
             __rememberPushedBlock(sheet, kids[idx]);
@@ -3828,27 +3432,19 @@ async function __flowPass(quill, bodyEl) {
             if (autoPaginationApi) __runFlow(targetQ, targetBody);
             return true;
         }
-        // Split via delta gagal (lookup blot baris table-better gagal dsb.).
+
         const tableH = kids[idx].getBoundingClientRect().height;
         if (tableH > bodyEl.clientHeight + PAGE_FLOW_TOL) {
-            // Lebih tinggi dari SATU halaman -> ambil alih body ini sebagai
-            // DOM (round-trip innerHTML, tanpa kehilangan data) lalu biarkan
-            // alur DOM membelah baris tabel secara native.
             if (__takeoverBodyAsDom(bodyEl)) {
                 __domRunFlow(bodyEl);
                 return true;
             }
-            return false; // terpotong rapi di dalam kertas
+            return false; 
         }
-        // Tabel muat di halaman kosong baru -> boleh pindah utuh (bulk di bawah).
     }
 
-    // List raksasa yang meluap: belah item-per-item (analog tabel), JANGAN
-    // pindah utuh — kasus template colocation: <ol> pasal setinggi > 1 halaman.
     if ((kids[idx].tagName === 'OL' || kids[idx].tagName === 'UL') && targetQ) {
-        const boxRect = bodyEl.getBoundingClientRect();
-        const padT = parseFloat(getComputedStyle(bodyEl).paddingTop || '0');
-        const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
+        const effBottom = __flowEffBottom(bodyEl);
         const movedItems = __quillSplitList(quill, kids[idx], effBottom, targetQ);
         if (movedItems > 0) {
             __rememberPushedBlock(sheet, kids[idx]);
@@ -3858,21 +3454,11 @@ async function __flowPass(quill, bodyEl) {
         }
     }
 
-    // Keep-with-next: baris judul/heading kontrak (PASAL N + judul pasal)
-    // yang menempel di atas blok yang pindah ikut dipindah — heading tidak
-    // boleh tertinggal sendirian di dasar kertas. Heading yang sudah di
-    // PUNCAK kertas tidak dipaksa turun (grpStart===0) supaya tidak
-    // menciptakan kertas kosong.
     let grpStart = idx;
     if (idx > 0 && __isContractHeadingLine(kids[idx - 1])) {
         grpStart = __headingGroupStart(kids, idx);
         if (grpStart === 0) grpStart = idx;
     }
-    // Maju (atomik): bila blok yang meluap SENDIRI adalah heading (PASAL N /
-    // LAMPIRAN A), ikutkan 1 blok konten tepat di bawahnya supaya heading
-    // tidak pindah sendirian (yatim). Grup [heading + judul + isi] selalu
-    // utuh — urutan SOHO tidak terpecah di batas halaman. Tabel/list raksasa
-    // yang tidak muat satu halaman TIDAK ikut (punya logika belah sendiri).
     let grpEnd = idx + 1;
     if (__isContractHeadingLine(kids[idx])) {
         const fwd = __headingGroupEnd(kids, idx);
@@ -3893,14 +3479,7 @@ async function __flowPass(quill, bodyEl) {
     const remaining = kids.slice(grpStart);
     const overTableTooBig = kids[idx].tagName === 'TABLE'
         && kids[idx].getBoundingClientRect().height > bodyEl.clientHeight + PAGE_FLOW_TOL;
-    // Ujung grup maju dihitung DULU (bulk memakainya): blok heading yang
-    // meluap membawa 1 konten di bawahnya; ujung delta dari blok terakhir
-    // grup (bukan idx).
     const grpLastIdx = Math.max(idx, grpEnd - 1);
-    // Bulk = target kosong: pindah SELURUH sisa sekaligus. Bila grup maju
-    // aktif (heading meluap + konten), JANGAN bulk — pindah HANYA grup agar
-    // sisa dokumen tidak ikut tersedot dan tabel/list raksasa di bawahnya
-    // tetap lewat logika belah (anti-kaskade).
     const atomicGroup = grpLastIdx !== idx;
     const bulk = !atomicGroup
         && targetQ.getLength() <= 1
@@ -3909,13 +3488,6 @@ async function __flowPass(quill, bodyEl) {
         && !overTableTooBig;
     if (overTableTooBig) return false;
 
-    // Guard anti-halaman-hantu: blok ISI raksasa yang TIDAK bisa dibelah
-    // (bukan table/list) dan tingginya melebihi satu halaman kosong penuh —
-    // memindahkannya hanya akan menghasilkan kertas kosong berulang (kertas
-    // lama jadi kosong, proses berulang sampai latch 50). Lebih aman berhenti
-    // rapi: konten tetap ada, terpotong di batas kertas.
-    // Dinilai pada kids[idx] (BUKAN remaining.length) supaya keep-with-next
-    // tidak bisa mem-bypass guard ini.
     if (bulk
         && kids[idx].tagName !== 'TABLE'
         && kids[idx].tagName !== 'OL'
@@ -3944,8 +3516,6 @@ async function __flowPass(quill, bodyEl) {
         }
         : ((grpStart < idx || grpLastIdx !== idx)
             ? {
-                // Dari awal heading sampai akhir blok terakhir grup (blok
-                // Quill berurutan dalam delta, jadi bisa dihitung langsung).
                 start: groupFirstRange.start,
                 len: (groupLastRange.start - groupFirstRange.start) + groupLastRange.len,
             }
@@ -3956,18 +3526,10 @@ async function __flowPass(quill, bodyEl) {
     const removed = quill.getContents(range.start, range.len);
     if (!DeltaCtor || !removed || !(removed.ops || []).length) return false;
 
-    // Amankan caret pengguna sebelum mutasi
     const selBefore = quill.getSelection();
 
     quill.deleteText(range.start, range.len, 'silent');
 
-    // Sisipkan di indeks setelah run continuation teratas (bukan index 0),
-    // supaya blok lanjutan yang menyusul tidak mendahului continuation
-    // sebelumnya di kertas tujuan. Guard anti-hilang: verifikasi delta benar-
-    // benar mendarat di target (khusus blok tabel: jumlah <tr> target harus
-    // bertambah). Kalau konversi menelan tabel, KEMBALIKAN isi ke asal.
-    // Grup maju (anti-yatim) bisa memuat tabel kecil (LAMPIRAN + tabel):
-    // probe seluruh grup, bukan hanya kids[idx].
     const grpProbeLast = (typeof grpLastIdx === 'number') ? grpLastIdx : idx;
     const probeTable = kids.slice(grpStart, grpProbeLast + 1)
         .some((k) => k && k.tagName === 'TABLE');
@@ -4007,13 +3569,6 @@ async function __flowPass(quill, bodyEl) {
 
     if (autoPaginationApi) __runFlow(targetQ, targetBody);
 
-    // Catat blok yang barusan didorong ke kertas berikutnya; dipakai
-    // __pullBackPass untuk menolak menariknya balik (anti-flip A<->B).
-    // WeakMap hanya bisa memakai objek sebagai kunci, jadi identitas objek
-    // disimpan di WeakMap, sedangkan sidik konten disimpan di Map biasa
-    // karena target Quill menerima node DOM baru.
-    // Jalur grup maju (anti-yatim): ingat sidik SELURUH grup supaya pull
-    // tidak menarik balik parsial heading/isi yang sama di siklus berikut.
     if (grpLastIdx !== idx) {
         __rememberPushedBlock(sheet, kids[idx]);
         __rememberPushedGroup(sheet,
@@ -4103,7 +3658,7 @@ function __pullBackPass(quill, bodyEl) {
     // Sisa ruang di bawah blok terakhir kertas ini (px, sudah termasuk toleransi).
     const boxRect = bodyEl.getBoundingClientRect();
     const padT = parseFloat(getComputedStyle(bodyEl).paddingTop || '0');
-    const effBottom = boxRect.top + padT + bodyEl.clientHeight - PAGE_FLOW_TOL;
+    const effBottom = __flowEffBottom(bodyEl);
     // Batas bawah = maksimum di SEMUA blok non-mengambang (bukan hanya blok
     // terakhir). Bila hanya memakai blok terakhir, ruang kosong bisa terhitung
     // terlalu longgar -> ada blok ditarik balik ke kertas yang sebenarnya penuh
@@ -4245,14 +3800,24 @@ function bindPageOverflowWatch(quill, regionEl) {
 
     window.addEventListener('resize', () => schedule(), { passive: true });
 
-    // Pemeriksaan awal saat kertas baru menyala / dokumen dibuka.
+    if (regionEl.dataset?.region === 'body') {
+        regionEl.__scheduleFlow = schedule;
+        regionEl.addEventListener('load', schedule, true);
+        if ('ResizeObserver' in window) {
+            let lastH = regionEl.clientHeight;
+            new ResizeObserver(() => {
+                const h = regionEl.clientHeight;
+                if (Math.abs(h - lastH) < 2) return;
+                lastH = h;
+                schedule();
+            }).observe(regionEl);
+        }
+    }
+
+   
     setTimeout(() => __runFlow(quill, regionEl), 350);
 }
 
-// Belah <table> besar milik Quill: pindahkan baris (<tr>) yang meluap ke
-// tabel baru di kertas berikut. Dipakai saat blok meluap adalah SATU tabel
-// raksasa (kasus template: tabel spesifikasi colocation dsb.) yang tidak
-// bisa dipindah utuh karena tingginya melebihi sisa ruang kertas.
 function __quillSplitTable(quill, tableEl, effBottom, targetBody, targetQ) {
     try {
         // Sama seperti __domSplitTable: tabel atomic tidak boleh dibelah.
@@ -4408,28 +3973,18 @@ window.initBodyEditor = function (rootSelector, onSync = null) {
 
         window.__docEditorSync = onSync;
 
-        // Shim untuk sistem gambar
         const shim = makeEditorShim(root);
         if (!registeredImageToolEditors.some((ed) => ed.rootEl === root)) {
             registeredImageToolEditors.push(shim);
         }
 
-        // Satu instance Quill per region
         const regions = root.querySelectorAll('.doc-sheet-body, .doc-sheet-header, .doc-sheet-footer');
         regions.forEach(attachQuillToRegion);
 
-        // Klik gambar yang terlihat -> langsung buka mode edit gambar.
-        // Klik ULANG gambar yang sedang terpilih = lepas (toggle), supaya
-        // siklus pilih -> lepas -> pilih lagi selalu selesai dalam 1 klik.
-        // Press yang baru saja menseleksi via mousedown dilindungi guard.
         root.addEventListener('click', (e) => {
             if (e.target.nodeName !== 'IMG') return;
             if (e.target.closest('.doc-signature')) return;
             if (activeImage === e.target) {
-                // Press yang baru saja MENSELEKSI gambar ini (seleksi baru via
-                // showImageTools) atau drag sungguhan: click berikutnya tidak
-                // boleh langsung melepas (toggle-off) — tanpa ini, gambar yang
-                // baru diseleksi berkedip dan alatnya mustahil diklik.
                 if (imgToggleGuard || lastImgToggleGuard) {
                     imgToggleGuard = false;
                     lastImgToggleGuard = false;
@@ -4458,7 +4013,6 @@ window.initBodyEditor = function (rootSelector, onSync = null) {
 };
 
 
-// API PUBLIK UNTUK BLADE
 
 
 window.DocQuill = {
@@ -4466,15 +4020,10 @@ window.DocQuill = {
 
     attachRegion: attachQuillToRegion,
 
-    // Buang atribut internal pagination sebelum HTML masuk ke payload/database.
     getHtml: (regionEl) => {
         if (!regionEl) return '';
         const q = quillsByRegion.get(regionEl);
         let html = q ? q.root.innerHTML : regionEl.innerHTML;
-        // Gambar floating hidup sebagai anak langsung region (di luar
-        // q.root / alur konten): sertakan, tapi JANGAN gandakan gambar
-        // yang sudah termasuk di dalam html (kasus body-DOM fallback di
-        // mana q.root === region itu sendiri / tidak ada host terpisah).
         regionEl.querySelectorAll(':scope > img').forEach((im) => {
             try {
                 if (q && q.root && q.root.contains(im)) return;
@@ -4562,7 +4111,6 @@ window.DocQuill = {
             q.focus();
             return;
         }
-        // Body-DOM fallback: fokuskan caret ke akhir konten mentah.
         if (regionEl.dataset?.domFlow === '1') {
             try {
                 regionEl.focus?.();
@@ -4584,7 +4132,6 @@ window.DocQuill = {
                 revived++;
             }
         });
-        // Body-DOM fallback selalu editable via contenteditable mentah.
         domFlowBodies.forEach((el) => {
             if (el.isConnected && el.getAttribute('contenteditable') !== 'true') {
                 el.setAttribute('contenteditable', 'true');
@@ -4601,8 +4148,6 @@ window.DocQuill = {
                 bindPageOverflowWatch(qq, el);
             }
         });
-        // BODY fallback DOM (tanpa Quill, mis. template ber-tabel yang
-        // gagal konversi): ikutkan ke paginasi lewat alur DOM.
         try {
             document.querySelectorAll('.doc-sheet-body[data-region="body"][data-dom-flow="1"]')
                 .forEach((el) => bindDomPageOverflowWatch(el));
@@ -4613,7 +4158,6 @@ window.DocQuill = {
         console.log('[clickAndType] dipanggil', { clientX, clientY });
         const q = quillsByRegion.get(regionEl);
         if (!q) {
-            // Body-DOM fallback: biarkan caret native contenteditable bekerja.
             if (regionEl?.dataset?.domFlow === '1') return false;
             console.log('[clickAndType] BAIL: quill gak ketemu/gak aktif');
             return false;

@@ -4729,16 +4729,15 @@ PARA PIHAK dengan ini menerangkan telah sepakat untuk mengikatkan diri pada syar
 “SLA” – Service Level Agreement adalah kriteria hasil kerja Jasa yang telah ditetapkan terlebih dahulu sebagaimana diuraikan pada Lampiran B.',
                             'blocks' => [
                                 [
-                                    'p' => '“Perjanjian” adalah Perjanjian ini berikut lampiran dan semua perubahan yang terkait dan merupakan bagian dari Perjanjian ini.',
-                                ],
-                                [
-                                    'p' => '“Jasa” adalah layanan yang harus dipenuhi oleh PIHAK PERTAMA sebagaimana diuraikan pada Lampiran A.',
-                                ],
-                                [
-                                    'p' => '“Biaya Jasa” adalah biaya yang harus dibayar oleh PIHAK KEDUA seperti diuraikan pada Lampiran A.',
-                                ],
-                                [
-                                    'p' => '“SLA” – Service Level Agreement adalah kriteria hasil kerja Jasa yang telah ditetapkan terlebih dahulu sebagaimana diuraikan pada Lampiran B.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            '“Perjanjian” adalah Perjanjian ini berikut lampiran dan semua perubahan yang terkait dan merupakan bagian dari Perjanjian ini.',
+                                            '“Jasa” adalah layanan yang harus dipenuhi oleh PIHAK PERTAMA sebagaimana diuraikan pada Lampiran A.',
+                                            '“Biaya Jasa” adalah biaya yang harus dibayar oleh PIHAK KEDUA seperti diuraikan pada Lampiran A.',
+                                            '“SLA” – Service Level Agreement adalah kriteria hasil kerja Jasa yang telah ditetapkan terlebih dahulu sebagaimana diuraikan pada Lampiran B.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -4755,19 +4754,16 @@ Terminal dan perangkat antarmuka milik PIHAK KEDUA yang akan dihubungkan dengan 
 Penyambungan pelayanan PIHAK PERTAMA akan dilaksanakan setelah PIHAK KEDUA mengeluarkan Service Order Form dan diterima oleh pihak PIHAK PERTAMA.',
                             'blocks' => [
                                 [
-                                    'p' => 'PIHAK PERTAMA sepakat untuk menyediakan Jasa dan Fasilitas terkait (selanjutnya disebut “Jasa”) sebagaimana tercantum dalam Service Order Form yang dikeluarkan oleh PIHAK KEDUA yang menjadi bagian tak terpisahkan dari Perjanjian ini;',
-                                ],
-                                [
-                                    'p' => 'Layanan Jasa yang disediakan PIHAK PERTAMA berdasarkan Perjanjian ini dapat digunakan oleh PIHAK KEDUA selama 24 jam/hari (7 hari/minggu);',
-                                ],
-                                [
-                                    'p' => 'Penyediaan Fasilitas dan Jasa PIHAK PERTAMA akan dilakukan sesuai dengan konfigurasi teknis yang telah disepakati;',
-                                ],
-                                [
-                                    'p' => 'Terminal dan perangkat antarmuka milik PIHAK KEDUA yang akan dihubungkan dengan perangkat/saluran PIHAK PERTAMA harus mendapat persetujuan terlebih dahulu dari PIHAK PERTAMA;',
-                                ],
-                                [
-                                    'p' => 'Penyambungan pelayanan PIHAK PERTAMA akan dilaksanakan setelah PIHAK KEDUA mengeluarkan Service Order Form dan diterima oleh pihak PIHAK PERTAMA.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PIHAK PERTAMA sepakat untuk menyediakan Jasa dan Fasilitas terkait (selanjutnya disebut “Jasa”) sebagaimana tercantum dalam Service Order Form yang dikeluarkan oleh PIHAK KEDUA yang menjadi bagian tak terpisahkan dari Perjanjian ini;',
+                                            'Layanan Jasa yang disediakan PIHAK PERTAMA berdasarkan Perjanjian ini dapat digunakan oleh PIHAK KEDUA selama 24 jam/hari (7 hari/minggu);',
+                                            'Penyediaan Fasilitas dan Jasa PIHAK PERTAMA akan dilakukan sesuai dengan konfigurasi teknis yang telah disepakati;',
+                                            'Terminal dan perangkat antarmuka milik PIHAK KEDUA yang akan dihubungkan dengan perangkat/saluran PIHAK PERTAMA harus mendapat persetujuan terlebih dahulu dari PIHAK PERTAMA;',
+                                            'Penyambungan pelayanan PIHAK PERTAMA akan dilaksanakan setelah PIHAK KEDUA mengeluarkan Service Order Form dan diterima oleh pihak PIHAK PERTAMA.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -4789,10 +4785,13 @@ Apabila PIHAK KEDUA  mengakhiri Layanan sebelum Jangka Waktu berakhir sebagaiman
 Apabila 30 (Tiga puluh) hari sebelum jangka waktu dalam pasal  4 ayat 1 ini berakhir PIHAK KEDUA tidak melakukan pemberitahuan pengakhiran Layanan, maka Syarat dan Ketentuan Berlangganan akan otomatis berlanjut selama 1 (Satu) tahun (“Jangka Waktu Perpanjangan”). Pemberitahuan pengakhiran Berlangganan dihitung 30 (tiga puluh) hari sejak diterimanya pemberitahuan pengakhiran Layanan;',
                             'blocks' => [
                                 [
-                                    'p' => 'Jangka Waktu Efektif Layanan sebagaimana dimaksud dalam Syarat dan Ketentuan Berlangganan ini adalah tanggal sebagaimana dimaksud dalam lampiran A Perjanjian Berlangganan Jasa ini.',
-                                ],
-                                [
-                                    'p' => 'Apabila PIHAK KEDUA  mengakhiri Layanan sebelum Jangka Waktu berakhir sebagaimana dimaksud dalam lampiran A dan atau Service Order Form, maka PIHAK KEDUA akan dikenakan denda sebagaimana berikut:',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'Jangka Waktu Efektif Layanan sebagaimana dimaksud dalam Syarat dan Ketentuan Berlangganan ini adalah tanggal sebagaimana dimaksud dalam lampiran A Perjanjian Berlangganan Jasa ini.',
+                                            'Apabila PIHAK KEDUA  mengakhiri Layanan sebelum Jangka Waktu berakhir sebagaimana dimaksud dalam lampiran A dan atau Service Order Form, maka PIHAK KEDUA akan dikenakan denda sebagaimana berikut:',
+                                        ],
+                                    ],
                                 ],
                                 [
                                     'table' => [
@@ -4812,7 +4811,13 @@ Apabila 30 (Tiga puluh) hari sebelum jangka waktu dalam pasal  4 ayat 1 ini bera
                                     ],
                                 ],
                                 [
-                                    'p' => 'Apabila 30 (Tiga puluh) hari sebelum jangka waktu dalam pasal  4 ayat 1 ini berakhir PIHAK KEDUA tidak melakukan pemberitahuan pengakhiran Layanan, maka Syarat dan Ketentuan Berlangganan akan otomatis berlanjut selama 1 (Satu) tahun (“Jangka Waktu Perpanjangan”). Pemberitahuan pengakhiran Berlangganan dihitung 30 (tiga puluh) hari sejak diterimanya pemberitahuan pengakhiran Layanan;',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'start' => 3,
+                                        'items' => [
+                                            'Apabila 30 (Tiga puluh) hari sebelum jangka waktu dalam pasal  4 ayat 1 ini berakhir PIHAK KEDUA tidak melakukan pemberitahuan pengakhiran Layanan, maka Syarat dan Ketentuan Berlangganan akan otomatis berlanjut selama 1 (Satu) tahun (“Jangka Waktu Perpanjangan”). Pemberitahuan pengakhiran Berlangganan dihitung 30 (tiga puluh) hari sejak diterimanya pemberitahuan pengakhiran Layanan;',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -4857,25 +4862,18 @@ Nomor Rekening	: 012-1989-247-001
 Nama Rekening	: PT Bina Informatika Solusindo',
                             'blocks' => [
                                 [
-                                    'p' => 'PIHAK KEDUA wajib melakukan pembayaran atas Layanan sebagaimana dimaksud dalam Service Order Form;',
-                                ],
-                                [
-                                    'p' => 'Pembayaran dilakukan oleh PIHAK KEDUA selambat–lambatnya pada tanggal sesuai dengan invoice yang diterbitkan atau selambat-lambatnya 7 (tujuh) hari dari tanggal invoice diterbitkan;',
-                                ],
-                                [
-                                    'p' => 'Atas setiap keterlambatan pembayaran dari tanggal sebagaimana dimaksud dalam Pasal 5.2, maka PIHAK KEDUA dikenakan denda keterlambatan pembayaran sebesar 1 (satu) permil setiap hari keterlambatan;',
-                                ],
-                                [
-                                    'p' => 'Apabila PIHAK KEDUA terlambat melakukan pembayaran 30 (tiga puluh) hari sejak invoice diterima oleh PIHAK KEDUA, maka PIHAK PERTAMA akan melakukan pemutusan sementara (isolir) layanan tanpa pemberitahuan terlebih dahulu kepada PIHAK KEDUA;',
-                                ],
-                                [
-                                    'p' => 'Apabila PIHAK KEDUA melunasi biaya-biaya dalam pasal ini, maka PIHAK PERTAMA akan membuka pemutusan sementara (isolir) dalam waktu selambat-lambatnya 1 (satu) hari kerja;',
-                                ],
-                                [
-                                    'p' => 'Semua Biaya bank yang timbul dalam pembayaran tagihan merupakan tanggung jawab PIHAK KEDUA;',
-                                ],
-                                [
-                                    'p' => 'Seluruh pembayaran dianggap telah dilakukan PIHAK KEDUA setelah pembayaran diterima di rekening PIHAK PERTAMA, dengan detail sebagai berikut:',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PIHAK KEDUA wajib melakukan pembayaran atas Layanan sebagaimana dimaksud dalam Service Order Form;',
+                                            'Pembayaran dilakukan oleh PIHAK KEDUA selambat–lambatnya pada tanggal sesuai dengan invoice yang diterbitkan atau selambat-lambatnya 7 (tujuh) hari dari tanggal invoice diterbitkan;',
+                                            'Atas setiap keterlambatan pembayaran dari tanggal sebagaimana dimaksud dalam Pasal 5.2, maka PIHAK KEDUA dikenakan denda keterlambatan pembayaran sebesar 1 (satu) permil setiap hari keterlambatan;',
+                                            'Apabila PIHAK KEDUA terlambat melakukan pembayaran 30 (tiga puluh) hari sejak invoice diterima oleh PIHAK KEDUA, maka PIHAK PERTAMA akan melakukan pemutusan sementara (isolir) layanan tanpa pemberitahuan terlebih dahulu kepada PIHAK KEDUA;',
+                                            'Apabila PIHAK KEDUA melunasi biaya-biaya dalam pasal ini, maka PIHAK PERTAMA akan membuka pemutusan sementara (isolir) dalam waktu selambat-lambatnya 1 (satu) hari kerja;',
+                                            'Semua Biaya bank yang timbul dalam pembayaran tagihan merupakan tanggung jawab PIHAK KEDUA;',
+                                            'Seluruh pembayaran dianggap telah dilakukan PIHAK KEDUA setelah pembayaran diterima di rekening PIHAK PERTAMA, dengan detail sebagai berikut:',
+                                        ],
+                                    ],
                                 ],
                                 [
                                     'p' => 'Bank Mandiri',
@@ -4936,31 +4934,20 @@ PIHAK PERTAMA tidak bertanggung jawab atas kebenaran, kerahasiaan dan atau kuali
 PIHAK PERTAMA tidak bertanggung jawab atas kerugian tidak langsung, kerugian konsekuensial, kehilangan keuntungan, kehilangan data, kehilangan peluang usaha, atau tuntutan pihak ketiga yang timbul akibat penggunaan atau ketidakmampuan penggunaan layanan oleh PIHAK KEDUA, kecuali apabila kerugian tersebut secara langsung disebabkan oleh kesalahan atau kelalaian berat PIHAK PERTAMA.',
                             'blocks' => [
                                 [
-                                    'p' => 'PIHAK KEDUA wajib menyediakan perangkat yang dibutuhkan, sehingga fasilitas dan pelayanan PIHAK PERTAMA dapat diaktivasikan sesuai jadwal yang telah disepakati bersama;',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA tidak diperkenankan memberi kesempatan kepada pihak ketiga untuk memanfaatkan fasilitas dan pelayanan PIHAK PERTAMA tanpa izin tertulis dari PIHAK PERTAMA;',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA tidak diperkenankan mengadakan perubahan terhadap spesifikasi teknis, konfigurasi, dan fasilitas layanan PIHAK PERTAMA, termasuk menghubungkannya ke dalam jaringan PIHAK PERTAMA dengan cara apapun, kecuali atas izin tertulis dari PIHAK PERTAMA;',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA tidak diperkenankan untuk menghubungkan jaringan dan/atau fasilitas PIHAK PERTAMA dengan jaringan telekomunikasi umum (PSTN) termasuk namun tidak terbatas kepada jaringan telepon, teleks, atau komunikasi data;',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA akan memberikan izin wilayah kepada PIHAK PERTAMA  untuk memasuki fasilitas dan/atau lokasi milik PIHAK KEDUA sehubungan dengan keperluan pemeliharaan dan perbaikan;',
-                                ],
-                                [
-                                    'p' => 'PIHAK PERTAMA bertanggung jawab terhadap pemeliharaan dan perbaikan atas kerusakan atau gangguan pada saluran dan fasilitas milik PIHAK PERTAMA. Apabila kerusakan atau gangguan tersebut disebabkan oleh kesalahan, kesengajaan, atau kelalaian PIHAK KEDUA, maka PIHAK PERTAMA berhak memungut biaya perbaikan;',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA berhak memperoleh restitusi atas kerusakan atau gangguan yang terbukti bukan disebabkan oleh PIHAK KEDUA. Kompensasi akan diberikan sesuai ketentuan yang berlaku (Jaminan Pelayanan-SLA) dan tidak berlaku untuk kerusakan atau gangguan yang disebabkan oleh perangkat milik PIHAK KEDUA atau Force Majeure;',
-                                ],
-                                [
-                                    'p' => 'PIHAK PERTAMA tidak bertanggung jawab atas kebenaran, kerahasiaan dan atau kualitas informasi yang disalurkan melalui layanan PIHAK PERTAMA;',
-                                ],
-                                [
-                                    'p' => 'PIHAK PERTAMA tidak bertanggung jawab atas kerugian tidak langsung, kerugian konsekuensial, kehilangan keuntungan, kehilangan data, kehilangan peluang usaha, atau tuntutan pihak ketiga yang timbul akibat penggunaan atau ketidakmampuan penggunaan layanan oleh PIHAK KEDUA, kecuali apabila kerugian tersebut secara langsung disebabkan oleh kesalahan atau kelalaian berat PIHAK PERTAMA.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PIHAK KEDUA wajib menyediakan perangkat yang dibutuhkan, sehingga fasilitas dan pelayanan PIHAK PERTAMA dapat diaktivasikan sesuai jadwal yang telah disepakati bersama;',
+                                            'PIHAK KEDUA tidak diperkenankan memberi kesempatan kepada pihak ketiga untuk memanfaatkan fasilitas dan pelayanan PIHAK PERTAMA tanpa izin tertulis dari PIHAK PERTAMA;',
+                                            'PIHAK KEDUA tidak diperkenankan mengadakan perubahan terhadap spesifikasi teknis, konfigurasi, dan fasilitas layanan PIHAK PERTAMA, termasuk menghubungkannya ke dalam jaringan PIHAK PERTAMA dengan cara apapun, kecuali atas izin tertulis dari PIHAK PERTAMA;',
+                                            'PIHAK KEDUA tidak diperkenankan untuk menghubungkan jaringan dan/atau fasilitas PIHAK PERTAMA dengan jaringan telekomunikasi umum (PSTN) termasuk namun tidak terbatas kepada jaringan telepon, teleks, atau komunikasi data;',
+                                            'PIHAK KEDUA akan memberikan izin wilayah kepada PIHAK PERTAMA  untuk memasuki fasilitas dan/atau lokasi milik PIHAK KEDUA sehubungan dengan keperluan pemeliharaan dan perbaikan;',
+                                            'PIHAK PERTAMA bertanggung jawab terhadap pemeliharaan dan perbaikan atas kerusakan atau gangguan pada saluran dan fasilitas milik PIHAK PERTAMA. Apabila kerusakan atau gangguan tersebut disebabkan oleh kesalahan, kesengajaan, atau kelalaian PIHAK KEDUA, maka PIHAK PERTAMA berhak memungut biaya perbaikan;',
+                                            'PIHAK KEDUA berhak memperoleh restitusi atas kerusakan atau gangguan yang terbukti bukan disebabkan oleh PIHAK KEDUA. Kompensasi akan diberikan sesuai ketentuan yang berlaku (Jaminan Pelayanan-SLA) dan tidak berlaku untuk kerusakan atau gangguan yang disebabkan oleh perangkat milik PIHAK KEDUA atau Force Majeure;',
+                                            'PIHAK PERTAMA tidak bertanggung jawab atas kebenaran, kerahasiaan dan atau kualitas informasi yang disalurkan melalui layanan PIHAK PERTAMA;',
+                                            'PIHAK PERTAMA tidak bertanggung jawab atas kerugian tidak langsung, kerugian konsekuensial, kehilangan keuntungan, kehilangan data, kehilangan peluang usaha, atau tuntutan pihak ketiga yang timbul akibat penggunaan atau ketidakmampuan penggunaan layanan oleh PIHAK KEDUA, kecuali apabila kerugian tersebut secara langsung disebabkan oleh kesalahan atau kelalaian berat PIHAK PERTAMA.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -4980,10 +4967,13 @@ PIHAK PERTAMA tidak bertanggung jawab atas kerugian tidak langsung, kerugian kon
 Pemindahan fasilitas PIHAK PERTAMA yang telah terpasang ke lokasi lainnya akan diperlakukan sebagai sambungan baru. Biaya berlangganan akan disesuaikan dengan penambahan kapasitas terpasang.',
                             'blocks' => [
                                 [
-                                    'p' => 'PIHAK KEDUA dapat meminta perpindahan lokasi fasilitas PIHAK PERTAMA serta penambahan kapasitas sepanjang teknis memungkinkan. Segala biaya yang timbul akibat perpindahan lokasi serta penambahan kapasitas tersebut akan dibebankan kepada PIHAK KEDUA; dan',
-                                ],
-                                [
-                                    'p' => 'Pemindahan fasilitas PIHAK PERTAMA yang telah terpasang ke lokasi lainnya akan diperlakukan sebagai sambungan baru. Biaya berlangganan akan disesuaikan dengan penambahan kapasitas terpasang.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PIHAK KEDUA dapat meminta perpindahan lokasi fasilitas PIHAK PERTAMA serta penambahan kapasitas sepanjang teknis memungkinkan. Segala biaya yang timbul akibat perpindahan lokasi serta penambahan kapasitas tersebut akan dibebankan kepada PIHAK KEDUA; dan',
+                                            'Pemindahan fasilitas PIHAK PERTAMA yang telah terpasang ke lokasi lainnya akan diperlakukan sebagai sambungan baru. Biaya berlangganan akan disesuaikan dengan penambahan kapasitas terpasang.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -5004,25 +4994,33 @@ Dalam hal pihak PIHAK PERTAMA gagal memenuhi minimum SLA sebesar 99.5% dalam jan
 Apabila setelah 3 (tiga) surat teguran berturut-turut PIHAK PERTAMA tetap gagal memenuhi SLA sebagaimana diatur dalam Lampiran B, PIHAK KEDUA berhak mengakhiri Perjanjian tanpa dikenakan penalti terminasi dini. Namun PIHAK KEDUA tetap wajib melunasi seluruh tagihan yang telah jatuh tempo sampai dengan tanggal efektif pengakhiran layanan.',
                             'blocks' => [
                                 [
-                                    'p' => 'PIHAK PERTAMA tidak dapat dianggap melakukan wanprestasi dan dibebaskan dari segala tanggung jawab atas kegagalan penyediaan Jasa yang disebabkan oleh tindakan, kelalaian, kesalahan, gangguan sistem, kegagalan perangkat keras (hardware), perangkat lunak (software), jaringan internal, sumber daya manusia, maupun sebab lainnya yang berasal dari PIHAK KEDUA atau pihak yang berada di bawah kendali PIHAK KEDUA;',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PIHAK PERTAMA tidak dapat dianggap melakukan wanprestasi dan dibebaskan dari segala tanggung jawab atas kegagalan penyediaan Jasa yang disebabkan oleh tindakan, kelalaian, kesalahan, gangguan sistem, kegagalan perangkat keras (hardware), perangkat lunak (software), jaringan internal, sumber daya manusia, maupun sebab lainnya yang berasal dari PIHAK KEDUA atau pihak yang berada di bawah kendali PIHAK KEDUA;',
+                                            'Apabila terjadi pelanggaran kewajiban dari PIHAK KEDUA yang mengakibatkan pembatalan perjanjian ini, maka PIHAK KEDUA wajib membayar penggunaan internet sampai dengan bulan terakhir pembatalan kontrak;',
+                                            'Apabila salah satu pihak mengalami kegagalan keuangan atau berhenti beroperasi maka hal ini dapat menjadi penyebab pembatalan, dimana salah satu pihak atau lainnya dapat membatalkan perjanjian ini dengan melakukan pemberitahuan secara tertulis. Namun pihak yang mengalami keadaan insolven, kegagalan keuangan atau berhenti beroperasi tersebut tetap harus melaksanakan segala kewajiban hingga tanggal pemutusan kontrak berdasarkan peraturan perundang-undangan yang berlaku, termasuk akan tetapi tidak terbatas pada, Undang-undang Nomor 37 Tahun 2004 tentang Kepailitan dan Penundaan Kewajiban Pembayaran Utang;',
+                                            [
+                                                'text' => 'Apabila PIHAK PERTAMA gagal untuk menyediakan Jasa atau gagal mencapai SLA sebagaimana diuraikan pada Lampiran B, maka akan berlaku ketentuan denda sebagai berikut:',
+                                                'children' => [
+                                                    'type' => 'a',
+                                                    'items' => [
+                                                        'Atas setiap akumulasi selama periode 30 hari kegagalan penyediaan Jasa, PIHAK PERTAMA akan memberikan potongan biaya Jasa secara prorata atas kegagalan penyediaan Jasa sesuai dengan skema restitusi yang dijelaskan dalam Lampiran B; dan',
+                                                        'Dalam hal pihak PIHAK PERTAMA gagal memenuhi minimum SLA sebesar 99.5% dalam jangka waktu sebulan berdasarkan pada laporan dan pembuktian, maka PIHAK KEDUA wajib memberikan teguran sebanyak 3 (tiga) kali secara berturut-turut dan jika tidak ada penyelesaian dari PIHAK PERTAMA, maka PIHAK KEDUA berhak memutuskan kontrak dan wajib membayar seluruh kewajiban sampai tanggal pemutusan kontrak.',
+                                                    ],
+                                                ],
+                                            ],
+                                        ],
+                                    ],
                                 ],
                                 [
-                                    'p' => 'Apabila terjadi pelanggaran kewajiban dari PIHAK KEDUA yang mengakibatkan pembatalan perjanjian ini, maka PIHAK KEDUA wajib membayar penggunaan internet sampai dengan bulan terakhir pembatalan kontrak;',
-                                ],
-                                [
-                                    'p' => 'Apabila salah satu pihak mengalami kegagalan keuangan atau berhenti beroperasi maka hal ini dapat menjadi penyebab pembatalan, dimana salah satu pihak atau lainnya dapat membatalkan perjanjian ini dengan melakukan pemberitahuan secara tertulis. Namun pihak yang mengalami keadaan insolven, kegagalan keuangan atau berhenti beroperasi tersebut tetap harus melaksanakan segala kewajiban hingga tanggal pemutusan kontrak berdasarkan peraturan perundang-undangan yang berlaku, termasuk akan tetapi tidak terbatas pada, Undang-undang Nomor 37 Tahun 2004 tentang Kepailitan dan Penundaan Kewajiban Pembayaran Utang;',
-                                ],
-                                [
-                                    'p' => 'Apabila PIHAK PERTAMA gagal untuk menyediakan Jasa atau gagal mencapai SLA sebagaimana diuraikan pada Lampiran B, maka akan berlaku ketentuan denda sebagai berikut:',
-                                ],
-                                [
-                                    'p' => 'Atas setiap akumulasi selama periode 30 hari kegagalan penyediaan Jasa, PIHAK PERTAMA akan memberikan potongan biaya Jasa secara prorata atas kegagalan penyediaan Jasa sesuai dengan skema restitusi yang dijelaskan dalam Lampiran B; dan',
-                                ],
-                                [
-                                    'p' => 'Dalam hal pihak PIHAK PERTAMA gagal memenuhi minimum SLA sebesar 99.5% dalam jangka waktu sebulan berdasarkan pada laporan dan pembuktian, maka PIHAK KEDUA wajib memberikan teguran sebanyak 3 (tiga) kali secara berturut-turut dan jika tidak ada penyelesaian dari PIHAK PERTAMA, maka PIHAK KEDUA berhak memutuskan kontrak dan wajib membayar seluruh kewajiban sampai tanggal pemutusan kontrak.',
-                                ],
-                                [
-                                    'p' => 'Apabila setelah 3 (tiga) surat teguran berturut-turut PIHAK PERTAMA tetap gagal memenuhi SLA sebagaimana diatur dalam Lampiran B, PIHAK KEDUA berhak mengakhiri Perjanjian tanpa dikenakan penalti terminasi dini. Namun PIHAK KEDUA tetap wajib melunasi seluruh tagihan yang telah jatuh tempo sampai dengan tanggal efektif pengakhiran layanan.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'start' => 5,
+                                        'items' => [
+                                            'Apabila setelah 3 (tiga) surat teguran berturut-turut PIHAK PERTAMA tetap gagal memenuhi SLA sebagaimana diatur dalam Lampiran B, PIHAK KEDUA berhak mengakhiri Perjanjian tanpa dikenakan penalti terminasi dini. Namun PIHAK KEDUA tetap wajib melunasi seluruh tagihan yang telah jatuh tempo sampai dengan tanggal efektif pengakhiran layanan.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -5039,19 +5037,31 @@ Jika PIHAK KEDUA membatalkan Perjanjian tanpa alasan, PIHAK KEDUA wajib membayar
 Dalam hal PIHAK PERTAMA mengakhiri Perjanjian tanpa alasan yang sah, PIHAK PERTAMA wajib memberikan pemberitahuan tertulis sekurang-kurangnya 30 (tiga puluh) hari kalender sebelumnya dan tetap memberikan layanan sampai dengan tanggal efektif pengakhiran. Kewajiban PIHAK PERTAMA terbatas pada pengembalian biaya layanan yang telah dibayar di muka untuk periode yang belum digunakan.',
                             'blocks' => [
                                 [
-                                    'p' => 'Para Pihak dapat membatalkan Perjanjian tanpa alasan dengan pemberitahuan tertulis dimuka dengan ketentuan sebagai berikut:',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            [
+                                                'text' => 'Para Pihak dapat membatalkan Perjanjian tanpa alasan dengan pemberitahuan tertulis dimuka dengan ketentuan sebagai berikut:',
+                                                'children' => [
+                                                    'type' => 'a',
+                                                    'items' => [
+                                                        'Jika PIHAK PERTAMA membatalkan Perjanjian, maka PIHAK PERTAMA akan memberitahukan 30 hari dimuka; dan',
+                                                        'Jika PIHAK KEDUA membatalkan Perjanjian, maka PIHAK KEDUA akan memberitahukan 30 hari dimuka.',
+                                                    ],
+                                                ],
+                                            ],
+                                        ],
+                                    ],
                                 ],
                                 [
-                                    'p' => 'Jika PIHAK PERTAMA membatalkan Perjanjian, maka PIHAK PERTAMA akan memberitahukan 30 hari dimuka; dan',
-                                ],
-                                [
-                                    'p' => 'Jika PIHAK KEDUA membatalkan Perjanjian, maka PIHAK KEDUA akan memberitahukan 30 hari dimuka.',
-                                ],
-                                [
-                                    'p' => 'Jika PIHAK KEDUA membatalkan Perjanjian tanpa alasan, PIHAK KEDUA wajib membayar PIHAK PERTAMA atas seluruh biaya bulan berjalan di bulan terjadinya pembatalan hingga tanggal jatuh tempo perjanjian;',
-                                ],
-                                [
-                                    'p' => 'Dalam hal PIHAK PERTAMA mengakhiri Perjanjian tanpa alasan yang sah, PIHAK PERTAMA wajib memberikan pemberitahuan tertulis sekurang-kurangnya 30 (tiga puluh) hari kalender sebelumnya dan tetap memberikan layanan sampai dengan tanggal efektif pengakhiran. Kewajiban PIHAK PERTAMA terbatas pada pengembalian biaya layanan yang telah dibayar di muka untuk periode yang belum digunakan.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'start' => 2,
+                                        'items' => [
+                                            'Jika PIHAK KEDUA membatalkan Perjanjian tanpa alasan, PIHAK KEDUA wajib membayar PIHAK PERTAMA atas seluruh biaya bulan berjalan di bulan terjadinya pembatalan hingga tanggal jatuh tempo perjanjian;',
+                                            'Dalam hal PIHAK PERTAMA mengakhiri Perjanjian tanpa alasan yang sah, PIHAK PERTAMA wajib memberikan pemberitahuan tertulis sekurang-kurangnya 30 (tiga puluh) hari kalender sebelumnya dan tetap memberikan layanan sampai dengan tanggal efektif pengakhiran. Kewajiban PIHAK PERTAMA terbatas pada pengembalian biaya layanan yang telah dibayar di muka untuk periode yang belum digunakan.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -5068,19 +5078,16 @@ Permohonan downgrade layanan yang diajukan sebelum berakhirnya Masa Berlangganan
 Selama masa berlakunya Perjanjian ini Pihak Kedua tidak bisa mengajukan perubahan biaya layanan yang berjalan sampai dengan masa kontrak Perjanjian ini berakhir. Terkecuali adanya permohonan upgrade layanan;',
                             'blocks' => [
                                 [
-                                    'p' => 'Selama masa berlakunya Perjanjian, salah satu pihak dapat mengajukan usulan perubahan Perjanjian dengan mengajukan usulan secara tertulis kepada pihak lainnya;',
-                                ],
-                                [
-                                    'p' => 'Dalam jangka waktu 30 hari setelah menerima pemberitahuan tertulis mengenai usulan perubahan dari PIHAK KEDUA, PIHAK PERTAMA akan memberitahu PIHAK KEDUA apakah perubahan dapat dilaksanakan atau tidak. Apabila perubahan tersebut dapat dilaksanakan, maka PIHAK PERTAMA berhak mengajukan perubahan atas biaya Jasa dan ketentuan lainnya dari Perjanjian ini;',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA dapat mengajukan usulan upgrade dan downgrade layanan selama masa berlakunya perjanjian melalui pemberitahuan tertulis 30 hari sebelumnya;',
-                                ],
-                                [
-                                    'p' => 'Permohonan downgrade layanan yang diajukan sebelum berakhirnya Masa Berlangganan Minimum sebagaimana ditentukan dalam Service Order Form atau Lampiran Perjanjian ini akan dianggap sebagai pengakhiran sebagian layanan dan dikenakan penalti sebesar (100% x biaya layanan perbulan x Bulan yang belum terpenuhi);',
-                                ],
-                                [
-                                    'p' => 'Selama masa berlakunya Perjanjian ini Pihak Kedua tidak bisa mengajukan perubahan biaya layanan yang berjalan sampai dengan masa kontrak Perjanjian ini berakhir. Terkecuali adanya permohonan upgrade layanan;',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'Selama masa berlakunya Perjanjian, salah satu pihak dapat mengajukan usulan perubahan Perjanjian dengan mengajukan usulan secara tertulis kepada pihak lainnya;',
+                                            'Dalam jangka waktu 30 hari setelah menerima pemberitahuan tertulis mengenai usulan perubahan dari PIHAK KEDUA, PIHAK PERTAMA akan memberitahu PIHAK KEDUA apakah perubahan dapat dilaksanakan atau tidak. Apabila perubahan tersebut dapat dilaksanakan, maka PIHAK PERTAMA berhak mengajukan perubahan atas biaya Jasa dan ketentuan lainnya dari Perjanjian ini;',
+                                            'PIHAK KEDUA dapat mengajukan usulan upgrade dan downgrade layanan selama masa berlakunya perjanjian melalui pemberitahuan tertulis 30 hari sebelumnya;',
+                                            'Permohonan downgrade layanan yang diajukan sebelum berakhirnya Masa Berlangganan Minimum sebagaimana ditentukan dalam Service Order Form atau Lampiran Perjanjian ini akan dianggap sebagai pengakhiran sebagian layanan dan dikenakan penalti sebesar (100% x biaya layanan perbulan x Bulan yang belum terpenuhi);',
+                                            'Selama masa berlakunya Perjanjian ini Pihak Kedua tidak bisa mengajukan perubahan biaya layanan yang berjalan sampai dengan masa kontrak Perjanjian ini berakhir. Terkecuali adanya permohonan upgrade layanan;',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -5097,19 +5104,16 @@ PARA PIHAK wajib melakukan upaya yang wajar untuk mengurangi dampak Keadaan Mema
 Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender secara berturut-turut dan PARA PIHAK tidak mencapai kesepakatan mengenai kelanjutan Perjanjian, masing-masing pihak berhak mengakhiri Perjanjian dengan pemberitahuan tertulis tanpa dikenakan penalti, dengan tetap menyelesaikan seluruh hak dan kewajiban yang telah timbul sebelum tanggal efektif pengakhiran.',
                             'blocks' => [
                                 [
-                                    'p' => 'Keadaan Memaksa (Force Majeure) adalah setiap peristiwa di luar kendali dan kemampuan wajar PARA PIHAK yang secara langsung mengakibatkan sebagian atau seluruh kewajiban dalam Perjanjian ini tidak dapat dilaksanakan, termasuk namun tidak terbatas pada bencana alam, kebakaran, perang, kerusuhan, wabah penyakit, pemogokan, gangguan jaringan berskala besar, kegagalan sistem di luar kendali PARA PIHAK, kebijakan Pemerintah, atau peristiwa lain yang sejenis.',
-                                ],
-                                [
-                                    'p' => 'PIHAK yang mengalami Keadaan Memaksa wajib memberitahukan secara tertulis kepada pihak lainnya paling lambat 14 (empat belas) Hari Kalender sejak diketahui atau seharusnya diketahui terjadinya Keadaan Memaksa, disertai penjelasan mengenai dampak terhadap pelaksanaan Perjanjian.',
-                                ],
-                                [
-                                    'p' => 'Selama Keadaan Memaksa berlangsung, kewajiban PARA PIHAK yang terdampak ditangguhkan sepanjang tidak dapat dilaksanakan akibat Keadaan Memaksa. Penangguhan tersebut tidak menghapus kewajiban yang telah timbul sebelum terjadinya Keadaan Memaksa.',
-                                ],
-                                [
-                                    'p' => 'PARA PIHAK wajib melakukan upaya yang wajar untuk mengurangi dampak Keadaan Memaksa dan melanjutkan pelaksanaan Perjanjian segera setelah keadaan tersebut berakhir.',
-                                ],
-                                [
-                                    'p' => 'Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender secara berturut-turut dan PARA PIHAK tidak mencapai kesepakatan mengenai kelanjutan Perjanjian, masing-masing pihak berhak mengakhiri Perjanjian dengan pemberitahuan tertulis tanpa dikenakan penalti, dengan tetap menyelesaikan seluruh hak dan kewajiban yang telah timbul sebelum tanggal efektif pengakhiran.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'Keadaan Memaksa (Force Majeure) adalah setiap peristiwa di luar kendali dan kemampuan wajar PARA PIHAK yang secara langsung mengakibatkan sebagian atau seluruh kewajiban dalam Perjanjian ini tidak dapat dilaksanakan, termasuk namun tidak terbatas pada bencana alam, kebakaran, perang, kerusuhan, wabah penyakit, pemogokan, gangguan jaringan berskala besar, kegagalan sistem di luar kendali PARA PIHAK, kebijakan Pemerintah, atau peristiwa lain yang sejenis.',
+                                            'PIHAK yang mengalami Keadaan Memaksa wajib memberitahukan secara tertulis kepada pihak lainnya paling lambat 14 (empat belas) Hari Kalender sejak diketahui atau seharusnya diketahui terjadinya Keadaan Memaksa, disertai penjelasan mengenai dampak terhadap pelaksanaan Perjanjian.',
+                                            'Selama Keadaan Memaksa berlangsung, kewajiban PARA PIHAK yang terdampak ditangguhkan sepanjang tidak dapat dilaksanakan akibat Keadaan Memaksa. Penangguhan tersebut tidak menghapus kewajiban yang telah timbul sebelum terjadinya Keadaan Memaksa.',
+                                            'PARA PIHAK wajib melakukan upaya yang wajar untuk mengurangi dampak Keadaan Memaksa dan melanjutkan pelaksanaan Perjanjian segera setelah keadaan tersebut berakhir.',
+                                            'Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender secara berturut-turut dan PARA PIHAK tidak mencapai kesepakatan mengenai kelanjutan Perjanjian, masing-masing pihak berhak mengakhiri Perjanjian dengan pemberitahuan tertulis tanpa dikenakan penalti, dengan tetap menyelesaikan seluruh hak dan kewajiban yang telah timbul sebelum tanggal efektif pengakhiran.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -5126,19 +5130,16 @@ Selama proses penyelesaian sengketa berlangsung, PARA PIHAK tetap berkewajiban m
 PARA PIHAK sepakat bahwa pengajuan keberatan, klaim, atau sengketa oleh PIHAK KEDUA tidak menghapus, menangguhkan, atau mengurangi kewajiban PIHAK KEDUA untuk melakukan pembayaran atas tagihan yang telah jatuh tempo berdasarkan Perjanjian ini.',
                             'blocks' => [
                                 [
-                                    'p' => 'PARA PIHAK sepakat bahwa Perjanjian ini dibuat dan dilaksanakan berdasarkan prinsip itikad baik, saling menguntungkan, serta tunduk pada ketentuan peraturan perundang-undangan yang berlaku di Republik Indonesia;',
-                                ],
-                                [
-                                    'p' => 'Apabila timbul perselisihan, perbedaan penafsiran, atau sengketa yang berkaitan dengan pelaksanaan, pelanggaran, pengakhiran, maupun keabsahan Perjanjian ini, PARA PIHAK sepakat untuk terlebih dahulu menyelesaikannya secara musyawarah untuk mufakat dalam jangka waktu paling lama 30 (tiga puluh) hari kalender sejak salah satu pihak menyampaikan pemberitahuan tertulis mengenai adanya sengketa;',
-                                ],
-                                [
-                                    'p' => 'Dalam hal musyawarah sebagaimana dimaksud pada ayat (2) tidak mencapai kesepakatan dalam jangka waktu tersebut, PARA PIHAK sepakat untuk menyelesaikan sengketa melalui Pengadilan Negeri Bandung, tanpa mengurangi hak PIHAK PERTAMA untuk melakukan upaya penagihan, pemutusan layanan, atau tindakan hukum lainnya sesuai ketentuan Perjanjian ini;',
-                                ],
-                                [
-                                    'p' => 'Selama proses penyelesaian sengketa berlangsung, PARA PIHAK tetap berkewajiban melaksanakan bagian-bagian Perjanjian yang tidak dipersengketakan;',
-                                ],
-                                [
-                                    'p' => 'PARA PIHAK sepakat bahwa pengajuan keberatan, klaim, atau sengketa oleh PIHAK KEDUA tidak menghapus, menangguhkan, atau mengurangi kewajiban PIHAK KEDUA untuk melakukan pembayaran atas tagihan yang telah jatuh tempo berdasarkan Perjanjian ini.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PARA PIHAK sepakat bahwa Perjanjian ini dibuat dan dilaksanakan berdasarkan prinsip itikad baik, saling menguntungkan, serta tunduk pada ketentuan peraturan perundang-undangan yang berlaku di Republik Indonesia;',
+                                            'Apabila timbul perselisihan, perbedaan penafsiran, atau sengketa yang berkaitan dengan pelaksanaan, pelanggaran, pengakhiran, maupun keabsahan Perjanjian ini, PARA PIHAK sepakat untuk terlebih dahulu menyelesaikannya secara musyawarah untuk mufakat dalam jangka waktu paling lama 30 (tiga puluh) hari kalender sejak salah satu pihak menyampaikan pemberitahuan tertulis mengenai adanya sengketa;',
+                                            'Dalam hal musyawarah sebagaimana dimaksud pada ayat (2) tidak mencapai kesepakatan dalam jangka waktu tersebut, PARA PIHAK sepakat untuk menyelesaikan sengketa melalui Pengadilan Negeri Bandung, tanpa mengurangi hak PIHAK PERTAMA untuk melakukan upaya penagihan, pemutusan layanan, atau tindakan hukum lainnya sesuai ketentuan Perjanjian ini;',
+                                            'Selama proses penyelesaian sengketa berlangsung, PARA PIHAK tetap berkewajiban melaksanakan bagian-bagian Perjanjian yang tidak dipersengketakan;',
+                                            'PARA PIHAK sepakat bahwa pengajuan keberatan, klaim, atau sengketa oleh PIHAK KEDUA tidak menghapus, menangguhkan, atau mengurangi kewajiban PIHAK KEDUA untuk melakukan pembayaran atas tagihan yang telah jatuh tempo berdasarkan Perjanjian ini.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -5155,19 +5156,16 @@ Para pihak menjamin bahwa penandatangan Perjanjian ini dan/atau Lampiran-Lampira
 Perjanjian ini dibuat dan ditandatangani dalam rangkap 2 (dua) asli, masing-masing bermeterai cukup dan mempunyai kekuatan hukum yang sama. Perjanjian ini dibuat dengan itikad baik untuk dilaksanakan oleh PARA PIHAK. Dalam hal ditandatangani secara elektronik, PARA PIHAK sepakat bahwa dokumen elektronik memiliki kekuatan hukum yang sah sesuai peraturan perundang-undangan yang berlaku.',
                             'blocks' => [
                                 [
-                                    'p' => 'Setiap perubahan, penambahan, pengurangan, atau penyesuaian terhadap ketentuan dalam Perjanjian ini hanya sah dan mengikat apabila dibuat secara tertulis serta disepakati dan ditandatangani oleh PARA PIHAK dalam bentuk Addendum dan/atau Amandemen yang menjadi bagian yang tidak terpisahkan dari Perjanjian ini;',
-                                ],
-                                [
-                                    'p' => 'Seluruh Lampiran dalam Perjanjian ini merupakan satu kesatuan yang tidak terpisahkan dan mempunyai kekuatan hukum yang sama dengan Perjanjian ini;',
-                                ],
-                                [
-                                    'p' => 'PARA PIHAK sepakat dan setuju untuk mengesampikan berlakunya Pasal 1266 KUHPerdata, sehingga Pemutusan Perjanjian ini dapat dilakukan oleh PARA PIHAK tanpa terlebih dahulu menunggu Putusan Pengadilan',
-                                ],
-                                [
-                                    'p' => 'Para pihak menjamin bahwa penandatangan Perjanjian ini dan/atau Lampiran-Lampirannya adalah pihak yang sah dan berwenang secara hukum untuk mengikatkan diri dan/atau mewakili perusahaan masing-masing, baik berdasarkan anggaran dasar, keputusan organ perusahaan yang berwenang, maupun surat kuasa yang sah;',
-                                ],
-                                [
-                                    'p' => 'Perjanjian ini dibuat dan ditandatangani dalam rangkap 2 (dua) asli, masing-masing bermeterai cukup dan mempunyai kekuatan hukum yang sama. Perjanjian ini dibuat dengan itikad baik untuk dilaksanakan oleh PARA PIHAK. Dalam hal ditandatangani secara elektronik, PARA PIHAK sepakat bahwa dokumen elektronik memiliki kekuatan hukum yang sah sesuai peraturan perundang-undangan yang berlaku.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'Setiap perubahan, penambahan, pengurangan, atau penyesuaian terhadap ketentuan dalam Perjanjian ini hanya sah dan mengikat apabila dibuat secara tertulis serta disepakati dan ditandatangani oleh PARA PIHAK dalam bentuk Addendum dan/atau Amandemen yang menjadi bagian yang tidak terpisahkan dari Perjanjian ini;',
+                                            'Seluruh Lampiran dalam Perjanjian ini merupakan satu kesatuan yang tidak terpisahkan dan mempunyai kekuatan hukum yang sama dengan Perjanjian ini;',
+                                            'PARA PIHAK sepakat dan setuju untuk mengesampikan berlakunya Pasal 1266 KUHPerdata, sehingga Pemutusan Perjanjian ini dapat dilakukan oleh PARA PIHAK tanpa terlebih dahulu menunggu Putusan Pengadilan',
+                                            'Para pihak menjamin bahwa penandatangan Perjanjian ini dan/atau Lampiran-Lampirannya adalah pihak yang sah dan berwenang secara hukum untuk mengikatkan diri dan/atau mewakili perusahaan masing-masing, baik berdasarkan anggaran dasar, keputusan organ perusahaan yang berwenang, maupun surat kuasa yang sah;',
+                                            'Perjanjian ini dibuat dan ditandatangani dalam rangkap 2 (dua) asli, masing-masing bermeterai cukup dan mempunyai kekuatan hukum yang sama. Perjanjian ini dibuat dengan itikad baik untuk dilaksanakan oleh PARA PIHAK. Dalam hal ditandatangani secara elektronik, PARA PIHAK sepakat bahwa dokumen elektronik memiliki kekuatan hukum yang sah sesuai peraturan perundang-undangan yang berlaku.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],

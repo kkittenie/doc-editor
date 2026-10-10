@@ -14,7 +14,6 @@
             position: relative;
             overflow: hidden;
             width: 100%;
-            border-bottom: 3px double #1B2A4A;
             padding-bottom: 8px;
             margin-bottom: 16px;
         }
@@ -276,10 +275,9 @@
         }
 
         .contract-document .header-table {
-            border-bottom: 1px solid #000;
             /* Samakan dengan editor (.doc-sheet-header padding-bottom: 4mm)
-               supaya garis kop jatuh di 37,8mm dari tepi atas — sama sungguhnya
-               di layar editor. */
+               supaya tinggi blok kop jatuh di 37,8mm dari tepi atas — sama
+               sungguhnya di layar editor. */
             padding-bottom: 4mm;
             margin-bottom: 14px;
         }

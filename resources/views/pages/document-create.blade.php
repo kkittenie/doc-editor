@@ -44,7 +44,7 @@
         // lebih awal (teputus di style=), Alpine menerima x-data terpotong
         // dan setiap properti di dalamnya meledak jadi is not defined.
         defaultHeaderHtml() {
-            return '<p style=&quot;text-align:left; margin:0; padding:0;&quot;><img src=&quot;/images/fibertrust.png&quot; alt=&quot;Fibertrust&quot; style=&quot;height:56px; width:auto; max-width:260px; display:inline-block; vertical-align:middle; margin:0; padding:0;&quot;></p>';
+            return '<p style=&quot;text-align:left; margin:0; padding:0;&quot;><img src=&quot;/images/fibertrust.png&quot; alt=&quot;Fibertrust&quot; style=&quot;height:72px; width:auto; max-width:340px; display:inline-block; vertical-align:middle; margin:0; padding:0;&quot;></p>';
         },
 
         init() {
@@ -189,11 +189,6 @@
         <h1 class="text-2xl font-bold text-ink-900 dark:text-parchment-50">
             Buat Dokumen Baru
         </h1>
-
-        <p class="mt-2 text-sm text-slate-warm-600 dark:text-parchment-400">
-            Data kontrak &amp; barang/service sudah diisi di Form Pelanggan (read-only di sini).
-            Pilih template dokumen untuk mulai menyusun di editor.
-        </p>
     </div>
 
     <form action="{{ route('documents.store') }}" method="POST" @submit="submitForm($event)">
@@ -221,10 +216,6 @@
                     <h2 class="font-serif text-base font-bold text-ink-900 dark:text-parchment-50">
                         Detail Kontrak
                     </h2>
-
-                    <p class="text-xs text-slate-warm-500 dark:text-parchment-400">
-                        Periode kontrak dari Form Pelanggan (read-only).
-                    </p>
                 </div>
             </div>
 
@@ -240,7 +231,7 @@
                     <input type="hidden" name="customer_id" value="{{ $selectedCustomer->id }}">
 
                     <p class="mt-1 text-[11px] text-slate-warm-400">
-                        Periode kontrak: {{ $periodLabel }}. Ubah lewat Form Pelanggan.
+                        Periode kontrak: {{ $periodLabel }}.
                     </p>
                 </div>
 
@@ -266,10 +257,6 @@
                         value="{{ old('header_data.nomorSurat', $selectedCustomer->contract_number ?? '') }}"
                         placeholder="KTR/001/IX/2026"
                         class="w-full rounded-xl border border-parchment-300 bg-white px-4 py-2.5 font-mono text-sm outline-none focus:border-bronze-500 dark:border-slate-warm-700 dark:bg-slate-warm-800">
-
-                    <p class="mt-1 text-[11px] text-slate-warm-400">
-                        Terisi otomatis dari data pelanggan!
-                    </p>
                 </div>
 
                 {{-- Tanggal Aktif (read-only dari Form Pelanggan) --}}
@@ -325,10 +312,7 @@
                 </div>
             </div>
 
-            {{-- INPUT TAMBAH BARANG (dipindah ke Form Pelanggan) --}}
-            <p class="text-[11px] text-slate-warm-400">
-                Input barang dipindah ke Form Pelanggan — tabel di bawah hanya tampil (read-only).
-            </p>
+           
 
             {{-- TABEL BARANG (read-only dari Form Pelanggan) --}}
             @include('partials.contract.barang-table', ['selectedCustomer' => $selectedCustomer])
@@ -353,10 +337,6 @@
                 </div>
             </div>
 
-            {{-- INPUT TAMBAH SERVICE (dipindah ke Form Pelanggan) --}}
-            <p class="text-[11px] text-slate-warm-400">
-                Input service dipindah ke Form Pelanggan — tabel di bawah hanya tampil (read-only).
-            </p>
 
             {{-- TABEL SERVICE + TOTAL (read-only dari Form Pelanggan) --}}
             @include('partials.contract.service-table', ['selectedCustomer' => $selectedCustomer, 'contractTotals' => $contractTotals])
@@ -372,12 +352,8 @@
 
                 <div>
                     <h2 class="font-serif text-base font-bold text-ink-900 dark:text-parchment-50">
-                        Pilih Template Dokumen (Opsional)
+                        Pilih Template Dokumen
                     </h2>
-
-                    <p class="text-xs text-slate-warm-500 dark:text-parchment-400">
-                        Template bersifat opsional. Tanpa template, editor dibuka kosong - Anda bisa mengetik manual.
-                    </p>
                 </div>
             </div>
 
@@ -435,15 +411,6 @@
                 <p class="text-xs font-semibold text-ink-900 dark:text-parchment-100"
                     x-show="selectedTemplate" x-cloak>
                     Template terpilih: <span class="font-mono" x-text="selectedTemplate"></span>
-                </p>
-
-                <p class="text-xs text-slate-warm-500 dark:text-parchment-400" x-show="!selectedTemplate">
-                    Tanpa template: editor dibuka kosong. Anda bisa memilih template di atas atau langsung lanjut.
-                </p>
-
-                <p class="mt-1 text-[11px] text-slate-warm-400">
-                    Setelah disimpan, Anda akan diarahkan ke Studio Editor dan status pelanggan berubah menjadi
-                    <strong>On Progress</strong>.
                 </p>
             </div>
 

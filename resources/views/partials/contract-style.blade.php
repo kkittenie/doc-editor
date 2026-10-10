@@ -40,7 +40,6 @@
     .contract-template-canvas .doc-sheet-header {
         min-height: 0;
         padding-bottom: 4mm;
-        border-bottom: 1px solid #000;
     }
 
     /* Jarak garis kop ke isi pertama (token BODY_SPACE_BEFORE): padding di

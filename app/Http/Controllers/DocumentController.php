@@ -320,7 +320,7 @@ class DocumentController extends Controller
     {
         return '<p style="text-align:left; margin:0; padding:0;">'
             .'<img src="/images/fibertrust.png" alt="Fibertrust" '
-            .'style="height:56px; width:auto; max-width:260px; display:inline-block; vertical-align:middle; margin:0; padding:0;">'
+            .'style="height:72px; width:auto; max-width:340px; display:inline-block; vertical-align:middle; margin:0; padding:0;">'
             .'</p>';
     }
 

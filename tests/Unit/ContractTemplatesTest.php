@@ -5,9 +5,6 @@ use App\Http\Controllers\DocumentController;
 use App\Models\Customer;
 
 /**
- * Uji konsistensi template kontrak hasil konversi dari dokumen .docx resmi.
- * Body template wajib memuat teks asli dokumen (verbatim) dan penomoran
- * PASAL yang berurutan (1..N) baik pada data maupun HTML hasil render.
  */
 
 function contractBuildBodyHtml(array $template, bool $center): string
@@ -51,7 +48,6 @@ test('setiap template punya minimal 14 pasal, judul & isi tidak kosong', functio
 
         foreach ($isi as $pasal) {
             expect($pasal['judul'] ?? '')->not->toBeEmpty();
-            // isi pasal boleh berupa paragraf ('text') atau blok tabel ('blocks')
             $hasContent = ($pasal['text'] ?? '') !== '' || !empty($pasal['blocks']);
             expect($hasContent)->toBeTrue();
         }
@@ -59,13 +55,12 @@ test('setiap template punya minimal 14 pasal, judul & isi tidak kosong', functio
 });
 
 test('setiap template memuat tabel sesuai dokumen asli pada posisi yang benar', function () use ($keys) {
-    // jumlah tabel per template: [isi, tutup, lampiran]
     $expected = [
-        'kontrak-kemitraan'      => 5, // PASAL 17 komunikasi = teks <ol>; 1 ttd + 4 lampiran
-        'kontrak-colocation'     => 2, // 1 ttd + 1 deskripsi layanan
-        'kontrak-managed-service'=> 5, // 1 pasal denda + 1 ttd + 3 lampiran
-        'kontrak-soho'           => 3, // 1 pasal denda + 1 ttd + 1 lampiran
-        'kontrak-payung'         => 7, // 1 pasal denda + 1 ttd + 5 lampiran
+        'kontrak-kemitraan'      => 5, 
+        'kontrak-colocation'     => 2, 
+        'kontrak-managed-service'=> 5, 
+        'kontrak-soho'           => 3, 
+        'kontrak-payung'         => 7, 
     ];
 
     foreach ($keys as $key) {
@@ -90,7 +85,6 @@ test('setiap template memuat tabel sesuai dokumen asli pada posisi yang benar', 
         expect($count)->toBe($expected[$key]);
     }
 
-    // Kemitraan: teks pemberitahuan (<ol>) di dalam pasal KOMUNIKASI/PEMBERITAHUAN
     $tpl = ContractTemplates::find('kontrak-kemitraan');
     $komunikasi = null;
     foreach ($tpl['body_content']['isi'] as $pasal) {
@@ -101,7 +95,6 @@ test('setiap template memuat tabel sesuai dokumen asli pada posisi yang benar', 
     expect(count($lists))->toBe(1);
     expect(json_encode($lists[0]['ol'], JSON_UNESCAPED_UNICODE))->toContain('admin@fibertrust.id');
 
-    // Colocation: tabel DESKRIPSI LAYANAN ber-border di lampiran
     $tpl = ContractTemplates::find('kontrak-colocation');
     $lampTables = array_values(array_filter(
         $tpl['body_content']['lampiran'][0]['blocks'],
@@ -112,14 +105,11 @@ test('setiap template memuat tabel sesuai dokumen asli pada posisi yang benar', 
     expect($tbl['bordered'])->toBeTrue();
     expect(json_encode($tbl, JSON_UNESCAPED_UNICODE))->toContain('Colocation Full Rack 42 U');
 
-    // vertical merge: sel "Jangka Waktu Berlangganan" restart di baris data
-    // pertama dan berlanjut (CONT) di 4 baris berikutnya
     expect($tbl['rows'][1][4]['v'] ?? null)->toBe('r');
     foreach ([2, 3, 4, 5] as $vr) {
         expect($tbl['rows'][$vr][4]['v'] ?? null)->toBe('c');
     }
 
-    // Tabel tanda tangan tanpa border (seperti dokumen asli)
     $sig = $tpl['body_content']['tutupBlocks'][0]['table'];
     expect($sig['bordered'])->toBeFalse();
     expect(json_encode($sig, JSON_UNESCAPED_UNICODE))->toContain('PT Bina Informatika Solusi');
@@ -322,8 +312,6 @@ test('render HTML memunculkan tabel asli dengan border & posisi yang benar', fun
 });
 
 test('tabel formula satu baris ditandai atomik agar tidak berkedip di batas halaman', function () {
-    // Regresi bug "teks blink/kelap-kelip" di akhir Managed Service:
-    // tabel formula satu baris harus membawa penanda blok atomik paginasi.
     foreach (['kontrak-managed-service', 'kontrak-payung'] as $key) {
         $tpl  = ContractTemplates::find($key);
         $html = contractBuildBodyHtml($tpl, true);
@@ -434,6 +422,32 @@ test('house style kanonik: heading, judul, body, list & tabel dari token Contrac
     $html = contractBuildBodyHtml(ContractTemplates::find('kontrak-kemitraan'), false);
     expect($html)->toContain('ql-liststyle-alpha');
     expect($html)->toContain('class="' . $cs::LIST_CLASS . ' ');
+});
+
+test('managed service merender pasal bernomor sebagai <ol> bernomor, bukan paragraf', function () {
+    // Regresi bug "point-point hilang" di template Managed Service: bagian
+    // Definisi, Fasilitas, Hak & Kewajiban, dst yang di dokumen sumber berupa
+    // <ol> harus tetap dirender sebagai daftar bernomor — bukan blok <p> biasa.
+    $cs   = \App\Data\ContractStyle::class;
+    $tpl  = ContractTemplates::find('kontrak-managed-service');
+    $html = contractBuildBodyHtml($tpl, true);
+
+    // Minimal 14 <ol> (Definisi, Fasilitas, Jangka Waktu×2, Pembayaran,
+    // Hak & Kewajiban, Perpindahan, Alasan×2, Tanpa Alasan×2, Ketentuan,
+    // Force Majeure, Penyelesaian Sengketa, Lain-Lain).
+    expect(substr_count($html, '<ol'))->toBeGreaterThanOrEqual(14);
+
+    // Penanda numbering tunggal (decimal & lower-alpha untuk sub-list).
+    expect($html)->toContain('<ol class="' . $cs::LIST_CLASS . ' ql-liststyle-decimal"');
+    expect($html)->toContain('ql-liststyle-alpha');       // sub-list Pasal 9 & 10
+
+    // Lanjutan penomoran lintas tabel/paragraf memakai atribut start.
+    expect($html)->toContain('start="3"');                // Pasal 4 lanjutan
+    expect($html)->toContain('start="5"');                // Pasal 9 lanjutan
+    expect($html)->toContain('start="2"');                // Pasal 10 lanjutan
+
+    // Tabel denda Pasal 4 & lampiran tetap utuh (5 tabel).
+    expect(substr_count($html, '<table'))->toBe(5);
 });
 
 test('template kontrak bebas nomor kontrak hardcode', function () use ($keys) {
