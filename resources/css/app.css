@@ -1197,6 +1197,69 @@
 }
 /* Dark mode memakai palet yang sama, jadi mode ini tidak perlu override lagi. */
 
+/* ─── DATEPICKER: KURANGI UKURAN KALENDER ───
+   Kalender flatpickr dibuat sedikit lebih ringkas agar tidak terlalu besar.
+   Di-scope ke `.custom-datepicker` sehingga hanya kalender pada input tanggal
+   (komponen date-picker, form S.O.F, & form Pelanggan) yang mengecil — halaman
+   lain (dashboard/demo TailwindAdmin) tidak ikut berubah.
+   Nilai `!important` diperlukan untuk mengalahkan dimensi bawaan flatpickr.
+   PENTING: judul bulan/tahun (`.flatpickr-current-month`) dan panah navigasi
+   adalah `position:absolute` di dalam `.flatpickr-month`. Karena itu `.flatpickr-month`
+   WAJIB punya tinggi tetap (bukan `auto`, yang akan collapse ke 0 dan memotong
+   judul bulan/tahun karena `overflow:hidden`). */
+.custom-datepicker .flatpickr-calendar {
+  /* Padding panel: dari !p-5 (20px) menjadi 14px. */
+  padding: 0.875rem !important;
+}
+/* Lebar grid & container dalam disamakan agar selemen tidak lebih lebar dari grid. */
+.custom-datepicker .flatpickr-days {
+  /* Lebar grid: dari default 307.875px menjadi 252px (7 kolom × 34px + padding sel). */
+  width: 252px !important;
+}
+.custom-datepicker .flatpickr-weekdays,
+.custom-datepicker .dayContainer {
+  width: 100% !important;
+}
+/* Sel angka tanggal: dari 39px menjadi 34px. */
+.custom-datepicker .flatpickr-day {
+  height: 34px !important;
+  line-height: 34px !important;
+  max-width: 34px !important;
+  font-size: 0.8125rem !important; /* 13px */
+}
+/* Baris nama hari (Min, Sen, …): dari 28px menjadi 24px. */
+.custom-datepicker .flatpickr-weekdays {
+  height: 24px !important;
+}
+.custom-datepicker .flatpickr-weekday {
+  font-size: 0.6875rem !important; /* 11px */
+  line-height: 24px !important;
+}
+/* Judul bulan, tahun, dropdown bulan & input tahun sedikit dikecilkan agar proporsional. */
+.custom-datepicker .flatpickr-current-month {
+  font-size: 0.9375rem !important; /* 15px */
+  padding-top: 5px !important;
+}
+.custom-datepicker .flatpickr-current-month .flatpickr-monthDropdown-months,
+.custom-datepicker .flatpickr-current-month input.cur-year {
+  font-size: 0.9375rem !important; /* 15px */
+}
+.custom-datepicker .flatpickr-months {
+  margin-bottom: 0.25rem !important;
+}
+/* Tinggi tetap WAJIB agar judul bulan/tahun (position:absolute) tidak terpotong
+   oleh `overflow:hidden`. `overflow:visible` menjaga dropdown bulan tetap terbuka. */
+.custom-datepicker .flatpickr-months .flatpickr-month {
+  height: 30px !important;
+  overflow: visible !important;
+}
+/* Panah navigasi bulan (SVG) dikecilkan dari ukuran default. */
+.custom-datepicker .flatpickr-prev-month svg,
+.custom-datepicker .flatpickr-next-month svg {
+  width: 0.875rem !important;
+  height: 0.875rem !important;
+}
+
 /* ─── SIMPLEBAR ─── */
 .simplebar-scrollbar:before {
   @apply !bg-parchment-300 !rounded-full dark:!bg-slate-warm-700 !opacity-100;
