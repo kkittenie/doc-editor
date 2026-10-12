@@ -41,7 +41,8 @@
                     showCancelButton: true,
                     confirmButtonText: 'Ya, simpan',
                     cancelButtonText: 'Batal',
-                    confirmButtonColor: '#1B2A4A',
+                    confirmButtonColor: '#16a34a',
+                    cancelButtonColor: '#6b7280',
                 });
 
                 if (!result.isConfirmed) return;
@@ -665,6 +666,7 @@ $sortOptions = [
                 confirmButtonText: 'Ya, hapus',
                 cancelButtonText: 'Batal',
                 confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
             });
             if (!result.isConfirmed) return;
 
@@ -697,6 +699,7 @@ $sortOptions = [
                 confirmButtonText: 'Setujui & Upload',
                 cancelButtonText: 'Batal',
                 confirmButtonColor: '#16a34a',
+                cancelButtonColor: '#6b7280',
             });
             if (!konfirmasi.isConfirmed || !konfirmasi.value) return;
 

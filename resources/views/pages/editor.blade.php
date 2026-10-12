@@ -2178,7 +2178,8 @@
                     showCancelButton: true,
                     confirmButtonText: 'Ya, kirim',
                     cancelButtonText: 'Batal',
-                    confirmButtonColor: '#2563eb',
+                    confirmButtonColor: '#16a34a',
+                    cancelButtonColor: '#6b7280',
                 });
 
                 if (!konfirmasi.isConfirmed) return;
@@ -2249,6 +2250,7 @@
                     confirmButtonText: 'Setujui & Upload',
                     cancelButtonText: 'Batal',
                     confirmButtonColor: '#16a34a',
+                    cancelButtonColor: '#6b7280',
                 });
 
                 if (!konfirmasi.isConfirmed || !konfirmasi.value) return;
@@ -2301,6 +2303,7 @@
                     confirmButtonText: 'Ya, minta revisi',
                     cancelButtonText: 'Batal',
                     confirmButtonColor: '#ea580c',
+                    cancelButtonColor: '#6b7280',
                 });
 
                 if (!konfirmasi.isConfirmed) return;
@@ -2538,8 +2541,9 @@
                 confirmButtonText: 'Simpan & Keluar',
                 denyButtonText: 'Buang Perubahan',
                 cancelButtonText: 'Batal',
-                confirmButtonColor: '#1B2A4A',
+                confirmButtonColor: '#16a34a',
                 denyButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
                 footer: '<a href="#" id="swal-save-as-link" class="text-xs">' +
                     'atau Simpan Sebagai Dokumen Baru' +
                     '</a>',
@@ -2557,7 +2561,8 @@
                             showCancelButton: true,
                             confirmButtonText: 'Simpan Sebagai Baru',
                             cancelButtonText: 'Batal',
-                            confirmButtonColor: '#1B2A4A'
+                            confirmButtonColor: '#16a34a',
+                            cancelButtonColor: '#6b7280'
                         });
 
                         if (!newTitle) return;

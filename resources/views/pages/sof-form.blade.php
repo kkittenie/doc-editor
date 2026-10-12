@@ -117,9 +117,8 @@
                 </div>
                 <div>
                     <label class="mb-1 block text-xs text-ink-900">Tanggal Selesai</label>
-                    <input type="text" value="{{ $finishDate }}" readonly
+                    <input type="text" id="finish_date" value="{{ $finishDate }}" readonly
                         class="w-full cursor-default rounded-xl border bg-parchment-50 px-4 py-2.5 text-sm text-slate-warm-500">
-                    <p class="mt-1 text-[10px] text-slate-warm-400">Otomatis dari Tanggal Aktif + Masa Aktif</p>
                 </div>
                 <div class="sm:col-span-2">
                     <label class="mb-1 block text-xs text-ink-900">Berkas PDF (Scan Kontrak)</label>
@@ -189,6 +188,44 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ── Tanggal Selesai otomatis ────────────────────────────────────────────
+    // Hitung Tanggal Aktif + Masa Aktif (bulan) secara real-time di browser.
+    // Replikasi SofController (Carbon::addMonths — overflow akhir bulan, mis.
+    // 31 Jan + 1 bln → 3 Mar). Field ini hanya pratinjau: tidak punya
+    // atribut `name`, jadi tidak ikut di-submit; backend tetap hitung ulang.
+    var activeMonthsInput = document.getElementById('active_months');
+    var finishDateInput   = document.getElementById('finish_date');
+
+    var pad2 = function (n) { return String(n).padStart(2, '0'); };
+
+    var updateFinishDate = function () {
+        if (!activeDateInput || !activeMonthsInput || !finishDateInput) return;
+
+        var months = parseInt(activeMonthsInput.value, 10);
+        var startStr = activeDateInput.value;
+
+        if (!startStr || !months || months <= 0) {
+            finishDateInput.value = '';
+            return;
+        }
+
+        // Parse Y-m-d tanpa timezone (aman dari geser hari).
+        var parts = startStr.split('-');
+        var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        d.setMonth(d.getMonth() + months); // overflow akhir bulan = perilaku Carbon
+
+        finishDateInput.value =
+            d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+    };
+
+    if (activeDateInput && activeMonthsInput && finishDateInput) {
+        activeDateInput.addEventListener('change', updateFinishDate);
+        activeDateInput.addEventListener('input', updateFinishDate);
+        activeMonthsInput.addEventListener('input', updateFinishDate);
+        activeMonthsInput.addEventListener('change', updateFinishDate);
+        updateFinishDate(); // konsisten saat mode edit / nilai awal
+    }
+
     if (!uploadBtn || !fileInput) return;
     var resetFileSelection = function () { fileInput.value = ''; };
 
@@ -222,7 +259,8 @@ document.addEventListener('DOMContentLoaded', function () {
             showCancelButton: true,
             confirmButtonText: 'Ya, Upload',
             cancelButtonText: 'Batal',
-            confirmButtonColor: '#1B2A4A',
+            confirmButtonColor: '#16a34a',
+            cancelButtonColor: '#6b7280',
         }).then(function (result) {
             if (!result.isConfirmed) { resetFileSelection(); return; }
 

@@ -83,7 +83,7 @@ $initials = strtoupper(substr($words[0] ?? 'P', 0, 1) . (isset($words[1]) && $wo
                     confirmButtonText: 'Ya, Keluar',
                     cancelButtonText: 'Batal',
                     confirmButtonColor: '#A8172A',
-                    cancelButtonColor: '#6E0F1E'
+                    cancelButtonColor: '#6b7280'
                 }).then((result) => { if (result.isConfirmed) { closeDropdown(); $el.submit(); } });">
             @csrf
             <button type="submit"
