@@ -46,6 +46,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/documents/template/{template}', [DocumentController::class, 'createFromTemplate'])->name('documents.template');
     Route::post('/documents/save-as', [DocumentController::class, 'saveAsNew'])->name('documents.saveAs');
 
+    // ============================================================
+    // [DEV PREVIEW — SEMENTARA] Akses uji coba template TANPA isi Form
+    // Pelanggan lebih dulu. Untuk menghapus: cabut 2 baris rute ini +
+    // method devPreviewIndex()/devPreview() di DocumentController +
+    // view pages.dev-preview. Tidak menyentuh alur produksi.
+    // ============================================================
+    Route::get('/dev-preview', [DocumentController::class, 'devPreviewIndex'])->name('documents.devPreview.index');
+    Route::get('/dev-preview/{template}', [DocumentController::class, 'devPreview'])->name('documents.devPreview');
+
     Route::get('/', [DocumentController::class, 'chooseStart'])->name('editor.start');
 
     Route::get('/studio/{customer}', [DocumentController::class, 'chooseStart'])->name('studio.customer');

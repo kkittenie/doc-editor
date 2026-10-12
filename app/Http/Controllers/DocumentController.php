@@ -421,24 +421,20 @@ class DocumentController extends Controller
             '<table class="fibertrust-footer" style="width:100%; table-layout:fixed; border-collapse:collapse; margin:24px 0 0; page-break-inside:avoid;">',
             '<tbody>',
             '<tr>',
-            '<td style="width:58%; vertical-align:top; text-align:left; padding:0; font-size:8.5pt; border:none;">',
+            '<td style="width:58%; vertical-align:top; text-align:left; padding:0; font-size:8.5pt; border:none !important;">',
             '<p style="margin:0; font-size:8.5pt;"><strong>PT Bina Informatika Solusi</strong></p>',
             '<p style="margin:0; font-size:8.5pt;">Jl. Prakarsa Muda No.258 Kelurahan Pekiringan, Kec. Kesambi</p>',
             '<p style="margin:0; font-size:8.5pt;">Kota Cirebon, Jawa Barat 45131</p>',
             '<p style="margin:0; font-size:8.5pt;">Tlp. 0231-247618 | email : info@fibertrust.id | www.fibertrust.id</p>',
             '</td>',
-            '<td style="width:42%; vertical-align:top; text-align:left; padding:0; font-size:8.5pt; border:none;">',
-            // Paraf kiri–kanan bersebelahan: tabel-dalam 2 kolom fixed (bukan
-            // dua inline-block — di dompdf lebar gabungan inline-block
-            // melebihi kolom lalu wrap jadi atas-bawah). Ruang kosong di
-            // bawah tiap teks paraf bisa ditumpuk stempel fisik.
+            '<td style="width:42%; vertical-align:top; text-align:left; padding:0; font-size:8.5pt; border:none !important;">',
             '<table style="width:100%; table-layout:fixed; border-collapse:collapse; margin:0; padding:0; page-break-inside:avoid;">',
             '<tbody>',
             '<tr>',
-            '<td style="width:50%; vertical-align:top; text-align:left; padding:0 6px 0 0; font-size:8pt; border:none;">',
+            '<td style="width:50%; vertical-align:top; text-align:left; padding:0 6px 0 0; font-size:8pt; border:none !important;">',
             '<p style="margin:0; font-size:8pt;">Paraf PIHAK<br>PERTAMA: ______</p>',
             '</td>',
-            '<td style="width:50%; vertical-align:top; text-align:left; padding:0 0 0 6px; font-size:8pt; border:none;">',
+            '<td style="width:50%; vertical-align:top; text-align:left; padding:0 0 0 6px; font-size:8pt; border:none !important;">',
             '<p style="margin:0; font-size:8pt;">Paraf PIHAK<br>KEDUA: ______</p>',
             '</td>',
             '</tr>',
@@ -451,12 +447,7 @@ class DocumentController extends Controller
         ]);
     }
 
-    /**
-     * Normalisasi footer lama (dua span inline-block "Paraf PIHAK ...") jadi
-     * tabel-dalam 2 kolom agar PERTAMA & KEDUA bersebelahan kiri–kanan di
-     * PDF. Hanya render-time (tidak mengubah data tersimpan); footer kustom
-     * tanpa pola paraf lama dikembalikan apa adanya.
-     */
+    
     private function normalizeLegacyParafFooterHtml(string $footerHtml): string
     {
         if (!str_contains($footerHtml, 'Paraf PIHAK PERTAMA')
@@ -467,10 +458,10 @@ class DocumentController extends Controller
 
         $replacement = '<table style="width:100%; table-layout:fixed; border-collapse:collapse; margin:0; padding:0; page-break-inside:avoid;">'
             . '<tbody><tr>'
-            . '<td style="width:50%; vertical-align:top; text-align:left; padding:0 6px 0 0; font-size:8pt; border:none;">'
+            . '<td style="width:50%; vertical-align:top; text-align:left; padding:0 6px 0 0; font-size:8pt; border:none !important;">'
             . '<p style="margin:0; font-size:8pt;">Paraf PIHAK<br>PERTAMA: ______</p>'
             . '</td>'
-            . '<td style="width:50%; vertical-align:top; text-align:left; padding:0 0 0 6px; font-size:8pt; border:none;">'
+            . '<td style="width:50%; vertical-align:top; text-align:left; padding:0 0 0 6px; font-size:8pt; border:none !important;">'
             . '<p style="margin:0; font-size:8pt;">Paraf PIHAK<br>KEDUA: ______</p>'
             . '</td>'
             . '</tr></tbody></table>';
@@ -986,14 +977,6 @@ class DocumentController extends Controller
         $colCount = max(1, $colCount);
         $colWidth = 100 / $colCount;
 
-        // Bobot kolom opsional per tabel ('cols'), disalin dari <colgroup>
-        // dokumen sumber. Nilainya RELATIF — author bebas menulis [9,46,15,28]
-        // tanpa perlu	totalnya 100; dinormalisasi ke persen di sini.
-        //
-        // Keamanan: hanya dipakai bila (a) bentuknya array/list dan (b) jumlah
-        // itemnya PERSIS sama dengan jumlah kolom tabel. Kalau tidak, diam-diam
-        // jatuh ke $colWidth seragam. Tanpa guard ini, satu 'cols' yang salah
-        // jumlah akan membuat seluruh baris melebar/mengecil dan merusak layout.
         $colWidths = null;
         if (isset($table['cols']) && is_array($table['cols']) && count($table['cols']) === $colCount) {
             $weights = [];
@@ -1082,10 +1065,6 @@ class DocumentController extends Controller
 
         $html = '<table class="'.$tableClass.'" style="'.ContractStyle::tableStyle($bordered).'"';
 
-        // Tabel bertanda 'atomic' di data template tidak boleh dibelah per-baris
-        // oleh paginasi editor. Ditandai manual per tabel (bukan aturan umum
-        // "semua tabel ber-rowspan"), supaya hanya tabel yang benar-benar butuh
-        // ikut berubah — lihat editor.js __domSplitTable().
         if (count($byRow) === 1 || !empty($table['atomic'])) {
             $html .= ' data-flow-atomic="1"';
         }
@@ -1108,10 +1087,6 @@ class DocumentController extends Controller
                 $isHeadCell = $head && $r === 0;
                 $tag   = $isHeadCell ? 'th' : 'td';
 
-                // Lebar sel = JUMLAH bobot kolom yang di-span, bukan
-                // span x lebar-seragam. Tanpa ini, sel ber-colspan (mis.
-                // kolom teks utama 64% di tabel Komunikasi) tetap salah
-                // walau tiap kolom individunya sudah benar.
                 $widthPercent = $span * $colWidth;
                 if ($colWidths !== null) {
                     $startCol = (int) ($pc['col'] ?? 0);
@@ -1140,7 +1115,6 @@ class DocumentController extends Controller
         $lines = preg_split('/\r?\n/', $text);
         $lines = array_values(array_filter(array_map('trim', $lines), fn ($l) => $l !== ''));
 
-        // Hanya satu poin → cukup satu paragraf.
         if (count($lines) <= 1) {
             return '<p>'.$this->styleContractPartyNames(e($lines[0] ?? '')).'</p>';
         }
@@ -1255,7 +1229,6 @@ class DocumentController extends Controller
 
     public function destroy(Document $document)
     {
-        // Penghapusan dokumen hanya untuk admin pemilik dokumen.
         abort_unless(
             Auth::user()->hasRole('admin') && $document->user_id === Auth::id(),
             403
@@ -1266,7 +1239,6 @@ class DocumentController extends Controller
 
     public function deleteAll()
     {
-        // Penghapusan massal hanya untuk admin.
         abort_unless(Auth::user()->hasRole('admin'), 403);
 
         $query = Document::where('user_id', Auth::id());
@@ -1311,7 +1283,6 @@ class DocumentController extends Controller
 
         abort_unless($user->hasRole('admin') && $document->user_id === $user->id, 403);
 
-        // Dokumen yang sudah final tidak boleh disetujui ulang.
         if (in_array($document->status, ['disetujui', 'archived'], true)) {
             return response()->json([
                 'message' => 'Dokumen sudah disetujui/diarsipkan dan tidak dapat disetujui ulang.',
@@ -1329,11 +1300,9 @@ class DocumentController extends Controller
         $file = $data['file'];
         $customer = $document->customer;
 
-        // Disimpan per dokumen supaya mudah ditelusuri & dibersihkan.
         $path = $file->store('documents/' . $document->id, 'public');
 
         DB::transaction(function () use ($document, $customer, $path, $file) {
-            // Berkas final lama (kalau ada) dibuang supaya tidak menumpuk.
             if ($document->hasFinalFile()) {
                 Storage::disk('public')->delete($document->final_file_path);
             }
@@ -1345,8 +1314,6 @@ class DocumentController extends Controller
                 'final_file_uploaded_at' => now(),
             ]);
 
-            // Tabel Pelanggan mengikuti status dokumen: kontrak dianggap
-            // disetujui begitu berkas finalnya tersimpan.
             if ($customer && in_array('disetujui', Customer::STATUSES, true)) {
                 $customer->update(['status' => 'disetujui']);
             }
@@ -1361,16 +1328,7 @@ class DocumentController extends Controller
     }
 
     /**
-     * Render + simpan berkas PDF S.O.F tanpa mengubah status dokumen.
-     *
-     * Dipakai SofController::download() sebagai backfill: dokumen yang sudah
-     * "Disetujui" sebelum fitur S.O.F ada belum punya berkas, sehingga
-     * berkasnya dibuat saat pertama diunduh.
-     *
-     * Approval dokumen baru (approve()) tidak lagi memakai method ini — berkas
-     * finalnya berasal dari upload user (lihat kolom final_file_path).
-     *
-     * @return string path relatif pada disk 'public'.
+     * @return string 
      */
     public function regenerateSofPdf(Document $document): string
     {
@@ -1540,6 +1498,73 @@ class DocumentController extends Controller
         return response()->json($data);
     }
 
+    // ============================================================
+    // [DEV PREVIEW — SEMENTARA] Uji coba template tanpa Form Pelanggan.
+    // Blok ini (devPreviewIndex + devPreview) beserta 2 rute di web.php
+    // dan view pages.dev-preview aman dihapus setelah pengujian selesai.
+    // ============================================================
+
+    /**
+     * Daftar semua template kontrak untuk dibuka langsung di editor.
+     */
+    public function devPreviewIndex()
+    {
+        abort_unless(Auth::user()->hasRole('admin'), 403);
+
+        $labels = [
+            'kontrak-kemitraan'       => ['name' => 'Kontrak Kemitraan',       'code' => 'TPL-KM-05'],
+            'kontrak-colocation'      => ['name' => 'Kontrak Colocation',      'code' => 'TPL-CO-06'],
+            'kontrak-managed-service' => ['name' => 'Kontrak Managed Service', 'code' => 'TPL-MS-07'],
+            'kontrak-soho'            => ['name' => 'Jasa SOHO',               'code' => 'TPL-SH-08'],
+            'kontrak-payung'          => ['name' => 'Kontrak Payung Metro',    'code' => 'TPL-KP-09'],
+        ];
+
+        $cards = [];
+        foreach (\App\Data\ContractTemplates::all() as $key => $tpl) {
+            $cards[] = [
+                'key'   => $key,
+                'name'  => $labels[$key]['name'] ?? $key,
+                'code'  => $labels[$key]['code'] ?? '',
+                'title' => (string) ($tpl['title'] ?? $key),
+            ];
+        }
+
+        return view('pages.dev-preview', [
+            'title' => 'Uji Coba Template (DEV)',
+            'cards' => $cards,
+        ]);
+    }
+
+    public function devPreview(string $template)
+    {
+        abort_unless(Auth::user()->hasRole('admin'), 403);
+
+        $data = $this->templateData($template);
+
+        if (!$data) {
+            abort(404, 'Template tidak ditemukan.');
+        }
+
+        $nomorSurat = (string) ($data['header_data']['nomorSurat'] ?? '');
+        if (preg_match('/^([A-Z]+)\//', $nomorSurat, $m)) {
+            $nomorSurat = $this->nextDocumentNumber($m[1]);
+        }
+
+        $request = Request::create('/documents', 'POST', [
+            'title'       => 'UJI — ' . (string) ($data['title'] ?? $template),
+            'header_data' => [
+                'nomorSurat' => $nomorSurat,
+                'content'    => $this->buildDefaultHeaderHtml(),
+            ],
+            'footer_data' => ['content' => ''],
+            'body_html'   => '',
+            'type'        => 'surat',
+            'template'    => $template,
+        ]);
+
+        return $this->store($request);
+    }
+
     public function uploadLogo(Request $request)
     {
         $data = $request->validate([
@@ -1662,7 +1687,6 @@ class DocumentController extends Controller
 
     public function importDocument(Request $request)
     {
-        // Impor dokumen hanya buat admin
         abort_unless(Auth::user()->hasRole('admin'), 403);
 
         $request->validate([

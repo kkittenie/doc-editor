@@ -1277,7 +1277,7 @@
     .doc-sheet-footer table:not([class]) td {
         padding: 0;
         vertical-align: top;
-        border: none;
+        border: none !important;
     }
 
     .doc-sheet-footer table.fibertrust-footer td p,
@@ -1298,6 +1298,15 @@
     .doc-sheet-footer table.fibertrust-footer td table td p,
     .doc-sheet-footer table:not([class]) td table td p {
         font-size: 8pt;
+    }
+
+    /* Sel dalam tabel paraf (kolom kanan fibertrust-footer) juga tanpa border —
+       lawan spesifisitas !important pada rule tabel global agar tidak muncul
+       kotak/garis di editor. Teks tetap utuh, hanya tampilan border yang hilang. */
+    .doc-sheet-footer table.fibertrust-footer td table td,
+    .doc-sheet-footer table:not([class]) td table td {
+        border: none !important;
+        padding: 0 !important;
     }
 
     .editing-header .doc-sheet-body,

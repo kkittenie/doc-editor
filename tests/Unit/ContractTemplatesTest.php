@@ -296,18 +296,13 @@ test('render HTML memunculkan tabel asli dengan border & posisi yang benar', fun
     expect($html)->toContain('Jika kepada PIHAK PERTAMA');
     expect($html)->toContain('Jika kepada PIHAK KEDUA');
 
-    // sel tanda tangan mempertahankan baris paragraf (<br>) — penanda pihak
-    // ditebalkan renderer (styleContractPartyNames) sehingga ber <strong>.
     expect($html)->toContain('<strong>PIHAK PERTAMA</strong><br>');
 
-    // vertical merge dirender sebagai rowspan (bukan kolom kosong tambahan):
-    // tabel deskripsi layanan colocation = 5 kolom, sel jangka waktu rowspan=5
     $tpl  = ContractTemplates::find('kontrak-colocation');
     $html = contractBuildBodyHtml($tpl, true);
     $pos  = strpos($html, 'Jangka Waktu Berlangganan');
     expect($pos)->toBeInt();
     expect(strpos($html, 'rowspan="5"', (int) $pos))->toBeInt();
-    // tidak ada lagi sel kosong ekstra pada baris data (kolom hantu hilang)
     expect(substr_count($html, '<td></td>'))->toBe(0);
 });
 
@@ -524,8 +519,6 @@ test('setiap template kontrak punya kunci cover terpisah dari preamble', functio
 });
 
 test('contractPreambleHtml masih merender blok judul untuk input berblok display', function () {
-    // Template kontrak sekarang memulai preamble langsung dari naratif,
-    // dijaga: template tanpa cover, atau format lama, masih memakainya.
     $cs   = \App\Data\ContractStyle::class;
     $ctrl = new DocumentController();
     $m    = new ReflectionMethod(DocumentController::class, 'contractPreambleHtml');
@@ -539,7 +532,6 @@ test('contractPreambleHtml masih merender blok judul untuk input berblok display
         . ' margin-top:' . $cs::TITLE_SPACE_BEFORE
         . '; margin-bottom:' . $cs::TITLE_SPACE_AFTER . ';'
     );
-    // Blok display memuat judul + nomor, lalu paragraf naratif menutupnya.
     expect($html)->toContain('JUDUL DOKUMEN')->toContain('Nomor: ABC/123');
 });
 
@@ -551,21 +543,14 @@ test('buildContractCoverHtml merender baris sampul memakai token ContractStyle',
     $html = $m->invoke($ctrl, (string) $tpl['body_content']['cover']);
     $cs   = \App\Data\ContractStyle::class;
 
-    // 6 baris cover: judul, sub-judul, nama pihak pertama, DENGAN, pihak
-    // kedua, nomor — masing-masing satu paragraf center.
     expect(substr_count($html, '<p '))->toBe(6);
     expect($html)->toContain('<strong>[Nama Kontrak]</strong>');
     expect($html)->toContain($cs::coverStyle('[Nama Kontrak]', true, false));
     expect($html)->toContain($cs::coverStyle('Nomor: [Nomor Perjanjian]', false, true));
 
-    // Baris kosong tidak menghasilkan paragraf kosong.
     expect($m->invoke($ctrl, "  \n "))->toBe('');
 });
 
-/**
- * Judul sampul ikut nilai "Nama Kontrak" dari form Detail Kontrak —
- * placeholder [Nama Kontrak] diisi $title, bukan hardcode per template.
- */
 test('judul sampul mengikuti nama kontrak dari form detail kontrak', function () use ($keys) {
     $ctrl = new DocumentController();
 
@@ -579,32 +564,23 @@ test('judul sampul mengikuti nama kontrak dari form detail kontrak', function ()
     foreach ($keys as $key) {
         $cover = (string) (ContractTemplates::find($key)['body_content']['cover'] ?? '');
 
-        // 1. Sampul mentah masih memakai placeholder (belum di-fill).
         expect($cover)->toContain('[Nama Kontrak]');
 
-        // 2. Setelah replacement, judul sampul = $title dari form.
         $filled = $replace->invoke($ctrl, $cover, $customer, $nomor, $title);
         expect($filled)->toContain($title);
         expect($filled)->not->toContain('[Nama Kontrak]');
 
-        // 3. Placeholder lain tetap terisi normal.
         expect($filled)->toContain('PT BINA INFORMATIKA SOLUSI');
         expect($filled)->toContain('DENGAN');
         expect($filled)->toContain('PT Contoh Mitra');
         expect($filled)->toContain('Nomor: ' . $nomor);
         expect($filled)->not->toContain('[PIHAK KEDUA]');
 
-        // 4. Judul dirender sebagai baris pertama, bold, dan jumlah baris
-        //    sampul tidak berubah karena penggantian judul (tetap utuh 1 halaman).
         $html = $render->invoke($ctrl, $filled);
         expect($html)->toContain('<strong>' . $title . '</strong>');
     }
 });
 
-/**
- * $title kosong (jalur createFromTemplate) tidak boleh menelan teks asli —
- * placeholder dibiarkan, angka dan teks lain tidak ikut hilang.
- */
 test('judul kontrak kosong tidak merusak isi sampul', function () use ($keys) {
     $ctrl = new DocumentController();
 
@@ -615,7 +591,6 @@ test('judul kontrak kosong tidak merusak isi sampul', function () use ($keys) {
 
         $filled = $replace->invoke($ctrl, $cover, null, 'KTR/008/IX/2026', '');
 
-        // Placeholder judul tetap ada (belum diisi), sisanya tidak rusak.
         expect($filled)->toContain('[Nama Kontrak]');
         expect($filled)->toContain('PT BINA INFORMATIKA SOLUSI');
         expect($filled)->toContain('DENGAN');

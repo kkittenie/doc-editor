@@ -111,6 +111,31 @@
                         </ul>
                     </div>
                 @endforeach
+
+                {{-- [DEV PREVIEW — SEMENTARA] Pintu akses uji coba template.
+                     Hapus blok <ul> ini bersama 2 rute di web.php, method
+                     devPreviewIndex()/devPreview() di DocumentController,
+                     dan view pages.dev-preview saat masa uji coba selesai. --}}
+                @if (auth()->user()?->hasRole('admin'))
+                    <ul class="flex flex-col gap-1.5">
+                        <li>
+                            <a href="{{ route('documents.devPreview.index') }}" class="menu-item group"
+                                :class="[
+                                    isActive('/dev-preview') ? 'menu-item-active' : 'menu-item-inactive',
+                                    (!$store.sidebar.isExpanded && !$store.sidebar.isHovered && !$store.sidebar.isMobileOpen) ? 'xl:justify-center' : 'justify-start'
+                                ]">
+                                <span :class="isActive('/dev-preview') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'">
+                                    {!! MenuHelper::getIconSvg('templates') !!}
+                                </span>
+                                <span x-show="$store.sidebar.isExpanded || $store.sidebar.isHovered || $store.sidebar.isMobileOpen"
+                                    class="menu-item-text flex items-center gap-2">
+                                    Uji Coba Template
+                                    <span class="rounded bg-amber-400 px-1 text-[9px] font-bold text-amber-900 dark:bg-amber-400 dark:text-amber-950">UJI</span>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                @endif
             </div>
         </nav>
 
