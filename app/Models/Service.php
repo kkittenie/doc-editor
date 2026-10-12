@@ -6,13 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Data Service milik pelanggan (tabel `service`, boleh kosong).
  */
 class Service extends Model
 {
     use HasFactory;
 
-    /** Nama tabel mengikuti istilah di alur kerja (bukan "services"). */
     protected $table = 'service';
 
     protected $fillable = [
@@ -23,7 +21,6 @@ class Service extends Model
         'price_type',
     ];
 
-    /** Tipe harga: sekali bayar vs bulanan. */
     public const PRICE_TYPES = ['one_time', 'monthly'];
 
     protected $casts = [

@@ -80,7 +80,6 @@
         </div>
     </div>
 
-    <!-- Main Grid: Left Profile Card & Right Signature Studio Pad -->
     <div class="grid grid-cols-12 gap-6">
         
         <!-- Profile & Certificate Info (4 / 12) -->
@@ -187,7 +186,6 @@
                 </div>
             </div>
 
-            <!-- TAB 2: UPLOAD FILE -->
             <div x-show="activeTab === 'upload'" x-transition class="rounded-xl border border-parchment-300 bg-white p-5 shadow-theme-sm dark:border-slate-warm-800 dark:bg-slate-warm-900 space-y-4">
                 <h3 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-100">Upload File Hasil Scan / Vector</h3>
                 
@@ -200,12 +198,10 @@
                 </div>
             </div>
 
-            <!-- TAB 3: SAVED SIGNATURES -->
             <div x-show="activeTab === 'saved'" x-transition class="rounded-xl border border-parchment-300 bg-white p-5 shadow-theme-sm dark:border-slate-warm-800 dark:bg-slate-warm-900 space-y-4">
                 <h3 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-100">Koleksi Tanda Tangan Tersimpan</h3>
                 
                 <div class="grid grid-cols-2 gap-4">
-                    <!-- Saved TTD 1 -->
                     <div class="border border-bronze-400 rounded-xl p-4 bg-bronze-25 dark:bg-slate-warm-800 relative">
                         <span class="absolute top-2 right-2 px-2 py-0.5 rounded text-[9px] font-bold bg-bronze-600 text-white">Utama</span>
                         <div class="h-20 flex items-center justify-center my-2">
@@ -215,7 +211,6 @@
                         </div>
                         <p class="text-xs font-bold text-center text-ink-900 dark:text-parchment-100">TTD Resmi Direksi</p>
                     </div>
-                    <!-- Saved TTD 2 -->
                     <div class="border border-parchment-300 rounded-xl p-4 bg-white dark:bg-slate-warm-800">
                         <div class="h-20 flex items-center justify-center my-2">
                             <svg width="150" height="50" viewBox="0 0 200 80" fill="none">

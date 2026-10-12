@@ -5,10 +5,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Hubungkan dokumen (hasil Studio Editor) dengan baris pelanggan.
- *
- * nullOnDelete dipakai supaya menghapus pelanggan TIDAK ikut menghapus
- * dokumen yang sudah pernah dibuat — dokumen hanya kehilangan tautannya.
  */
 return new class extends Migration
 {

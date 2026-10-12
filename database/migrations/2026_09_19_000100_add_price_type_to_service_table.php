@@ -5,7 +5,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Tambah tipe harga service: one_time (sekali bayar) / monthly (bulanan).
  */
 return new class extends Migration
 {

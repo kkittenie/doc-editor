@@ -211,9 +211,6 @@ class CustomerController extends Controller
         return self::CONTRACT_PREFIX.'/'.str_pad((string) $next, 3, '0', STR_PAD_LEFT).'/'.$month.'/'.$year;
     }
 
-    /**
-     * Perkiraan kode pelanggan berikutnya untuk placeholder Pelanggan ID.
-     */
     private function peekNextCustomerCode(): string
     {
         $nextId = ((int) Customer::withTrashed()->max('id')) + 1;

@@ -7,13 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * Pelanggan / kontrak pelanggan (Tabel Pelanggan di halaman Dokumen Saya).
  */
 class Customer extends Model
 {
     use HasFactory, SoftDeletes;
 
-    /** Status alur kerja kontrak (dipakai juga oleh dokumen). */
     public const STATUSES = [
         'draft',
         'on_progress',
@@ -45,27 +43,21 @@ class Customer extends Model
         return $this->belongsTo(User::class);
     }
 
-    /** Data Barang master (input Form Pelanggan, document_id NULL).
-     * Salinan per-dokumen (document_id NOT NULL) disembunyikan supaya
-     * tabel read-only + total tidak mengganda saat Lanjut diklik ulang. */
     public function barang()
     {
         return $this->hasMany(Barang::class)->whereNull('document_id');
     }
 
-    /** Salinan barang yang menempel pada tiap dokumen (riwayat kontrak). */
     public function barangCopies()
     {
         return $this->hasMany(Barang::class)->whereNotNull('document_id');
     }
 
-    /** Data Service master (input Form Pelanggan, document_id NULL). */
     public function services()
     {
         return $this->hasMany(Service::class)->whereNull('document_id');
     }
 
-    /** Salinan service yang menempel pada tiap dokumen (riwayat kontrak). */
     public function serviceCopies()
     {
         return $this->hasMany(Service::class)->whereNotNull('document_id');
@@ -81,7 +73,6 @@ class Customer extends Model
         return $this->hasOne(Document::class)->latestOfMany();
     }
 
-    /** Label status untuk tampilan tabel. */
     public function statusLabel(): string
     {
         return match (strtolower($this->status ?? 'draft')) {

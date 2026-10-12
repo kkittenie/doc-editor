@@ -23,9 +23,6 @@ class ContractTemplates
                     'sifatSurat' => 'Penting',
                 ],
                 'body_content' => [
-                    // Sampul (halaman 1): blok display yang tadinya mendahului
-                    // preamble. Dipisah supaya jadi lembar sendiri dengan jarak
-                    // ContractStyle::coverStyle() — sama seperti kontrak-soho.
                     'cover' => '[Nama Kontrak]
 
 TENTANG
@@ -39,12 +36,6 @@ DENGAN
 [PIHAK KEDUA]
 
 Nomor: [Nomor Perjanjian]',
-                    // Preamble mulai di paragraf naratif: blok display (judul,
-                    // TENTANG, pihak, DENGAN, Nomor) kini hidup di sampul.
-                    // Preamble = halaman 2, dimulai langsung dari paragraf
-                    // naratif. Blok display (judul / TENTANG / Nomor) sudah
-                    // tampil penuh di sampul halaman 1, jadi tidak diulang
-                    // lagi di sini.
                     'preamble' => 'Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Kerja Sama tentang Jual Kembali Jasa Layanan Akses Internet (selanjutnya disebut “Perjanjian”), oleh dan antara:
 
 PT Bina Informatika Solusi, suatu perseroan terbatas, yang didirikan berdasarkan Hukum Negara Republik Indonesia, berkedudukan di Jl. Prakarsa Muda No. 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T., M.Kom., selaku Direktur, sah bertindak untuk dan atas nama PT Bina Informatika Solusi, selanjutnya disebut sebagai “PIHAK PERTAMA”.
@@ -826,7 +817,24 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                             'judul' => 'KOMUNIKASI/PEMBERITAHUAN',
                             'text' => '',
                             'blocks' => [
-                                [                                    'ol' => [                                        'type' => '1',                                        'items' => [                                            [                                                'text' => 'Segala pemberitahuan yang diisyaratkan atau diperkenankan menurut perjanjian kerjasama ini harus dibuat secara tertulis dan dapat dikirimkan melalui email, surat tercatat atau dikirimkan secara langsung melalui kurir kepada alamat-alamat dibawah ini:',                                                'children' => [                                                    'type' => 'a',                                                    'items' => [                                                        "Jika kepada PIHAK PERTAMA:\nNama : PT Bina Informatika Solusi\nAlamat : Jl. Prakarsa Muda No. 258 Pekiringan Kec. Kesambi Kota Cirebon\nTelepon : 0231-247618\nU.p : Ageng Bagja Priyadi, S.T., M.Kom\nEmail : admin@fibertrust.id",                                                        "Jika kepada PIHAK KEDUA:\nNama : [PIHAK KEDUA]\nAlamat : Perumahan Zada Regency 1 Blok E No.5, Rt/Rw 03/09, Desa Bulakan, Kec. Sukoharjo, Kab. Sukoharjo\nTelepon : 0822-2562-2897\nU.p : [PIHAK KEDUA]\nEmail : adidarmawanspd@gmail.com",                                                    ],                                                ],                                            ],                                            'Jika salah satu pihak mengganti atau mengubah alamatnya atau hal-hal terkait lainnya sehubungan dengan alamat ini, maka pihak tersebut harus memberitahukan penggantian dan perubahan tersebut kepada pihak lainnya.',                                        ],                                    ],                                ],
+                                [
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            [
+                                                'text' => 'Segala pemberitahuan yang diisyaratkan atau diperkenankan menurut perjanjian kerjasama ini harus dibuat secara tertulis dan dapat dikirimkan melalui email, surat tercatat atau dikirimkan secara langsung melalui kurir kepada alamat-alamat dibawah ini:',
+                                                'children' => [
+                                                    'type' => 'a',
+                                                    'items' => [
+                                                        "Jika kepada PIHAK PERTAMA:\nNama : PT Bina Informatika Solusi\nAlamat : Jl. Prakarsa Muda No. 258 Pekiringan Kec. Kesambi Kota Cirebon\nTelepon : 0231-247618\nU.p : Ageng Bagja Priyadi, S.T., M.Kom\nEmail : admin@fibertrust.id",
+                                                        "Jika kepada PIHAK KEDUA:\nNama : [PIHAK KEDUA]\nAlamat : Perumahan Zada Regency 1 Blok E No.5, Rt/Rw 03/09, Desa Bulakan, Kec. Sukoharjo, Kab. Sukoharjo\nTelepon : 0822-2562-2897\nU.p : [PIHAK KEDUA]\nEmail : adidarmawanspd@gmail.com",
+                                                    ],
+                                                ],
+                                            ],
+                                            'Jika salah satu pihak mengganti atau mengubah alamatnya atau hal-hal terkait lainnya sehubungan dengan alamat ini, maka pihak tersebut harus memberitahukan penggantian dan perubahan tersebut kepada pihak lainnya.',
+                                        ],
+                                    ],
+                                ],
                             ],
                         ],
                         [
@@ -899,7 +907,6 @@ PIHAK KEDUA
                     'tutupBlocks' => [
                         [
                             'table' => [
-                                // Paraf/tanda tangan: label di kiri, tanda tangan di kanan.
                                 'cols' => [55, 44],
                                 'rows' => [
                                     [
@@ -943,7 +950,6 @@ NOMOR: [Nomor Perjanjian]',
                                 ],
                                 [
                                     'table' => [
-                                        // Deskripsi layanan: label kiri vs isi kanan.
                                         'cols' => [45, 54],
                                         'rows' => [
                                             [
@@ -1188,7 +1194,6 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                                 ],
                                 [
                                     'table' => [
-                                        // Kegiatan vs Tolak Ukur Layanan (hampir 50:50).
                                         'cols' => [50, 49],
                                         'rows' => [
                                             [
@@ -1249,10 +1254,7 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                                 ],
                                 [
                                     'table' => [
-                                        // Matriks eskalasi: No / Fault time / Level / PoC.
                                         'cols' => [7, 23, 20, 49],
-                                        // Baris 1-3 di-merge (rowspan 3); belah per-baris
-                                        // akan meninggakan sel merge di halaman asal.
                                         'atomic' => true,
                                         'rows' => [
                                             [
@@ -1540,7 +1542,6 @@ NOMOR: [Nomor Perjanjian]',
                                 ],
                                 [
                                     'table' => [
-                                        // Perangkat: No / Deskripsi / Jumlah / Keterangan.
                                         'cols' => [9, 46, 15, 28],
                                         'rows' => [
                                             [
@@ -1737,7 +1738,6 @@ NOMOR: [Nomor Perjanjian]',
                     'sifatSurat' => 'Penting',
                 ],
                 'body_content' => [
-                    // Sampul (halaman 1) — lihat kontrak-kemitraan.
                     'cover' => '[Nama Kontrak]
 
 JASA COLOCATION
@@ -1749,7 +1749,6 @@ DENGAN
 [PIHAK KEDUA]
 
 Nomor: [Nomor Perjanjian]',
-                    // Preamble mulai dari naratif — lihat kontrak-kemitraan.
                     'preamble' => 'Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Berlangganan Jasa Colocation (selanjutnya disebut “Perjanjian”), oleh dan antara:
 
 PT Bina Informatika Solusi, suatu perseroan terbatas, yang didirikan berdasarkan Hukum Negara Republik Indonesia, berkedudukan di Jalan Prakarsa Muda Nomor 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T., M.Kom, selaku Direktur, bertindak untuk dan atas nama PT Bina Informatika Solusi, selanjutnya disebut sebagai PIHAK PERTAMA.
@@ -2867,7 +2866,6 @@ Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjala
                     'sifatSurat' => 'Penting',
                 ],
                 'body_content' => [
-                    // Sampul (halaman 1) — lihat kontrak-kemitraan.
                     'cover' => '[Nama Kontrak]
 
 BERLANGGANAN JASA METRO FIBER OPTIK
@@ -2879,7 +2877,6 @@ DENGAN
 [PIHAK KEDUA]
 
 Nomor: [Nomor Perjanjian]',
-                    // Preamble mulai dari naratif — lihat kontrak-kemitraan.
                     'preamble' => 'Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Kerja Sama Berlangganan Jasa Metro Fiber Optik (selanjutnya disebut “Perjanjian”), oleh dan antara:
 
 PT Bina Informatika Solusi, berkedudukan di Jalan Prakarsa Muda Nomor 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T., M.Kom., selaku Direktur, sah bertindak untuk dan atas nama PT Bina Informatika Solusi, selanjutnya disebut “PIHAK PERTAMA”
@@ -3933,7 +3930,6 @@ DENGAN
 [PIHAK KEDUA]
 
 Nomor: [Nomor Perjanjian]',
-                    // Preamble mulai dari naratif — lihat kontrak-kemitraan.
                     'preamble' => 'Pada hari ini, [Hari], tanggal [Tanggal], ber tempat di [Tempat], telah dibuat dan ditandatangani Perjanjian, oleh dan antara:
 
 I. PT Bina Informatika Solusi, berkedudukan di Jalan Prakarsa Muda Nomor 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T., M.Kom., selaku Direktur, sah bertindak untuk dan atas nama PT Bina Informatika Solusi, selanjutnya disebut sebagai “PIHAK PERTAMA”
@@ -4695,7 +4691,6 @@ Manager Area Bandung',
                     'sifatSurat' => 'Penting',
                 ],
                 'body_content' => [
-                    // Sampul (halaman 1) — lihat kontrak-kemitraan.
                     'cover' => '[Nama Kontrak]
 
 JASA DEDICATED, METRO, DAN MANAGED SERVICE
@@ -4707,7 +4702,6 @@ DENGAN
 [PIHAK KEDUA]
 
 Nomor: [Nomor Perjanjian]',
-                    // Preamble mulai dari naratif — lihat kontrak-kemitraan.
                     'preamble' => 'Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Berlangganan Jasa Dedicated, Metro, dan Managed Service (selanjutnya disebut “Perjanjian”), oleh dan antara:
 
 PT Bina Informatika Solusindo, berkedudukan di Gedung Wisma Bumiputera Lantai 7 Suite #701B Jl. Asia-Afrika No.141-149 Kebon Pisang, Sumur, Kota Bandung. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T.,M.Kom., selaku Direktur, bertindak untuk dan atas nama PT Bina Informatika Solusindo, selanjutnya disebut “PIHAK PERTAMA”

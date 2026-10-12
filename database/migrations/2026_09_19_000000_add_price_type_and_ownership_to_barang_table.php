@@ -5,10 +5,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Tambah tipe harga & status kepemilikan barang.
- *
- * - price_type: one_time (sekali bayar) / monthly (bulanan).
- * - ownership: disewa / dipinjamkan / dibeli.
  */
 return new class extends Migration
 {

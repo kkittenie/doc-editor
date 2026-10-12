@@ -161,8 +161,6 @@ document.addEventListener('DOMContentLoaded', function () {
     var fileNameLbl = document.getElementById('file-name-label');
     var sofForm     = document.getElementById('sof-form');
 
-    // Tanggal Aktif — tombol kalender (flatpickr global dari app.js).
-    // Format Y-m-d dipertahankan agar nilai POST & validasi 'date' tidak berubah.
     var activeDateInput = document.getElementById('active_date');
     var activeDateBtn   = document.getElementById('active_date_picker_btn');
 
@@ -171,8 +169,6 @@ document.addEventListener('DOMContentLoaded', function () {
             dateFormat: 'Y-m-d',
             allowInput: true,
             monthSelectorType: 'static',
-            // WAJIB: tanpa `static`, flatpickr menaruh kalender di <body>
-            // sehingga selector `.sof-datepicker .flatpickr-*` tidak cocok.
             static: true
         });
 
@@ -182,11 +178,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ── Tanggal Selesai otomatis ────────────────────────────────────────────
-    // Hitung Tanggal Aktif + Masa Aktif (bulan) secara real-time di browser.
-    // Replikasi SofController (Carbon::addMonths — overflow akhir bulan, mis.
-    // 31 Jan + 1 bln → 3 Mar). Field ini hanya pratinjau: tidak punya
-    // atribut `name`, jadi tidak ikut di-submit; backend tetap hitung ulang.
     var activeMonthsInput = document.getElementById('active_months');
     var finishDateInput   = document.getElementById('finish_date');
 
@@ -203,7 +194,6 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Parse Y-m-d tanpa timezone (aman dari geser hari).
         var parts = startStr.split('-');
         var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
         d.setMonth(d.getMonth() + months); // overflow akhir bulan = perilaku Carbon
@@ -217,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
         activeDateInput.addEventListener('input', updateFinishDate);
         activeMonthsInput.addEventListener('input', updateFinishDate);
         activeMonthsInput.addEventListener('change', updateFinishDate);
-        updateFinishDate(); // konsisten saat mode edit / nilai awal
+        updateFinishDate(); 
     }
 
     if (!uploadBtn || !fileInput) return;

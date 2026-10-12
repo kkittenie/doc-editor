@@ -149,7 +149,6 @@ class SofController extends Controller
 
             $orderNumber = $this->nextOrderNumber();
 
-        // Hitung finish_date otomatis dari active date + active months.
         if (!empty($data['active_date']) && !empty($data['active_months'])) {
             $data['finish_date'] = \Carbon\Carbon::parse($data['active_date'])
                 ->addMonths((int) $data['active_months'])
@@ -255,7 +254,6 @@ class SofController extends Controller
         ]);
     }
 
-    /** Tampilkan berkas PDF di browser (inline), bukan diunduh. */
     public function viewFile(Sof $sof)
     {
         $this->authorizeUser();

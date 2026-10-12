@@ -22,10 +22,6 @@ class ContractStyle
     public const HEADING_SPACE_AFTER  = '4pt';
     public const TABLE_SPACE          = '5pt 0';
 
-    /* Jarak garis header/garis kop ke paragraf pertama body (±4,2mm).
-       Dipakai sebagai padding-top container body (bukan margin paragraf)
-       supaya tidak kalah oleh inline style Quill dan tidak ikut tersalin
-       ke isi. Sampul (cover-page) dikecualikan — tetap menempel di atas. */
     public const BODY_SPACE_BEFORE    = '12pt';
 
     public const HEADING_TOP_MARGIN = self::HEADING_SPACE_BEFORE;
@@ -48,19 +44,12 @@ class ContractStyle
 
     private const COVER_LINE_BOX_FACTOR = 1.55;
 
-    private const PAGE_TEXT_HEIGHT_PT = 841.89 - 107.72 - 121.89; // ≈ 612,3pt
+    private const PAGE_TEXT_HEIGHT_PT = 841.89 - 107.72 - 121.89; 
 
     private const COVER_FIT_RATIO = 0.94;
 
     /**
-     * Jarak antar-baris sampul yang muat di satu halaman.
-     *
-     * Sampul berisi N baris; total tinggi = Σ tinggi baris + (N-1) × jarak.
-     * Jarak dibatasi COVER_SPACE_AFTER di atas dan COVER_SPACE_MIN di bawah,
-     * jadi sampul pendek tetap tampil renggang seperti desain, sampul panjang
-     * hanya dipadatkan seperlunya.
-     *
-     * @param string[] $lines Baris sampul apa adanya, urutan sama dengan render.
+     * @param string[] 
      */
     public static function coverSpacing(array $lines): string
     {
@@ -89,13 +78,11 @@ class ContractStyle
         return self::round($fit) . 'pt';
     }
 
-    /** Ubah token ukuran CSS ("13pt") jadi angka (13.0). */
     private static function pt(string $token): float
     {
         return (float) preg_replace('/[^0-9.]/', '', $token);
     }
 
-    /** Bulatkan ke 1 desimal supaya CSS rapi & deterministik. */
     private static function round(float $value): string
     {
         return rtrim(rtrim(number_format($value, 1, '.', ''), '0'), '.') ?: '0';
@@ -113,14 +100,9 @@ class ContractStyle
     public const PAGE_NUM_SIZE = 8.0;
     public const PAGE_NUM_PREFIX = 'Page | ';
 
-    /* Nomor halaman PDF: pojok kanan bawah kertas, di bawah blok footer.
-       X dihitung dinamis (rata kanan) di DocumentController — konstanta X
-       di bawah hanya fallback bila lebar teks tak terukur. Y 810pt ≈ 9,5mm
-       dari tepi bawah A4 (841,89pt), masih di dalam area cetak aman. */
     public const FOOTER_NUM_X = 59.5;
     public const FOOTER_NUM_Y = 810.0;
 
-    /* Geometri kertas A4 portrait dalam pt (dipakai kalkulasi rata kanan). */
     public const PAGE_WIDTH_PT = 595.28;
     public const PAGE_MARGIN_RIGHT_PT = 59.53;
 
@@ -129,10 +111,8 @@ class ContractStyle
     public const ALIGN_HEADING = 'center';
     public const ALIGN_BODY    = 'justify';
 
-    /** Kelas penanda daftar kontrak (dipakai CSS & pengujian). */
     public const LIST_CLASS = 'ct-list';
 
-    /** Tipe list data ('1|a|A|i|I') → tipe CSS `list-style-type`. */
     public static function listCssType(string $type): string
     {
         return match ($type) {
@@ -170,7 +150,6 @@ class ContractStyle
         return self::LIST_INDENT[$level] ?? self::LIST_INDENT[4];
     }
 
-    /** CSS paragraf body kontrak. */
     public static function paraStyle(): string
     {
         return 'text-align:' . self::ALIGN_BODY . ';'
@@ -178,19 +157,15 @@ class ContractStyle
             . ' margin:0 0 ' . self::PARA_SPACE_AFTER . ';';
     }
 
-    /** CSS blok judul (baris pertama preamble). */
     public static function titleStyle(): string
     {
         return 'text-align:' . self::ALIGN_TITLE . ';'
             . ' font-size:' . self::SIZE_TITLE . ';'
             . ' font-weight:bold;'
-            // margin-top/bottom terpisah (bukan shorthand `margin:`) supaya
-            // selamat dari round-trip Quill — attributor 'phead' & 'pbb'.
             . ' margin-top:' . self::TITLE_SPACE_BEFORE . ';'
             . ' margin-bottom:' . self::TITLE_SPACE_AFTER . ';';
     }
 
-    /** CSS baris display di dalam blok judul (nama pihak, nomor dokumen). */
     public static function displayStyle(): string
     {
         return 'text-align:' . self::ALIGN_TITLE . ';'
@@ -199,8 +174,6 @@ class ContractStyle
     }
 
     /**
-     * CSS satu baris halaman sampul kontrak. Baris pertama = judul dokumen
-     *
      * @param string 
      */
     public static function coverStyle(
@@ -220,7 +193,6 @@ class ContractStyle
             . ' margin-bottom:' . ($last ? '0' : $spaceAfter) . ';';
     }
 
-    /** CSS heading kontrak (PASAL n, judul pasal, LAMPIRAN, MENIMBANG). */
     public static function headingStyle(bool $center = true): string
     {
         return ($center ? 'text-align:' . self::ALIGN_HEADING . ';' : '')
@@ -230,7 +202,6 @@ class ContractStyle
             . ' margin-bottom:' . self::HEADING_SPACE_AFTER . ';';
     }
 
-    /** CSS tabel kontrak. Semua tabel kontrak seragam lebar penuh. */
     public static function tableStyle(bool $bordered = true): string
     {
         return 'border-collapse:collapse;'
@@ -240,9 +211,9 @@ class ContractStyle
     }
 
     /**
-     * @param  bool       $head         Baris header tabel (bold + center)
-     * @param  float|null $widthPercent Lebar kolom efektif (%)
-     * @param  bool       $bordered     false → tabel tanpa border (tanda tangan)
+     * @param  bool       
+     * @param  float|null 
+     * @param  bool       
      */
     public static function cellStyle(bool $head = false, ?float $widthPercent = null, bool $bordered = true): string
     {

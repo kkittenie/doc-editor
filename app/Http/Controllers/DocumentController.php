@@ -565,10 +565,8 @@ class DocumentController extends Controller
                     );
                     $suffixVis = str_replace(["\xC2\xA0", '&nbsp;'], ' ', $suffixVis);
 
-                    // Bentuk heading:
                     $empty = trim($suffixVis) === '';
-                    $sepLed = preg_match('/^\s*[\x{2013}\x{2014}.;,:-]/u', $suffixVis) === 1;
-                    // Judul huruf besar tanpa tanda:
+                    $sepLed = preg_match('/^\sy*[\x{2013}\x{2014}.;,:-]/u', $suffixVis) === 1;
                     $lead = ltrim($suffixVis);
                     $upperTitle = preg_match('/^[A-Z]/u', $lead) === 1
                         && preg_match('/^[A-Z][A-Z0-9]*\b/u', $lead) === 1;
@@ -640,22 +638,18 @@ class DocumentController extends Controller
             $parts[] = is_array($spec) ? implode("\n", $spec) : $spec;
         }
 
-        // 3) Konsideran Menimbang
         if (!empty($body['menimbang'])) {
             $parts[] = $this->contractHeadingHtml('MENIMBANG:');
             $parts[] = $this->contractRecitals($body['menimbang'], 'a');
         }
 
-        // 4) Konsideran Mengingat
         if (!empty($body['mengingat'])) {
             $parts[] = $this->contractHeadingHtml('MENGINGAT:');
             $parts[] = $this->contractRecitals($body['mengingat'], '1');
         }
 
-        // 5) Pasal-pasal
         $pasals = $body['isi'] ?? [];
         if (empty($pasals)) {
-            // Fallback ke kunci legacy isiPasal1..N
             $pasals = [];
             $i = 1;
             while (!empty($body['isiPasal'.$i])) {
@@ -680,14 +674,12 @@ class DocumentController extends Controller
             $number++;
         }
 
-        // 6) Penutup
         if (!empty($body['tutupBlocks']) && is_array($body['tutupBlocks'])) {
             $parts[] = $this->renderBlocks($body['tutupBlocks']);
         } elseif (!empty($body['tutup'])) {
             $parts[] = $this->contractPara($body['tutup']);
         }
 
-        // 7) Lampiran (lampiran dokumen setelah pasal-pasal)
         if (!empty($body['lampiran'])) {
             $lampiran = $body['lampiran'];
             if (is_string($lampiran)) {
@@ -724,7 +716,6 @@ class DocumentController extends Controller
                     $parts[] = $this->contractPara((string) $item['p']);
                 }
 
-                // Daftar (blok 'ol') pada lampiran.
                 if (!$hasBlocks && !$hasText && !$hasHtml && !$hasP && $hasOl) {
                     $list = $this->contractListHtml($item['ol']);
                     if ($list !== '') {
@@ -851,7 +842,6 @@ class DocumentController extends Controller
                 continue;
             }
 
-            // Blok naratif pertama menutup blok judul.
             $inHeader = false;
             $paragraph = implode("\n", $lines);
             $rendered  = $this->contractPara($paragraph);
@@ -1055,7 +1045,6 @@ class DocumentController extends Controller
                 $col += $span;
             }
 
-            // akhir baris: kurangi sisa baris merge
             foreach ($pending as $c => $n) {
                 if ($n <= 1) { unset($pending[$c]); } else { $pending[$c] = $n - 1; }
             }
@@ -1498,15 +1487,6 @@ class DocumentController extends Controller
         return response()->json($data);
     }
 
-    // ============================================================
-    // [DEV PREVIEW — SEMENTARA] Uji coba template tanpa Form Pelanggan.
-    // Blok ini (devPreviewIndex + devPreview) beserta 2 rute di web.php
-    // dan view pages.dev-preview aman dihapus setelah pengujian selesai.
-    // ============================================================
-
-    /**
-     * Daftar semua template kontrak untuk dibuka langsung di editor.
-     */
     public function devPreviewIndex()
     {
         abort_unless(Auth::user()->hasRole('admin'), 403);

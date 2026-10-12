@@ -41,10 +41,6 @@ class AuthController extends Controller
             /** @var \App\Models\User $user */
             $user = Auth::user();
 
-            // Daftar path yang wajib role admin. Kalau URL "intended" si user
-            // menunjuk ke salah satunya padahal dia bukan admin, kita abaikan
-            // intended-nya dan arahkan ke halaman utama sesuai role-nya.
-            // (Menghindari 403 "does not have the right roles" setelah login.)
             $adminOnlyPaths = ['/', '/dashboard', '/settings'];
 
             $intended = $request->session()->get('url.intended');

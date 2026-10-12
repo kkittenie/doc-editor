@@ -12,8 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('documents', function (Blueprint $table) {
-            // Marketer yang menjadi pemilik/reviewer dokumen ini. Nullable
-            // agar dokumen yang belum ditugaskan tetap tersimpan milik admin.
             $table->foreignId('marketer_id')
                 ->nullable()
                 ->after('user_id')

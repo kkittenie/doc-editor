@@ -17,7 +17,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
     Route::patch('/documents/{document}/status', [DocumentController::class, 'updateStatus'])->name('documents.Status');
-    // untuk upload doc buat menyetujui
     Route::post('/documents/{document}/approve', [DocumentController::class, 'approve'])->name('documents.approve');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
     Route::delete('/documents', [DocumentController::class, 'deleteAll'])->name('documents.deleteAll');
@@ -25,7 +24,6 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/documents', [CustomerController::class, 'index'])->name('documents');
 
-     // Menu S.O.F — repositori berkas Order Formulir (entitas mandiri, CRUD + upload).
     Route::get('/sof', [SofController::class, 'index'])->name('sof.index'); 
     Route::get('/sof/data', [SofController::class, 'data'])->name('sof.data');   
     Route::get('/sof/create', [SofController::class, 'create'])->name('sof.create');
@@ -46,12 +44,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/documents/template/{template}', [DocumentController::class, 'createFromTemplate'])->name('documents.template');
     Route::post('/documents/save-as', [DocumentController::class, 'saveAsNew'])->name('documents.saveAs');
 
-    // ============================================================
-    // [DEV PREVIEW — SEMENTARA] Akses uji coba template TANPA isi Form
-    // Pelanggan lebih dulu. Untuk menghapus: cabut 2 baris rute ini +
-    // method devPreviewIndex()/devPreview() di DocumentController +
-    // view pages.dev-preview. Tidak menyentuh alur produksi.
-    // ============================================================
     Route::get('/dev-preview', [DocumentController::class, 'devPreviewIndex'])->name('documents.devPreview.index');
     Route::get('/dev-preview/{template}', [DocumentController::class, 'devPreview'])->name('documents.devPreview');
 

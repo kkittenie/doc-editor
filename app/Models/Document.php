@@ -11,7 +11,6 @@ class Document extends Model
 {
     use HasFactory, SoftDeletes;
 
-        /** Status dokumen — satu kosakata dengan alur kontrak pelanggan. */
     public const STATUSES = [
         'draft',
         'on_progress',
@@ -52,25 +51,21 @@ class Document extends Model
         return $this->belongsTo(User::class);
     }
 
-    /** Pelanggan/kontrak yang menjadi induk dokumen ini (opsional). */
     public function customer()
     {
         return $this->belongsTo(Customer::class);
     }
 
-    /** Data barang yang menempel pada kontrak dokumen ini. */
     public function barang()
     {
         return $this->hasMany(Barang::class);
     }
 
-    /** Data service yang menempel pada kontrak dokumen ini. */
     public function services()
     {
         return $this->hasMany(Service::class);
     }
 
-    /** Label status untuk tampilan. */
     public function statusLabel(): string
     {
         return match (strtolower($this->status ?? 'draft')) {
@@ -85,7 +80,6 @@ class Document extends Model
     }
 
     /**
-     * Sudah disetujui (dokumen final yang boleh diterbitkan sebagai S.O.F).
      */
     public function isApproved(): bool
     {
@@ -93,8 +87,6 @@ class Document extends Model
     }
 
     /**
-     * Punya berkas PDF S.O.F tersimpan? (path saja — keberadaan file dicek
-     * oleh pemanggil lewat Storage supaya model tetap bebas dari I/O.)
      */
     public function hasSofPdf(): bool
     {
@@ -102,11 +94,6 @@ class Document extends Model
     }
 
     /**
-     * Punya berkas final hasil upload user? (path saja — keberadaan file
-     * dicek pemanggil lewat Storage, sama seperti hasSofPdf().)
-     *
-     * Berkas ini yang menggantikan isi dokumen di Tabel Pelanggan setelah
-     * dokumen disetujui, dan yang diunduh tombol "Unduh PDF".
      */
     public function hasFinalFile(): bool
     {
@@ -114,8 +101,6 @@ class Document extends Model
     }
 
     /**
-     * Nama berkas saat diunduh: nama asli dari user, dengan fallback dari
-     * judul dokumen supaya unduhan selalu punya nama yang jelas.
      */
     public function finalFileName(): string
     {

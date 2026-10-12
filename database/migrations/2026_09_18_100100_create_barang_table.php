@@ -5,11 +5,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Tabel Barang (nullable).
- *
- * Satu pelanggan boleh punya banyak barang. Kolom document_id disiapkan
- * (opsional) supaya data barang bisa dihubungkan ke dokumen/kontrak yang
- * dibuat di Studio Editor tanpa perlu migrasi tambahan nanti.
  */
 return new class extends Migration
 {

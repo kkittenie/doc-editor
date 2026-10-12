@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 /**
- * Menu S.O.F — entitas mandiri (tanpa relasi ke Customer/Document).
- * Segala data diisi langsung di form; berkas PDF di-upload secara mandiri.
  */
 class Sof extends Model
 {
@@ -48,7 +46,6 @@ class Sof extends Model
         return $this->belongsTo(User::class);
     }
 
-    /** Label status untuk tampilan. */
     public function statusLabel(): string
     {
         return match (strtolower($this->status ?? 'draft')) {
@@ -58,13 +55,11 @@ class Sof extends Model
         };
     }
 
-    /** Sudah ada berkas PDF yang di-upload / discan. */
     public function hasFile(): bool
     {
         return ! empty($this->file_path);
     }
 
-    /** Nama berkas saat diunduh. */
     public function fileName(): string
     {
         $name = trim((string) $this->file_name);

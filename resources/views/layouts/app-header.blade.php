@@ -13,7 +13,7 @@
                 </svg>
             </button>
 
-            <!-- Brand Logo — menempati posisi tombol hamburger -->
+            <!-- Brand Logo -->
             <a href="/" title="Akses Digital"
                 class="flex items-center shrink-0 rounded-lg transition-colors dark:bg-white/95 dark:px-2 dark:py-1">
                 <img src="{{ asset('images/aksesdigital-mark.webp') }}" alt="Akses Digital"
@@ -70,7 +70,6 @@
             return;
         }
 
-        // Clone current styles (link and style tags)
         const headStyles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
             .map(node => node.outerHTML)
             .join('\n');

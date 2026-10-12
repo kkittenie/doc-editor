@@ -31,11 +31,6 @@ class MenuHelper
     }
 
         /**
-     * Item navigasi tambahan di bagian paling bawah sidebar.
-     *
-     * Menu "Pengaturan" sengaja dikosongkan — halamannya tidak lagi dibutuhkan,
-     * jadi tidak ada lagi tautan yang ditampilkan di sidebar. Route /settings
-     * tetap ada (dilindungi middleware role:admin) dan bisa dibuka via URL.
      */
     public static function getOthersItems()
     {
@@ -43,11 +38,6 @@ class MenuHelper
     }
 
     /**
-     * Menu utama sidebar.
-     *
-     * Catatan: item "Pengaturan" (getOthersItems()) tidak lagi berada di sini
-     * karena dirender terpisah di bagian paling bawah sidebar,
-     * lihat resources/views/layouts/sidebar.blade.php.
      */
     public static function getMenuGroups()
     {

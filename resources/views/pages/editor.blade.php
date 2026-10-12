@@ -82,7 +82,7 @@
 
                 <button type="button" @click="approveDocument()" title="Setujui dokumen &amp; upload berkas kontrak final"
                     class="rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 dark:bg-green-600 dark:text-white">
-                    ✅ Setujui
+                    Setujui
                 </button>
                 {{-- Unduh PDF: simpan dulu bila ada perubahan, lalu render
                      dari isi terkini — tanpa mengubah status. --}}
@@ -116,7 +116,7 @@
         </div>
     </div>
 
-    {{-- QUILL TOOLBAR (satu toolbar bersama untuk semua region) --}}
+    {{-- QUILL TOOLBAR --}}
     @unless($readOnly ?? false)
     <div id="body-toolbar-container"
         class="sticky top-[114px] z-30 flex flex-wrap items-center gap-1.5 border-b border-parchment-300 bg-white/95 px-4 py-2.5 shadow-sm backdrop-blur dark:border-slate-warm-700 dark:bg-slate-warm-900/95 print:hidden">
@@ -286,7 +286,7 @@
 
         <span class="toolbar-divider"></span>
 
-        {{-- TOOL TABEL: dropdown grid picker + aksi baris/kolom --}}
+        {{-- TOOL TABEL --}}
         <div class="toolbar-dropdown" id="tb-table-dd">
             <button type="button" class="toolbar-button toolbar-dropdown-toggle" data-cmd="table"
                 title="Sisipkan / kelola tabel">
@@ -322,8 +322,6 @@
     <main class="documentPrintArea bg-slate-100 px-4 py-10 dark:bg-slate-warm-950">
 
         <div class="mx-auto w-full max-w-[794px]">
-
-            {{-- SATU EDITOR UNTUK SEMUA KERTAS --}}
             <div id="document-editor"
                 class="document-editor-canvas @if($document->body_content['contractTemplate'] ?? false) contract-template-canvas @endif"></div>
 
@@ -345,9 +343,7 @@
 
 @push('styles')
 <style>
-    /* Alpine: sembunyikan elemen ber-x-cloak sebelum Alpine selesai init,
-       supaya chip sesi edit & panel Info Kontrak tidak berkedip saat halaman
-       dibuka (sebelumnya x-cloak dipakai tanpa rule CSS). */
+
     [x-cloak] {
         display: none !important;
     }
@@ -865,9 +861,6 @@
         padding-bottom: 8px;
     }
 
-    /* Kop default Fibertrust: rata kiri mentok batas insertion point
-       (batas kiri content-box header), tetap inline agar bisa dihapus /
-       ditambah teks di sebelahnya. */
     .doc-sheet-header p {
         margin: 0;
         padding: 0;
@@ -888,14 +881,9 @@
         flex: 1;
         min-height: 0;
         overflow: hidden !important;
-        /* Jarak garis header ke isi pertama (±6mm) untuk template
-           non-kontrak; kontrak memakai token BODY_SPACE_BEFORE via
-           contract-style. Padding container — bukan margin paragraf —
-           supaya tidak kalah oleh inline style Quill. */
         padding-top: 6mm;
     }
 
-    /* Sampul dikecualikan — judul sampul tetap menempel di atas. */
     .doc-sheet.doc-cover .doc-sheet-body {
         padding-top: 0;
     }
@@ -907,14 +895,6 @@
         padding-bottom: 20px;
     }
 
-    /* Nomor halaman footer default ("Page | n"): counter CSS per kertas —
-       otomatis urut 1..N saat tambah/hapus kertas, tanpa menyentuh isi
-       Quill (aman untuk mirror antar-halaman). Hanya tampil bila footer
-       berisi tabel .fibertrust-footer (footer default baru); footer lama /
-       kustom tidak ikut bernomor. Posisi: pojok kanan bawah kertas, di bawah
-       tabel footer (::after absolute). Dihilangkan saat sesi edit footer
-       supaya tidak ikut tersalin ke isi, dan di media cetak (PDF pakai
-       callback kanvas makeDocumentPdf, bukan CSS counter). */
     #document-editor { counter-reset: ft-page; }
     .doc-sheet { counter-increment: ft-page; }
     .doc-sheet-footer:has(table.fibertrust-footer)::after {
@@ -1261,12 +1241,6 @@
         font-size: 9px;
     }
 
-    /* Footer default Fibertrust (.fibertrust-footer): tabel identitas +
-       paraf, tanpa gambar. Ruang nomor "Page | n" (::after absolute di bawah)
-       disediakan via padding-bottom footer — bukan margin tabel — supaya ikut
-       tersimpan & dirender konsisten. Quill men-strip class pada
-       <table> saat round-trip tertentu, jadi samakan juga tampilan tabel
-       polos di footer. */
     .doc-sheet-footer table.fibertrust-footer,
     .doc-sheet-footer table:not([class]) {
         margin: 24px 0 0;
@@ -1286,9 +1260,6 @@
         font-size: 8.5pt;
     }
 
-    /* Tabel-dalam paraf (kolom kanan fibertrust-footer): hapus margin 24px
-       warisan rule di atas supaya menempel di sel induk, font 8pt sesuai
-       inline style, dan sel-nya tanpa border. */
     .doc-sheet-footer table.fibertrust-footer td table,
     .doc-sheet-footer table:not([class]) td table {
         margin: 0;
@@ -1300,9 +1271,6 @@
         font-size: 8pt;
     }
 
-    /* Sel dalam tabel paraf (kolom kanan fibertrust-footer) juga tanpa border —
-       lawan spesifisitas !important pada rule tabel global agar tidak muncul
-       kotak/garis di editor. Teks tetap utuh, hanya tampilan border yang hilang. */
     .doc-sheet-footer table.fibertrust-footer td table td,
     .doc-sheet-footer table:not([class]) td table td {
         border: none !important;
@@ -1374,8 +1342,6 @@
             display: none !important;
         }
 
-        /* Nomor halaman cetak tidak pakai CSS counter (PDF memakai callback
-           kanvas; cetak browser memakai aturan di bawah bila footer default). */
         .doc-sheet-footer:has(table.fibertrust-footer)::after {
             display: none !important;
         }
@@ -1497,12 +1463,8 @@
 
             documentId: @js($document -> id),
 
-            // Tujuan tombol "Selesai": kembali ke halaman Dokumen Saya
-            // (route('documents')) — bukan memuat ulang editor.
             documentsUrl: @js(route('documents')),
 
-            // Mode baca: marketer tidak bisa mengedit, hanya melihat &
-            // (jika berstatus review_marketing) menyetujui/minta revisi.
             readOnly: @js($readOnly ?? false),
 
             // Riwayat alasan revisi dari marketing (untuk admin).
@@ -1513,8 +1475,6 @@
 
             editSection: null,
 
-            // Panel "Info Kontrak" (dropdown di topbar) & tab data yang aktif.
-            // Isinya sudah dirender server lewat partials/editor/contract-info.
             showContractInfo: false,
             contractTab: 'barang',
 
@@ -1605,7 +1565,6 @@
                 document.addEventListener('keydown', (e) => {
                     if (e.key !== 'Backspace') return;
 
-                    // Hanya berlaku saat mengedit isi utama (di luar sesi header/footer)
                     if (this.editSection) return;
 
                     const bodyRegion = e.target.closest?.('.doc-sheet-body');
@@ -1618,10 +1577,8 @@
                     const index = this.pages.findIndex((p) => p.uid === uid);
                     if (index < 0) return;
 
-                    // Halaman pertama (utama) TIDAK boleh dihapus
                     if (index === 0) return;
 
-                    // Kosong = tidak ada teks sekaligus tidak ada gambar.
                     const kosong =
                         (bodyRegion.textContent || '').trim() === '' &&
                         bodyRegion.querySelectorAll('img').length === 0;
@@ -1631,16 +1588,14 @@
                     e.preventDefault();
                     e.stopPropagation();
                     this.removePageSilent(index);
-                }, true); // capture
+                }, true); 
             },
 
-            // INISIALISASI QUILL UNTUK SEMUA KERTAS
             initSingleEditor() {
 
                 const editorEl = document.getElementById('document-editor');
                 if (!editorEl) return;
 
-                // Bangun konten awal: setiap kertas berisi header + body + footer
                 let html = '';
 
                 this.pages.forEach((page, i) => {
@@ -1660,7 +1615,6 @@
                 window.DocQuill.ensureBodyEditable?.();
             },
 
-            // TAMBAH HALAMAN (sheet baru di akhir, footer ikut pindah)
             addPage() {
 
                 const uid = 'page-' + (this.pageSeq++);
@@ -1673,7 +1627,6 @@
                 const root = document.getElementById('document-editor');
                 if (!root) return;
 
-                // Sheet baru lengkap dengan zona header & footer (ala Word)
                 const sheet = document.createElement('div');
                 sheet.className = 'doc-sheet';
                 sheet.setAttribute('data-sheet-type', 'page');
@@ -1687,7 +1640,6 @@
                     return el;
                 };
 
-                // Zona header & footer baru = cermin konten halaman lain
                 const firstHeader = root.querySelector('.doc-sheet-header[data-region="header"]');
                 const firstFooter = root.querySelector('.doc-sheet-footer[data-region="footer"]');
 
@@ -1701,7 +1653,6 @@
                 sheet.appendChild(bodyRegion);
                 sheet.appendChild(footerRegion);
 
-                // Tombol hapus halaman (halaman baru selalu bukan yang pertama).
                 const rmBtn = document.createElement('button');
                 rmBtn.type = 'button';
                 rmBtn.className = 'page-remove-btn print:hidden';
@@ -1712,12 +1663,10 @@
 
                 root.appendChild(sheet);
 
-                // Pasang editor pada ketiga region baru
                 window.DocQuill.attachRegion(headerRegion);
                 window.DocQuill.attachRegion(bodyRegion);
                 window.DocQuill.attachRegion(footerRegion);
 
-                // Zona baru mengikuti status sesi edit yang sedang berjalan
                 window.DocQuill.setZonesEnabled('header', this.editSection === 'header');
                 window.DocQuill.setZonesEnabled('footer', this.editSection === 'footer');
 
@@ -1755,7 +1704,6 @@
                     return;
                 }
 
-                // Simpan state sebelum menghapus (untuk tombol Undo).
                 this.pushHistory();
 
                 const removedUid = this.pages[index].uid;
@@ -1764,7 +1712,6 @@
                 if (root) {
                     const sheet = root.querySelector('[data-page-uid="' + removedUid + '"]');
                     if (sheet) {
-                        // Lepaskan instance editor zona milik halaman yang dihapus
                         sheet.querySelectorAll('.doc-sheet-header, .doc-sheet-body, .doc-sheet-footer')
                             .forEach((rg) => window.DocQuill.forgetRegion(rg));
                         sheet.remove();
@@ -1775,14 +1722,11 @@
                 this.markAsChanged();
             },
 
-            // HAPUS HALAMAN TANPA KONFIRMASI — dipakai saat halaman kosong di-backspace.
-            // Menghindari dialog, lalu pindah caret ke halaman sebelum halaman yang dibuang.
             removePageSilent(index) {
 
                 const removedUid = this.pages[index]?.uid;
                 if (!removedUid) return;
 
-                // Simpan state sebelum menghapus (untuk tombol Undo).
                 this.pushHistory();
 
                 const root = document.getElementById('document-editor');
@@ -1791,13 +1735,11 @@
                 if (root) {
                     const sheet = root.querySelector('[data-page-uid="' + removedUid + '"]');
                     if (sheet) {
-                        // Lepaskan instance editor zona milik halaman yang dihapus
                         sheet.querySelectorAll('.doc-sheet-header, .doc-sheet-body, .doc-sheet-footer')
                             .forEach((rg) => window.DocQuill.forgetRegion(rg));
                         sheet.remove();
                     }
 
-                    // Sasar halaman baru terakhir (halaman sebelumnya)
                     const prev = this.pages[index - 1];
                     const prevSheet = prev && root.querySelector('[data-page-uid="' + prev.uid + '"]');
                     prevBody = prevSheet?.querySelector('.doc-sheet-body');
@@ -1807,27 +1749,21 @@
                 this.pages.splice(index, 1);
                 this.markAsChanged();
 
-                // Fokuskan caret di akhir halaman sebelumnya
                 if (prevBody && typeof window.DocQuill?.focusBodyEnd === 'function') {
                     window.DocQuill.focusBodyEnd(prevBody);
                 }
             },
 
-            // Susun inner-HTML satu kertas (header + body + footer),
-            // lengkap dengan tombol hapus (kecuali kertas pertama).
             buildSheet(page, index) {
                 let classes = 'doc-sheet';
                 if (index < (this.coverPages || 0)) classes += ' doc-cover';
                 let html = '<div class="' + classes + '" data-sheet-type="page" data-page-uid="' + page.uid + '">';
 
-                // Tombol hapus halaman: semua kertas KECUALI yang pertama.
                 if (index > 0) {
                     html += '<button type="button" class="page-remove-btn print:hidden" ' +
                         'data-page-uid="' + page.uid + '" title="Hapus halaman ini">✕</button>';
                 }
 
-                // Header & footer di SEMUA halaman (ala Microsoft Word).
-                // Semua zona dengan role sama berbagi SATU konten.
                 html += '<div class="doc-sheet-header" data-region="header">';
                 html += this.headerHtml || '<p></p>';
                 html += '</div>';
@@ -1923,9 +1859,6 @@
                     : null;
                 const targetBody = target?.querySelector('.doc-sheet-body[data-region="body"]');
 
-                // Halaman kosong / placeholder tidak boleh memicu pembuatan
-                // kertas baru terus-menerus; itu menghasilkan rangkaian page
-                // blank yang tak berujung.
                 const targetText = (targetBody?.textContent || '').replace(/\u200b/g, '').replace(/\u00a0/g, '').trim();
                 const hasVisualContent = !!targetBody?.querySelector('img, iframe, video, table');
                 const hasStructuredText = !!targetBody?.querySelector('p, li, td, th')
@@ -1940,10 +1873,8 @@
                 const newUid = 'page-' + (++this.pageSeq) + '-' +
                     Date.now().toString(36);
 
-                // Simpan state sebelum menambah halaman (untuk tombol Undo).
                 this.pushHistory();
 
-                // Jaga daftar halaman (dipakai saat init / hitung) tetap selaras.
                 this.pages.splice(pos + 1, 0, { uid: newUid, html: '<p></p>' });
 
                 if (!root || !target) return null;
@@ -1961,7 +1892,6 @@
                     return el;
                 };
 
-                // Header & footer baru = cermin konten halaman lain (ala Word).
                 const firstHeader = root.querySelector('.doc-sheet-header[data-region="header"]');
                 const firstFooter = root.querySelector('.doc-sheet-footer[data-region="footer"]');
 
@@ -1975,7 +1905,6 @@
                 sheet.appendChild(bodyRegion);
                 sheet.appendChild(footerRegion);
 
-                // Tombol hapus halaman pada kertas baru (selalu bukan yang pertama).
                 const rmBtn = document.createElement('button');
                 rmBtn.type = 'button';
                 rmBtn.className = 'page-remove-btn print:hidden';
@@ -1984,19 +1913,16 @@
                 rmBtn.textContent = '✕';
                 sheet.appendChild(rmBtn);
 
-                // Selipkan di belakang kertas `uid`.
                 if (target.nextSibling) {
                     target.parentNode.insertBefore(sheet, target.nextSibling);
                 } else {
                     target.parentNode.appendChild(sheet);
                 }
 
-                // Pasang editor pada ketiga region kertas baru.
                 window.DocQuill.attachRegion(headerRegion);
                 window.DocQuill.attachRegion(bodyRegion);
                 window.DocQuill.attachRegion(footerRegion);
 
-                // Zona baru mengikuti status sesi edit yang sedang berjalan.
                 window.DocQuill.setZonesEnabled('header', this.editSection === 'header');
                 window.DocQuill.setZonesEnabled('footer', this.editSection === 'footer');
 
@@ -2007,7 +1933,7 @@
 
             initAutoPagination() {
                 if (typeof window.DocQuill?.enableAutoPagination !== 'function') {
-                    return; // bundel usang — fitur lain tetap jalan
+                    return; 
                 }
 
                 window.DocQuill.enableAutoPagination({
@@ -2078,7 +2004,6 @@
                     true
                 );
 
-                // Tombol Esc juga mengakhiri sesi edit
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape' && this.editSection) {
                         this.exitEditSection();
@@ -2123,16 +2048,13 @@
                             .forEach((el) => el.classList.remove('zone-editing'));
                     });
 
-                    // Blur hanya bila fokus masih berada di dalam zona
                     const ae = document.activeElement;
                     if (ae && ae.closest?.('.doc-sheet-header, .doc-sheet-footer')) {
                         ae.blur?.();
                     }
 
-                    // Bersihkan sisa kunci seleksi dari interaksi lain (resize gambar dll.)
                     document.body.style.userSelect = '';
 
-                    // Jaminan terakhir: konten utama pasti bisa diketik kembali
                     const revived = window.DocQuill.ensureBodyEditable?.() || 0;
                     console.info(
                         '[ZoneEdit] Sesi ' + (section || '-') + ' diakhiri. ' +
@@ -2185,8 +2107,6 @@
                 if (!konfirmasi.isConfirmed) return;
 
                 try {
-                    // Simpan isi terbaru dulu — intent 'draft' agar status tidak
-                    // melompat ke On Progress sebelum PATCH di bawah.
                     if (!this.readOnly) {
                         await this.saveDocument('draft');
 
@@ -2352,19 +2272,16 @@
 
                 const root = document.getElementById('document-editor');
 
-                // Baca header (region di halaman pertama)
                 const headerRegion = root?.querySelector('.doc-sheet-header[data-region="header"]');
                 const headerContent = headerRegion
                     ? window.DocQuill.getHtml(headerRegion)
                     : (this.headerHtml || '');
 
-                // Baca footer (region di halaman terakhir)
                 const footerRegion = root?.querySelector('.doc-sheet-footer[data-region="footer"]');
                 const footerContent = footerRegion
                     ? window.DocQuill.getHtml(footerRegion)
                     : (this.footerHtml || '');
 
-                // Baca semua halaman body
                 const pagesHtml = [];
                 if (root) {
                     root.querySelectorAll('.doc-sheet[data-sheet-type="page"]').forEach((sheet) => {
@@ -2373,7 +2290,6 @@
                     });
                 }
 
-                // Sinkronkan ke data pages
                 if (pagesHtml.length > 0) {
                     this.pages = pagesHtml.map((html, i) => ({
                         uid: 'page-' + i,
@@ -2396,8 +2312,6 @@
                     footer_data: {
                         content: footerContent,
                     },
-                    // Tidak mengirim 'status': simpan hanya konten, status
-                    // (draft/on_progress/on_review/revisi/disetujui) tidak di-reset.
                     intent,
                 };
 
@@ -2410,15 +2324,7 @@
                     this.saveStatus = 'error';
                 }
             },
-            /**
-             * Unduh PDF dari editor.
-             *
-             * Save DULU bila masih ada perubahan: exportPdf() merender isi
-             * yang tersimpan di database, jadi tanpa save ini PDF bisa lebih
-             * lama dari yang terlihat di layar. Setelah save sukses (atau
-             * tidak ada perubahan / mode baca) baru buka hasil export —
-             * sehingga file yang diunduh PERSIS sama dengan editor.
-             */
+            
             async downloadPdf() {
 
                 if (!this.documentId) {

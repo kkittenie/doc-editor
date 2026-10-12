@@ -4,15 +4,6 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Perluas tipe harga barang supaya mencakup opsi "Tahunan" (yearly).
- *
- * Alur kepemilikan & pembayaran:
- *  - dibeli     → harga ditetapkan, bertipe One Time.
- *  - disewa     → bisa dibayar perhari (daily), perbulan (monthly), ATAU pertahun (yearly).
- *  - dipinjamkan → barang tidak memiliki harga (kolom tetap ada, kosong boleh).
- *
- * MySQL: ubah enum price_type menjadi ['one_time','daily','monthly','yearly'].
- * SQLite: tidak ada tipe enum, kolom bertipe text — tidak perlu perubahan schema.
  */
 return new class extends Migration
 {
@@ -23,7 +14,6 @@ return new class extends Migration
             return;
         }
 
-        // SQLite: enum Laravel membuat CHECK constraint lama; bangun ulang kolom price_type tanpa CHECK lama.
         DB::transaction(function () {
             DB::statement('ALTER TABLE barang RENAME TO barang_legacy');
             $columns = DB::select('PRAGMA table_info(barang_legacy)');

@@ -108,7 +108,7 @@ class StyledImage extends BaseImage {
 
 Quill.register(StyledImage, true);
 
-// ---- Garis pemisah kop surat (<hr>) ----
+// Garis pemisah kop surat 
 const BlockEmbed = Quill.import('blots/block/embed');
 
 class HrBlot extends BlockEmbed {
@@ -130,7 +130,7 @@ const ALLOWED_FORMATS = [
     'table-colgroup', 'table-container', 'table-list', 'table-list-container',
 ];
 
-// ---- Upload gambar ke server ----
+//  Upload gambar ke server 
 const uploadImageFile = (file) =>
     new Promise((resolve, reject) => {
         const formData = new FormData();
@@ -1116,7 +1116,6 @@ const quillIndexAtPoint = (q, x, y) => {
         index = domPosToQuillIndex(q, native.startContainer, native.startOffset);
     }
 
-    // Fallback geometris: area kosong, paragraf kosong, bawah kertas, hr
     if (index == null) {
         index = quillIndexFromPoint(q, q.root, x, y);
     }
@@ -1428,7 +1427,7 @@ const __bind = (target, type, fn, opts) => {
                 document.body.style.userSelect = '';
                 selesaiFlowDrag(e);
             } else {
-                flowDragSourceImg = null; // hanya klik biasa, batal saja
+                flowDragSourceImg = null; 
             }
         }
 
@@ -1521,7 +1520,6 @@ const refreshToolbarStates = () => {
         const cmd = btn.dataset.cmd;
         if (TOOLBAR_TOGGLES.includes(cmd)) {
             if (cmd === 'underline') {
-                // Underline is active when any underline style is applied
                 const hasUnderline = !!fmt.underline || !!fmt.ul;
                 btn.classList.toggle('active', hasUnderline);
             } else {
@@ -1557,7 +1555,6 @@ const refreshToolbarStates = () => {
 };
 
 
-// TOOL TABEL (modul quill-table-better)
 
 
 const getTableModule = () => {
@@ -1566,7 +1563,6 @@ const getTableModule = () => {
     return q.getModule('table-better') || null;
 };
 
-// Benar-benar di dalam sel tabel? (berguna untuk enable/disable aksi)
 const isInsideTable = () => {
     const q = getActiveQuill();
     if (!q) return false;
@@ -2520,8 +2516,6 @@ function __rememberPushedBlock(sheet, blockEl) {
     if (key) pageFlowJustPushedSig.set(key, __flowSig(blockEl));
 }
 
-// Ingat sidik GABUNGAN grup (dipakai jalur atomik dua arah): cegah flip
-// parsial heading <-> isi lintas siklus push/pull.
 function __rememberPushedGroup(sheet, sig) {
     const key = __pushedSigKey(sheet);
     if (key && sig) pageFlowJustPushedSig.set(key, sig);
@@ -3549,8 +3543,6 @@ async function __flowPass(quill, bodyEl) {
                     : JSON.parse(JSON.stringify(op)));
             }
             quill.updateContents(back, 'silent');
-            // Progress tetap terjamin: sumber jadi body DOM, alur DOM yang
-            // membelah baris tabel ke halaman berikutnya.
             if (__takeoverBodyAsDom(bodyEl)) {
                 __domRunFlow(bodyEl);
                 return true;
@@ -3585,7 +3577,6 @@ function __pullBackPass(quill, bodyEl) {
     const sheet = bodyEl.closest('.doc-sheet');
     if (!sheet) return false;
 
-    // Quill sudah dilepas dari DOM (body di-takeover sebagai DOM)?
     try { if (quill.root && !quill.root.isConnected) return false; } catch (err) { return false; }
 
     if (sheet.dataset?.flowLock) return false;
@@ -3606,10 +3597,6 @@ function __pullBackPass(quill, bodyEl) {
     const kids = Array.from(quill.root.children || []);
     const nkids = Array.from(nextQ.root.children || []);
     if (!nkids.length) return false;
-    // Tarik-balik ATOMIK: bila blok teratas halaman berikut adalah heading
-    // (PASAL N / LAMPIRAN A), seluruh grup [heading + judul + 1 isi] ikut
-    // ditarik — JANGAN hanya headingnya (yatim terbalik: heading kembali,
-    // isinya tertinggal). Bila grup tidak muat, batalkan seluruhnya.
     const pullEnd = __headingGroupEnd(nkids, 0);
     const pullKids = nkids.slice(0, pullEnd);
     if (!pullKids.length) return false;
@@ -3618,11 +3605,6 @@ function __pullBackPass(quill, bodyEl) {
     for (const pk of pullKids) {
         if (__isFloatingKid(pk) || !__hasMeaningfulTextNode(pk)) return false;
     }
-    // Tabel/list raksasa TIDAK PERNAH ditarik balik utuh: hanya bergerak
-    // lewat belah baris (__domSplitTable / __quillSplitTable). Menarik balik
-    // tabel lanjutan memicu ping-pong push<->pull yang menguras iterasi.
-    // Tabel LAMPIRAN kecil yang menempel pada heading LAMPIRAN boleh ikut
-    // sebagai bagian grup atomik (keep-with-table).
     const groupHasSplitTable = pullKids.some((pk) =>
         pk.tagName === 'TABLE' && pk.dataset && pk.dataset.splitFrom);
     if (groupHasSplitTable) return false;
@@ -3630,21 +3612,9 @@ function __pullBackPass(quill, bodyEl) {
     if (pullKids.some((pk) => (pk.tagName === 'OL' || pk.tagName === 'UL')
         && pk.getBoundingClientRect().height > bodyEl.clientHeight + PAGE_FLOW_TOL)) return false;
 
-    // Anti-flip: jangan langsung menarik balik blok yang barusan didorong
-    // oleh __flowPass di siklus yang sama - memicu getar abadi (push -> pull
-    // -> push -> ...) yang membuat kertas terasa "berjalan sendiri".
-    // Jalur Quill menyalin delta sebagai node DOM BARU, jadi bandingkan
-    // juga sidik konten (bukan hanya identitas objek). WeakMap tidak bisa
-    // memakai string sebagai kunci, sehingga sidik disimpan di Map biasa.
     const pushed = pageFlowJustPushed.get(sheet);
     const pushedSig = __pushedSigFor(sheet);
     if (pushed && pushed === k2) return false;
-    // Sidik gabungan grup untuk anti-flip lintas siklus (dihitung dulu
-    // karena dipakai guard granularitas grup di bawah). Push blok TUNGGAL
-    // mengingat sidik 1 blok — tolak bila sama dengan sidik k2 ATAU sidik
-    // gabungan grup; push GRUP mengingat sidik gabungan — tolak bila sama
-    // dengan sidik gabungan. Per-blok individual SELAIN k2 tidak ditolak
-    // (terlalu agresif, mengunci pull grup yang sah).
     const pullSig = pullKids.map(__flowSig).join('||');
     if (pushedSig && (pushedSig === __flowSig(k2) || pushedSig === pullSig)) return false;
 
@@ -3655,14 +3625,9 @@ function __pullBackPass(quill, bodyEl) {
     } catch (err) { k2Len = 0; }
     if (k2Len <= 1) return false;
 
-    // Sisa ruang di bawah blok terakhir kertas ini (px, sudah termasuk toleransi).
     const boxRect = bodyEl.getBoundingClientRect();
     const padT = parseFloat(getComputedStyle(bodyEl).paddingTop || '0');
     const effBottom = __flowEffBottom(bodyEl);
-    // Batas bawah = maksimum di SEMUA blok non-mengambang (bukan hanya blok
-    // terakhir). Bila hanya memakai blok terakhir, ruang kosong bisa terhitung
-    // terlalu longgar -> ada blok ditarik balik ke kertas yang sebenarnya penuh
-    // -> tabrakan -> terus mengalir tanpa henti.
     let baseBottom = boxRect.top + padT;
     for (let i = 0; i < kids.length; i++) {
         if (__isFloatingKid(kids[i])) continue;
@@ -3675,12 +3640,8 @@ function __pullBackPass(quill, bodyEl) {
         try { return sum + pk.getBoundingClientRect().height; }
         catch (err) { return sum; }
     }, 0);
-    // Hysteresis tarik-balik: blok yang pas-pasan di batas halaman tidak
-    // ditarik balik, karena pengukuran berikutnya hampir pasti menilai
-    // halaman penuh lagi lalu mendorongnya maju (getar push<->pull).
     if (baseBottom + h2 > effBottom - PAGE_FLOW_TOL - PAGE_FLOW_PULL_MARGIN) return false;
 
-    // Petakan rentang delta SELURUH grup (blok Quill berurutan dalam delta).
     const pullRanges = pullKids.map((pk) => __blockRangeOf(nextQ, pk));
     if (pullRanges.some((r) => !r)) return false;
     const pullStart = Math.min.apply(null, pullRanges.map((r) => r.start));
@@ -3713,8 +3674,6 @@ function __pullBackPass(quill, bodyEl) {
         quill.setSelection(ni, nextSelBefore.length || 0, 'silent');
     }
 
-    // Ingat sidik grup yang ditarik balik supaya siklus berikut tidak
-    // langsung mendorongnya maju lagi (anti-flip dua arah).
     try {
         const key = __pushedSigKey(sheet);
         if (key) pageFlowJustPushedSig.set(key, pullSig);
@@ -3725,15 +3684,10 @@ function __pullBackPass(quill, bodyEl) {
 }
 
 function __runFlow(quill, bodyEl) {
-    if (!autoPaginationApi || pageFlowHalted) return; // bridge belum siap / sudah terkunci latch
-    // Quill sudah dilepas dari DOM (body di-takeover sebagai DOM)?
+    if (!autoPaginationApi || pageFlowHalted) return; 
     try { if (quill && quill.root && !quill.root.isConnected) return; } catch (err) { /* noop */ }
     pageFlowTotalRuns++;
     if (pageFlowTotalRuns > PAGE_FLOW_MAX_TOTAL) {
-        // Latch keras (BUKAN reset): jika di-reset di sini, aliran paginasi
-        // start-ulang tiap 50 iterasi dan tak pernah berhenti - persis gejala
-        // "kertas terus berjalan sendiri" pada template colocation. Kunci ini
-        // baru dibuka oleh schedule() saat ada edit user / resize.
         if (!pageFlowHalted) {
             console.warn('[DocQuill] Paginasi dihentikan: terlalu banyak iterasi (' + PAGE_FLOW_MAX_TOTAL + ').');
             pageFlowHalted = true;
@@ -3748,13 +3702,10 @@ function __runFlow(quill, bodyEl) {
                 if (!document.body.contains(bodyEl)) break;
                 let moved = await __flowPass(quill, bodyEl);
                 if (!moved) {
-                    // Ruang longgar -> tarik blok atas kertas berikutnya ke sini.
                     moved = await __pullBackPass(quill, bodyEl);
                 }
                 if (!moved) break;
                 movedAny = true;
-                // Ada kemajuan -> reset kuota iterasi global (lihat catatan
-                // pada __domRunFlow): latch hanya untuk run tanpa kemajuan.
                 pageFlowTotalRuns = 0;
                 await __nextFrame();
             }
@@ -3820,9 +3771,6 @@ function bindPageOverflowWatch(quill, regionEl) {
 
 function __quillSplitTable(quill, tableEl, effBottom, targetBody, targetQ) {
     try {
-        // Sama seperti __domSplitTable: tabel atomic tidak boleh dibelah.
-        // Jalur Quill lebih merusak karena quill.deleteText di bawah
-        // memakai rentang min..max dan bisa menimpa isi yang lain.
         if (__isAtomicFlowKid(tableEl)) return 0;
 
         const rows = Array.from(tableEl.querySelectorAll(':scope > tbody > tr, :scope > tr'));
@@ -3850,8 +3798,6 @@ function __quillSplitTable(quill, tableEl, effBottom, targetBody, targetQ) {
             safeCut = i + 1;
         }
         if (safeCut >= rows.length) return 0;
-        // Bangun tabel lanjutan dari HTML baris yang pindah, lalu sisipkan
-        // lewat clipboard target supaya tetap sinkron dengan blot Quill.
         const srcTable = tableEl.cloneNode(false);
         srcTable.removeAttribute('id');
         const colgroup = tableEl.querySelector(':scope > colgroup');
@@ -3868,7 +3814,6 @@ function __quillSplitTable(quill, tableEl, effBottom, targetBody, targetQ) {
             delta = targetQ.clipboard.convert({ html: srcTable.outerHTML, text: '\n' });
         } catch (err) { delta = null; }
         if (!delta || !(delta.ops || []).length) return 0;
-        // Hapus baris asal dari Quill via delta (tetap sinkron blot).
         const DeltaCtor = __flowDeltaCtor(quill);
         if (!DeltaCtor) return 0;
         const rowRanges = [];
@@ -3881,16 +3826,9 @@ function __quillSplitTable(quill, tableEl, effBottom, targetBody, targetQ) {
         const end = Math.max.apply(null, rowRanges.map((r) => r.start + r.len));
         const removed = quill.getContents(start, end - start);
         if (!removed || !(removed.ops || []).length) return 0;
-        // Sisipkan ke target DULU, verifikasi tabel benar-benar mendarat,
-        // BARU hapus baris asal — kalau konversi menelan tabel, isi asal
-        // tetap utuh (tidak ada data yang hilang).
         const trBefore = targetQ.root.querySelectorAll('table tr').length;
-        // Sisipkan di indeks setelah run continuation teratas (bukan index 0).
         const contPlan = __flowContInsertPlan(targetQ);
         targetQ.updateContents(__flowContDelta(DeltaCtor, delta, contPlan), 'silent');
-        // Guard: jumlah baris tabel target HARUS bertambah (mencegah kasus
-        // tabel lanjutan menyatu/merge dengan tabel lama tetap dihitung ok,
-        // tapi konversi yang menelan isi pasti tertolak).
         const trAfter = targetQ.root.querySelectorAll('table tr').length;
         if (!(trAfter > trBefore)) {
             console.warn('[DocQuill] Belah tabel Quill menelan isi — dibatalkan.');
@@ -3902,10 +3840,6 @@ function __quillSplitTable(quill, tableEl, effBottom, targetBody, targetQ) {
     } catch (err) { return 0; }
 }
 
-// Belah <ol>/<ul> besar milik Quill: pindahkan item (<li>) yang meluap ke
-// list baru di kertas berikut. Analog __quillSplitTable untuk blok list —
-// kasus template colocation: satu <ol> pasal yang tingginya melebihi satu
-// halaman penuh sehingga tidak pernah muat utuh di kertas mana pun.
 function __quillSplitList(quill, listEl, effBottom, targetQ) {
     try {
         const items = Array.from(listEl.children || []).filter((c) => c.tagName === 'LI');
@@ -3918,9 +3852,6 @@ function __quillSplitList(quill, listEl, effBottom, targetQ) {
             }
         }
         if (cut <= 0 || cut >= items.length) return 0;
-        // Bangun list lanjutan dari HTML item yang pindah (atribut <ol> seperti
-        // type/start ikut terbawa lewat cloneNode(false)), lalu sisipkan lewat
-        // clipboard target supaya tetap sinkron dengan blot Quill.
         const srcList = listEl.cloneNode(false);
         srcList.removeAttribute('id');
         for (let i = cut; i < items.length; i++) {
@@ -3943,11 +3874,7 @@ function __quillSplitList(quill, listEl, effBottom, targetQ) {
         const end = Math.max.apply(null, itemRanges.map((r) => r.start + r.len));
         const removed = quill.getContents(start, end - start);
         if (!removed || !(removed.ops || []).length) return 0;
-        // Sisipkan ke target DULU, verifikasi item benar-benar mendarat,
-        // BARU hapus item asal — kalau konversi menelan list, isi asal
-        // tetap utuh (tidak ada data yang hilang).
         const liBefore = targetQ.root.querySelectorAll('li').length;
-        // Sisipkan di indeks setelah run continuation teratas (bukan index 0).
         const contPlan = __flowContInsertPlan(targetQ);
         targetQ.updateContents(__flowContDelta(DeltaCtor, delta, contPlan), 'silent');
         const liAfter = targetQ.root.querySelectorAll('li').length;

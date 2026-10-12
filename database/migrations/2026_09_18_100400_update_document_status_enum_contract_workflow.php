@@ -5,25 +5,12 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Samakan kosakata status dokumen dengan alur kontrak pelanggan:
- *   draft → on_progress → on_review → disetujui  (+ revisi, archived)
- *
- * Pemetaan data lama:
- *   pending           -> on_review
- *   review_marketing  -> on_review
- *   signed            -> disetujui
- *   revisi            -> revisi (tetap)
- *   draft/archived    -> tetap
- *
- * Langkah 1 memperluas enum agar semua nilai hidup berdampingan, langkah 3
- * mempersempitnya kembali ke daftar final.
+/*
  */
 return new class extends Migration
 {
     public function up(): void
     {
-        // 1) Perluas enum: semua nilai lama & baru boleh berdampingan.
         Schema::table('documents', function (Blueprint $table) {
             $table->enum('status', [
                 'draft',
@@ -38,13 +25,11 @@ return new class extends Migration
             ])->default('draft')->change();
         });
 
-        // 2) Petakan status lama ke kosakata baru.
         DB::table('documents')->whereIn('status', ['pending', 'review_marketing'])
             ->update(['status' => 'on_review']);
         DB::table('documents')->where('status', 'signed')
             ->update(['status' => 'disetujui']);
 
-        // 3) Kunci enum ke daftar final.
         Schema::table('documents', function (Blueprint $table) {
             $table->enum('status', [
                 'draft',
@@ -59,7 +44,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Perluas lagi supaya nilai baru & lama berdampingan saat dibalik.
         Schema::table('documents', function (Blueprint $table) {
             $table->enum('status', [
                 'draft',

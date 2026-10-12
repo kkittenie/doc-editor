@@ -26,7 +26,6 @@ class DashboardController extends Controller
 
         $totalCustomers = Customer::where('user_id', $userId)->count();
 
-        // 5 dokumen terbaru
         $recentDocuments = $documents->sortByDesc('created_at')->take(5)->values();
 
         return view('pages.dashboard', compact(

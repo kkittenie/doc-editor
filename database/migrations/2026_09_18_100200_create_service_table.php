@@ -5,10 +5,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Tabel Service (nullable).
- *
- * Satu pelanggan boleh punya banyak service. Sama seperti tabel barang,
- * document_id dipertahankan opsional untuk kebutuhan editor/PDF ke depan.
  */
 return new class extends Migration
 {

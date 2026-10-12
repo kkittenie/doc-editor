@@ -6,13 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Data Barang milik pelanggan (tabel `barang`, boleh kosong).
  */
 class Barang extends Model
 {
     use HasFactory;
 
-    /** Nama tabel mengikuti istilah di alur kerja (bukan "barangs"). */
     protected $table = 'barang';
 
     protected $fillable = [
@@ -25,10 +23,8 @@ class Barang extends Model
         'ownership',
     ];
 
-    /** Tipe harga: sekali bayar vs bulanan. */
     public const PRICE_TYPES = ['one_time', 'monthly'];
 
-    /** Status kepemilikan barang. */
     public const OWNERSHIPS = ['disewa', 'dipinjamkan', 'dibeli'];
 
     protected $casts = [

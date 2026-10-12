@@ -4,15 +4,6 @@ use Illuminate\Database\Migrations\Migration;
 use Spatie\Permission\Models\Role;
 
 /**
- * Pembersihan terakhir workflow marketer: role "marketer" sudah tidak
- * dikenali aplikasi (Kelola User hanya membuat admin, pendaftaran otomatis
- * admin, dan tidak ada lagi route/logika yang mengecek role marketer).
- *
- * Eks-marketer dinaikkan menjadi admin lebih dulu supaya tidak kehilangan
- * akses — semua aksi dokumen (simpan, ekspor, approval) mewajibkan
- * hasRole('admin'). Setelah itu role "marketer" dihapus; assignment user
- * ikut terbersih otomatis karena FK model_has_roles.role_id memakai
- * onDelete('cascade').
  */
 return new class extends Migration
 {

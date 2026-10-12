@@ -5,10 +5,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Catat tanggal terakhir kontrak (pelanggan) menyentuh tahap On Progress.
- *
- * Kolom on_progress_at diisi setiap kali status kontrak (pelanggan) naik
- * menjadi on_progress — dipakai Tabel Pelanggan sebagai "Terakhir On Progress".
  */
 return new class extends Migration
 {
