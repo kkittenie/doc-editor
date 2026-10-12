@@ -49,7 +49,7 @@
                     <label class="mb-1 block text-xs text-ink-900">Order Number</label>
                     <input type="text" name="order_number" value="{{ $sof->order_number ?? $orderNumberPlaceholder }}" readonly
                         class="w-full cursor-default rounded-xl border bg-parchment-50 px-4 py-2.5 text-sm text-slate-warm-500">
-                    <p class="mt-1 text-[10px] text-slate-warm-400">Auto-generate • SOF/001/IX/2026</p>
+                    <p class="mt-1 text-[10px] text-slate-warm-400">Auto-generate {{ $sof->order_number ?? $orderNumberPlaceholder}}</p>
                 </div>
                 <div>
                     <label class="mb-1 block text-xs text-ink-900">Nomer Pelanggan</label>
@@ -75,12 +75,7 @@
                 </div>
                 <div>
                     <label class="mb-1 block text-xs text-ink-900">Tanggal Aktif</label>
-                    {{-- Wrapper diberi class penanda agar override CSS di app.css hanya
-                         berlaku untuk kalender form S.O.F. Class `custom-datepicker`
-                         dipakai untuk aturan posisi `.static.open` yang sudah ada.
-                         Tanpa ini flatpickr menaruh kalender di <body> (bukan di
-                         dalam wrapper), sehingga selector `.sof-datepicker …`
-                         tidak akan cocok sama sekali. --}}
+                   <body>
                     <div class="sof-datepicker custom-datepicker relative">
                         <input type="text" id="active_date" name="active_date" value="{{ $activeDate }}"
                             placeholder="YYYY-MM-DD" autocomplete="off"
@@ -121,7 +116,7 @@
                         class="w-full cursor-default rounded-xl border bg-parchment-50 px-4 py-2.5 text-sm text-slate-warm-500">
                 </div>
                 <div class="sm:col-span-2">
-                    <label class="mb-1 block text-xs text-ink-900">Berkas PDF (Scan Kontrak)</label>
+                    <label class="mb-1 block text-xs text-ink-900">Upload PDF</label>
                     <div class="flex items-center gap-3">
                         <button type="button" id="upload-file-btn"
                             class="inline-flex h-9 items-center gap-2 rounded-lg border bg-white px-4 text-xs font-semibold text-ink-900 hover:bg-ink-900 hover:text-white">
@@ -142,7 +137,6 @@
         {{-- CATATAN REVISI --}}
         <div class="mt-6 rounded-2xl border border-parchment-300 bg-white p-6 shadow-sm">
             <h2 class="mb-4 text-xs font-semibold uppercase text-slate-warm-500">Catatan Revisi</h2>
-            <p class="mb-2 text-[11px] text-slate-warm-500">Opsional. Catat alasan/catatan untuk versi berikutnya.</p>
             <textarea name="revision_notes[reason]" rows="3"
                 class="w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-ink-900 dark:border-slate-warm-700"
                 placeholder="Misal: perlu update harga barang Okt 2026...">{{ $sof->revision_notes['reason'] ?? '' }}</textarea>
