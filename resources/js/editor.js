@@ -1,4 +1,4 @@
-﻿import Quill from 'quill';
+import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import QuillTableBetter, { ToolbarTable } from 'quill-table-better';
 import 'quill-table-better/dist/quill-table-better.css';
@@ -2116,6 +2116,7 @@ const normalizeTableGrid = (table) => {
                     tag: cell.tagName,
                     colspan: 1,
                     rowspan: 1,
+                    covered: true,
                 };
             }
             for (let r = 1; r < rowspan; r++) {
@@ -2132,6 +2133,25 @@ const normalizeTableGrid = (table) => {
         maxCols = Math.max(maxCols, rd.length);
     });
     if (maxCols < 1) maxCols = 1;
+
+    if (colWidths.length < maxCols) {
+        const inferredWidths = Array(maxCols).fill(null);
+        grid.forEach((rowData) => {
+            rowData.forEach((cell, ci) => {
+                if (!cell || cell.covered || cell.colspan !== 1 || ci >= maxCols) return;
+                const match = cell.style.match(/(?:^|;)\s*width\s*:\s*([\d.]+)\s*%/i);
+                if (match) {
+                    const width = parseFloat(match[1]);
+                    if (width > 0) inferredWidths[ci] = width;
+                }
+            });
+        });
+        const inferredTotal = inferredWidths.reduce((sum, width) => sum + (width || 0), 0);
+        if (inferredWidths.every((width) => width != null)
+            && Math.abs(inferredTotal - 100) <= 1) {
+            colWidths.splice(0, colWidths.length, ...inferredWidths);
+        }
+    }
 
     const getCellWidth = (ci, colspan) => {
         if (colWidths.length >= maxCols) {
@@ -2907,6 +2927,148 @@ function __domSplitTable(tableEl, effBottom, targetBody) {
     } catch (err) { return 0; }
 }
 
+/* Lanjutan penomoran OL antar kertas: bila sheet N berakhir OL dan sheet
+   N+1 diawali OL bertipe sama, OL lanjutan diberi start lanjutan. */
+function __olTypeKey(ol) {
+    try {
+        let cls = ' ';
+        try { cls += (ol.getAttribute('class') || '') + ' '; } catch (e) {}
+        try {
+            const li = ol.querySelector ? ol.querySelector(':scope > li') : null;
+            if (li) cls += (li.getAttribute('class') || '') + ' ';
+        } catch (e) {}
+        const m = cls.match(/ql-liststyle-([a-z]+)/);
+        if (m) return 'q:' + m[1].toLowerCase();
+    } catch (err) {}
+    try {
+        const t = ((ol.getAttribute && ol.getAttribute('type')) || '').toString().trim().toLowerCase();
+        if (t) return 't:' + t;
+    } catch (err) {}
+    try {
+        const st = ((ol.getAttribute && ol.getAttribute('style')) || '').toString();
+        const sm = st.match(/list-style-type\s*:\s*([^;]+)/i);
+        if (sm) return 's:' + sm[1].trim().toLowerCase();
+    } catch (err) {}
+    return 'unknown';
+}
+
+function __olCanChain(a, b) {
+    return a === b || a === 'unknown' || b === 'unknown';
+}
+
+function __olEffStart(ol) {
+    try {
+        if (ol.hasAttribute && ol.hasAttribute('start')) {
+            const s = parseInt(ol.getAttribute('start') || '1', 10);
+            if (!isNaN(s) && s > 0) return s;
+        }
+        const li = ol.querySelector ? ol.querySelector(':scope > li') : null;
+        if (li && li.getAttribute) {
+            const v = parseInt(li.getAttribute('value') || '', 10);
+            if (!isNaN(v) && v > 0) return v;
+        }
+    } catch (err) {}
+    return 1;
+}
+
+function __olCount(ol) {
+    try {
+        const kids = ol.children ? Array.from(ol.children) : [];
+        let n = 0;
+        for (const k of kids) { if (k && k.tagName === 'LI') n++; }
+        return n;
+    } catch (err) { return 0; }
+}
+
+function __flowKids(container) {
+    const out = [];
+    try {
+        const kids = Array.from(container.children || []);
+        for (const k of kids) {
+            if (!k || !k.tagName) continue;
+            if (k.tagName === 'SCRIPT' || k.tagName === 'STYLE') continue;
+            let txt = '';
+            try { txt = (k.textContent || '').replace(/ /g, ' ').trim(); } catch (e) { txt = ''; }
+            if (txt !== '') { out.push(k); continue; }
+            let has = false;
+            try { has = !!(k.querySelector && k.querySelector('img, table, ol, ul, li, iframe, video')); } catch (e) {}
+            if (has) out.push(k);
+        }
+    } catch (err) {}
+    return out;
+}
+
+function __renumberContinuedListsAcrossSheets() {
+    try {
+        const root = document.getElementById('document-editor');
+        if (!root) return 0;
+        const sheets = Array.from(root.querySelectorAll('.doc-sheet[data-sheet-type="page"]'));
+        if (!sheets.length) return 0;
+        let prev = null;
+        let fixed = 0;
+        for (const sheet of sheets) {
+            if (sheet.dataset && sheet.dataset.flowLock) { prev = null; continue; }
+            const body = sheet.querySelector('.doc-sheet-body[data-region="body"]');
+            if (!body) { prev = null; continue; }
+            let container = body;
+            try {
+                const q = (typeof quillsByRegion !== 'undefined') ? quillsByRegion.get(body) : null;
+                if (q && q.root) container = q.root;
+            } catch (err) {}
+            if (!container) { prev = null; continue; }
+            const kids = __flowKids(container);
+            if (!kids.length) { prev = null; continue; }
+            const first = kids[0];
+            const last = kids[kids.length - 1];
+            if (first && first.tagName === 'OL' && prev && __olCanChain(prev.key, __olTypeKey(first))) {
+                const want = prev.start + prev.count;
+                if (__olEffStart(first) !== want || !(first.hasAttribute && first.hasAttribute('start'))) {
+                    first.setAttribute('start', String(want));
+                    try {
+                        const lis = Array.from(first.children || []).filter((x) => x && x.tagName === 'LI');
+                        if (lis.some((li) => li.hasAttribute && li.hasAttribute('value'))) {
+                            lis.forEach((li, j) => { try { li.setAttribute('value', String(want + j)); } catch (e) {} });
+                        }
+                    } catch (err) {}
+                    fixed++;
+                }
+                // Offset counter Quill (.ql-editor me-reset list-0..9 per
+                // lembar): tanpa ini angka di LAYAR tetap 1 meski start benar.
+                // counter-reset inline didukung Quill (StyleAttributor phead/
+                // pbb membuktikan style inline lolos) & aman untuk PDF karena
+                // PDF memakai list-style native (value/start), bukan counter.
+                if (container && container.classList && container.classList.contains('ql-editor')) {
+                    try {
+                        let lv = 0;
+                        try {
+                            const fli = first.querySelector ? first.querySelector(':scope > li') : null;
+                            if (fli) {
+                                for (let d = 1; d <= 8; d++) {
+                                    if (fli.classList && fli.classList.contains('ql-indent-' + d)) { lv = d; break; }
+                                }
+                            }
+                        } catch (e) {}
+                        const cur = (container.style && container.style.counterReset) || '';
+                        const re = new RegExp('(?:^|\\s)list-' + lv + '(?:\\s+-?\\d+)?', 'g');
+                        const kept = cur.replace(re, ' ').replace(/\s+/g, ' ').trim();
+                        const next = ((kept ? kept + ' ' : '') + 'list-' + lv + ' ' + (want - 1)).trim();
+                        if (cur !== next) {
+                            container.style.counterReset = next;
+                            fixed++;
+                        }
+                    } catch (err) {}
+                }
+            }
+            if (last && last.tagName === 'OL') {
+                prev = { start: __olEffStart(last), count: __olCount(last), key: __olTypeKey(last) };
+            } else {
+                prev = null;
+            }
+        }
+        return fixed;
+    } catch (err) { return 0; }
+}
+
 function __domSplitList(listEl, effBottom, targetBody) {
     try {
         const items = Array.from(listEl.children || []).filter((c) => c.tagName === 'LI');
@@ -3087,6 +3249,7 @@ async function __domFlowPass(bodyEl) {
         const movedItems = __domSplitList(overKid, effBottom, targetBody);
         if (movedItems > 0) {
             __rememberPushedBlock(sheet, overKid);
+            try { __renumberContinuedListsAcrossSheets(); } catch (err) {}
             notifyDirty();
             __runDomFlow(targetBody);
             return true;
@@ -3096,6 +3259,7 @@ async function __domFlowPass(bodyEl) {
         const movedItems = __domSplitListToQuill(overKid, effBottom, targetQ);
         if (movedItems > 0) {
             __rememberPushedBlock(sheet, overKid);
+            try { __renumberContinuedListsAcrossSheets(); } catch (err) {}
             notifyDirty();
             __runFlow(targetQ, targetBody);
             return true;
@@ -3166,6 +3330,7 @@ async function __domFlowPass(bodyEl) {
         __markFlowContinuationRun(targetQ, contPlan);
     }
     __rememberPushedBlock(sheet, overKid);
+    try { __renumberContinuedListsAcrossSheets(); } catch (err) {}
     notifyDirty();
     if (targetIsDom) __runDomFlow(targetBody);
     else if (targetQ) __runFlow(targetQ, targetBody);
@@ -3210,6 +3375,7 @@ function __domRunFlow(bodyEl) {
                 }
             }
             pageFlowRequeues.delete(bodyEl);
+            try { __renumberContinuedListsAcrossSheets(); } catch (err) { /* noop */ }
         })
         .catch((err) => console.warn('[DocQuill] Paginasi otomatis dilewati:', err));
     pageFlowChain = job;
@@ -3442,6 +3608,7 @@ async function __flowPass(quill, bodyEl) {
         const movedItems = __quillSplitList(quill, kids[idx], effBottom, targetQ);
         if (movedItems > 0) {
             __rememberPushedBlock(sheet, kids[idx]);
+            try { __renumberContinuedListsAcrossSheets(); } catch (err) {}
             notifyDirty();
             if (autoPaginationApi) __runFlow(targetQ, targetBody);
             return true;
@@ -3723,6 +3890,7 @@ function __runFlow(quill, bodyEl) {
                 }
             }
             pageFlowRequeues.delete(bodyEl);
+            try { __renumberContinuedListsAcrossSheets(); } catch (err) { /* noop */ }
         })
         .catch((err) => console.warn('[DocQuill] Paginasi otomatis dilewati:', err));
     pageFlowChain = job;
@@ -3943,7 +4111,11 @@ window.initBodyEditor = function (rootSelector, onSync = null) {
 
 
 window.DocQuill = {
-    __version: 'hf-11-domflow',
+    __version: 'hf-12-listcont',
+
+    renumberContinuedLists: () => {
+        try { return __renumberContinuedListsAcrossSheets(); } catch (err) { return 0; }
+    },
 
     attachRegion: attachQuillToRegion,
 

@@ -1531,6 +1531,10 @@
                     }
 
                     this.initAutoPagination();
+
+                    setTimeout(() => {
+                        try { window.DocQuill.renumberContinuedLists?.(); } catch (err) {}
+                    }, 900);
                 });
 
                 if (this.readOnly) {
@@ -2272,6 +2276,8 @@
 
                 const root = document.getElementById('document-editor');
 
+                try { window.DocQuill.renumberContinuedLists?.(); } catch (err) {}
+
                 const headerRegion = root?.querySelector('.doc-sheet-header[data-region="header"]');
                 const headerContent = headerRegion
                     ? window.DocQuill.getHtml(headerRegion)
@@ -2364,6 +2370,8 @@
             async saveAsNewDocument(newTitle) {
 
                 const root = document.getElementById('document-editor');
+
+                try { window.DocQuill.renumberContinuedLists?.(); } catch (err) {}
 
                 const headerRegion = root?.querySelector('.doc-sheet-header[data-region="header"]');
                 const footerRegion = root?.querySelector('.doc-sheet-footer[data-region="footer"]');

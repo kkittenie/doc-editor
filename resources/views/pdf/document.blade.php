@@ -327,6 +327,12 @@
             text-align: center;
         }
 
+        @if(($document->body_content['templateKey'] ?? null) === 'kontrak-payung')
+        .contract-document.contract-payung .body-content p {
+            page-break-inside: avoid;
+        }
+        @endif
+
         .contract-document .body-content ol,
         .contract-document .body-content ul {
             margin: 0;
@@ -390,8 +396,13 @@
            editor (19mm dari tepi atas & 19mm dari tepi bawah kertas).
            left/right 0 supaya keduanya sejajar dengan kolom teks. ── */
         @if($document->body_content['contractTemplate'] ?? false)
+        @php
+            $contractPageMarginBottom = ($document->body_content['templateKey'] ?? null) === 'kontrak-payung'
+                ? '50mm'
+                : $cs::PAGE_MARGIN_BOTTOM;
+        @endphp
         @page {
-            margin: {!! $cs::PAGE_MARGIN_TOP !!} {!! $cs::PAGE_MARGIN_SIDE !!} {!! $cs::PAGE_MARGIN_BOTTOM !!} {!! $cs::PAGE_MARGIN_SIDE !!};
+            margin: {!! $cs::PAGE_MARGIN_TOP !!} {!! $cs::PAGE_MARGIN_SIDE !!} {!! $contractPageMarginBottom !!} {!! $cs::PAGE_MARGIN_SIDE !!};
         }
 
         .contract-document .header-table {
@@ -415,7 +426,7 @@
     </style>
 </head>
 
-<body class="@if($document->body_content['contractTemplate'] ?? false) contract-document @endif">
+<body class="@if($document->body_content['contractTemplate'] ?? false) contract-document @endif @if(($document->body_content['templateKey'] ?? null) === 'kontrak-payung') contract-payung @endif">
 
         <div class="header-table">
             {!! $headerHtml ?? '' !!}

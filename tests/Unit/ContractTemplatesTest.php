@@ -23,6 +23,14 @@ function contractNormalizePasal(string $html): string
     return $method->invoke($ctrl, [$html])[0];
 }
 
+function contractRepairSplitLists(array $pages): array
+{
+    $ctrl   = new DocumentController();
+    $method = new ReflectionMethod(DocumentController::class, 'repairSplitOrderedLists');
+
+    return $method->invoke($ctrl, $pages);
+}
+
 $keys = [
     'kontrak-kemitraan',
     'kontrak-colocation',
@@ -57,7 +65,7 @@ test('setiap template punya minimal 14 pasal, judul & isi tidak kosong', functio
 test('setiap template memuat tabel sesuai dokumen asli pada posisi yang benar', function () use ($keys) {
     $expected = [
         'kontrak-kemitraan'      => 5, 
-        'kontrak-colocation'     => 2, 
+        'kontrak-colocation'     => 3,
         'kontrak-managed-service'=> 5, 
         'kontrak-soho'           => 3, 
         'kontrak-payung'         => 7, 
@@ -265,7 +273,7 @@ test('isi render HTML memuat teks asli verbatim', function () {
 test('render HTML memunculkan tabel asli dengan border & posisi yang benar', function () use ($keys) {
     $counts = [
         'kontrak-kemitraan'       => 5, // PASAL 17 komunikasi kini teks <ol>, bukan tabel
-        'kontrak-colocation'      => 2,
+        'kontrak-colocation'      => 3,
         'kontrak-managed-service' => 5,
         'kontrak-soho'            => 3,
         'kontrak-payung'          => 7,
@@ -293,8 +301,8 @@ test('render HTML memunculkan tabel asli dengan border & posisi yang benar', fun
     expect($pos)->toBeInt();
     expect($tblPos)->toBeInt();
     expect($tblPos)->toBeGreaterThan($pos);
-    expect($html)->toContain('Jika kepada PIHAK PERTAMA');
-    expect($html)->toContain('Jika kepada PIHAK KEDUA');
+    expect(strip_tags($html))->toContain('Jika kepada PIHAK PERTAMA');
+    expect(strip_tags($html))->toContain('Jika kepada PIHAK KEDUA');
 
     expect($html)->toContain('<strong>PIHAK PERTAMA</strong><br>');
 
@@ -334,9 +342,9 @@ test('pasal komunikasi kemitraan berupa teks bernomor, bukan tabel', function ()
     expect($lists[0]['ol']['items'][0]['children']['type'] ?? '')->toBe('a');
 
     $html = contractBuildBodyHtml($tpl, true);
-    $headPos = strpos($html, 'KOMUNIKASI/PEMBERITAHUAN');
-    $p1Pos = strpos($html, 'Segala pemberitahuan yang diisyaratkan');
     $plain = strip_tags($html);
+    $headPos = strpos($plain, 'KOMUNIKASI/PEMBERITAHUAN');
+    $p1Pos = strpos($plain, 'Segala pemberitahuan yang diisyaratkan');
     $paPos = strpos($plain, 'Jika kepada PIHAK PERTAMA');
     $pbPos = strpos($plain, 'Jika kepada PIHAK KEDUA');
     $p2Pos = strpos($plain, 'Jika salah satu pihak mengganti atau mengubah alamatnya');
@@ -564,14 +572,16 @@ test('bug kolom ketiga menjaga rekening dalam tabel dan poin pembayaran yang dim
         $colocation['body_content']['isi'],
         fn ($pasal) => ($pasal['judul'] ?? '') === 'BIAYA, SYARAT PEMBAYARAN, PENYETORAN DAN PAJAK'
     ))[0];
+    $paymentBlocks = $colocationPayment['blocks'];
     $accountTable = array_values(array_filter(
-        $colocationPayment['blocks'],
+        $paymentBlocks,
         fn ($block) => !empty($block['table']['keepTogether'])
     ))[0]['table'] ?? null;
     expect($accountTable)->not->toBeNull();
     expect($accountTable['cols'])->toBe([100]);
     expect(count($accountTable['rows']))->toBe(8);
     expect($accountTable['rows'][0][0]['c'][0])->toContain('Pelanggan menerima tagihan/invoice');
+    expect($paymentBlocks[array_key_last($paymentBlocks)]['table']['keepTogether'])->toBeTrue();
     $colocationHtml = contractBuildBodyHtml($colocation, true);
     expect($colocationHtml)->toContain('page-break-inside:avoid;');
     expect(substr_count($colocationHtml, 'Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjalan'))->toBe(1);
@@ -585,13 +595,33 @@ test('bug kolom ketiga menjaga rekening dalam tabel dan poin pembayaran yang dim
     ))[0];
     $payungItems = $payungPayment['blocks'][0]['ol']['items'];
     expect($payungItems)->toHaveCount(10);
-    expect($payungItems[3]['pageBreakBefore'])->toBeTrue();
+    expect($payungItems[1]['pageBreakBefore'])->toBeTrue();
+    expect($payungItems[3])->not->toHaveKey('pageBreakBefore');
     expect($payungItems[9]['children']['items'])->toHaveCount(2);
     $payungHtml = contractBuildBodyHtml($payung, true);
     expect($payungHtml)->toContain('page-break-before:always;');
+    expect($payungHtml)->toContain('<li value="1">');
+    expect($payungHtml)->toContain('<li value="2" style="page-break-before:always;">');
+    expect($payungHtml)->toContain('<li value="10">');
     expect($payungHtml)->toContain('1340001209104');
     expect($payungHtml)->toContain('010701003038305');
     expect($payungHtml)->toContain('ql-liststyle-alpha');
+
+    $identityTable = $payung['body_content']['lampiran'][0]['blocks'][1]['table'];
+    expect($identityTable['cols'])->toBe([50, 50]);
+    expect($identityTable['rows'])->toHaveCount(6);
+    foreach ($identityTable['rows'] as $row) {
+        expect($row[1]['c'][0])->toBe("\u{00A0}");
+    }
+    expect($payungHtml)->toContain('width:50%');
+    expect(substr_count($payungHtml, "\u{00A0}"))->toBeGreaterThanOrEqual(6);
+    $serviceTable = $payung['body_content']['lampiran'][0]['blocks'][3]['table'];
+    expect($serviceTable['cols'])->toBe([7, 13, 22, 12, 14, 14, 18]);
+    expect($serviceTable['rows'])->toHaveCount(3);
+    expect($serviceTable['rows'][2])->toHaveCount(7);
+    foreach (array_slice($serviceTable['rows'][2], 1) as $cell) {
+        expect($cell['c'][0])->toBe("\u{00A0}");
+    }
 
     $soho = ContractTemplates::find('kontrak-soho');
     $sohoPayment = array_values(array_filter(
@@ -727,3 +757,37 @@ test('judul kontrak kosong tidak merusak isi sampul', function () use ($keys) {
         expect($filled)->toContain('Nomor: KTR/008/IX/2026');
     }
 });
+
+test('ol terbelah antar halaman disambung: lanjutan Pasal 5 tidak reset ke 1', function () {
+    $ctrl = new DocumentController();
+
+    // Simulasi hasil auto-pagination editor: <ol> 10 ayat Pasal 5 terbelah
+    // jadi 1 ayat di halaman N dan 9 ayat di halaman N+1 tanpa start.
+    $page1 = '<ol class="ct-list ql-liststyle-decimal" style="list-style-type:decimal; padding-left:18pt; margin:0;">'
+        . '<li value="1">PIHAK KEDUA wajib melakukan pembayaran atas seluruh layanan;</li></ol>';
+    $page2 = '<ol class="ct-list ql-liststyle-decimal" style="list-style-type:decimal; padding-left:18pt; margin:0;">'
+        . '<li>Ayat 2</li><li>Ayat 3</li><li>Ayat 4</li><li>Ayat 5</li><li>Ayat 6</li>'
+        . '<li>Ayat 7</li><li>Ayat 8</li><li>Ayat 9</li><li>Ayat 10</li></ol>';
+
+    $fixed = contractRepairSplitLists([$page1, $page2]);
+
+    expect($fixed[0])->toBe($page1);
+    expect($fixed[1])->toContain('start="2"');
+    expect(substr_count($fixed[1], '<li'))->toBe(9);
+
+    // Idempoten: start yang sudah benar tidak diubah.
+    $again = contractRepairSplitLists($fixed);
+    expect($again)->toBe($fixed);
+
+    // Daftar beda tipe antar halaman tidak dirangkai.
+    $other = contractRepairSplitLists([
+        '<ol class="ct-list ql-liststyle-decimal"><li>satu</li><li>dua</li></ol>',
+        '<ol class="ct-list ql-liststyle-alpha"><li>a</li><li>b</li></ol>',
+    ]);
+    expect($other[1])->not->toContain('start=');
+
+    // Satu halaman saja tidak diubah.
+    $single = ['<ol><li>satu</li></ol>'];
+    expect(contractRepairSplitLists($single))->toBe($single);
+});
+

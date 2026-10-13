@@ -212,6 +212,8 @@ class DocumentController extends Controller
             $pages = [$bodyHtml];
         }
 
+        $pages = $this->repairSplitOrderedLists($pages);
+
         $document = Document::create([
             'user_id' => Auth::id(),
             'customer_id' => $customer?->id,
@@ -593,6 +595,182 @@ class DocumentController extends Controller
         return $pages;
     }
 
+    private function listSplitChainState(\DOMElement $ol): array
+    {
+        $start = 1;
+        $raw = trim((string) $ol->getAttribute('start'));
+        if ($raw !== '' && ctype_digit($raw) && (int) $raw > 0) {
+            $start = (int) $raw;
+        } else {
+            foreach ($ol->childNodes as $c) {
+                if ($c instanceof \DOMElement && strtolower($c->tagName) === 'li') {
+                    $v = trim((string) $c->getAttribute('value'));
+                    if ($v !== '' && ctype_digit($v) && (int) $v > 0) {
+                        $start = (int) $v;
+                    }
+                    break;
+                }
+            }
+        }
+        $count = 0;
+        foreach ($ol->childNodes as $c) {
+            if ($c instanceof \DOMElement && strtolower($c->tagName) === 'li') {
+                $count++;
+            }
+        }
+
+        return ['start' => $start, 'count' => $count, 'key' => $this->listSplitChainKey($ol)];
+    }
+
+    private function listSplitChainKey(\DOMElement $ol): string
+    {
+        $cls = (string) $ol->getAttribute('class');
+        foreach ($ol->childNodes as $c) {
+            if ($c instanceof \DOMElement && strtolower($c->tagName) === 'li') {
+                $cls .= ' ' . (string) $c->getAttribute('class');
+                break;
+            }
+        }
+        if (preg_match('/ql-liststyle-([a-z]+)/', $cls, $m) === 1) {
+            return 'q:' . strtolower($m[1]);
+        }
+        $t = strtolower(trim((string) $ol->getAttribute('type')));
+        if ($t !== '') {
+            return 't:' . $t;
+        }
+        $style = (string) $ol->getAttribute('style');
+        if (preg_match('/list-style-type\s*:\s*([^;]+)/i', $style, $m) === 1) {
+            return 's:' . strtolower(trim($m[1]));
+        }
+
+        return 'unknown';
+    }
+
+    private function listSplitChainMatches(string $a, string $b): bool
+    {
+        return $a === $b || $a === 'unknown' || $b === 'unknown';
+    }
+
+    private function listSplitMeaningfulKids(\DOMElement $wrap): array
+    {
+        $out = [];
+        foreach ($wrap->childNodes as $c) {
+            if ($c instanceof \DOMText) {
+                $t = preg_replace('/\x{200B}/u', '', (string) $c->nodeValue);
+                if (trim((string) $t) !== '') {
+                    $out[] = $c;
+                }
+                continue;
+            }
+            if (!($c instanceof \DOMElement)) {
+                continue;
+            }
+            $tag = strtolower($c->tagName);
+            if ($tag === 'script' || $tag === 'style') {
+                continue;
+            }
+            $text = trim((string) preg_replace('/\x{200B}/u', '', (string) $c->textContent));
+            if ($text !== '') {
+                $out[] = $c;
+                continue;
+            }
+            foreach (['img', 'table', 'ol', 'ul', 'li', 'iframe', 'video'] as $t) {
+                if ($c->getElementsByTagName($t)->length > 0) {
+                    $out[] = $c;
+                    break;
+                }
+            }
+        }
+
+        return $out;
+    }
+
+    private function listSplitApplyStart(\DOMElement $ol, int $want): void
+    {
+        $ol->setAttribute('start', (string) $want);
+        $hasValue = false;
+        foreach ($ol->childNodes as $c) {
+            if ($c instanceof \DOMElement
+                && strtolower($c->tagName) === 'li'
+                && trim((string) $c->getAttribute('value')) !== '') {
+                $hasValue = true;
+                break;
+            }
+        }
+        if ($hasValue) {
+            $idx = 0;
+            foreach ($ol->childNodes as $c) {
+                if ($c instanceof \DOMElement && strtolower($c->tagName) === 'li') {
+                    $c->setAttribute('value', (string) ($want + $idx));
+                    $idx++;
+                }
+            }
+        }
+    }
+
+    private function repairSplitOrderedLists(array $pages): array
+    {
+        if (count($pages) < 2) {
+            return $pages;
+        }
+        $doms = [];
+        foreach ($pages as $i => $html) {
+            $dom = new \DOMDocument('1.0', 'UTF-8');
+            libxml_use_internal_errors(true);
+            $dom->loadHTML(
+                '<?xml encoding="utf-8" ?><div data-doc-page="' . $i . '">' . (string) $html . '</div>',
+                LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+            );
+            libxml_clear_errors();
+            $doms[$i] = $dom;
+        }
+        $prev = null;
+        $dirty = [];
+        foreach ($doms as $i => $dom) {
+            $wrap = $dom->getElementsByTagName('div')->item(0);
+            if (!($wrap instanceof \DOMElement)) {
+                $prev = null;
+                continue;
+            }
+            $kids = $this->listSplitMeaningfulKids($wrap);
+            if (empty($kids)) {
+                $prev = null;
+                continue;
+            }
+            $first = $kids[0];
+            $last = $kids[count($kids) - 1];
+            $firstIsOl = ($first instanceof \DOMElement) && strtolower($first->tagName) === 'ol';
+            if ($firstIsOl && $prev !== null && $this->listSplitChainMatches($prev['key'], $this->listSplitChainKey($first))) {
+                $want = $prev['start'] + $prev['count'];
+                $cur = $this->listSplitChainState($first);
+                $curRaw = trim((string) $first->getAttribute('start'));
+                if ($cur['start'] !== $want || $curRaw === '') {
+                    $this->listSplitApplyStart($first, $want);
+                    $dirty[$i] = true;
+                }
+            }
+            if (($last instanceof \DOMElement) && strtolower($last->tagName) === 'ol') {
+                $prev = $this->listSplitChainState($last);
+            } else {
+                $prev = null;
+            }
+        }
+        if (empty($dirty)) {
+            return $pages;
+        }
+        foreach (array_keys($dirty) as $i) {
+            $dom = $doms[$i];
+            $wrap = $dom->getElementsByTagName('div')->item(0);
+            $html = '';
+            foreach ($wrap->childNodes as $c) {
+                $html .= $dom->saveHTML($c);
+            }
+            $pages[$i] = $html;
+        }
+
+        return $pages;
+    }
+
     private function normalizeDocumentPasalOnOpen(Document $document): void
     {
         $content = $document->body_content ?? [];
@@ -602,6 +780,7 @@ class DocumentController extends Controller
         }
 
         $normalized = $this->normalizePasalNumbering($content['pages']);
+        $normalized = $this->repairSplitOrderedLists($normalized);
 
         if ($normalized === $content['pages']) {
             return;
@@ -904,6 +1083,8 @@ class DocumentController extends Controller
 
         $quillClass = 'ql-liststyle-'.ContractStyle::listQuillValue($type);
         $startAttr  = $start > 1 ? ' start="'.$start.'"' : '';
+        $preserveNumbering = (bool) ($list['preserveNumbering'] ?? false);
+        $itemNumber = $start;
 
         $html = '<ol'.$startAttr
             .' class="'.ContractStyle::LIST_CLASS.' '.$quillClass.'"'
@@ -916,7 +1097,9 @@ class DocumentController extends Controller
                 if ($item === '') {
                     continue;
                 }
-                $html .= '<li>'.nl2br($this->styleContractPartyNames(e($item))).'</li>';
+                $valueAttr = $preserveNumbering ? ' value="'.$itemNumber.'"' : '';
+                $html .= '<li'.$valueAttr.'>'.nl2br($this->styleContractPartyNames(e($item))).'</li>';
+                $itemNumber++;
                 $hasItems = true;
                 continue;
             }
@@ -926,10 +1109,11 @@ class DocumentController extends Controller
                 if ($text === '' && empty($item['children'])) {
                     continue;
                 }
+                $valueAttr = $preserveNumbering ? ' value="'.$itemNumber.'"' : '';
                 $pageBreakStyle = !empty($item['pageBreakBefore'])
                     ? ' style="page-break-before:always;"'
                     : '';
-                $html .= '<li'.$pageBreakStyle.'>'.nl2br($this->styleContractPartyNames(e($text)));
+                $html .= '<li'.$valueAttr.$pageBreakStyle.'>'.nl2br($this->styleContractPartyNames(e($text)));
                 if (!empty($item['children']) && is_array($item['children'])) {
                     $nested = $this->contractListHtml($item['children'], $level + 1);
                     if (trim(strip_tags($nested)) !== '') {
@@ -937,6 +1121,7 @@ class DocumentController extends Controller
                     }
                 }
                 $html .= '</li>';
+                $itemNumber++;
                 $hasItems = true;
             }
         }
@@ -1169,6 +1354,7 @@ class DocumentController extends Controller
 
         if (!empty($data['body_content']['pages']) && is_array($data['body_content']['pages'])) {
             $data['body_content']['pages'] = $this->normalizePasalNumbering($data['body_content']['pages']);
+            $data['body_content']['pages'] = $this->repairSplitOrderedLists($data['body_content']['pages']);
         }
 
         if (isset($data['body_content']) && is_array($data['body_content'])) {
@@ -1375,9 +1561,9 @@ class DocumentController extends Controller
     {
         $this->repairLegacyContractTemplateLayout($document);
         $signaturePath = $this->resolvePublicPath($document->signature_data['signatureUrl'] ?? null);
-        $pages = $this->normalizePasalNumbering(
+        $pages = $this->repairSplitOrderedLists($this->normalizePasalNumbering(
             $document->body_content['pages'] ?? [$document->body_content['content'] ?? '']
-        );
+        ));
 
         $headerHtml = $this->resolveImagePathsForPdf($document->header_data['content'] ?? '');
         $isContract = (bool) ($document->body_content['contractTemplate'] ?? false);
