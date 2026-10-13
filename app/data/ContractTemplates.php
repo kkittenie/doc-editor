@@ -977,7 +977,7 @@ NOMOR: [Nomor Perjanjian]',
                                                     'v' => null,
                                                 ],
                                                 [
-                                                    'c' => [],
+                                                    'c' => ["\u{00A0}"],
                                                     's' => 1,
                                                     'v' => null,
                                                 ],
@@ -991,7 +991,7 @@ NOMOR: [Nomor Perjanjian]',
                                                     'v' => null,
                                                 ],
                                                 [
-                                                    'c' => [],
+                                                    'c' => ["\u{00A0}"],
                                                     's' => 1,
                                                     'v' => null,
                                                 ],
@@ -1866,6 +1866,16 @@ Gedung
 Gedung Wisma Bumiputera, Lantai 7 Suite #701B,
 
 Jl. Asia Afrika No.141-149, Kb. Pisang, Kec. Sumur Bandung, Kota  Bandung, Jawa Barat 40112',
+                    'boldPreambleLabels' => [
+                        'SPESIFIKASI',
+                        'Tanggal Aktivasi',
+                        'Pelanggan',
+                        'Nomor Pokok Wajib Pajak Pelanggan',
+                        'Alamat Kantor Pusat Pelanggan dan kontak yang dinominasikan',
+                        'Jangka Waktu',
+                        'Jasa & Produk Layanan',
+                        'Gedung',
+                    ],
                     'isi' => [
                         [
                             'judul' => 'URAIAN',
@@ -1946,7 +1956,17 @@ Pelanggan harus membayar semua pajak dan biaya pihak ketiga
 
 (apabila menggunakan pihak ketiga) yang terkait dengan kepemilikan dan pengoperasian Peralatan Pelanggan dan kegiatan yang berkaitan dengan Pelanggan didalam Gedung ini. Tanpa membatasi ketentuan yang disebutkan sebelumnya, Pelanggan akan bertanggung jawab untuk membayar seluruh kewajiban Pajaknya sebagaimana diwajibkan oleh peraturan perundang-undangan yang berlaku yang diberlakukan secara terpisah, yang dikenakan atau dibebankan Pelanggan, dan mempersiapkan mengisi setiap  pernyataan yang diperlukan kepada, pemerintah, kuasa pemerintah atau petugas pajak sebelum tanggal untuk pembayaran dan pernyataan tersebut jatuh tempo. Dalam  keadaan apapun tidak ada Peralatan Pelanggan yang dapat ditafsirkan untuk menjadi fixture (bagian dari gedung);
 
-Pelanggan menyatakan dan menjamin bahwa seluruh barang yang diletakan di dalam Data Center sepenuhnya merupakan milik Pelanggan dan bebas dari sengketa dengan pihak manapun dan Pelanggan bertanggung jawab atas segala akibat yang timbul apabila terjadi permasalahan dikemudian hari atas barang- barang yang diletakkan di lokasi karena tidak ditaatinya peraturan perundang-undangan yang berlaku.',
+Pelanggan menyatakan dan menjamin bahwa seluruh barang yang diletakan di dalam Data Center sepenuhnya merupakan milik Pelanggan dan bebas dari sengketa dengan pihak manapun dan Pelanggan bertanggung jawab atas segala akibat yang timbul apabila terjadi permasalahan dikemudian hari atas barang- barang yang diletakkan di lokasi karena tidak ditaatinya peraturan perundang-undangan yang berlaku.
+
+Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjalan dan tanggal jatuh tempo setiap tanggal 7 bulan berjalan melalui sistem transfer ke nomor rekening:
+
+Rekening Rupiah
+Bank Mandiri
+No. Rekening: 1340001209104
+Atas Nama	: PT Bina Informatika Solusi
+Bank Rakyat Indonesia (BRI)
+No. Rekening: 010701003038305
+Atas Nama   : PT Bina Informatika Solusi',
                             'blocks' => [
                                 [
                                     'ol' => [
@@ -1954,6 +1974,30 @@ Pelanggan menyatakan dan menjamin bahwa seluruh barang yang diletakan di dalam D
                                         'items' => [
                                             'Pelanggan wajib membayar Biaya Bulanan dan atau Biaya Transaksi lainnya yang tercantum dalam PERJANJIAN ini kepada PIHAK      PERTAMA;',
                                             'Masing-masing Pihak sepakat bahwa atas biaya sebagaimana terlampir dalam PERJANJIAN ini berlaku untuk 1 (satu) tahun masa berlangganan sebagaimana dimaksud dalam poin Jangka Waktu Aktivasi Layanan dalam Pasal 4 ayat (1) Spesifikasi jo. Pasal 1 ayat (1) PERJANJIAN ini;',
+                                        ],
+                                    ],
+                                ],
+                                [
+                                    'table' => [
+                                        'cols' => [100],
+                                        'keepTogether' => true,
+                                        'rows' => [
+                                            [['c' => ['Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjalan dan tanggal jatuh tempo setiap tanggal 7 bulan berjalan melalui sistem transfer ke nomor rekening:']]],
+                                            [['c' => ['Rekening Rupiah']]],
+                                            [['c' => ['Bank Mandiri']]],
+                                            [['c' => ['No. Rekening: 1340001209104']]],
+                                            [['c' => ["Atas Nama\t: PT Bina Informatika Solusi"]]],
+                                            [['c' => ['Bank Rakyat Indonesia (BRI)']]],
+                                            [['c' => ['No. Rekening: 010701003038305']]],
+                                            [['c' => ['Atas Nama   : PT Bina Informatika Solusi']]],
+                                        ],
+                                    ],
+                                ],
+                                [
+                                    'ol' => [
+                                        'type' => '1',
+                                        'start' => 3,
+                                        'items' => [
                                             'Biaya sebagaimana telah diatur pada Pasal 3 ayat (1). Pelanggan wajib membayar biaya bulanan setelah PIHAK PERTAMA mengirimkan tagihan di minggu I pada setiap bulan dan tanggal jatuh tempo selambat-lambatnya 30 (tiga puluh) hari kalender dari tanggal invoice diterbitkan. Biaya-biaya tersebut wajib dibayarkan oleh Pelanggan kepada PIHAK PERTAMA setelah tagihan diterima secara lengkap, benar, dan disepakati oleh PIHAK PERTAMA dan Pelanggan, dan Pelanggan tidak ada lagi perubahan atau penggantian atas tagihan, maka Pelanggan wajib membayar jumlah-jumlah di dalam tagihan selambat-lambatnya 30 (tiga puluh) hari kalender dari tanggal invoice diterbitkan;',
                                             'Bilamana sampai berakhirnya tenggang waktu sebagaimana  dimaksud pada Pasal 3 ayat (3), Pelanggan tidak atau belum melakukan pembayaran Biaya Layanan sebagaimana disebutkan dalam Pasal ini kepada PIHAK PERTAMA, maka PIHAK PERTAMA akan memberikan surat peringatan yang selanjutnya menerbitkan surat pemberitahuan tertulis atau melalui email untuk melakukan pembatasan akses masuk atau keluar baik barang maupun personal, dan apabila tidak ada upaya penyelesaian maka PIHAK PERTAMA berhak melakukan pemutusan sementara dengan pemberitahuan tertulis melalui surat. Dalam hal ini PIHAK KEDUA tetap berkewajiban untuk membayar biaya sewa berlangganan sampai dengan diterimanya  pembayaran kepada PIHAK PERTAMA;',
                                             'Jika PIHAK PERTAMA melakukan pemutusan sementara berdasarkan paragraf ini, PIHAK PERTAMA akan mengaktifkan kembali Jasa yang dihentikan dalam 1x24 jam setelah Pelanggan melakukan pembayaran Biaya Layanan. PIHAK PERTAMA membebankan denda keterlambatan pembayaran sebesar 1 (satu) permil setiap hari keterlambatan kepada Pelanggan;',
@@ -2436,23 +2480,7 @@ Gedung Wisma Bumiputera, Lantai 7 Suite #701B,
 
 Jl. Asia Afrika No.141-149, Kb. Pisang, Kec. Sumur Bandung, Kota  Bandung, Jawa Barat 40112
 
-Rekening Rupiah
-Bank Mandiri
-No. Rekening: 1340001209104
-Atas Nama	: PT Bina Informatika Solusi
-Bank Rakyat Indonesia (BRI)
-No. Rekening: 010701003038305
-Atas Nama   : PT Bina Informatika Solusi
-
-Rekening Rupiah
-Bank Mandiri
-No. Rekening: 1340001209104
-Atas Nama	: PT Bina Informatika Solusi
-Bank Rakyat Indonesia (BRI)
-No. Rekening: 010701003038305
-Atas Nama   : PT Bina Informatika Solusi
-
-Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjalan dan tanggal jatuh tempo  setiap tanggal 7 bulan berjalan melalui sistem transfer ke nomor rekening:',
+',
                             'blocks' => [
                                 [
                                     'table' => [
@@ -2757,25 +2785,6 @@ Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjala
                                 [
                                     'p' => 'Jl. Asia Afrika No.141-149, Kb. Pisang, Kec. Sumur Bandung, Kota  Bandung, Jawa Barat 40112',
                                 ],
-                                [
-                                    'p' => 'Rekening Rupiah
-Bank Mandiri
-No. Rekening: 1340001209104
-Atas Nama	: PT Bina Informatika Solusi
-Bank Rakyat Indonesia (BRI)
-No. Rekening: 010701003038305
-Atas Nama   : PT Bina Informatika Solusi
-
-Rekening Rupiah
-Bank Mandiri
-No. Rekening: 1340001209104
-Atas Nama	: PT Bina Informatika Solusi
-Bank Rakyat Indonesia (BRI)
-No. Rekening: 010701003038305
-Atas Nama   : PT Bina Informatika Solusi
-
-Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjalan dan tanggal jatuh tempo  setiap tanggal 7 bulan berjalan melalui sistem transfer ke nomor rekening:',
-                                ],
                             ],
                         ],
                     ],
@@ -3075,52 +3084,51 @@ No. Rekening: 010701003038305
 Atas Nama   : PT Bina Informatika Solusi',
                             'blocks' => [
                                 [
-                                    'p' => 'PIHAK KEDUA wajib melakukan pembayaran atas seluruh layanan Metro Fiber Optik yang digunakan sesuai dengan masing-masing Lampiran Berlangganan Jasa;',
-                                ],
-                                [
-                                    'p' => 'Pembayaran dilakukan oleh PIHAK KEDUA selambat–lambatnya pada tanggal sesuai dengan invoice yang diterbitkan atau selambat-lambatnya 7 (tujuh) hari dari tanggal invoice diterbitkan. Tidak diterimanya invoice oleh PIHAK KEDUA tidak menghapus kewajiban pembayaran sepanjang tagihan tersebut telah diterbitkan oleh PIHAK PERTAMA;',
-                                ],
-                                [
-                                    'p' => 'Atas setiap keterlambatan pembayaran dari tanggal sebagaimana dimaksud pada ayat (2), maka PIHAK KEDUA dikenakan denda keterlambatan pembayaran sebesar 1 (satu) permil setiap hari keterlambatan dari total tagihan yang belum dibayarkan;',
-                                ],
-                                [
-                                    'p' => 'Apabila dalam 1 (satu) bulan PIHAK KEDUA belum memenuhi kewajibannya tersebut, maka PIHAK PERTAMA akan melakukan pemutusan sementara (isolir) terhadap satu atau seluruh layanan tanpa pemberitahuan terlebih dahulu kepada PIHAK KEDUA;',
-                                ],
-                                [
-                                    'p' => 'Apabila PIHAK KEDUA melunasi biaya-biaya dalam pasal ini, maka PIHAK PERTAMA akan membuka pemutusan sementara (isolir) dalam waktu selambat-lambatnya 1 (satu) hari kerja;',
-                                ],
-                                [
-                                    'p' => 'Seluruh biaya administrasi perbankan yang timbul dalam proses pembayaran menjadi tanggung jawab PIHAK KEDUA;',
-                                ],
-                                [
-                                    'p' => 'Pajak-pajak yang timbul atas pelaksanaan Perjanjian ini menjadi tanggung jawab masing-masing Pihak berdasarkan peraturan perundang-undangan yang berlaku di Indonesia;',
-                                ],
-                                [
-                                    'p' => 'PIHAK PERTAMA memiliki hak mengubah Biaya Instalasi atau Biaya Bulanan dengan pemberitahuan terlebih dahulu secara tertulis 30 (tiga puluh) Hari Kalender sebelum biaya baru tersebut diberlakukan;',
-                                ],
-                                [
-                                    'p' => 'Total tagihan bulanan PIHAK KEDUA merupakan akumulasi dari seluruh Lampiran Berlangganan Jasa yang masih aktif;',
-                                ],
-                                [
-                                    'p' => 'Seluruh pembayaran dianggap telah dilakukan PIHAK KEDUA setelah pembayaran diterima di rekening PIHAK PERTAMA, dengan detail sebagai berikut:',
-                                ],
-                                [
-                                    'p' => 'Bank Mandiri',
-                                ],
-                                [
-                                    'p' => 'No. Rekening: 1340001209104',
-                                ],
-                                [
-                                    'p' => 'Atas Nama   : PT Bina Informatika Solusi',
-                                ],
-                                [
-                                    'p' => 'Bank Rakyat Indonesia (BRI)',
-                                ],
-                                [
-                                    'p' => 'No. Rekening: 010701003038305',
-                                ],
-                                [
-                                    'p' => 'Atas Nama   : PT Bina Informatika Solusi',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PIHAK KEDUA wajib melakukan pembayaran atas seluruh layanan Metro Fiber Optik yang digunakan sesuai dengan masing-masing Lampiran Berlangganan Jasa;',
+                                            'Pembayaran dilakukan oleh PIHAK KEDUA selambat–lambatnya pada tanggal sesuai dengan invoice yang diterbitkan atau selambat-lambatnya 7 (tujuh) hari dari tanggal invoice diterbitkan. Tidak diterimanya invoice oleh PIHAK KEDUA tidak menghapus kewajiban pembayaran sepanjang tagihan tersebut telah diterbitkan oleh PIHAK PERTAMA;',
+                                            'Atas setiap keterlambatan pembayaran dari tanggal sebagaimana dimaksud pada ayat (2), maka PIHAK KEDUA dikenakan denda keterlambatan pembayaran sebesar 1 (satu) permil setiap hari keterlambatan dari total tagihan yang belum dibayarkan;',
+                                            [
+                                                'text' => 'Apabila dalam 1 (satu) bulan PIHAK KEDUA belum memenuhi kewajibannya tersebut, maka PIHAK PERTAMA akan melakukan pemutusan sementara (isolir) terhadap satu atau seluruh layanan tanpa pemberitahuan terlebih dahulu kepada PIHAK KEDUA;',
+                                                'pageBreakBefore' => true,
+                                            ],
+                                            'Apabila PIHAK KEDUA melunasi biaya-biaya dalam pasal ini, maka PIHAK PERTAMA akan membuka pemutusan sementara (isolir) dalam waktu selambat-lambatnya 1 (satu) hari kerja;',
+                                            'Seluruh biaya administrasi perbankan yang timbul dalam proses pembayaran menjadi tanggung jawab PIHAK KEDUA;',
+                                            'Pajak-pajak yang timbul atas pelaksanaan Perjanjian ini menjadi tanggung jawab masing-masing Pihak berdasarkan peraturan perundang-undangan yang berlaku di Indonesia;',
+                                            'PIHAK PERTAMA memiliki hak mengubah Biaya Instalasi atau Biaya Bulanan dengan pemberitahuan terlebih dahulu secara tertulis 30 (tiga puluh) Hari Kalender sebelum biaya baru tersebut diberlakukan;',
+                                            'Total tagihan bulanan PIHAK KEDUA merupakan akumulasi dari seluruh Lampiran Berlangganan Jasa yang masih aktif;',
+                                            [
+                                                'text' => 'Seluruh pembayaran dianggap telah dilakukan PIHAK KEDUA setelah pembayaran diterima di rekening PIHAK PERTAMA, dengan detail sebagai berikut:',
+                                                'children' => [
+                                                    'type' => 'a',
+                                                    'items' => [
+                                                        [
+                                                            'text' => 'Bank Mandiri',
+                                                            'children' => [
+                                                                'type' => '1',
+                                                                'items' => [
+                                                                    'No. Rekening: 1340001209104',
+                                                                    'Atas Nama   : PT Bina Informatika Solusi',
+                                                                ],
+                                                            ],
+                                                        ],
+                                                        [
+                                                            'text' => 'Bank Rakyat Indonesia (BRI)',
+                                                            'children' => [
+                                                                'type' => '1',
+                                                                'items' => [
+                                                                    'No. Rekening: 010701003038305',
+                                                                    'Atas Nama   : PT Bina Informatika Solusi',
+                                                                ],
+                                                            ],
+                                                        ],
+                                                    ],
+                                                ],
+                                            ],
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -3930,13 +3938,19 @@ DENGAN
 [PIHAK KEDUA]
 
 Nomor: [Nomor Perjanjian]',
-                    'preamble' => 'Pada hari ini, [Hari], tanggal [Tanggal], ber tempat di [Tempat], telah dibuat dan ditandatangani Perjanjian, oleh dan antara:
-
-I. PT Bina Informatika Solusi, berkedudukan di Jalan Prakarsa Muda Nomor 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T., M.Kom., selaku Direktur, sah bertindak untuk dan atas nama PT Bina Informatika Solusi, selanjutnya disebut sebagai “PIHAK PERTAMA”
-
-II. [PIHAK KEDUA], berkedudukan di Jalan Raya Laswi No. 8, Kec. Majalaya, Kab. Bandung. Dalam hal ini diwakili oleh Delly Yulia, dalam kedudukanya sebagai Manager Area Bandung, oleh karenanya bertindak atas nama [PIHAK KEDUA], selanjutnya disebut “PIHAK KEDUA”
-
-PIHAK KEDUA dan PIHAK PERTAMA secara bersama-sama selanjutnya disebut “PARA PIHAK”
+                    'bodyTitle' => [
+                        'PERJANJIAN BERLANGGANAN JASA SOHO',
+                        'Nomor: 152/FBT/J.S/IX/2025',
+                    ],
+                    'preamble' => 'Pada hari ini, [Hari], tanggal [Tanggal], ber tempat di [Tempat], telah dibuat dan ditandatangani Perjanjian, oleh dan antara:',
+                    'openingParties' => [
+                        'type' => 'I',
+                        'items' => [
+                            'PT Bina Informatika Solusi, berkedudukan di Jalan Prakarsa Muda Nomor 258, Kel. Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T., M.Kom., selaku Direktur, sah bertindak untuk dan atas nama PT Bina Informatika Solusi, selanjutnya disebut sebagai “PIHAK PERTAMA”',
+                            '[PIHAK KEDUA], berkedudukan di Jalan Raya Laswi No. 8, Kec. Majalaya, Kab. Bandung. Dalam hal ini diwakili oleh Delly Yulia, dalam kedudukanya sebagai Manager Area Bandung, oleh karenanya bertindak atas nama [PIHAK KEDUA], selanjutnya disebut “PIHAK KEDUA”',
+                        ],
+                    ],
+                    'afterOpeningParties' => 'PIHAK KEDUA dan PIHAK PERTAMA secara bersama-sama selanjutnya disebut “PARA PIHAK”
 
 PARA PIHAK dengan ini menerangkan telah sepakat untuk mengikatkan diri pada syarat-syarat dan ketentuan-ketentuan sebagai berikut:',
                     'isi' => [
@@ -4081,27 +4095,36 @@ Atas Nama   : PT Bina Informatika Solusi',
                                             'Apabila dalam 1 (satu) bulan PIHAK KEDUA belum memenuhi kewajibannya tersebut, maka PIHAK PERTAMA akan melakukan pemutusan sementara (isolir) layanan tanpa pemberitahuan terlebih dahulu kepada PIHAK KEDUA;',
                                             'Apabila PIHAK KEDUA melunasi biaya-biaya dalam pasal ini, maka PIHAK PERTAMA akan membuka pemutusan sementara (isolir) dalam waktu selambat-lambatnya 1 (satu) hari kerja;',
                                             'Semua Biaya bank yang timbul dalam pembayaran tagihan merupakan tanggung jawab PIHAK KEDUA;',
-                                            'Seluruh pembayaran dianggap telah dilakukan PIHAK KEDUA setelah pembayaran diterima di rekening PIHAK PERTAMA, dengan detail sebagai berikut:',
+                                            [
+                                                'text' => 'Seluruh pembayaran dianggap telah dilakukan PIHAK KEDUA setelah pembayaran diterima di rekening PIHAK PERTAMA, dengan detail sebagai berikut:',
+                                                'children' => [
+                                                    'type' => 'a',
+                                                    'items' => [
+                                                        [
+                                                            'text' => 'Bank Mandiri',
+                                                            'children' => [
+                                                                'type' => '1',
+                                                                'items' => [
+                                                                    'No. Rekening: 1340001209104',
+                                                                    'Atas Nama   : PT Bina Informatika Solusi',
+                                                                ],
+                                                            ],
+                                                        ],
+                                                        [
+                                                            'text' => 'Bank Rakyat Indonesia (BRI)',
+                                                            'children' => [
+                                                                'type' => '1',
+                                                                'items' => [
+                                                                    'No. Rekening: 010701003038305',
+                                                                    'Atas Nama   : PT Bina Informatika Solusi',
+                                                                ],
+                                                            ],
+                                                        ],
+                                                    ],
+                                                ],
+                                            ],
                                         ],
                                     ],
-                                ],
-                                [
-                                    'p' => 'Bank Mandiri',
-                                ],
-                                [
-                                    'p' => 'No. Rekening: 1340001209104',
-                                ],
-                                [
-                                    'p' => 'Atas Nama   : PT Bina Informatika Solusi',
-                                ],
-                                [
-                                    'p' => 'Bank Rakyat Indonesia (BRI)',
-                                ],
-                                [
-                                    'p' => 'No. Rekening: 010701003038305',
-                                ],
-                                [
-                                    'p' => 'Atas Nama   : PT Bina Informatika Solusi',
                                 ],
                             ],
                         ],
@@ -4702,13 +4725,19 @@ DENGAN
 [PIHAK KEDUA]
 
 Nomor: [Nomor Perjanjian]',
-                    'preamble' => 'Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Berlangganan Jasa Dedicated, Metro, dan Managed Service (selanjutnya disebut “Perjanjian”), oleh dan antara:
-
-PT Bina Informatika Solusindo, berkedudukan di Gedung Wisma Bumiputera Lantai 7 Suite #701B Jl. Asia-Afrika No.141-149 Kebon Pisang, Sumur, Kota Bandung. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T.,M.Kom., selaku Direktur, bertindak untuk dan atas nama PT Bina Informatika Solusindo, selanjutnya disebut “PIHAK PERTAMA”
-
-[PIHAK KEDUA], berkedudukan di Jl. Cetarip Barat (Cetarip raya) No. 15/200 Rt 05 Rw 10, Kopo, Kota Bandung. Berdasarkan Akta Perusahaan No: 16, Tanggal 12 Desember 2022, dibuat dihadapan Arief Karisma, S.H., M.Kn.,  notaris di Kabupaten Bandung. Dalam hal ini diwakili oleh Wildan Arief Santika Budi, selaku Direktur Utama, bertindak untuk dan atas nama [PIHAK KEDUA], selanjutnya disebut “PIHAK KEDUA”
-
-PIHAK PERTAMA dan PIHAK KEDUA secara bersama-sama selanjutnya disebut “PARA PIHAK”
+                    'bodyTitle' => [
+                        'PERJANJIAN BERLANGGANAN JASA MANAGED SERVICE',
+                        'Nomor: 335/FBC/J.MS/IV/2026',
+                    ],
+                    'preamble' => 'Pada hari [Hari], tanggal [Tanggal], bertempat di [Tempat], telah dibuat dan ditandatangani Perjanjian Berlangganan Jasa Dedicated, Metro, dan Managed Service (selanjutnya disebut “Perjanjian”), oleh dan antara:',
+                    'openingParties' => [
+                        'type' => 'I',
+                        'items' => [
+                            'PT Bina Informatika Solusindo, berkedudukan di Gedung Wisma Bumiputera Lantai 7 Suite #701B Jl. Asia-Afrika No.141-149 Kebon Pisang, Sumur, Kota Bandung. Berdasarkan Akta Berita Acara RUPS Tahunan Perseroan Terbatas “PT Bina Informatika Solusi”, Nomor 5, tanggal 10 Juli 2026, dibuat dihadapan Irni Yuniati, S.H., M.Kn., Notaris di Kota Cimahi. Dalam hal ini diwakili oleh Ageng Bagja Priyadi, S.T.,M.Kom., selaku Direktur, bertindak untuk dan atas nama PT Bina Informatika Solusindo, selanjutnya disebut “PIHAK PERTAMA”',
+                            '[PIHAK KEDUA], berkedudukan di Jl. Cetarip Barat (Cetarip raya) No. 15/200 Rt 05 Rw 10, Kopo, Kota Bandung. Berdasarkan Akta Perusahaan No: 16, Tanggal 12 Desember 2022, dibuat dihadapan Arief Karisma, S.H., M.Kn.,  notaris di Kabupaten Bandung. Dalam hal ini diwakili oleh Wildan Arief Santika Budi, selaku Direktur Utama, bertindak untuk dan atas nama [PIHAK KEDUA], selanjutnya disebut “PIHAK KEDUA”',
+                        ],
+                    ],
+                    'afterOpeningParties' => 'PIHAK PERTAMA dan PIHAK KEDUA secara bersama-sama selanjutnya disebut “PARA PIHAK”
 
 PARA PIHAK dengan ini menerangkan telah sepakat untuk mengikatkan diri pada syarat-syarat dan ketentuan-ketentuan sebagai berikut:',
                     'isi' => [
@@ -4865,45 +4894,56 @@ Nama Rekening	: PT Bina Informatika Solusindo',
                                             'Apabila PIHAK KEDUA terlambat melakukan pembayaran 30 (tiga puluh) hari sejak invoice diterima oleh PIHAK KEDUA, maka PIHAK PERTAMA akan melakukan pemutusan sementara (isolir) layanan tanpa pemberitahuan terlebih dahulu kepada PIHAK KEDUA;',
                                             'Apabila PIHAK KEDUA melunasi biaya-biaya dalam pasal ini, maka PIHAK PERTAMA akan membuka pemutusan sementara (isolir) dalam waktu selambat-lambatnya 1 (satu) hari kerja;',
                                             'Semua Biaya bank yang timbul dalam pembayaran tagihan merupakan tanggung jawab PIHAK KEDUA;',
-                                            'Seluruh pembayaran dianggap telah dilakukan PIHAK KEDUA setelah pembayaran diterima di rekening PIHAK PERTAMA, dengan detail sebagai berikut:',
+                                            [
+                                                'text' => 'Seluruh pembayaran dianggap telah dilakukan PIHAK KEDUA setelah pembayaran diterima di rekening PIHAK PERTAMA, dengan detail sebagai berikut:',
+                                                'children' => [
+                                                    'type' => 'a',
+                                                    'items' => [
+                                                        [
+                                                            'text' => 'Bank Mandiri',
+                                                            'children' => [
+                                                                'type' => '1',
+                                                                'items' => [
+                                                                    'Nomor Rekening	: 130-00-2010068-4',
+                                                                    'Nama Rekening	: PT Bina Informatika Solusindo',
+                                                                ],
+                                                            ],
+                                                        ],
+                                                        [
+                                                            'text' => 'Bank Rakyat Indonesia (BRI)',
+                                                            'children' => [
+                                                                'type' => '1',
+                                                                'items' => [
+                                                                    'Nomor Rekening	: 1317-01-000039-30-8',
+                                                                    'Nama Rekening	: PT Bina Informatika Solusindo',
+                                                                ],
+                                                            ],
+                                                        ],
+                                                        [
+                                                            'text' => 'Bank Central Asia (BCA)',
+                                                            'children' => [
+                                                                'type' => '1',
+                                                                'items' => [
+                                                                    'Nomor Rekening	: 008-3982-397',
+                                                                    'Nama Rekening	: PT Bina Informatika Solusindo',
+                                                                ],
+                                                            ],
+                                                        ],
+                                                        [
+                                                            'text' => 'Bank Pembangunan Daerah Jawa Barat dan Banten (BJB)',
+                                                            'children' => [
+                                                                'type' => '1',
+                                                                'items' => [
+                                                                    'Nomor Rekening	: 012-1989-247-001',
+                                                                    'Nama Rekening	: PT Bina Informatika Solusindo',
+                                                                ],
+                                                            ],
+                                                        ],
+                                                    ],
+                                                ],
+                                            ],
                                         ],
                                     ],
-                                ],
-                                [
-                                    'p' => 'Bank Mandiri',
-                                ],
-                                [
-                                    'p' => 'Nomor Rekening	: 130-00-2010068-4',
-                                ],
-                                [
-                                    'p' => 'Nama Rekening	: PT Bina Informatika Solusindo',
-                                ],
-                                [
-                                    'p' => 'Bank Rakyat Indonesia (BRI)',
-                                ],
-                                [
-                                    'p' => 'Nomor Rekening	: 1317-01-000039-30-8',
-                                ],
-                                [
-                                    'p' => 'Nama Rekening	: PT Bina Informatika Solusindo',
-                                ],
-                                [
-                                    'p' => 'Bank Central Asia (BCA)',
-                                ],
-                                [
-                                    'p' => 'Nomor Rekening	: 008-3982-397',
-                                ],
-                                [
-                                    'p' => 'Nama Rekening	: PT Bina Informatika Solusindo',
-                                ],
-                                [
-                                    'p' => 'Bank Pembangunan Daerah Jawa Barat dan Banten (BJB)',
-                                ],
-                                [
-                                    'p' => 'Nomor Rekening	: 012-1989-247-001',
-                                ],
-                                [
-                                    'p' => 'Nama Rekening	: PT Bina Informatika Solusindo',
                                 ],
                             ],
                         ],

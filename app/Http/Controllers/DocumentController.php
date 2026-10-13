@@ -616,9 +616,27 @@ class DocumentController extends Controller
     {
         $parts = [];
 
+        foreach ($body['bodyTitle'] ?? [] as $titleLine) {
+            $parts[] = $this->contractTitleHtml((string) $titleLine);
+        }
+
         $preamble = $body['preamble'] ?? $body['tujuanSurat'] ?? null;
         if (!empty($preamble)) {
-            $parts[] = $this->contractPreambleHtml((string) $preamble);
+            $parts[] = $this->contractPreambleHtml(
+                (string) $preamble,
+                $body['boldPreambleLabels'] ?? []
+            );
+        }
+
+        if (!empty($body['openingParties']) && is_array($body['openingParties'])) {
+            $list = $this->contractListHtml($body['openingParties']);
+            if ($list !== '') {
+                $parts[] = $list;
+            }
+        }
+
+        if (!empty($body['afterOpeningParties'])) {
+            $parts[] = $this->contractPara((string) $body['afterOpeningParties']);
         }
 
         if (!empty($body['paraPihak']) && is_array($body['paraPihak'])) {
@@ -814,7 +832,7 @@ class DocumentController extends Controller
         return preg_match('/\p{Ll}/u', $line) !== 1;
     }
 
-    private function contractPreambleHtml(string $preamble): string
+    private function contractPreambleHtml(string $preamble, array $boldLabels = []): string
     {
         $blocks = preg_split('/(\r?\n){2,}/', trim($preamble));
         $out    = [];
@@ -844,6 +862,10 @@ class DocumentController extends Controller
 
             $inHeader = false;
             $paragraph = implode("\n", $lines);
+            if (in_array($paragraph, $boldLabels, true)) {
+                $out[] = '<p><strong>'.e($paragraph).'</strong></p>';
+                continue;
+            }
             $rendered  = $this->contractPara($paragraph);
             if ($rendered !== '') {
                 $out[] = $rendered;
@@ -904,7 +926,10 @@ class DocumentController extends Controller
                 if ($text === '' && empty($item['children'])) {
                     continue;
                 }
-                $html .= '<li>'.nl2br($this->styleContractPartyNames(e($text)));
+                $pageBreakStyle = !empty($item['pageBreakBefore'])
+                    ? ' style="page-break-before:always;"'
+                    : '';
+                $html .= '<li'.$pageBreakStyle.'>'.nl2br($this->styleContractPartyNames(e($text)));
                 if (!empty($item['children']) && is_array($item['children'])) {
                     $nested = $this->contractListHtml($item['children'], $level + 1);
                     if (trim(strip_tags($nested)) !== '') {
@@ -1052,7 +1077,12 @@ class DocumentController extends Controller
             $byRow[$r] = $rowOut;
         }
 
-        $html = '<table class="'.$tableClass.'" style="'.ContractStyle::tableStyle($bordered).'"';
+        $tableStyle = ContractStyle::tableStyle($bordered);
+        if (!empty($table['keepTogether'])) {
+            $tableStyle .= ' page-break-inside:avoid;';
+        }
+
+        $html = '<table class="'.$tableClass.'" style="'.$tableStyle.'"';
 
         if (count($byRow) === 1 || !empty($table['atomic'])) {
             $html .= ' data-flow-atomic="1"';

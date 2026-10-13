@@ -390,9 +390,11 @@ test('house style kanonik: heading, judul, body, list & tabel dari token Contrac
             . '; margin-bottom:' . $cs::HEADING_SPACE_AFTER . ';'
         );
 
-        // Blok judul TIDAK lagi muncul: judul kontrak kini hanya di sampul.
-        // Tokennya tetap diuji terpisah di bawah lewat input sintetis.
-        expect($html)->not->toContain('font-size:' . $cs::SIZE_TITLE . '; font-weight:bold;');
+        if (in_array($key, ['kontrak-soho', 'kontrak-managed-service'], true)) {
+            expect($html)->toContain('font-size:' . $cs::SIZE_TITLE . '; font-weight:bold;');
+        } else {
+            expect($html)->not->toContain('font-size:' . $cs::SIZE_TITLE . '; font-weight:bold;');
+        }
 
 
         // Sel tabel: ukuran & border dari token tabel.
@@ -446,15 +448,14 @@ test('managed service merender pasal bernomor sebagai <ol> bernomor, bukan parag
 });
 
 test('template kontrak bebas nomor kontrak hardcode', function () use ($keys) {
-    // Nomor dokumen hanya boleh datang dari form (header_data.nomorSurat)
-    // lewat placeholder [Nomor Perjanjian] yang diganti
-    // DocumentController::applyTemplateReplacements() saat pembuatan dokumen.
     $stale = [
         '196/FBT/PKS/III/2026',
         '239/FBT/J.C/VII/2026',
-        '335/FBC/J.MS/IV/2026',
-        '152/FBT/J.S/IX/2025',
         '238/FBT/J.M/VI/2026',
+    ];
+    $bodyNumbers = [
+        'kontrak-managed-service' => '335/FBC/J.MS/IV/2026',
+        'kontrak-soho' => '152/FBT/J.S/IX/2025',
     ];
 
     foreach ($keys as $key) {
@@ -463,6 +464,11 @@ test('template kontrak bebas nomor kontrak hardcode', function () use ($keys) {
 
         foreach ($stale as $nomor) {
             expect($html)->not->toContain($nomor);
+        }
+
+        if (isset($bodyNumbers[$key])) {
+            expect($tpl['body_content']['bodyTitle'])->toContain('Nomor: ' . $bodyNumbers[$key]);
+            expect($html)->toContain($bodyNumbers[$key]);
         }
 
         // Tiap template tetap memuat placeholder untuk diisi form, di cover.
@@ -484,12 +490,136 @@ test('kontrak-soho punya kunci cover terpisah dari preamble (halaman 1 & 2 PDF s
     // Cover bebas nomor kontrak hardcode sumber.
     expect($cover)->not->toContain('152/FBT/J.S/IX/2025');
 
-    // Halaman 2 dibuka langsung naratif pembuka verbatim: blok display
-    // (judul / DENGAN / Nomor) hanya hidup di sampul halaman 1.
+    // Halaman 2 menampilkan judul body, lalu pembuka naratif dan daftar pihak.
     expect($tpl['body_content']['preamble'])->toStartWith('Pada hari');
     expect($tpl['body_content']['preamble'])->toContain('Pada hari ini, [Hari]');
-    expect($tpl['body_content']['preamble'])->toContain('I. PT Bina Informatika Solusi');
-    expect($tpl['body_content']['preamble'])->toContain('II. [PIHAK KEDUA]');
+    expect($tpl['body_content']['bodyTitle'])->toBe([
+        'PERJANJIAN BERLANGGANAN JASA SOHO',
+        'Nomor: 152/FBT/J.S/IX/2025',
+    ]);
+    expect($tpl['body_content']['openingParties']['type'])->toBe('I');
+    expect($tpl['body_content']['openingParties']['items'])->toHaveCount(2);
+});
+
+test('bug kolom kedua template memakai format body dan tabel yang diminta', function () {
+    $kemitraan = contractBuildBodyHtml(ContractTemplates::find('kontrak-kemitraan'), true);
+    expect(preg_match('/<tr><td[^>]*>Tanggal Awal Berlangganan<\/td><td[^>]*>\x{00A0}<\/td><\/tr>/u', $kemitraan))->toBe(1);
+    expect(preg_match('/<tr><td[^>]*>Tanggal Akhir Berlangganan<\/td><td[^>]*>\x{00A0}<\/td><\/tr>/u', $kemitraan))->toBe(1);
+
+    $colocation = contractBuildBodyHtml(ContractTemplates::find('kontrak-colocation'), true);
+    foreach ([
+        'SPESIFIKASI',
+        'Tanggal Aktivasi',
+        'Pelanggan',
+        'Nomor Pokok Wajib Pajak Pelanggan',
+        'Alamat Kantor Pusat Pelanggan dan kontak yang dinominasikan',
+        'Jangka Waktu',
+        'Jasa & Produk Layanan',
+        'Gedung',
+    ] as $label) {
+        expect($colocation)->toContain('<p><strong>' . e($label) . '</strong></p>');
+    }
+    foreach ([
+        'Jalan Ciledug Raya No. 99, Cipulir, Kebayoran Lama, Jakarta Selatan',
+        'Attention: Ahmad Ifan',
+        'selama 1 (satu) Tahun, dimulai sejak ditandatangani Berita Acara Aktivasi',
+        'Sebagaimana tercantum dalam lampiran PERJANJIAN ini',
+    ] as $plainText) {
+        expect($colocation)->toContain('<p>' . $plainText . '</p>');
+        expect($colocation)->not->toContain('<strong>' . $plainText . '</strong>');
+    }
+    expect(preg_match(
+        '/<p><strong>Gedung<\/strong><\/p>\s*<p>Gedung Wisma Bumiputera, Lantai 7 Suite #701B,<\/p>\s*<p>Jl\. Asia Afrika No\.141-149, Kb\. Pisang, Kec\. Sumur Bandung, Kota\s+Bandung, Jawa Barat 40112<\/p>/u',
+        $colocation
+    ))->toBe(1);
+
+    $payung = ContractTemplates::find('kontrak-payung');
+    $payment = array_values(array_filter(
+        $payung['body_content']['isi'],
+        fn ($pasal) => ($pasal['judul'] ?? '') === 'Pembayaran'
+    ))[0];
+    expect($payment['blocks'][0]['ol']['items'])->toHaveCount(10);
+    expect(contractBuildBodyHtml($payung, true))->toContain('class="ct-list ql-liststyle-decimal"');
+
+    foreach ([
+        'kontrak-soho' => ['PERJANJIAN BERLANGGANAN JASA SOHO', 'Nomor: 152/FBT/J.S/IX/2025'],
+        'kontrak-managed-service' => ['PERJANJIAN BERLANGGANAN JASA MANAGED SERVICE', 'Nomor: 335/FBC/J.MS/IV/2026'],
+    ] as $key => $titleLines) {
+        $template = ContractTemplates::find($key);
+        $html = contractBuildBodyHtml($template, true);
+        expect($template['body_content']['bodyTitle'])->toBe($titleLines);
+        foreach ($titleLines as $titleLine) {
+            expect($html)->toContain('<strong>' . $titleLine . '</strong>');
+            expect(substr_count($html, '<strong>' . $titleLine . '</strong>'))->toBe(1);
+        }
+        expect($template['body_content']['openingParties']['type'])->toBe('I');
+        expect($template['body_content']['openingParties']['items'])->toHaveCount(2);
+        expect($html)->toContain('list-style-type:upper-roman');
+    }
+});
+
+test('bug kolom ketiga menjaga rekening dalam tabel dan poin pembayaran yang diminta', function () {
+    $colocation = ContractTemplates::find('kontrak-colocation');
+    $colocationPayment = array_values(array_filter(
+        $colocation['body_content']['isi'],
+        fn ($pasal) => ($pasal['judul'] ?? '') === 'BIAYA, SYARAT PEMBAYARAN, PENYETORAN DAN PAJAK'
+    ))[0];
+    $accountTable = array_values(array_filter(
+        $colocationPayment['blocks'],
+        fn ($block) => !empty($block['table']['keepTogether'])
+    ))[0]['table'] ?? null;
+    expect($accountTable)->not->toBeNull();
+    expect($accountTable['cols'])->toBe([100]);
+    expect(count($accountTable['rows']))->toBe(8);
+    expect($accountTable['rows'][0][0]['c'][0])->toContain('Pelanggan menerima tagihan/invoice');
+    $colocationHtml = contractBuildBodyHtml($colocation, true);
+    expect($colocationHtml)->toContain('page-break-inside:avoid;');
+    expect(substr_count($colocationHtml, 'Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjalan'))->toBe(1);
+    expect(substr_count($colocationHtml, 'No. Rekening: 1340001209104'))->toBe(1);
+    expect(substr_count($colocationHtml, 'No. Rekening: 010701003038305'))->toBe(1);
+
+    $payung = ContractTemplates::find('kontrak-payung');
+    $payungPayment = array_values(array_filter(
+        $payung['body_content']['isi'],
+        fn ($pasal) => ($pasal['judul'] ?? '') === 'Pembayaran'
+    ))[0];
+    $payungItems = $payungPayment['blocks'][0]['ol']['items'];
+    expect($payungItems)->toHaveCount(10);
+    expect($payungItems[3]['pageBreakBefore'])->toBeTrue();
+    expect($payungItems[9]['children']['items'])->toHaveCount(2);
+    $payungHtml = contractBuildBodyHtml($payung, true);
+    expect($payungHtml)->toContain('page-break-before:always;');
+    expect($payungHtml)->toContain('1340001209104');
+    expect($payungHtml)->toContain('010701003038305');
+    expect($payungHtml)->toContain('ql-liststyle-alpha');
+
+    $soho = ContractTemplates::find('kontrak-soho');
+    $sohoPayment = array_values(array_filter(
+        $soho['body_content']['isi'],
+        fn ($pasal) => ($pasal['judul'] ?? '') === 'Pembayaran'
+    ))[0];
+    $sohoItems = $sohoPayment['blocks'][0]['ol']['items'];
+    expect($sohoItems)->toHaveCount(7);
+    expect($sohoItems[6]['children']['items'])->toHaveCount(2);
+    expect(contractBuildBodyHtml($soho, true))->toContain('1340001209104');
+    expect(contractBuildBodyHtml($soho, true))->toContain('010701003038305');
+
+    $managed = ContractTemplates::find('kontrak-managed-service');
+    $definitions = $managed['body_content']['isi'][0]['blocks'][0]['ol'];
+    expect($definitions['items'])->toHaveCount(4);
+    $managedHtml = contractBuildBodyHtml($managed, true);
+    expect($managedHtml)->toContain('<ol class="ct-list ql-liststyle-decimal"');
+    expect($managedHtml)->toContain('<li>“Perjanjian” adalah Perjanjian ini');
+    $managedPayment = array_values(array_filter(
+        $managed['body_content']['isi'],
+        fn ($pasal) => ($pasal['judul'] ?? '') === 'Pembayaran'
+    ))[0];
+    $managedItems = $managedPayment['blocks'][0]['ol']['items'];
+    expect($managedItems)->toHaveCount(7);
+    expect($managedItems[6]['children']['items'])->toHaveCount(4);
+    foreach (['130-00-2010068-4', '1317-01-000039-30-8', '008-3982-397', '012-1989-247-001'] as $accountNumber) {
+        expect($managedHtml)->toContain($accountNumber);
+    }
 });
 
 test('setiap template kontrak punya kunci cover terpisah dari preamble', function () use ($keys) {
