@@ -7,12 +7,12 @@ use App\Models\Customer;
 /**
  */
 
-function contractBuildBodyHtml(array $template, bool $center): string
+function contractBuildBodyHtml(array $template, bool $center, bool $attachmentStartsNewPage = false): string
 {
     $ctrl   = new DocumentController();
     $method = new ReflectionMethod(DocumentController::class, 'buildTemplateBodyHtml');
 
-    return $method->invoke($ctrl, $template['body_content'] ?? [], $center);
+    return $method->invoke($ctrl, $template['body_content'] ?? [], $center, $attachmentStartsNewPage);
 }
 
 function contractNormalizePasal(string $html): string
@@ -145,9 +145,52 @@ test('setiap template memuat tabel sesuai dokumen asli pada posisi yang benar', 
     $json = json_encode($tpl['body_content']['lampiran'][0]['blocks'], JSON_UNESCAPED_UNICODE);
     expect($json)->toContain('DETAIL & KOMERSIAL LAYANAN');
     expect($json)->toContain('APJII Cyber Jakarta <> APJII Jabar 8 BBU Bandung');
+    $html = contractBuildBodyHtml($tpl, true, true);
+    expect(strpos($html, 'PASAL 7'))->toBeLessThan(strpos($html, 'PASAL 8'));
+    expect(strpos($html, 'PASAL 15'))->toBeLessThan(strpos($html, 'LAMPIRAN BERLANGGANAN JASA I'));
+    expect($html)->not->toContain('<div style="page-break-before: always;"></div>');
+    expect($html)->toMatch('/<p style="page-break-before:always;[^"]*"><strong>LAMPIRAN BERLANGGANAN JASA I<\/strong><\/p>/');
     $tables = array_values(array_filter($tpl['body_content']['lampiran'][0]['blocks'], fn ($b) => isset($b['table'])));
     expect(count($tables))->toBe(5); // identitas, detail & komersial, SLA ×2, ttd lampiran
-    expect($tables[1]['table']['head'])->toBeTrue();
+
+    $identity = $tables[0]['table'];
+    expect($identity['bordered'])->toBeTrue();
+    expect($identity['head'])->toBeFalse();
+    expect($identity['rows'])->toHaveCount(6);
+    foreach ($identity['rows'] as $row) {
+        expect($row)->toHaveCount(2);
+    }
+    expect(array_map(fn ($row) => implode(' ', $row[0]['c']), $identity['rows']))->toBe([
+        'Nama dan Alamat Pelanggan',
+        'NPWP',
+        'Nomor Telepon Pelanggan / Penanggungjawab',
+        'Nomor Handphone Pelanggan / Penanggungjawab',
+        'Nama Penanggungjawab Administrasi/Keuangan',
+        'Nama Penanggungjawab Teknisi',
+    ]);
+
+    $detail = $tables[1]['table'];
+    expect($detail['bordered'])->toBeTrue();
+    expect($detail['head'])->toBeTrue();
+    expect($detail['cols'])->toHaveCount(7);
+    expect(array_sum($detail['cols']))->toBe(100);
+    expect($detail['rows'])->toHaveCount(3);
+    foreach ($detail['rows'] as $row) {
+        expect($row)->toHaveCount(7);
+    }
+    expect(array_map(fn ($cell) => implode(' ', $cell['c']), $detail['rows'][0]))->toBe([
+        'No',
+        'Lokasi Layanan',
+        'Rute Metro',
+        'Bandwidth',
+        'Biaya Bulanan',
+        'Biaya Instalasi',
+        'Masa Berlaku',
+    ]);
+
+    $blocks = $tpl['body_content']['lampiran'][0]['blocks'];
+    $detailBlock = array_search($tables[1], $blocks, true);
+    expect($blocks[$detailBlock + 1]['p'] ?? null)->toBe('* Biaya tercantum belum termasuk PPn');
 });
 
 test('numeral & klaim untuk setiap template dipertahankan', function () use ($keys) {
@@ -609,9 +652,9 @@ test('bug kolom ketiga menjaga rekening dalam tabel dan poin pembayaran yang dim
     expect($payungHtml)->toContain('010701003038305');
     expect($payungHtml)->toContain('ql-liststyle-alpha');
     expect($payungHtml)->toContain('class="ct-list ql-liststyle-upperalpha"');
-    expect($payungHtml)->toContain('start="2" class="ct-list ql-liststyle-upperalpha"');
-    expect($payungHtml)->toContain('start="3" class="ct-list ql-liststyle-upperalpha"');
-    expect($payungHtml)->toContain('start="4" class="ct-list ql-liststyle-upperalpha"');
+    expect($payungHtml)->toContain('start="2" class="ct-list ql-liststyle-upperalpha contract-keep-with-next"');
+    expect($payungHtml)->toContain('start="3" class="ct-list ql-liststyle-upperalpha contract-keep-with-next"');
+    expect($payungHtml)->toContain('start="4" class="ct-list ql-liststyle-upperalpha contract-keep-with-next"');
     expect($payungHtml)->toContain('<thead><tr><th');
     expect($payungHtml)->toContain('</thead><tbody>');
     expect($payungHtml)->toContain('padding:2pt 2pt;');
@@ -630,17 +673,63 @@ test('bug kolom ketiga menjaga rekening dalam tabel dan poin pembayaran yang dim
     expect($payungHtml)->toContain('<colgroup><col width="50.00%"><col width="50.00%"></colgroup>');
     expect(substr_count($payungHtml, "\u{00A0}"))->toBeGreaterThanOrEqual(6);
     $serviceTable = $payung['body_content']['lampiran'][0]['blocks'][3]['table'];
-    expect($serviceTable['cols'])->toBe([7, 13, 22, 12, 14, 14, 18]);
+    expect($serviceTable['cols'])->toBe([5, 17, 24, 11, 15, 14, 14]);
     expect($serviceTable['columnGroup'])->toBeTrue();
     expect($serviceTable['rows'])->toHaveCount(3);
     foreach ($serviceTable['rows'] as $row) {
         expect($row)->toHaveCount(7);
     }
     expect($serviceTable['rows'][2])->toHaveCount(7);
+    expect(array_sum($serviceTable['cols']))->toBe(100);
     expect($payungHtml)->toContain(
-        '<colgroup><col width="7.00%"><col width="13.00%"><col width="22.00%"><col width="12.00%"><col width="14.00%"><col width="14.00%"><col width="18.00%"></colgroup>'
+        '<colgroup><col width="5.00%"><col width="17.00%"><col width="24.00%"><col width="11.00%"><col width="15.00%"><col width="14.00%"><col width="14.00%"></colgroup>'
     );
+    expect($payungHtml)->toContain('border:1px solid #000;');
+    expect($payungHtml)->toContain('font-weight:bold; text-align:center;');
+    expect($payungHtml)->toContain('table-layout:fixed; width:100%;');
     expect($serviceTable['keepRowsTogether'])->toBeTrue();
+    $detailHeadingOffset = strpos($payungHtml, 'DETAIL &amp; KOMERSIAL LAYANAN');
+    expect($detailHeadingOffset)->not->toBeFalse();
+    $detailHtml = substr($payungHtml, $detailHeadingOffset);
+    preg_match('/<table class="contract-table-bordered contract-table-keep-rows contract-payung-attachment-grid[^"]*"[^>]*>.*?<\/table>/s', $detailHtml, $detailTableHtml);
+    expect($detailHtml)->toContain('contract-keep-with-next');
+    expect($detailHtml)->toContain('page-break-after:avoid;');
+    expect($detailTableHtml[0] ?? '')->toContain('word-break:normal; overflow-wrap:normal;');
+    expect($detailTableHtml[0] ?? '')->not->toContain('overflow-wrap:anywhere;');
+    expect($detailTableHtml[0] ?? '')->not->toContain('word-break:break-word;');
+    expect($detailTableHtml[0] ?? '')->toContain('<thead><tr>');
+    expect($detailTableHtml[0] ?? '')->toContain('Rute Metro');
+    expect($detailTableHtml[0] ?? '')->toContain('Masa Berlaku');
+    expect($detailHtml)->toContain('<p class="contract-keep-with-next">SLA Availability = 99,5%</p>');
+    expect($detailHtml)->toContain('class="ct-list ql-liststyle-upperalpha contract-keep-with-next"');
+    expect($detailHtml)->toContain('start="4" class="ct-list ql-liststyle-upperalpha contract-keep-with-next"');
+    expect($payungHtml)->toContain('contract-payung-attachment-grid');
+    expect(substr_count($payungHtml, 'class="contract-table-bordered contract-payung-attachment-grid"'))->toBe(1);
+    preg_match_all('/<table class="contract-table-bordered contract-table-keep-rows contract-payung-attachment-grid[^"]*"/', $payungHtml, $serviceTableTags);
+    expect($serviceTableTags[0])->toHaveCount(1);
+    expect(substr_count($payungHtml, 'SLA Availability = 99,5%'))->toBe(1);
+    expect($payungHtml)->not->toContain('SLA Avaibility');
+
+    $attachmentMarkers = [
+        strpos($payungHtml, '<li>IDENTITAS PELANGGAN</li>'),
+        strpos($payungHtml, '<li>DETAIL &amp; KOMERSIAL LAYANAN</li>'),
+        strpos($payungHtml, '<li>SLA</li>'),
+        strpos($payungHtml, '<li>KETENTUAN</li>'),
+    ];
+    expect($attachmentMarkers)->not->toContain(false);
+    $sortedAttachmentMarkers = $attachmentMarkers;
+    sort($sortedAttachmentMarkers);
+    expect($attachmentMarkers)->toBe($sortedAttachmentMarkers);
+
+    $pasalTujuh = array_values(array_filter(
+        $payung['body_content']['isi'],
+        fn ($pasal) => ($pasal['judul'] ?? '') === 'Hak dan Kewajiban Pihak Kedua'
+    ))[0] ?? [];
+    expect($pasalTujuh)->not->toBeEmpty();
+    $pasalTujuhSource = json_encode($pasalTujuh, JSON_UNESCAPED_UNICODE);
+    expect($pasalTujuhSource)->not->toContain('SLA Availability = 99,5%');
+    expect($pasalTujuhSource)->not->toContain('A. KETENTUAN');
+    expect($pasalTujuhSource)->not->toContain('D. KETENTUAN');
     foreach (array_slice($serviceTable['rows'][2], 1) as $cell) {
         expect($cell['c'][0])->toBe("\u{00A0}");
     }
@@ -815,3 +904,72 @@ test('ol terbelah antar halaman disambung: lanjutan Pasal 5 tidak reset ke 1', f
     $single = ['<ol><li>satu</li></ol>'];
     expect(contractRepairSplitLists($single))->toBe($single);
 });
+
+test('regresi: footer tidak ber-border dan sel tabel kosong di lampiran tidak hilang', function () {
+    $ctrl = new DocumentController();
+    $buildDefaultFooter = new ReflectionMethod(DocumentController::class, 'buildDefaultFooterHtml');
+    $footerHtml = $buildDefaultFooter->invoke($ctrl);
+
+    expect($footerHtml)->toContain('contract-table-unstyled');
+    expect($footerHtml)->toContain('border:none !important;');
+
+    // Sel tabel kosong tidak terhapus oleh stripEmptyHtmlFragments
+    $strip = new ReflectionMethod(DocumentController::class, 'stripEmptyHtmlFragments');
+    $sampleTable = '<table><tr><td>Label</td><td>&nbsp;</td></tr></table>';
+    expect($strip->invoke($ctrl, $sampleTable))->toBe($sampleTable);
+
+    // Kemitraan: baris tanggal awal & akhir berlangganan punya 2 kolom utuh
+    $kemitraan = contractBuildBodyHtml(ContractTemplates::find('kontrak-kemitraan'), true);
+    preg_match_all('/<tr><td[^>]*>Tanggal Awal Berlangganan<\/td><td[^>]*>(?:&nbsp;|\x{00A0})<\/td><\/tr>/u', $kemitraan, $m1);
+    expect(count($m1[0]))->toBe(1);
+    preg_match_all('/<tr><td[^>]*>Tanggal Akhir Berlangganan<\/td><td[^>]*>(?:&nbsp;|\x{00A0})<\/td><\/tr>/u', $kemitraan, $m2);
+    expect(count($m2[0]))->toBe(1);
+
+    // Payung: Detail & Komersial Layanan baris 2 punya 7 kolom utuh
+    $payung = contractBuildBodyHtml(ContractTemplates::find('kontrak-payung'), true);
+    expect($payung)->toContain('DETAIL &amp; KOMERSIAL LAYANAN');
+    preg_match('/<tr><td[^>]*>2<\/td>(?:<td[^>]*>.*?<\/td>){6}<\/tr>/u', $payung, $m3);
+    expect($m3)->not->toBeEmpty();
+});
+
+test('managed service: pasal 14 lengkap dan lampiran A muncul sebelum lampiran B dengan page break', function () {
+    $tpl = ContractTemplates::find('kontrak-managed-service');
+    $p14 = null;
+    foreach ($tpl['body_content']['isi'] as $pasal) {
+        if (($pasal['judul'] ?? '') === 'Lain-Lain') {
+            $p14 = $pasal;
+            break;
+        }
+    }
+    expect($p14)->not->toBeNull();
+    $items = $p14['blocks'][0]['ol']['items'];
+    expect($items)->toHaveCount(5);
+    expect($items[1]['pageBreakBefore'])->toBeTrue();
+
+    // Pastikan kedua lampiran ditandai pageBreakBefore
+    expect($tpl['body_content']['lampiran'][0]['judul'])->toBe('LAMPIRAN A');
+    expect($tpl['body_content']['lampiran'][0]['pageBreakBefore'])->toBeTrue();
+    expect($tpl['body_content']['lampiran'][1]['judul'])->toBe('LAMPIRAN B');
+    expect($tpl['body_content']['lampiran'][1]['pageBreakBefore'])->toBeTrue();
+
+    $html = contractBuildBodyHtml($tpl, true);
+
+    // Verifikasi Pasal 14 ter-render lengkap dengan nilai 1..5
+    expect($html)->toContain('<li value="1">Setiap perubahan, penambahan');
+    expect($html)->toContain('<li value="2" style="page-break-before:always;">Seluruh Lampiran dalam Perjanjian');
+    expect($html)->toContain('<li value="3"><strong>PARA PIHAK</strong> sepakat dan setuju');
+    expect($html)->toContain('<li value="4"><strong>Para pihak</strong> menjamin bahwa');
+    expect($html)->toContain('<li value="5">Perjanjian ini dibuat dan ditandatangani');
+
+    // Urutan Lampiran: Lampiran A harus sebelum Lampiran B
+    $posLampA = strpos($html, 'LAMPIRAN A');
+    $posLampB = strpos($html, 'LAMPIRAN B');
+    expect($posLampA)->not->toBeFalse();
+    expect($posLampB)->not->toBeFalse();
+    expect($posLampA)->toBeLessThan($posLampB);
+
+    // Kedua heading lampiran harus memiliki page-break-before:always;
+    expect($html)->toMatch('/<p style="page-break-before:always;[^"]*">\s*<strong>LAMPIRAN A<\/strong>\s*<\/p>/');
+    expect($html)->toMatch('/<p style="page-break-before:always;[^"]*">\s*<strong>LAMPIRAN B<\/strong>\s*<\/p>/');
+});
+

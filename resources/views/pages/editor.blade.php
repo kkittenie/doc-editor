@@ -1472,6 +1472,11 @@
 
             headerHtml: @js($document -> header_data['content'] ?? ''),
             footerHtml: @js($footerHtml ?? $document -> footer_data['content'] ?? ''),
+            preservePayungHtml: @js(
+                ($document -> body_content['templateKey'] ?? null) === 'kontrak-payung'
+                || ($document -> body_content['templateKey'] ?? null) === 'kontrak-managed-service'
+                || !empty($document -> body_content['contractTemplate'])
+            ),
 
             editSection: null,
 
@@ -1773,7 +1778,8 @@
                 html += '</div>';
 
                 // Body
-                html += '<div class="doc-sheet-body" data-region="body">';
+                html += '<div class="doc-sheet-body" data-region="body"' +
+                    (this.preservePayungHtml ? ' data-payung-html="1"' : '') + '>';
                 html += page.html || '<p></p>';
                 html += '</div>';
 

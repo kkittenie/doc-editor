@@ -219,16 +219,19 @@ class ContractStyle
         bool $head = false,
         ?float $widthPercent = null,
         bool $bordered = true,
-        ?string $padding = null
+        ?string $padding = null,
+        bool $normalWrap = false
     ): string
     {
+        $wrapStyle = $normalWrap
+            ? ' word-break:normal; overflow-wrap:normal;'
+            : ' word-break:break-word; overflow-wrap:anywhere;';
         $style = 'border:' . ($bordered ? self::TABLE_BORDER : 'none') . ';'
             . ' padding:' . ($padding ?? self::CELL_PADDING) . ';'
             . ' vertical-align:top;'
             . ' font-size:' . self::SIZE_TABLE . ';'
             . ' line-height:' . self::LINE_HEIGHT . ';'
-            . ' word-break:break-word;'
-            . ' overflow-wrap:anywhere;';
+            . $wrapStyle;
 
         if ($head) {
             $style .= ' font-weight:bold; text-align:center;';

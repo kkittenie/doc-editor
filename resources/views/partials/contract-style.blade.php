@@ -123,7 +123,18 @@
     }
 
     .contract-template-canvas .doc-sheet .ql-editor table.contract-table-unstyled td,
-    .contract-template-canvas .doc-sheet .ql-editor table.contract-table-unstyled th {
+    .contract-template-canvas .doc-sheet .ql-editor table.contract-table-unstyled th,
+    .contract-template-canvas .doc-sheet-footer table,
+    .contract-template-canvas .doc-sheet-footer table td,
+    .contract-template-canvas .doc-sheet-footer table th,
+    .contract-template-canvas .doc-sheet .ql-editor table.fibertrust-footer td,
+    .contract-template-canvas .doc-sheet .ql-editor table.fibertrust-footer th,
+    .contract-template-canvas .doc-sheet .ql-editor .fibertrust-footer td,
+    .contract-template-canvas .doc-sheet .ql-editor .fibertrust-footer th,
+    .contract-template-canvas table.fibertrust-footer td,
+    .contract-template-canvas table.fibertrust-footer th,
+    table.fibertrust-footer td,
+    table.fibertrust-footer th {
         border: none !important;
     }
 </style>

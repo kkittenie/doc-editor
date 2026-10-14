@@ -950,7 +950,8 @@ NOMOR: [Nomor Perjanjian]',
                                 ],
                                 [
                                     'table' => [
-                                        'cols' => [45, 54],
+                                        'cols' => [45, 55],
+                                        'columnGroup' => true,
                                         'rows' => [
                                             [
                                                 [
@@ -3447,9 +3448,9 @@ b. DETAIL & KOMERSIAL LAYANAN
 
 * Biaya tercantum belum termasuk PPn
 
-c. SERVICE LEVEL AGREEMENT (SLA)
+c. SLA
 
-SLA Avaibility = 99,5%
+SLA Availability = 99,5%
 
 PIHAK PERTAMA memberikan jaminan Layanan yang tercantum dalam Service Order Form dengan rumusan sebagai berikut:
 
@@ -3561,6 +3562,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                                         'keepTogether' => true,
                                         'bordered' => true,
                                         'head' => false,
+                                        'payungAttachmentGrid' => true,
                                     ],
                                 ],
                                 [
@@ -3569,6 +3571,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                                         'start' => 2,
                                         'items' => ['DETAIL & KOMERSIAL LAYANAN'],
                                     ],
+                                    'keepWithNext' => true,
                                 ],
                                 [
                                     'table' => [
@@ -3715,13 +3718,16 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                                                 ],
                                             ],
                                         ],
-                                        'cols' => [7, 13, 22, 12, 14, 14, 18],
+                                        'cols' => [5, 17, 24, 11, 15, 14, 14],
                                         'cellPadding' => '2pt 2pt',
                                         'columnGroup' => true,
                                         'keepRowsTogether' => true,
                                         'bordered' => true,
                                         'head' => true,
+                                        'normalWrap' => true,
+                                        'payungAttachmentGrid' => true,
                                     ],
+                                    'keepWithNext' => true,
                                 ],
                                 [
                                     'p' => '* Biaya tercantum belum termasuk PPn',
@@ -3730,14 +3736,17 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                                     'ol' => [
                                         'type' => 'A',
                                         'start' => 3,
-                                        'items' => ['SERVICE LEVEL AGREEMENT (SLA)'],
+                                        'items' => ['SLA'],
                                     ],
+                                    'keepWithNext' => true,
                                 ],
                                 [
-                                    'p' => 'SLA Avaibility = 99,5%',
+                                    'p' => 'SLA Availability = 99,5%',
+                                    'keepWithNext' => true,
                                 ],
                                 [
                                     'p' => 'PIHAK PERTAMA memberikan jaminan Layanan yang tercantum dalam Service Order Form dengan rumusan sebagai berikut:',
+                                    'keepWithNext' => true,
                                 ],
                                 [
                                     'table' => [
@@ -3759,6 +3768,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                                 ],
                                 [
                                     'p' => 'Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, maka akan berlaku rumusan Restitusi sebagai berikut:',
+                                    'keepWithNext' => true,
                                 ],
                                 [
                                     'table' => [
@@ -3783,6 +3793,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                                         'start' => 4,
                                         'items' => ['KETENTUAN'],
                                     ],
+                                    'keepWithNext' => true,
                                 ],
                                 [
                                     'p' => 'Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ketentuan Kontrak Payung Nomor: [Nomor Perjanjian].',
@@ -5184,12 +5195,24 @@ Perjanjian ini dibuat dan ditandatangani dalam rangkap 2 (dua) asli, masing-masi
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
-                                            'Setiap perubahan, penambahan, pengurangan, atau penyesuaian terhadap ketentuan dalam Perjanjian ini hanya sah dan mengikat apabila dibuat secara tertulis serta disepakati dan ditandatangani oleh PARA PIHAK dalam bentuk Addendum dan/atau Amandemen yang menjadi bagian yang tidak terpisahkan dari Perjanjian ini;',
-                                            'Seluruh Lampiran dalam Perjanjian ini merupakan satu kesatuan yang tidak terpisahkan dan mempunyai kekuatan hukum yang sama dengan Perjanjian ini;',
-                                            'PARA PIHAK sepakat dan setuju untuk mengesampikan berlakunya Pasal 1266 KUHPerdata, sehingga Pemutusan Perjanjian ini dapat dilakukan oleh PARA PIHAK tanpa terlebih dahulu menunggu Putusan Pengadilan',
-                                            'Para pihak menjamin bahwa penandatangan Perjanjian ini dan/atau Lampiran-Lampirannya adalah pihak yang sah dan berwenang secara hukum untuk mengikatkan diri dan/atau mewakili perusahaan masing-masing, baik berdasarkan anggaran dasar, keputusan organ perusahaan yang berwenang, maupun surat kuasa yang sah;',
-                                            'Perjanjian ini dibuat dan ditandatangani dalam rangkap 2 (dua) asli, masing-masing bermeterai cukup dan mempunyai kekuatan hukum yang sama. Perjanjian ini dibuat dengan itikad baik untuk dilaksanakan oleh PARA PIHAK. Dalam hal ditandatangani secara elektronik, PARA PIHAK sepakat bahwa dokumen elektronik memiliki kekuatan hukum yang sah sesuai peraturan perundang-undangan yang berlaku.',
+                                            [
+                                                'text' => 'Setiap perubahan, penambahan, pengurangan, atau penyesuaian terhadap ketentuan dalam Perjanjian ini hanya sah dan mengikat apabila dibuat secara tertulis serta disepakati dan ditandatangani oleh PARA PIHAK dalam bentuk Addendum dan/atau Amandemen yang menjadi bagian yang tidak terpisahkan dari Perjanjian ini;',
+                                            ],
+                                            [
+                                                'text' => 'Seluruh Lampiran dalam Perjanjian ini merupakan satu kesatuan yang tidak terpisahkan dan mempunyai kekuatan hukum yang sama dengan Perjanjian ini;',
+                                                'pageBreakBefore' => true,
+                                            ],
+                                            [
+                                                'text' => 'PARA PIHAK sepakat dan setuju untuk mengesampikan berlakunya Pasal 1266 KUHPerdata, sehingga Pemutusan Perjanjian ini dapat dilakukan oleh PARA PIHAK tanpa terlebih dahulu menunggu Putusan Pengadilan',
+                                            ],
+                                            [
+                                                'text' => 'Para pihak menjamin bahwa penandatangan Perjanjian ini dan/atau Lampiran-Lampirannya adalah pihak yang sah dan berwenang secara hukum untuk mengikatkan diri dan/atau mewakili perusahaan masing-masing, baik berdasarkan anggaran dasar, keputusan organ perusahaan yang berwenang, maupun surat kuasa yang sah;',
+                                            ],
+                                            [
+                                                'text' => 'Perjanjian ini dibuat dan ditandatangani dalam rangkap 2 (dua) asli, masing-masing bermeterai cukup dan mempunyai kekuatan hukum yang sama. Perjanjian ini dibuat dengan itikad baik untuk dilaksanakan oleh PARA PIHAK. Dalam hal ditandatangani secara elektronik, PARA PIHAK sepakat bahwa dokumen elektronik memiliki kekuatan hukum yang sah sesuai peraturan perundang-undangan yang berlaku.',
+                                            ],
                                         ],
                                     ],
                                 ],
@@ -5260,6 +5283,7 @@ Direktur Utama',
                     'lampiran' => [
                         [
                             'judul' => 'LAMPIRAN A',
+                            'pageBreakBefore' => true,
                             'text' => '',
                             'blocks' => [
                                 [
@@ -5464,12 +5488,15 @@ Direktur Utama',
                                         ],
                                         'bordered' => true,
                                         'head' => false,
+                                        'keepTogether' => true,
+                                        'atomic' => true,
                                     ],
                                 ],
                             ],
                         ],
                         [
                             'judul' => 'LAMPIRAN B',
+                            'pageBreakBefore' => true,
                             'text' => 'SLA = 99.5%
 
 Catatan :

@@ -176,8 +176,13 @@ class DocumentController extends Controller
         
         if ($template) {
             $useCenter = \App\Data\ContractTemplates::find($templateKey) !== null;
+            $attachmentStartsNewPage = $useCenter;
             $bodyHtml = $template['body_html']
-                ?? $this->buildTemplateBodyHtml($template['body_content'] ?? [], $useCenter);
+                ?? $this->buildTemplateBodyHtml(
+                    $template['body_content'] ?? [],
+                    $useCenter,
+                    $attachmentStartsNewPage
+                );
         }
 
         $bodyHtml = $this->normalizePasalNumbering([$bodyHtml])[0];
@@ -420,9 +425,9 @@ class DocumentController extends Controller
     private function buildDefaultFooterHtml(): string
     {
         return implode("\n", [
-            '<table class="fibertrust-footer" style="width:100%; table-layout:fixed; border-collapse:collapse; margin:24px 0 0; page-break-inside:avoid;">',
+            '<table class="fibertrust-footer contract-table-unstyled" border="0" style="width:100%; table-layout:fixed; border-collapse:collapse; margin:24px 0 0; page-break-inside:avoid; border:none !important;">',
             '<tbody>',
-            '<tr>',
+            '<tr style="border:none !important;">',
             '<td style="width:58%; vertical-align:top; text-align:left; padding:0; font-size:8.5pt; border:none !important;">',
             '<p style="margin:0; font-size:8.5pt;"><strong>PT Bina Informatika Solusi</strong></p>',
             '<p style="margin:0; font-size:8.5pt;">Jl. Prakarsa Muda No.258 Kelurahan Pekiringan, Kec. Kesambi</p>',
@@ -430,9 +435,9 @@ class DocumentController extends Controller
             '<p style="margin:0; font-size:8.5pt;">Tlp. 0231-247618 | email : info@fibertrust.id | www.fibertrust.id</p>',
             '</td>',
             '<td style="width:42%; vertical-align:top; text-align:left; padding:0; font-size:8.5pt; border:none !important;">',
-            '<table style="width:100%; table-layout:fixed; border-collapse:collapse; margin:0; padding:0; page-break-inside:avoid;">',
+            '<table class="fibertrust-footer-inner contract-table-unstyled" border="0" style="width:100%; table-layout:fixed; border-collapse:collapse; margin:0; padding:0; page-break-inside:avoid; border:none !important;">',
             '<tbody>',
-            '<tr>',
+            '<tr style="border:none !important;">',
             '<td style="width:50%; vertical-align:top; text-align:left; padding:0 6px 0 0; font-size:8pt; border:none !important;">',
             '<p style="margin:0; font-size:8pt;">Paraf PIHAK<br>PERTAMA: ______</p>',
             '</td>',
@@ -791,7 +796,11 @@ class DocumentController extends Controller
         $document->refresh();
     }
 
-    private function buildTemplateBodyHtml(array $body, bool $centerPasalHeadings = false): string
+    private function buildTemplateBodyHtml(
+        array $body,
+        bool $centerPasalHeadings = false,
+        bool $attachmentStartsNewPage = false
+    ): string
     {
         $parts = [];
 
@@ -884,8 +893,9 @@ class DocumentController extends Controller
             }
             foreach ($lampiran as $item) {
                 $judul = strtoupper(trim($item['judul'] ?? ''));
+                $itemPageBreak = (bool) ($item['pageBreakBefore'] ?? $attachmentStartsNewPage);
                 if ($judul !== '') {
-                    $parts[] = $this->contractHeadingHtml($judul);
+                    $parts[] = $this->contractHeadingHtml($judul, true, $itemPageBreak);
                 }
 
                 $hasBlocks = !empty($item['blocks']) && is_array($item['blocks']);
@@ -935,8 +945,6 @@ class DocumentController extends Controller
         $patterns = [
             '/<p\b[^>]*>\s*(?:&nbsp;|\s|<br\s*\/?>)*\s*<\/p>/i',
             '/<li\b[^>]*>\s*(?:&nbsp;|\s|<br\s*\/?>)*\s*<\/li>/i',
-            '/<td\b[^>]*>\s*(?:&nbsp;|\s|<br\s*\/?>)*\s*<\/td>/i',
-            '/<th\b[^>]*>\s*(?:&nbsp;|\s|<br\s*\/?>)*\s*<\/th>/i',
         ];
 
         do {
@@ -979,9 +987,16 @@ class DocumentController extends Controller
         return $out;
     }
 
-    private function contractHeadingHtml(string $inner, bool $center = true): string
+    private function contractHeadingHtml(
+        string $inner,
+        bool $center = true,
+        bool $pageBreakBefore = false
+    ): string
     {
-        return '<p style="'.ContractStyle::headingStyle($center).'">'
+        $style = ($pageBreakBefore ? 'page-break-before:always;' : '')
+            .ContractStyle::headingStyle($center);
+
+        return '<p style="'.$style.'">'
             .'<strong>'.e($inner).'</strong></p>';
     }
 
@@ -1054,7 +1069,11 @@ class DocumentController extends Controller
         return implode("\n", $out);
     }
 
-    private function contractPara(string $text, bool $keepTogether = false): string
+    private function contractPara(
+        string $text,
+        bool $keepTogether = false,
+        bool $keepWithNext = false
+    ): string
     {
         $text = trim($text);
         if ($text === '') {
@@ -1069,14 +1088,25 @@ class DocumentController extends Controller
             if ($block === '') {
                 continue;
             }
-            $class = $keepTogether ? ' class="contract-keep-together"' : '';
+            $classes = [];
+            if ($keepTogether) {
+                $classes[] = 'contract-keep-together';
+            }
+            if ($keepWithNext) {
+                $classes[] = 'contract-keep-with-next';
+            }
+            $class = $classes !== [] ? ' class="'.implode(' ', $classes).'"' : '';
             $out[] = '<p'.$class.'>'.nl2br($this->styleContractPartyNames(e($block))).'</p>';
         }
 
         return count($out) ? implode("\n", $out) : '';
     }
 
-    private function contractListHtml(array $list, int $level = 1): string
+    private function contractListHtml(
+        array $list,
+        int $level = 1,
+        bool $keepWithNext = false
+    ): string
     {
         $type  = (string) ($list['type'] ?? '1');
         $start = (int) ($list['start'] ?? 1);
@@ -1087,8 +1117,13 @@ class DocumentController extends Controller
         $preserveNumbering = (bool) ($list['preserveNumbering'] ?? false);
         $itemNumber = $start;
 
+        $classes = [ContractStyle::LIST_CLASS, $quillClass];
+        if ($keepWithNext) {
+            $classes[] = 'contract-keep-with-next';
+        }
+
         $html = '<ol'.$startAttr
-            .' class="'.ContractStyle::LIST_CLASS.' '.$quillClass.'"'
+            .' class="'.implode(' ', $classes).'"'
             .' style="'.ContractStyle::listStyle($type, $level).'">';
         $hasItems = false;
 
@@ -1140,18 +1175,26 @@ class DocumentController extends Controller
             if (isset($block['p'])) {
                 $para = $this->contractPara(
                     (string) $block['p'],
-                    (bool) ($block['keepTogether'] ?? false)
+                    (bool) ($block['keepTogether'] ?? false),
+                    (bool) ($block['keepWithNext'] ?? false)
                 );
                 if ($para !== '') {
                     $out[] = $para;
                 }
             } elseif (isset($block['ol']) && is_array($block['ol'])) {
-                $list = $this->contractListHtml($block['ol']);
+                $list = $this->contractListHtml(
+                    $block['ol'],
+                    1,
+                    (bool) ($block['keepWithNext'] ?? false)
+                );
                 if ($list !== '') {
                     $out[] = $list;
                 }
             } elseif (isset($block['table']) && is_array($block['table'])) {
-                $table = $this->contractTableHtml($block['table']);
+                $table = $this->contractTableHtml(
+                    $block['table'],
+                    (bool) ($block['keepWithNext'] ?? false)
+                );
                 if (trim(strip_tags($table)) !== '') {
                     $out[] = $table;
                 }
@@ -1161,7 +1204,7 @@ class DocumentController extends Controller
         return implode("\n", $out);
     }
 
-    private function contractTableHtml(array $table): string
+    private function contractTableHtml(array $table, bool $keepWithNext = false): string
     {
         $bordered = $table['bordered'] ?? true;
         $head     = (bool) ($table['head'] ?? false);
@@ -1210,6 +1253,12 @@ class DocumentController extends Controller
         $tableClass = $bordered ? 'contract-table-bordered' : 'contract-table-unstyled';
         if (!empty($table['keepRowsTogether'])) {
             $tableClass .= ' contract-table-keep-rows';
+        }
+        if (!empty($table['payungAttachmentGrid'])) {
+            $tableClass .= ' contract-payung-attachment-grid';
+        }
+        if ($keepWithNext) {
+            $tableClass .= ' contract-keep-with-next';
         }
 
         foreach ($rows as $r => $row) {
@@ -1273,6 +1322,9 @@ class DocumentController extends Controller
         if (!empty($table['keepTogether'])) {
             $tableStyle .= ' page-break-inside:avoid;';
         }
+        if ($keepWithNext) {
+            $tableStyle .= ' page-break-after:avoid;';
+        }
 
         $html = '<table class="'.$tableClass.'" style="'.$tableStyle.'"';
 
@@ -1305,6 +1357,9 @@ class DocumentController extends Controller
                 $spanAttr .= !empty($pc['rowspan']) ? ' rowspan="'.$pc['rowspan'].'"' : '';
 
                 $content = implode('<br>', array_map(fn ($l) => $this->styleContractPartyNames(e((string) $l)), $lines));
+                if ($content === '') {
+                    $content = '&nbsp;';
+                }
 
                 $isHeadCell = $head && $r === 0;
                 $tag   = $isHeadCell ? 'th' : 'td';
@@ -1323,7 +1378,8 @@ class DocumentController extends Controller
                     $isHeadCell,
                     $widthPercent,
                     $bordered,
-                    isset($table['cellPadding']) ? (string) $table['cellPadding'] : null
+                    isset($table['cellPadding']) ? (string) $table['cellPadding'] : null,
+                    (bool) ($table['normalWrap'] ?? false)
                 );
 
                 $html .= '<'.$tag.$spanAttr.' style="'.$style.'">'.$content.'</'.$tag.'>';
@@ -1718,7 +1774,12 @@ class DocumentController extends Controller
 
         if (empty($data['body_html'])) {
             $useCenter = \App\Data\ContractTemplates::find($template) !== null;
-            $data['body_html'] = $this->buildTemplateBodyHtml($data['body_content'] ?? [], $useCenter);
+            $attachmentStartsNewPage = $useCenter;
+            $data['body_html'] = $this->buildTemplateBodyHtml(
+                $data['body_content'] ?? [],
+                $useCenter,
+                $attachmentStartsNewPage
+            );
         }
 
         if (!empty($data['body_html'])) {
@@ -1901,6 +1962,11 @@ class DocumentController extends Controller
                 '<w:pStyle w:val="Normal"/>',
                 $xml
             );
+
+            if (preg_match('#^word/footer\d*\.xml$#', $name)) {
+                $xml = preg_replace('/<w:tblBorders\b[^>]*>.*?<\/w:tblBorders>/is', '<w:tblBorders><w:top w:val="none"/><w:left w:val="none"/><w:bottom w:val="none"/><w:right w:val="none"/><w:insideH w:val="none"/><w:insideV w:val="none"/></w:tblBorders>', $xml);
+                $xml = preg_replace('/<w:tcBorders\b[^>]*>.*?<\/w:tcBorders>/is', '<w:tcBorders><w:top w:val="none"/><w:left w:val="none"/><w:bottom w:val="none"/><w:right w:val="none"/></w:tcBorders>', $xml);
+            }
 
             $zip->deleteName($name);
             $zip->addFromString($name, $xml);

@@ -2364,7 +2364,10 @@ const attachQuillToRegion = (regionEl) => {
             const __nestedTable = /<(?:td|th)\b[^>]*>[\s\S]*?<table/i.test(existingHtml);
             const __zoneWithTable = (__role === 'header' || __role === 'footer')
                 && /<table/i.test(existingHtml);
-            if (existingHtml.trim() && (__nestedTable || __zoneWithTable)) {
+            const __preservePayungHtml = __role === 'body'
+                && regionEl.dataset?.payungHtml === '1'
+                && /<table\b/i.test(existingHtml);
+            if (existingHtml.trim() && (__nestedTable || __zoneWithTable || __preservePayungHtml)) {
                 try { q.disable && q.disable(); } catch (err) { /* noop */ }
                 try { q.off && q.off('text-change'); } catch (err) { /* noop */ }
                 try { q.off && q.off('selection-change'); } catch (err) { /* noop */ }
@@ -2721,10 +2724,20 @@ function __isContractHeadingLine(el) {
     } catch (err) { return false; }
 }
 
+function __isKeepWithNextFlowKid(el) {
+    try {
+        return !!el && !!el.classList && el.classList.contains('contract-keep-with-next');
+    } catch (err) { return false; }
+}
+
+function __isFlowGroupKid(el) {
+    return __isContractHeadingLine(el) || __isKeepWithNextFlowKid(el);
+}
+
 function __headingGroupStart(kids, idx) {
     try {
         let start = idx;
-        while (start > 0 && __isContractHeadingLine(kids[start - 1])) start--;
+        while (start > 0 && __isFlowGroupKid(kids[start - 1])) start--;
         return start;
     } catch (err) { return idx; }
 }
@@ -2732,10 +2745,15 @@ function __headingGroupStart(kids, idx) {
 function __headingGroupEnd(kids, idx) {
     try {
         if (!kids || idx < 0 || idx >= kids.length) return idx + 1;
-        if (!__isContractHeadingLine(kids[idx])) return idx + 1;
+        if (!__isFlowGroupKid(kids[idx])) return idx + 1;
+        const hasContractHeading = __isContractHeadingLine(kids[idx]);
         let end = idx + 1;
-        while (end < kids.length && __isContractHeadingLine(kids[end])) end++;
-        if (end < kids.length && !__isContractHeadingLine(kids[end])) end++;
+        while (end < kids.length && __isContractHeadingLine(kids[end])) {
+            end++;
+        }
+        if (end < kids.length
+            && (hasContractHeading || __isKeepWithNextFlowKid(kids[end - 1]))) end++;
+        while (end < kids.length && __isKeepWithNextFlowKid(kids[end - 1])) end++;
         return Math.min(end, kids.length);
     } catch (err) { return idx + 1; }
 }
@@ -2743,7 +2761,11 @@ function __headingGroupEnd(kids, idx) {
 function __isAtomicFlowKid(kid) {
     try {
         if (kid && kid.dataset && kid.dataset.flowAtomic === '1') return true;
-        return __atomicProbeHtml(kid);
+        if (__atomicProbeHtml(kid)) return true;
+        if (!kid || kid.tagName !== 'TABLE') return false;
+
+        const firstCell = (kid.textContent || '').replace(/\s+/g, ' ').trim();
+        return /^Nama dan Alamat Pelanggan(?:\s|$)/i.test(firstCell);
     } catch (err) { return false; }
 }
 
@@ -3207,7 +3229,7 @@ async function __domFlowPass(bodyEl) {
         const fitsFresh = tableH <= (bodyEl.clientHeight + PAGE_FLOW_TOL);
         if (!fitsFresh) return false;
         const overflow = r.bottom - effBottom;
-        if (r.top + PAGE_FLOW_TOL <= effBottom && overflow <= 40) return false;
+        if (r.top + PAGE_FLOW_TOL <= effBottom && overflow <= 0) return false;
         // Luapan jelas -> jatuh ke logika grup di bawah (pindah utuh).
     }
     const targetBody = await __domResolveTargetBody(sheet);
@@ -3264,12 +3286,12 @@ async function __domFlowPass(bodyEl) {
         }
     }
     let grpStart = idx;
-    if (idx > 0 && __isContractHeadingLine(kids[idx - 1])) {
+    if (idx > 0 && __isFlowGroupKid(kids[idx - 1])) {
         grpStart = __headingGroupStart(kids, idx);
         if (grpStart === 0) grpStart = idx;
     }
     let grpEnd = idx + 1;
-    if (__isContractHeadingLine(overKid)) {
+    if (__isFlowGroupKid(overKid)) {
         const fwd = __headingGroupEnd(kids, idx);
         if (fwd > grpEnd) {
             let ok = true;
@@ -3284,7 +3306,7 @@ async function __domFlowPass(bodyEl) {
             if (ok) grpEnd = fwd;
         }
     }
-    const fwdOnly = __isContractHeadingLine(overKid) && grpStart === idx;
+    const fwdOnly = __isFlowGroupKid(overKid) && grpStart === idx;
     const moving = fwdOnly ? kids.slice(grpStart, grpEnd) : kids.slice(grpStart);
     if (!moving.length) return false;
     if (overKid.tagName !== 'TABLE'
@@ -3501,7 +3523,7 @@ async function __flowPass(quill, bodyEl) {
         const tableH = r.bottom - r.top;
         if (tableH > bodyEl.clientHeight + PAGE_FLOW_TOL) return false;
         const overflow = r.bottom - effBottom;
-        if (r.top + PAGE_FLOW_TOL <= effBottom && overflow <= 40) return false;
+        if (r.top + PAGE_FLOW_TOL <= effBottom && overflow <= 0) return false;
         // Luapan jelas -> lanjut ke logika grup (pindah utuh, bukan belah).
     }
 
@@ -3528,12 +3550,12 @@ async function __flowPass(quill, bodyEl) {
         }
         const srcKids = Array.from(quill.root.children || []);
         let grpStart = idx;
-        if (idx > 0 && __isContractHeadingLine(srcKids[idx - 1])) {
+        if (idx > 0 && __isFlowGroupKid(srcKids[idx - 1])) {
             grpStart = __headingGroupStart(srcKids, idx);
             if (grpStart === 0) grpStart = idx; 
         }
         let grpEnd = idx + 1;
-        if (__isContractHeadingLine(srcKids[idx])) {
+        if (__isFlowGroupKid(srcKids[idx])) {
             const fwd = __headingGroupEnd(srcKids, idx);
             if (fwd > grpEnd) {
                 let ok = true;
@@ -3548,7 +3570,7 @@ async function __flowPass(quill, bodyEl) {
                 if (ok) grpEnd = fwd;
             }
         }
-        const fwdOnlyQd = __isContractHeadingLine(srcKids[idx]) && grpStart === idx;
+        const fwdOnlyQd = __isFlowGroupKid(srcKids[idx]) && grpStart === idx;
         const moving = fwdOnlyQd ? srcKids.slice(grpStart, grpEnd) : srcKids.slice(grpStart);
         const moveSet = new Set(moving);
         const freshNodes = [];
@@ -3614,12 +3636,12 @@ async function __flowPass(quill, bodyEl) {
     }
 
     let grpStart = idx;
-    if (idx > 0 && __isContractHeadingLine(kids[idx - 1])) {
+    if (idx > 0 && __isFlowGroupKid(kids[idx - 1])) {
         grpStart = __headingGroupStart(kids, idx);
         if (grpStart === 0) grpStart = idx;
     }
     let grpEnd = idx + 1;
-    if (__isContractHeadingLine(kids[idx])) {
+    if (__isFlowGroupKid(kids[idx])) {
         const fwd = __headingGroupEnd(kids, idx);
         if (fwd > grpEnd) {
             let ok = true;

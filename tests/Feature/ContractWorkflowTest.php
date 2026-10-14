@@ -35,12 +35,21 @@ test('PDF runtime mempertahankan teks dan tabel dari tiga kontrak yang diperbaik
     $checks = [
         'kontrak-colocation' => ['Atas Nama : PT Bina Informatika Solusi'],
         'kontrak-payung' => [
+            'LAMPIRAN BERLANGGANAN JASA I',
+            'Nama dan Alamat Pelanggan',
+            'DETAIL & KOMERSIAL LAYANAN',
             'Lokasi Layanan',
             'Rute Metro',
             'Bandwidth',
             'Biaya Bulanan',
             'Biaya Instalasi',
             'Masa Berlaku',
+            'Biaya tercantum belum termasuk PPn',
+            'SLA Availability = 99,5%',
+            'KETENTUAN',
+            'Service Level Guarantee',
+            'Agreed Service Level',
+            'Wildan Arief Santika Budi',
         ],
         'kontrak-managed-service' => [
             'Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, maka akan berlaku rumusan Restitusi sebagai berikut:',
@@ -49,7 +58,12 @@ test('PDF runtime mempertahankan teks dan tabel dari tiga kontrak yang diperbaik
 
     foreach ($checks as $key => $expectedText) {
         $template = ContractTemplates::find($key);
-        $bodyHtml = $bodyBuilder->invoke($controller, $template['body_content'], true);
+        $bodyHtml = $bodyBuilder->invoke(
+            $controller,
+            $template['body_content'],
+            true,
+            $key === 'kontrak-payung'
+        );
         $document = new Document();
         $document->body_content = [
             'contractTemplate' => true,
@@ -66,15 +80,216 @@ test('PDF runtime mempertahankan teks dan tabel dari tiga kontrak yang diperbaik
             'coverPages' => 0,
         ])->render();
         $pdfBytes = Pdf::loadHTML($html)->setPaper('a4', 'portrait')->output();
-        $pdfText = (new \Smalot\PdfParser\Parser())
-            ->parseContent($pdfBytes)
-            ->getText();
+        $parsedPdf = (new \Smalot\PdfParser\Parser())->parseContent($pdfBytes);
+        $pdfText = $parsedPdf->getText();
         $pdfText = preg_replace('/\s+/u', ' ', $pdfText);
 
         foreach ($expectedText as $text) {
             expect($pdfText)->toContain($text);
         }
+
+        if ($key === 'kontrak-payung') {
+            $pageTexts = array_map(
+                fn ($page) => preg_replace('/\s+/u', ' ', $page->getText()),
+                $parsedPdf->getPages()
+            );
+            $pasal15Page = null;
+            $attachmentPage = null;
+            $slaPage = null;
+            foreach ($pageTexts as $pageNumber => $pageText) {
+                if ($pasal15Page === null && str_contains($pageText, 'PASAL 15')) {
+                    $pasal15Page = $pageNumber;
+                }
+                if ($attachmentPage === null && str_contains($pageText, 'LAMPIRAN BERLANGGANAN JASA I')) {
+                    $attachmentPage = $pageNumber;
+                }
+                if ($slaPage === null && str_contains($pageText, 'SLA Availability = 99,5%')) {
+                    $slaPage = $pageNumber;
+                }
+            }
+
+            expect($pasal15Page)->not->toBeNull();
+            expect($attachmentPage)->not->toBeNull();
+            expect($attachmentPage)->toBeGreaterThan($pasal15Page);
+            expect($slaPage)->not->toBeNull();
+            expect($slaPage)->toBeGreaterThan($pasal15Page);
+        }
     }
+});
+
+test('PAYUNG METRO tersimpan dan diekspor dengan lampiran terbaru', function () {
+    $this->actingAs($this->user)
+        ->post(route('documents.store'), contractPayload($this->customer, [
+            'template' => 'kontrak-payung',
+        ]))
+        ->assertRedirect();
+
+    $document = Document::firstOrFail();
+    $html = $document->body_content['pages'][$document->body_content['coverPages'] ?? 0];
+    $plainText = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $plainText = preg_replace('/\s+/u', ' ', $plainText);
+
+    expect($document->body_content['templateKey'])->toBe('kontrak-payung')
+        ->and($plainText)->not->toContain('SLA Avaibility')
+        ->and($plainText)->not->toContain('A. KETENTUAN');
+
+    $sectionMarkers = [
+        'LAMPIRAN BERLANGGANAN JASA I',
+        '<li>IDENTITAS PELANGGAN</li>',
+        '<li>DETAIL &amp; KOMERSIAL LAYANAN</li>',
+        '<li>SLA</li>',
+        'SLA Availability = 99,5%',
+        '<li>KETENTUAN</li>',
+    ];
+    foreach ($sectionMarkers as $marker) {
+        expect($html)->toContain($marker);
+    }
+    $sectionOffsets = array_map(fn (string $marker) => strpos($html, $marker), $sectionMarkers);
+    $sortedSectionOffsets = $sectionOffsets;
+    sort($sortedSectionOffsets);
+    expect($sectionOffsets)->toBe($sortedSectionOffsets);
+    $pasal7Start = strpos($plainText, 'PASAL 7');
+    $pasal8Start = strpos($plainText, 'PASAL 8', $pasal7Start + strlen('PASAL 7'));
+    expect($pasal7Start)->not->toBeFalse()
+        ->and($pasal8Start)->not->toBeFalse();
+    $pasal7Text = substr($plainText, $pasal7Start, $pasal8Start - $pasal7Start);
+    expect($pasal7Text)->not->toContain('SLA Availability = 99,5%')
+        ->and($pasal7Text)->not->toContain('SLA Avaibility = 99,5%')
+        ->and($pasal7Text)->not->toContain('A. KETENTUAN');
+
+    $dom = new DOMDocument();
+    @$dom->loadHTML('<?xml encoding="utf-8"?>'.$html);
+    $attachmentTables = [];
+    foreach ($dom->getElementsByTagName('table') as $table) {
+        $tableText = mb_strtoupper($table->textContent);
+        if (str_contains($tableText, 'NAMA DAN ALAMAT PELANGGAN')) {
+            $attachmentTables['identity'] = $table;
+        }
+        if (str_contains($tableText, 'LOKASI LAYANAN')
+            && str_contains($tableText, 'RUTE METRO')) {
+            $attachmentTables['services'] = $table;
+        }
+    }
+
+    expect($attachmentTables)->toHaveKeys(['identity', 'services']);
+    $identityLabels = [
+        'Nama dan Alamat Pelanggan',
+        'NPWP',
+        'Nomor Telepon Pelanggan / Penanggungjawab',
+        'Nomor Handphone Pelanggan / Penanggungjawab',
+        'Nama Penanggungjawab Administrasi/Keuangan',
+        'Nama Penanggungjawab Teknisi',
+    ];
+    $identityRows = $attachmentTables['identity']->getElementsByTagName('tr');
+    $renderedIdentityLabels = [];
+    foreach ($identityRows as $row) {
+        expect($row->getElementsByTagName('td'))->toHaveCount(2);
+        $labelCell = $row->getElementsByTagName('td')->item(0);
+        $labelHtml = preg_replace('/<br\s*\/?>/i', ' ', $labelCell->ownerDocument->saveHTML($labelCell));
+        $renderedIdentityLabels[] = trim(strip_tags(html_entity_decode(
+            $labelHtml,
+            ENT_QUOTES | ENT_HTML5,
+            'UTF-8'
+        )));
+    }
+    expect($renderedIdentityLabels)->toBe($identityLabels);
+    expect($identityRows)->toHaveCount(6);
+    expect($attachmentTables['identity']->getAttribute('class'))
+        ->toContain('contract-payung-attachment-grid');
+    foreach ($attachmentTables['identity']->getElementsByTagName('td') as $cell) {
+        expect($cell->getAttribute('style'))->toContain('border:1px solid #000;');
+    }
+    $identityColumnWidths = [];
+    foreach ($attachmentTables['identity']->getElementsByTagName('col') as $column) {
+        $identityColumnWidths[] = $column->getAttribute('width');
+    }
+    expect($identityColumnWidths)->toBe(['50.00%', '50.00%']);
+
+    $serviceTable = $attachmentTables['services'];
+    expect($serviceTable->getAttribute('class'))->toContain('contract-payung-attachment-grid');
+    expect($serviceTable->getAttribute('class'))->toContain('contract-keep-with-next');
+    $serviceRows = $serviceTable->getElementsByTagName('tr');
+    expect($serviceRows)->toHaveCount(3);
+    $serviceHeaders = [];
+    foreach ($serviceRows->item(0)->getElementsByTagName('th') as $header) {
+        $serviceHeaders[] = trim($header->textContent);
+    }
+    expect($serviceHeaders)->toBe([
+        'No',
+        'Lokasi Layanan',
+        'Rute Metro',
+        'Bandwidth',
+        'Biaya Bulanan',
+        'Biaya Instalasi',
+        'Masa Berlaku',
+    ]);
+    foreach ([$serviceRows->item(1), $serviceRows->item(2)] as $row) {
+        expect($row->getElementsByTagName('td'))->toHaveCount(7);
+        expect($row->getElementsByTagName('th'))->toHaveCount(0);
+    }
+    $serviceTableText = mb_strtoupper($serviceTable->textContent);
+    foreach (['NPWP', 'NOMOR TELEPON PELANGGAN', 'NOMOR HANDPHONE PELANGGAN', 'PENANGGUNGJAWAB TEKNISI'] as $identityLabel) {
+        expect($serviceTableText)->not->toContain($identityLabel);
+    }
+    $columnWidths = [];
+    foreach ($serviceTable->getElementsByTagName('col') as $column) {
+        $columnWidths[] = $column->getAttribute('width');
+    }
+    expect($columnWidths)->toBe([
+        '5.00%',
+        '17.00%',
+        '24.00%',
+        '11.00%',
+        '15.00%',
+        '14.00%',
+        '14.00%',
+    ]);
+    foreach ($serviceTable->getElementsByTagName('td') as $cell) {
+        expect($cell->getAttribute('style'))->toContain('border:1px solid #000;');
+    }
+    foreach ($serviceRows->item(0)->getElementsByTagName('th') as $header) {
+        expect($header->getAttribute('style'))->toContain('border:1px solid #000;');
+    }
+    $termsHeading = null;
+    foreach ($dom->getElementsByTagName('ol') as $list) {
+        if (trim($list->textContent) === 'KETENTUAN') {
+            $termsHeading = $list;
+            break;
+        }
+    }
+    expect($termsHeading)->not->toBeNull()
+        ->and($termsHeading->getAttribute('class'))->toContain('contract-keep-with-next');
+
+    $pdfResponse = $this->get(route('documents.export', $document));
+    $pdfResponse->assertOk();
+    $pdfBytes = $pdfResponse->getContent();
+    expect(str_starts_with($pdfBytes, '%PDF-'))->toBeTrue();
+
+    $pdf = (new \Smalot\PdfParser\Parser())->parseContent($pdfBytes);
+    $pdfText = preg_replace('/\s+/u', ' ', $pdf->getText());
+    foreach ([
+        'LAMPIRAN BERLANGGANAN JASA I',
+        'IDENTITAS PELANGGAN',
+        'Nama dan Alamat Pelanggan',
+        'NPWP',
+        'DETAIL & KOMERSIAL LAYANAN',
+        'No',
+        'Lokasi Layanan',
+        'Rute Metro',
+        'Bandwidth',
+        'Biaya Bulanan',
+        'Biaya Instalasi',
+        'Masa Berlaku',
+        'SLA Availability = 99,5%',
+        'KETENTUAN',
+    ] as $expectedText) {
+        expect($pdfText)->toContain($expectedText);
+    }
+    expect(substr_count($pdfText, 'Lokasi Layanan'))->toBe(1);
+    expect($pdfText)->not->toContain('SLA Avaibility')
+        ->and($pdfText)->not->toContain('A. KETENTUAN')
+        ->and(strpos($pdfText, 'PASAL 15'))
+        ->toBeLessThan(strpos($pdfText, 'LAMPIRAN BERLANGGANAN JASA I'));
 });
 
 function seedContractCustomer(Customer $customer): Customer

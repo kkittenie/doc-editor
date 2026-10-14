@@ -240,6 +240,15 @@
             font-size: 8.5pt;
         }
 
+        .footer-fixed table,
+        .footer-fixed table td,
+        .footer-fixed table th,
+        .fibertrust-footer,
+        .fibertrust-footer td,
+        .fibertrust-footer th {
+            border: none !important;
+        }
+
         .signature-space {
             height: 70px;
             text-align: center;
@@ -381,6 +390,10 @@
             page-break-inside: avoid;
         }
 
+        .contract-document .body-content .contract-keep-with-next {
+            page-break-after: avoid;
+        }
+
         .contract-document .body-content table td,
         .contract-document .body-content table th {
             border: 1px solid #000;
@@ -392,6 +405,18 @@
         .contract-document .body-content table.contract-table-unstyled td,
         .contract-document .body-content table.contract-table-unstyled th {
             border: none;
+        }
+
+        .contract-document.contract-payung .body-content table.contract-payung-attachment-grid {
+            border: 1px solid #000 !important;
+            border-collapse: collapse !important;
+            border-spacing: 0 !important;
+        }
+
+        .contract-document.contract-payung .body-content table.contract-payung-attachment-grid > tbody > tr > td,
+        .contract-document.contract-payung .body-content table.contract-payung-attachment-grid > thead > tr > th {
+            border: 1px solid #000 !important;
+            border-style: solid !important;
         }
 
         /* ── D3 & D4: kertas & kop berulang — HANYA untuk lima template
@@ -409,9 +434,7 @@
            left/right 0 supaya keduanya sejajar dengan kolom teks. ── */
         @if($document->body_content['contractTemplate'] ?? false)
         @php
-            $contractPageMarginBottom = ($document->body_content['templateKey'] ?? null) === 'kontrak-payung'
-                ? '50mm'
-                : $cs::PAGE_MARGIN_BOTTOM;
+            $contractPageMarginBottom = '50mm';
         @endphp
         @page {
             margin: {!! $cs::PAGE_MARGIN_TOP !!} {!! $cs::PAGE_MARGIN_SIDE !!} {!! $contractPageMarginBottom !!} {!! $cs::PAGE_MARGIN_SIDE !!};
@@ -431,7 +454,7 @@
            teks. Nomor "Page | n" digambar callback kanvas di bawah blok
            footer (pojok kanan bawah), bukan di atasnya. */
         .contract-document .footer-fixed {
-            bottom: {!! $cs::FOOTER_BOTTOM !!};
+            bottom: -30mm;
             margin-top: 0;
         }
         @endif

@@ -41,8 +41,14 @@ const helperSource = [
   extract('function __flowContDelta(DeltaCtor, delta, plan) {', ['__flowContDelta']),
   extract('function __markFlowContinuationRun(targetQ, plan) {', ['__markFlowContinuationRun']),
   extract('function __isContractHeadingLine(el) {', ['__isContractHeadingLine']),
+  extract('function __isKeepWithNextFlowKid(el) {', ['__isKeepWithNextFlowKid']),
+  extract('function __isFlowGroupKid(el) {', ['__isFlowGroupKid']),
   extract('function __headingGroupStart(kids, idx) {', ['__headingGroupStart']),
   extract('function __headingGroupEnd(kids, idx) {', ['__headingGroupEnd']),
+  extract('function __isAtomicFlowKid(kid) {', ['__isAtomicFlowKid']),
+  extract('function __atomicProbeHtml(kid) {', ['__atomicProbeHtml']),
+  extract('function __domSplitTable(tableEl, effBottom, targetBody) {', ['__domSplitTable']),
+  extract('function __quillSplitTable(quill, tableEl, effBottom, targetBody, targetQ) {', ['__quillSplitTable']),
   extract('function __opLength(op) {', ['__opLength']),
 ].join('\n');
 
@@ -53,6 +59,9 @@ class El {
     this.children = [];
     this.parent = null;
     this.dataset = {};
+    this.classes = new Set();
+    this.classList = { contains: (name) => this.classes.has(name) };
+    this.textContent = '';
   }
   get firstChild() { return this.children[0] || null; }
   appendChild(n) { return this.insertBefore(n, null); }
@@ -89,11 +98,13 @@ const factory = new Function(
   'document',
   helperSource + '\nreturn { __domFlowInsertContinuation, __flowContBoundary,'
   + ' __flowContInsertPlan, __flowContDelta, __markFlowContinuationRun,'
-  + ' __isContractHeadingLine, __headingGroupStart, __headingGroupEnd };'
+  + ' __isContractHeadingLine, __isFlowGroupKid, __headingGroupStart, __headingGroupEnd,'
+  + ' __isAtomicFlowKid, __domSplitTable, __quillSplitTable };'
 );
 const { __domFlowInsertContinuation, __flowContBoundary, __flowContInsertPlan,
   __flowContDelta, __markFlowContinuationRun,
-  __isContractHeadingLine, __headingGroupStart, __headingGroupEnd } = factory(global.document);
+  __isContractHeadingLine, __isFlowGroupKid, __headingGroupStart, __headingGroupEnd,
+  __isAtomicFlowKid, __domSplitTable, __quillSplitTable } = factory(global.document);
 
 // Blok A = luapan pasal, Blok B = luapan lampiran, keduanya menyusul
 // continuation lama. Keduanya harus tetap berurutan sesuai urutan sumber;
@@ -118,6 +129,45 @@ assert.strictEqual(
   oldA,
   'boundary = anak pertama yang bukan continuation'
 );
+
+// Bagian PAYUNG dengan keep-with-next harus dipindahkan sebagai kelompok,
+// termasuk heading daftar, paragraf penjelas, dan tabel rumus berikutnya.
+const slaHeading = new El('ol');
+slaHeading.classes.add('contract-keep-with-next');
+const slaValue = new El('p');
+slaValue.classes.add('contract-keep-with-next');
+const slaExplanation = new El('p');
+slaExplanation.classes.add('contract-keep-with-next');
+const slaFormula = new El('table');
+const slaGroup = [slaHeading, slaValue, slaExplanation, slaFormula, new El('p')];
+assert.strictEqual(__isFlowGroupKid(slaHeading), true);
+assert.strictEqual(__headingGroupEnd(slaGroup, 0), 4);
+assert.strictEqual(__headingGroupStart(slaGroup, 3), 0);
+
+const detailHeading = new El('ol');
+detailHeading.classes.add('contract-keep-with-next');
+const detailTable = new El('table');
+detailTable.classes.add('contract-keep-with-next');
+assert.strictEqual(__headingGroupEnd([detailHeading, detailTable, new El('p')], 0), 3);
+
+// data-flow-atomic dapat hilang setelah transformasi Quill. Deteksi label
+// mengunci tabel identitas saja, bukan tabel komersial yang berbagi class.
+const identityTable = new El('table');
+identityTable.classes.add('contract-payung-attachment-grid');
+identityTable.textContent = 'Nama dan Alamat Pelanggan NPWP Nomor Telepon ...';
+assert.strictEqual(__isAtomicFlowKid(identityTable), true);
+assert.strictEqual(identityTable.dataset.flowAtomic, undefined);
+assert.strictEqual(__domSplitTable(identityTable, 0, new El('div')), 0);
+assert.strictEqual(__quillSplitTable(null, identityTable, 0, null, null), 0);
+
+const serviceTable = new El('table');
+serviceTable.classes.add('contract-payung-attachment-grid');
+serviceTable.textContent = 'No Lokasi Layanan Rute Metro Bandwidth';
+assert.strictEqual(__isAtomicFlowKid(serviceTable), false);
+
+const explicitlyAtomic = new El('table');
+explicitlyAtomic.dataset.flowAtomic = '1';
+assert.strictEqual(__isAtomicFlowKid(explicitlyAtomic), true);
 
 // Dua blok disisipkan bersama (satu panggilan) tetap urut.
 const body2 = new El('div');
