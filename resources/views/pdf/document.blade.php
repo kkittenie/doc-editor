@@ -369,6 +369,18 @@
             margin: {!! $cs::TABLE_SPACE !!};
         }
 
+        .contract-document .body-content thead {
+            display: table-header-group;
+        }
+
+        .contract-document .body-content .contract-table-keep-rows tr {
+            page-break-inside: avoid;
+        }
+
+        .contract-document .body-content .contract-keep-together {
+            page-break-inside: avoid;
+        }
+
         .contract-document .body-content table td,
         .contract-document .body-content table th {
             border: 1px solid #000;

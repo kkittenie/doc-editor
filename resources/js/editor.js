@@ -2185,8 +2185,6 @@ const normalizeTableGrid = (table) => {
         tr.appendChild(frag);
     });
 
-    if (colgroup) colgroup.remove();
-
     let tblStyle = table.getAttribute('style') || '';
     if (!/table-layout\s*:/i.test(tblStyle)) {
         tblStyle += (tblStyle && !/;\s*$/.test(tblStyle) ? ';' : '') + ' table-layout:fixed;';

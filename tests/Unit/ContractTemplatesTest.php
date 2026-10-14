@@ -580,10 +580,12 @@ test('bug kolom ketiga menjaga rekening dalam tabel dan poin pembayaran yang dim
     expect($accountTable)->not->toBeNull();
     expect($accountTable['cols'])->toBe([100]);
     expect(count($accountTable['rows']))->toBe(8);
+    expect($accountTable['keepRowsTogether'])->toBeTrue();
     expect($accountTable['rows'][0][0]['c'][0])->toContain('Pelanggan menerima tagihan/invoice');
     expect($paymentBlocks[array_key_last($paymentBlocks)]['table']['keepTogether'])->toBeTrue();
     $colocationHtml = contractBuildBodyHtml($colocation, true);
     expect($colocationHtml)->toContain('page-break-inside:avoid;');
+    expect($colocationHtml)->toContain('contract-table-keep-rows');
     expect(substr_count($colocationHtml, 'Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjalan'))->toBe(1);
     expect(substr_count($colocationHtml, 'No. Rekening: 1340001209104'))->toBe(1);
     expect(substr_count($colocationHtml, 'No. Rekening: 010701003038305'))->toBe(1);
@@ -606,19 +608,39 @@ test('bug kolom ketiga menjaga rekening dalam tabel dan poin pembayaran yang dim
     expect($payungHtml)->toContain('1340001209104');
     expect($payungHtml)->toContain('010701003038305');
     expect($payungHtml)->toContain('ql-liststyle-alpha');
+    expect($payungHtml)->toContain('class="ct-list ql-liststyle-upperalpha"');
+    expect($payungHtml)->toContain('start="2" class="ct-list ql-liststyle-upperalpha"');
+    expect($payungHtml)->toContain('start="3" class="ct-list ql-liststyle-upperalpha"');
+    expect($payungHtml)->toContain('start="4" class="ct-list ql-liststyle-upperalpha"');
+    expect($payungHtml)->toContain('<thead><tr><th');
+    expect($payungHtml)->toContain('</thead><tbody>');
+    expect($payungHtml)->toContain('padding:2pt 2pt;');
 
     $identityTable = $payung['body_content']['lampiran'][0]['blocks'][1]['table'];
     expect($identityTable['cols'])->toBe([50, 50]);
+    expect($identityTable['columnGroup'])->toBeTrue();
     expect($identityTable['rows'])->toHaveCount(6);
+    foreach ($identityTable['rows'] as $row) {
+        expect($row)->toHaveCount(2);
+    }
     foreach ($identityTable['rows'] as $row) {
         expect($row[1]['c'][0])->toBe("\u{00A0}");
     }
     expect($payungHtml)->toContain('width:50%');
+    expect($payungHtml)->toContain('<colgroup><col width="50.00%"><col width="50.00%"></colgroup>');
     expect(substr_count($payungHtml, "\u{00A0}"))->toBeGreaterThanOrEqual(6);
     $serviceTable = $payung['body_content']['lampiran'][0]['blocks'][3]['table'];
     expect($serviceTable['cols'])->toBe([7, 13, 22, 12, 14, 14, 18]);
+    expect($serviceTable['columnGroup'])->toBeTrue();
     expect($serviceTable['rows'])->toHaveCount(3);
+    foreach ($serviceTable['rows'] as $row) {
+        expect($row)->toHaveCount(7);
+    }
     expect($serviceTable['rows'][2])->toHaveCount(7);
+    expect($payungHtml)->toContain(
+        '<colgroup><col width="7.00%"><col width="13.00%"><col width="22.00%"><col width="12.00%"><col width="14.00%"><col width="14.00%"><col width="18.00%"></colgroup>'
+    );
+    expect($serviceTable['keepRowsTogether'])->toBeTrue();
     foreach (array_slice($serviceTable['rows'][2], 1) as $cell) {
         expect($cell['c'][0])->toBe("\u{00A0}");
     }
@@ -640,6 +662,9 @@ test('bug kolom ketiga menjaga rekening dalam tabel dan poin pembayaran yang dim
     $managedHtml = contractBuildBodyHtml($managed, true);
     expect($managedHtml)->toContain('<ol class="ct-list ql-liststyle-decimal"');
     expect($managedHtml)->toContain('<li>“Perjanjian” adalah Perjanjian ini');
+    expect($managedHtml)->toContain(
+        '<p class="contract-keep-together">Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, maka akan berlaku rumusan Restitusi sebagai berikut:</p>'
+    );
     $managedPayment = array_values(array_filter(
         $managed['body_content']['isi'],
         fn ($pasal) => ($pasal['judul'] ?? '') === 'Pembayaran'
@@ -790,4 +815,3 @@ test('ol terbelah antar halaman disambung: lanjutan Pasal 5 tidak reset ke 1', f
     $single = ['<ol><li>satu</li></ol>'];
     expect(contractRepairSplitLists($single))->toBe($single);
 });
-

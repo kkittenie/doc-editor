@@ -215,10 +215,15 @@ class ContractStyle
      * @param  float|null 
      * @param  bool       
      */
-    public static function cellStyle(bool $head = false, ?float $widthPercent = null, bool $bordered = true): string
+    public static function cellStyle(
+        bool $head = false,
+        ?float $widthPercent = null,
+        bool $bordered = true,
+        ?string $padding = null
+    ): string
     {
         $style = 'border:' . ($bordered ? self::TABLE_BORDER : 'none') . ';'
-            . ' padding:' . self::CELL_PADDING . ';'
+            . ' padding:' . ($padding ?? self::CELL_PADDING) . ';'
             . ' vertical-align:top;'
             . ' font-size:' . self::SIZE_TABLE . ';'
             . ' line-height:' . self::LINE_HEIGHT . ';'
@@ -236,4 +241,3 @@ class ContractStyle
         return $style;
     }
 }
-

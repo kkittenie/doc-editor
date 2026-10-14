@@ -1054,7 +1054,7 @@ class DocumentController extends Controller
         return implode("\n", $out);
     }
 
-    private function contractPara(string $text): string
+    private function contractPara(string $text, bool $keepTogether = false): string
     {
         $text = trim($text);
         if ($text === '') {
@@ -1069,7 +1069,8 @@ class DocumentController extends Controller
             if ($block === '') {
                 continue;
             }
-            $out[] = '<p>'.nl2br($this->styleContractPartyNames(e($block))).'</p>';
+            $class = $keepTogether ? ' class="contract-keep-together"' : '';
+            $out[] = '<p'.$class.'>'.nl2br($this->styleContractPartyNames(e($block))).'</p>';
         }
 
         return count($out) ? implode("\n", $out) : '';
@@ -1137,7 +1138,10 @@ class DocumentController extends Controller
 
         foreach ($blocks as $block) {
             if (isset($block['p'])) {
-                $para = $this->contractPara((string) $block['p']);
+                $para = $this->contractPara(
+                    (string) $block['p'],
+                    (bool) ($block['keepTogether'] ?? false)
+                );
                 if ($para !== '') {
                     $out[] = $para;
                 }
@@ -1204,6 +1208,9 @@ class DocumentController extends Controller
         }
 
         $tableClass = $bordered ? 'contract-table-bordered' : 'contract-table-unstyled';
+        if (!empty($table['keepRowsTogether'])) {
+            $tableClass .= ' contract-table-keep-rows';
+        }
 
         foreach ($rows as $r => $row) {
             $col    = 0;
@@ -1275,7 +1282,18 @@ class DocumentController extends Controller
 
         $html .= '>';
 
+        if (!empty($table['columnGroup']) && $colWidths !== null) {
+            $html .= '<colgroup>';
+            foreach ($colWidths as $width) {
+                $html .= '<col width="'.number_format($width, 2, '.', '').'%">';
+            }
+            $html .= '</colgroup>';
+        }
+
         foreach ($rows as $r => $row) {
+            if ($r === 0) {
+                $html .= $head ? '<thead>' : '<tbody>';
+            }
             $html .= '<tr>';
 
             foreach ($byRow[$r] ?? [] as $pc) {
@@ -1301,12 +1319,24 @@ class DocumentController extends Controller
                     $widthPercent = $w;
                 }
 
-                $style = ContractStyle::cellStyle($isHeadCell, $widthPercent, $bordered);
+                $style = ContractStyle::cellStyle(
+                    $isHeadCell,
+                    $widthPercent,
+                    $bordered,
+                    isset($table['cellPadding']) ? (string) $table['cellPadding'] : null
+                );
 
                 $html .= '<'.$tag.$spanAttr.' style="'.$style.'">'.$content.'</'.$tag.'>';
             }
 
             $html .= '</tr>';
+            if ($head && $r === 0) {
+                $html .= '</thead><tbody>';
+            }
+        }
+
+        if ($rows !== []) {
+            $html .= '</tbody>';
         }
 
         $html .= '</table>';

@@ -27,6 +27,56 @@ beforeEach(function () {
     ]);
 });
 
+test('PDF runtime mempertahankan teks dan tabel dari tiga kontrak yang diperbaiki', function () {
+    $controller = new DocumentController();
+    $bodyBuilder = new ReflectionMethod(DocumentController::class, 'buildTemplateBodyHtml');
+    $footerBuilder = new ReflectionMethod(DocumentController::class, 'buildDefaultFooterHtml');
+    $footerHtml = $footerBuilder->invoke($controller);
+    $checks = [
+        'kontrak-colocation' => ['Atas Nama : PT Bina Informatika Solusi'],
+        'kontrak-payung' => [
+            'Lokasi Layanan',
+            'Rute Metro',
+            'Bandwidth',
+            'Biaya Bulanan',
+            'Biaya Instalasi',
+            'Masa Berlaku',
+        ],
+        'kontrak-managed-service' => [
+            'Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, maka akan berlaku rumusan Restitusi sebagai berikut:',
+        ],
+    ];
+
+    foreach ($checks as $key => $expectedText) {
+        $template = ContractTemplates::find($key);
+        $bodyHtml = $bodyBuilder->invoke($controller, $template['body_content'], true);
+        $document = new Document();
+        $document->body_content = [
+            'contractTemplate' => true,
+            'templateKey' => $key,
+        ];
+        $html = view('pdf.document', [
+            'document' => $document,
+            'pages' => [$bodyHtml],
+            'headerHtml' => '',
+            'footerHtml' => $footerHtml,
+            'footerHasTable' => true,
+            'isFibertrustFooter' => true,
+            'signaturePath' => null,
+            'coverPages' => 0,
+        ])->render();
+        $pdfBytes = Pdf::loadHTML($html)->setPaper('a4', 'portrait')->output();
+        $pdfText = (new \Smalot\PdfParser\Parser())
+            ->parseContent($pdfBytes)
+            ->getText();
+        $pdfText = preg_replace('/\s+/u', ' ', $pdfText);
+
+        foreach ($expectedText as $text) {
+            expect($pdfText)->toContain($text);
+        }
+    }
+});
+
 function seedContractCustomer(Customer $customer): Customer
 {
     $customer->update([

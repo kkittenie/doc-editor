@@ -2006,6 +2006,7 @@ Atas Nama   : PT Bina Informatika Solusi',
                                     'table' => [
                                         'cols' => [100],
                                         'keepTogether' => true,
+                                        'keepRowsTogether' => true,
                                         'rows' => [
                                             [['c' => ['Pelanggan menerima tagihan/invoice paling lambat sebelum tanggal 1 bulan berjalan dan tanggal jatuh tempo setiap tanggal 7 bulan berjalan melalui sistem transfer ke nomor rekening:']]],
                                             [['c' => ['Rekening Rupiah']]],
@@ -3440,13 +3441,13 @@ Direktur',
                     'lampiran' => [
                         [
                             'judul' => 'LAMPIRAN BERLANGGANAN JASA I',
-                            'text' => 'IDENTITAS PELANGGAN
+                            'text' => 'a. IDENTITAS PELANGGAN
 
-DETAIL & KOMERSIAL LAYANAN
+b. DETAIL & KOMERSIAL LAYANAN
 
 * Biaya tercantum belum termasuk PPn
 
-SERVICE LEVEL AGREEMENT (SLA)
+c. SERVICE LEVEL AGREEMENT (SLA)
 
 SLA Avaibility = 99,5%
 
@@ -3454,12 +3455,15 @@ PIHAK PERTAMA memberikan jaminan Layanan yang tercantum dalam Service Order Form
 
 Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, maka akan berlaku rumusan Restitusi sebagai berikut:
 
-D. 	KETENTUAN
+d. KETENTUAN
 
 Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ketentuan Kontrak Payung Nomor: [Nomor Perjanjian].',
                             'blocks' => [
                                 [
-                                    'p' => 'IDENTITAS PELANGGAN',
+                                    'ol' => [
+                                        'type' => 'A',
+                                        'items' => ['IDENTITAS PELANGGAN'],
+                                    ],
                                 ],
                                 [
                                     'table' => [
@@ -3552,6 +3556,7 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                                             ],
                                         ],
                                         'cols' => [50, 50],
+                                        'columnGroup' => true,
                                         'atomic' => true,
                                         'keepTogether' => true,
                                         'bordered' => true,
@@ -3559,7 +3564,11 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                                     ],
                                 ],
                                 [
-                                    'p' => 'DETAIL & KOMERSIAL LAYANAN',
+                                    'ol' => [
+                                        'type' => 'A',
+                                        'start' => 2,
+                                        'items' => ['DETAIL & KOMERSIAL LAYANAN'],
+                                    ],
                                 ],
                                 [
                                     'table' => [
@@ -3707,6 +3716,9 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                                             ],
                                         ],
                                         'cols' => [7, 13, 22, 12, 14, 14, 18],
+                                        'cellPadding' => '2pt 2pt',
+                                        'columnGroup' => true,
+                                        'keepRowsTogether' => true,
                                         'bordered' => true,
                                         'head' => true,
                                     ],
@@ -3715,7 +3727,11 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                                     'p' => '* Biaya tercantum belum termasuk PPn',
                                 ],
                                 [
-                                    'p' => 'SERVICE LEVEL AGREEMENT (SLA)',
+                                    'ol' => [
+                                        'type' => 'A',
+                                        'start' => 3,
+                                        'items' => ['SERVICE LEVEL AGREEMENT (SLA)'],
+                                    ],
                                 ],
                                 [
                                     'p' => 'SLA Avaibility = 99,5%',
@@ -3762,7 +3778,11 @@ Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ket
                                     ],
                                 ],
                                 [
-                                    'p' => 'D. 	KETENTUAN',
+                                    'ol' => [
+                                        'type' => 'A',
+                                        'start' => 4,
+                                        'items' => ['KETENTUAN'],
+                                    ],
                                 ],
                                 [
                                     'p' => 'Lampiran ini merupakan bagian yang tidak terpisahkan dan tunduk pada seluruh ketentuan Kontrak Payung Nomor: [Nomor Perjanjian].',
@@ -5502,6 +5522,7 @@ Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, ma
                                 ],
                                 [
                                     'p' => 'Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, maka akan berlaku rumusan Restitusi sebagai berikut:',
+                                    'keepTogether' => true,
                                 ],
                                 [
                                     'table' => [

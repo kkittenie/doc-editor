@@ -39,6 +39,14 @@ class Cell {
   setAttribute(name, value) { this.attributes[name] = value; }
 }
 
+class Col {
+  constructor(width) {
+    this.attributes = { width: `${width}%` };
+    this.style = {};
+  }
+  getAttribute(name) { return this.attributes[name] || null; }
+}
+
 class Row {
   constructor(cells) { this.children = cells; }
   get firstChild() { return this.children[0] || null; }
@@ -46,12 +54,21 @@ class Row {
   appendChild(fragment) { this.children.push(...fragment.children); }
 }
 
-function createTable(widths) {
+class Colgroup {
+  constructor(widths) {
+    this.cols = widths.map((width) => new Col(width));
+  }
+  querySelectorAll() { return this.cols; }
+  remove() { this.removed = true; }
+}
+
+function createTable(widths, colgroup = null) {
   const rows = [new Row(widths.map((width) => new Cell(width)))];
   return {
     rows,
+    colgroup,
     attributes: {},
-    querySelector() { return null; },
+    querySelector(selector) { return selector === 'colgroup' ? this.colgroup : null; },
     getAttribute(name) { return this.attributes[name] || null; },
     setAttribute(name, value) { this.attributes[name] = value; },
   };
@@ -84,5 +101,19 @@ test('uses equal widths when inline widths do not define a complete grid', () =>
   assert.deepStrictEqual(
     table.rows[0].children.map((cell) => cell.style.width),
     ['33.33%', '33.33%', '33.33%']
+  );
+});
+
+test('retains proportional column groups when normalizing editor tables', () => {
+  const colgroup = new Colgroup([7, 13, 22, 12, 14, 14, 18]);
+  const table = createTable([null, null, null, null, null, null, null], colgroup);
+
+  normalize(table);
+
+  assert.strictEqual(table.colgroup, colgroup);
+  assert.strictEqual(colgroup.removed, undefined);
+  assert.deepStrictEqual(
+    table.rows[0].children.map((cell) => cell.style.width),
+    ['7.00%', '13.00%', '22.00%', '12.00%', '14.00%', '14.00%', '18.00%']
   );
 });
