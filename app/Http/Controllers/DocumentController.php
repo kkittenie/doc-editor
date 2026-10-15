@@ -937,6 +937,7 @@ class DocumentController extends Controller
         }
 
         $html = implode("\n", $parts);
+        $html = $this->sanitizePayungTableLayout($html);
         return $this->stripEmptyHtmlFragments($html) ?: '<p></p>';
     }
 
@@ -955,6 +956,95 @@ class DocumentController extends Controller
         } while ($html !== $before);
 
         return trim($html);
+    }
+
+    private function sanitizePayungTableLayout(string $html): string
+    {
+        $doc = new \DOMDocument();
+        @$doc->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $xpath = new \DOMXPath($doc);
+        $tables = $xpath->query('//table');
+
+        if ($tables->length < 2) {
+            return $html;
+        }
+
+        $identity = null;
+        $commercial = null;
+
+        foreach ($tables as $idx => $table) {
+            $text = trim($table->textContent);
+            if (str_contains($text, 'Nama dan Alamat Pelanggan') && str_contains($text, 'Penanggungjawab Teknisi')) {
+                $identity = $idx;
+            } elseif (str_contains($text, 'Masa Berlaku')) {
+                $commercial = $idx;
+            }
+        }
+
+
+        // Guard against a fully merged table: a single table carrying both the
+        // identity rows and the commercial header/body. The template source
+        // always renders two separate tables, so this only triggers if the
+        // stored body was corrupted. Detection only: return the stored body as-is
+        // (no re-sanitization) to avoid infinite recursion on unchanged HTML.
+        if ($identity === null && $commercial === null) {
+            foreach ($tables as $idx => $table) {
+                $text = trim($table->textContent);
+                $isIdentity = str_contains($text, 'Nama dan Alamat Pelanggan') && str_contains($text, 'Penanggungjawab Teknisi');
+                $isCommercial = str_contains($text, 'Masa Berlaku');
+                if ($isIdentity && $isCommercial && $table->getElementsByTagName('tr')->length > 2) {
+                    trigger_error(
+                        '[DocumentController] payung table collision in stored document: identity and commercial rows merged into a single <table>; kept stored body unchanged so the renderer can persist.',
+                        E_USER_WARNING
+                    );
+                    return $html;
+                }
+            }
+        }
+
+        if ($identity === null || $commercial === null) {
+            return $html;
+        }
+
+        $identityTable = $tables->item($identity);
+        $commercialTable = $tables->item($commercial);
+
+        if ($identityTable->getElementsByTagName('tr')->length !== 6) {
+            return $html;
+        }
+
+        $commercialRows = $commercialTable->getElementsByTagName('tr');
+        if ($commercialRows->length < 2) {
+            return $html;
+        }
+
+        $headerRow = $commercialRows->item(0);
+        $header = [];
+        foreach ($headerRow->getElementsByTagName('th') as $th) {
+            $header[] = trim($th->textContent);
+        }
+        $expectedHeader = ['No', 'Lokasi Layanan', 'Rute Metro', 'Bandwidth', 'Biaya Bulanan', 'Biaya Instalasi', 'Masa Berlaku'];
+        if (count($header) !== count($expectedHeader)) {
+            return $html;
+        }
+        $headerOk = true;
+        foreach ($expectedHeader as $i => $label) {
+            if (!str_contains($header[$i] ?? '', $label)) {
+                $headerOk = false;
+                break;
+            }
+        }
+        if (!$headerOk) {
+            return $html;
+        }
+
+        $fragment = $doc->createDocumentFragment();
+        $fragment->appendChild($identityTable->cloneNode(true));
+        $commercialTable->parentNode->replaceChild($fragment, $identityTable);
+
+        $doc->normalize();
+
+        return $doc->saveHTML();
     }
 
     private function styleContractPartyNames(string $text): string

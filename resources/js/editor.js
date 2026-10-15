@@ -2304,7 +2304,7 @@ const attachQuillToRegion = (regionEl) => {
             const lastOf = (sel) => ms.filter(([s]) => s === sel).pop();
             q.clipboard.matchers = [
                 ...ms.filter(([s]) =>
-                    s !== 'tr' && s !== 'td, th' && s !== 'table' && s !== 'col'),
+                    s !== 'tr' && s !== 'td, th' && s !== 'col'),
                 firstOf('tr'),   
                 lastOf('td, th'),
             ].filter(Boolean);
@@ -2835,6 +2835,14 @@ function __domContentOverflowPx(bodyEl) {
 }
 
 async function __domResolveTargetBody(sheet) {
+    const nb = await __domResolveTargetBodyRaw(sheet);
+    try {
+        if (nb && quillsByRegion.has(nb)) __takeoverBodyAsDom(nb);
+    } catch (err) { /* noop */ }
+    return nb;
+}
+
+async function __domResolveTargetBodyRaw(sheet) {
     const nextSheet = sheet ? sheet.nextElementSibling : null;
     if (nextSheet && nextSheet.classList.contains('doc-sheet')) {
         const nb = nextSheet.querySelector('.doc-sheet-body[data-region="body"]');
