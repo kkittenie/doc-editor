@@ -1146,6 +1146,12 @@ class DocumentController extends Controller
 
             $inHeader = false;
             $paragraph = implode("\n", $lines);
+            // Kemitraan hal.2: pemisah "d e n g a n" selalu center + bold + sedikit diperbesar.
+            if (preg_match('/^d\s*e\s*n\s*g\s*a\s*n$/iu', trim($paragraph)) === 1) {
+                $out[] = '<p style="text-align:center; font-size:13pt; font-weight:bold; margin-top:0; margin-bottom:4pt;">'
+                    .'<strong>'.e($paragraph).'</strong></p>';
+                continue;
+            }
             if (in_array($paragraph, $boldLabels, true)) {
                 $out[] = '<p><strong>'.e($paragraph).'</strong></p>';
                 continue;

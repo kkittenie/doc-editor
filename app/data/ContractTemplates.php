@@ -46,15 +46,16 @@ d e n g a n
 
 PIHAK PERTAMA dan PIHAK KEDUA secara sendiri-sendiri disebut “PIHAK” dan secara bersama-sama disebut sebagai “PARA PIHAK”.
 
-PARA PIHAK dengan ini menerangkan terlebih dahulu hal-hal sebagai berikut:
-
-Bahwa PIHAK PERTAMA merupakan penyelenggara jasa yang memiliki izin penyelenggaraan Layanan Akses Internet dari Kementerian Komunikasi dan Informatika Republik Indonesia Nomor: 1888 tertanggal 18 Oktober 2017 Tentang Perubahan Nomor: 987 Tahun 2014 Izin Penyelenggaraan Jasa Akses Internet (Internet Service Provider) PT Bina Informatika Solusi.
-
-Bahwa PIHAK KEDUA merupakan suatu (perseorangan).
-
-Bahwa PIHAK PERTAMA sepakat untuk menjual jasa Layanan Akses Internet kepada PIHAK KEDUA, dan untuk selanjutnya PIHAK KEDUA sepakat untuk menjual kembali Jasa Layanan Akses Internet kepada Pelanggan/end user.
-
-Berdasarkan hal-hal tersebut di atas, maka PARA PIHAK sepakat untuk membuat Perjanjian Kerjasama Jual Kembali Jasa Layanan Akses Internet dengan syarat-syarat dan ketentuan-ketentuan sebagai berikut:',
+PARA PIHAK dengan ini menerangkan terlebih dahulu hal-hal sebagai berikut:',
+                    'openingParties' => [
+                        'type' => '1',
+                        'items' => [
+                            'Bahwa PIHAK PERTAMA merupakan penyelenggara jasa yang memiliki izin penyelenggaraan Layanan Akses Internet dari Kementerian Komunikasi dan Informatika Republik Indonesia Nomor: 1888 tertanggal 18 Oktober 2017 Tentang Perubahan Nomor: 987 Tahun 2014 Izin Penyelenggaraan Jasa Akses Internet (Internet Service Provider) PT Bina Informatika Solusi.',
+                            'Bahwa PIHAK KEDUA merupakan suatu (perseorangan).',
+                            'Bahwa PIHAK PERTAMA sepakat untuk menjual jasa Layanan Akses Internet kepada PIHAK KEDUA, dan untuk selanjutnya PIHAK KEDUA sepakat untuk menjual kembali Jasa Layanan Akses Internet kepada Pelanggan/end user.',
+                        ],
+                    ],
+                    'afterOpeningParties' => 'Berdasarkan hal-hal tersebut di atas, maka PARA PIHAK sepakat untuk membuat Perjanjian Kerjasama Jual Kembali Jasa Layanan Akses Internet dengan syarat-syarat dan ketentuan-ketentuan sebagai berikut:',
                     'isi' => [
                         [
                             'judul' => 'DEFINISI',
@@ -384,13 +385,14 @@ PIHAK KEDUA bertanggungjawab atas upaya-upaya penagihan kepada Pelanggan;
 Penagihan kepada Pelanggan menjadi dasar bagi PARA PIHAK untuk melakukan perhitungan untuk biaya administrasi.',
                             'blocks' => [
                                 [
-                                    'p' => 'Penagihan biaya Layanan Akses Internet dari Pelanggan dilakukan oleh PIHAK KEDUA;',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA bertanggungjawab atas upaya-upaya penagihan kepada Pelanggan;',
-                                ],
-                                [
-                                    'p' => 'Penagihan kepada Pelanggan menjadi dasar bagi PARA PIHAK untuk melakukan perhitungan untuk biaya administrasi.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'Penagihan biaya Layanan Akses Internet dari Pelanggan dilakukan oleh PIHAK KEDUA;',
+                                            'PIHAK KEDUA bertanggungjawab atas upaya-upaya penagihan kepada Pelanggan;',
+                                            'Penagihan kepada Pelanggan menjadi dasar bagi PARA PIHAK untuk melakukan perhitungan untuk biaya administrasi.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -401,10 +403,13 @@ Penagihan kepada Pelanggan menjadi dasar bagi PARA PIHAK untuk melakukan perhitu
 Mekanisme dan Standar Operasional Prosedur (S.O.P) untuk pengaduan Pelanggan tercantum dalam Lampiran III.',
                             'blocks' => [
                                 [
-                                    'p' => 'PIHAK KEDUA wajib untuk menyediakan form pengaduan Pelanggan;',
-                                ],
-                                [
-                                    'p' => 'Mekanisme dan Standar Operasional Prosedur (S.O.P) untuk pengaduan Pelanggan tercantum dalam Lampiran III.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PIHAK KEDUA wajib untuk menyediakan form pengaduan Pelanggan;',
+                                            'Mekanisme dan Standar Operasional Prosedur (S.O.P) untuk pengaduan Pelanggan tercantum dalam Lampiran III.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -419,16 +424,15 @@ Apabila dalam jangka waktu 7 (tujuh) Hari Kerja sejak terjadinya Isolir sebagaim
 Dalam hal terjadi Pemutusan Layanan Permanen sebagaimana dimaksud dalam ayat (3), maka PIHAK KEDUA tetap wajib membayar segala kewajibannya yang belum terlaksana kepada PIHAK PERTAMA selambat-lambatnya 7 (tujuh) Hari Kerja sejak Pemutusan Layanan Permanen dilakukan oleh PIHAK PERTAMA.',
                             'blocks' => [
                                 [
-                                    'p' => 'Apabila PIHAK KEDUA melalaikan kewajiban sebagaimana   dimaksud dalam Pasal 5 ayat (5), maka PIHAK PERTAMA akan memberikan Surat Peringatan kepada PIHAK KEDUA sebanyak 3 (tiga) kali dengan jangka waktu masing-masing Surat Peringatan selama 7 (tujuh) hari kerja. Apabila sampai Surat Peringatan ke-2, PIHAK KEDUA belum melakukan pembayaran, maka PIHAK PERTAMA berhak melakukan Isolir terhadap Layanan Akses Internet;',
-                                ],
-                                [
-                                    'p' => 'PIHAK PERTAMA akan membuka Isolir dalam waktu selambat-lambatnya 3 (tiga) Hari Kerja setelah PIHAK KEDUA membayar seluruh kewajibannya;',
-                                ],
-                                [
-                                    'p' => 'Apabila dalam jangka waktu 7 (tujuh) Hari Kerja sejak terjadinya Isolir sebagaimana yang dimaksud dalam ayat (1) Pasal ini, PIHAK KEDUA belum memenuhi kewajibannya, maka PIHAK PERTAMA akan melakukan Pemutusan Layanan Permanen;',
-                                ],
-                                [
-                                    'p' => 'Dalam hal terjadi Pemutusan Layanan Permanen sebagaimana dimaksud dalam ayat (3), maka PIHAK KEDUA tetap wajib membayar segala kewajibannya yang belum terlaksana kepada PIHAK PERTAMA selambat-lambatnya 7 (tujuh) Hari Kerja sejak Pemutusan Layanan Permanen dilakukan oleh PIHAK PERTAMA.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'Apabila PIHAK KEDUA melalaikan kewajiban sebagaimana   dimaksud dalam Pasal 5 ayat (5), maka PIHAK PERTAMA akan memberikan Surat Peringatan kepada PIHAK KEDUA sebanyak 3 (tiga) kali dengan jangka waktu masing-masing Surat Peringatan selama 7 (tujuh) hari kerja. Apabila sampai Surat Peringatan ke-2, PIHAK KEDUA belum melakukan pembayaran, maka PIHAK PERTAMA berhak melakukan Isolir terhadap Layanan Akses Internet;',
+                                            'PIHAK PERTAMA akan membuka Isolir dalam waktu selambat-lambatnya 3 (tiga) Hari Kerja setelah PIHAK KEDUA membayar seluruh kewajibannya;',
+                                            'Apabila dalam jangka waktu 7 (tujuh) Hari Kerja sejak terjadinya Isolir sebagaimana yang dimaksud dalam ayat (1) Pasal ini, PIHAK KEDUA belum memenuhi kewajibannya, maka PIHAK PERTAMA akan melakukan Pemutusan Layanan Permanen;',
+                                            'Dalam hal terjadi Pemutusan Layanan Permanen sebagaimana dimaksud dalam ayat (3), maka PIHAK KEDUA tetap wajib membayar segala kewajibannya yang belum terlaksana kepada PIHAK PERTAMA selambat-lambatnya 7 (tujuh) Hari Kerja sejak Pemutusan Layanan Permanen dilakukan oleh PIHAK PERTAMA.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -436,28 +440,25 @@ Dalam hal terjadi Pemutusan Layanan Permanen sebagaimana dimaksud dalam ayat (3)
                             'judul' => 'DATA, KERAHASIAAN, DAN PERLINDUNGAN DATA',
                             'text' => 'PARA PIHAK wajib menjaga kerahasiaan seluruh data, informasi, dokumen, sistem, maupun informasi lain yang diperoleh sehubungan dengan pelaksanaan Perjanjian ini dan tidak mengungkapkannya kepada pihak lain tanpa persetujuan tertulis dari pihak yang berhak, kecuali diwajibkan berdasarkan ketentuan peraturan perundang-undangan atau perintah instansi yang berwenang.
 
+Kewajiban menjaga kerahasiaan sebagaimana dimaksud pada ayat (1) tetap berlaku meskipun Perjanjian ini telah berakhir, dengan jangka waktu perlindungan selama 5 (lima) tahun setelah berakhirnya Perjanjian.
+
 Seluruh data operasional jaringan, data penggunaan layanan, konfigurasi sistem, dokumentasi teknis, serta data lain yang dihasilkan atau tersimpan dalam sistem milik PIHAK PERTAMA merupakan milik PIHAK PERTAMA.
 
-PIHAK PERTAMA berhak menggunakan, mengolah, menyimpan, dan mengakses data sebagaimana dimaksud pada ayat (3) untuk kepentingan operasional, pemeliharaan jaringan, peningkatan kualitas layanan, audit, keamanan sistem, pemenuhan kewajiban hukum, serta tujuan lain yang berkaitan dengan penyelenggaraan Layanan, dengan tetap memperhatikan ketentuan peraturan perundang-undangan.
+PIHAK KEDUA bertanggung jawab penuh atas keamanan dan kerahasiaan username, password, akun, serta informasi akses lainnya yang diberikan oleh PIHAK PERTAMA. Segala penggunaan atau penyalahgunaan terhadap akun tersebut menjadi tanggung jawab PIHAK KEDUA, kecuali terbukti disebabkan oleh kesalahan langsung PIHAK PERTAMA.
 
-PIHAK KEDUA tidak diperkenankan mengakses, menyalin, mengubah, memindahtangankan, memperjualbelikan, atau menggunakan data maupun informasi milik PIHAK PERTAMA di luar pelaksanaan Perjanjian tanpa persetujuan tertulis dari PIHAK PERTAMA.
-
-Kewajiban menjaga kerahasiaan sebagaimana dimaksud dalam Pasal ini tetap berlaku selama Perjanjian berlangsung dan selama 5 (lima) tahun setelah Perjanjian berakhir atau jangka waktu lain yang diwajibkan berdasarkan ketentuan peraturan perundang-undangan.',
+Pelanggaran terhadap ketentuan dalam Pasal ini merupakan wanprestasi yang dapat menjadi dasar bagi pihak yang dirugikan untuk menuntut ganti rugi dan/atau mengakhiri Perjanjian berdasarkan ketentuan dalam Perjanjian ini.',
                             'blocks' => [
                                 [
-                                    'p' => 'PARA PIHAK wajib menjaga kerahasiaan seluruh data, informasi, dokumen, sistem, maupun informasi lain yang diperoleh sehubungan dengan pelaksanaan Perjanjian ini dan tidak mengungkapkannya kepada pihak lain tanpa persetujuan tertulis dari pihak yang berhak, kecuali diwajibkan berdasarkan ketentuan peraturan perundang-undangan atau perintah instansi yang berwenang.',
-                                ],
-                                [
-                                    'p' => 'Seluruh data operasional jaringan, data penggunaan layanan, konfigurasi sistem, dokumentasi teknis, serta data lain yang dihasilkan atau tersimpan dalam sistem milik PIHAK PERTAMA merupakan milik PIHAK PERTAMA.',
-                                ],
-                                [
-                                    'p' => 'PIHAK PERTAMA berhak menggunakan, mengolah, menyimpan, dan mengakses data sebagaimana dimaksud pada ayat (3) untuk kepentingan operasional, pemeliharaan jaringan, peningkatan kualitas layanan, audit, keamanan sistem, pemenuhan kewajiban hukum, serta tujuan lain yang berkaitan dengan penyelenggaraan Layanan, dengan tetap memperhatikan ketentuan peraturan perundang-undangan.',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA tidak diperkenankan mengakses, menyalin, mengubah, memindahtangankan, memperjualbelikan, atau menggunakan data maupun informasi milik PIHAK PERTAMA di luar pelaksanaan Perjanjian tanpa persetujuan tertulis dari PIHAK PERTAMA.',
-                                ],
-                                [
-                                    'p' => 'Kewajiban menjaga kerahasiaan sebagaimana dimaksud dalam Pasal ini tetap berlaku selama Perjanjian berlangsung dan selama 5 (lima) tahun setelah Perjanjian berakhir atau jangka waktu lain yang diwajibkan berdasarkan ketentuan peraturan perundang-undangan.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PARA PIHAK wajib menjaga kerahasiaan seluruh data, informasi, dokumen, sistem, maupun informasi lain yang diperoleh sehubungan dengan pelaksanaan Perjanjian ini dan tidak mengungkapkannya kepada pihak lain tanpa persetujuan tertulis dari pihak yang berhak, kecuali diwajibkan berdasarkan ketentuan peraturan perundang-undangan atau perintah instansi yang berwenang.',
+                                            'Seluruh data operasional jaringan, data penggunaan layanan, konfigurasi sistem, dokumentasi teknis, serta data lain yang dihasilkan atau tersimpan dalam sistem milik PIHAK PERTAMA merupakan milik PIHAK PERTAMA.',
+                                            'PIHAK PERTAMA berhak menggunakan, mengolah, menyimpan, dan mengakses data sebagaimana dimaksud pada ayat (3) untuk kepentingan operasional, pemeliharaan jaringan, peningkatan kualitas layanan, audit, keamanan sistem, pemenuhan kewajiban hukum, serta tujuan lain yang berkaitan dengan penyelenggaraan Layanan, dengan tetap memperhatikan ketentuan peraturan perundang-undangan.',
+                                            'PIHAK KEDUA bertanggung jawab penuh atas keamanan dan kerahasiaan username, password, akun, serta informasi akses lainnya yang diberikan oleh PIHAK PERTAMA. Segala penggunaan atau penyalahgunaan terhadap akun tersebut menjadi tanggung jawab PIHAK KEDUA, kecuali terbukti disebabkan oleh kesalahan langsung PIHAK PERTAMA.',
+                                            'Pelanggaran terhadap ketentuan dalam Pasal ini merupakan wanprestasi yang dapat menjadi dasar bagi pihak yang dirugikan untuk menuntut ganti rugi dan/atau mengakhiri Perjanjian berdasarkan ketentuan dalam Perjanjian ini.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -478,25 +479,18 @@ Apabila PIHAK KEDUA tidak mengembalikan perangkat sebagaimana dimaksud pada ayat
 Ketentuan mengenai spesifikasi perangkat, instalasi, pemeliharaan, penggantian, dan pengembalian perangkat diatur lebih lanjut dalam Lampiran yang merupakan bagian tidak terpisahkan dari Perjanjian ini.',
                             'blocks' => [
                                 [
-                                    'p' => 'Seluruh perangkat, jaringan, infrastruktur, aplikasi, sistem, dan fasilitas pendukung yang disediakan oleh PIHAK PERTAMA untuk penyelenggaraan Layanan tetap menjadi milik PIHAK PERTAMA, kecuali disepakati lain secara tertulis.',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA wajib menggunakan, menjaga, dan memelihara seluruh perangkat yang dikuasainya sesuai dengan petunjuk penggunaan serta tidak mengalihkan, memindahtangankan, menyewakan, menjaminkan, memodifikasi, atau menggunakannya untuk kepentingan selain pelaksanaan Perjanjian tanpa persetujuan tertulis dari PIHAK PERTAMA.',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA bertanggung jawab atas kehilangan, kerusakan, atau penyalahgunaan perangkat yang berada dalam penguasaannya, kecuali apabila disebabkan oleh cacat bawaan perangkat atau kesalahan PIHAK PERTAMA.',
-                                ],
-                                [
-                                    'p' => 'PIHAK PERTAMA berhak melakukan pemeriksaan, pemeliharaan, penggantian, peningkatan, relokasi, atau penarikan perangkat apabila diperlukan untuk kepentingan operasional, keamanan jaringan, pemeliharaan, atau berakhirnya Perjanjian.',
-                                ],
-                                [
-                                    'p' => 'Dalam hal Perjanjian berakhir karena sebab apa pun, PIHAK KEDUA wajib mengembalikan seluruh perangkat milik PIHAK PERTAMA dalam kondisi baik sesuai pemakaian yang wajar paling lambat 14 (empat belas) Hari Kalender sejak tanggal berakhirnya Perjanjian, kecuali disepakati lain secara tertulis.',
-                                ],
-                                [
-                                    'p' => 'Apabila PIHAK KEDUA tidak mengembalikan perangkat sebagaimana dimaksud pada ayat (5), PIHAK PERTAMA berhak melakukan penagihan atas nilai penggantian perangkat dan/atau menempuh upaya hukum sesuai dengan ketentuan peraturan perundang-undangan dan Perjanjian ini.',
-                                ],
-                                [
-                                    'p' => 'Ketentuan mengenai spesifikasi perangkat, instalasi, pemeliharaan, penggantian, dan pengembalian perangkat diatur lebih lanjut dalam Lampiran yang merupakan bagian tidak terpisahkan dari Perjanjian ini.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'Seluruh perangkat, jaringan, infrastruktur, aplikasi, sistem, dan fasilitas pendukung yang disediakan oleh PIHAK PERTAMA untuk penyelenggaraan Layanan tetap menjadi milik PIHAK PERTAMA, kecuali disepakati lain secara tertulis.',
+                                            'PIHAK KEDUA wajib menggunakan, menjaga, dan memelihara seluruh perangkat yang dikuasainya sesuai dengan petunjuk penggunaan serta tidak mengalihkan, memindahtangankan, menyewakan, menjaminkan, memodifikasi, atau menggunakannya untuk kepentingan selain pelaksanaan Perjanjian tanpa persetujuan tertulis dari PIHAK PERTAMA.',
+                                            'PIHAK KEDUA bertanggung jawab atas kehilangan, kerusakan, atau penyalahgunaan perangkat yang berada dalam penguasaannya, kecuali apabila disebabkan oleh cacat bawaan perangkat atau kesalahan PIHAK PERTAMA.',
+                                            'PIHAK PERTAMA berhak melakukan pemeriksaan, pemeliharaan, penggantian, peningkatan, relokasi, atau penarikan perangkat apabila diperlukan untuk kepentingan operasional, keamanan jaringan, pemeliharaan, atau berakhirnya Perjanjian.',
+                                            'Dalam hal Perjanjian berakhir karena sebab apa pun, PIHAK KEDUA wajib mengembalikan seluruh perangkat milik PIHAK PERTAMA dalam kondisi baik sesuai pemakaian yang wajar paling lambat 14 (empat belas) Hari Kalender sejak tanggal berakhirnya Perjanjian, kecuali disepakati lain secara tertulis.',
+                                            'Apabila PIHAK KEDUA tidak mengembalikan perangkat sebagaimana dimaksud pada ayat (5), PIHAK PERTAMA berhak melakukan penagihan atas nilai penggantian perangkat dan/atau menempuh upaya hukum sesuai dengan ketentuan peraturan perundang-undangan dan Perjanjian ini.',
+                                            'Ketentuan mengenai spesifikasi perangkat, instalasi, pemeliharaan, penggantian, dan pengembalian perangkat diatur lebih lanjut dalam Lampiran yang merupakan bagian tidak terpisahkan dari Perjanjian ini.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -515,22 +509,19 @@ Berakhirnya Perjanjian ini mengakibatkan seluruh hak penggunaan merek, logo, dan
 Pelanggaran terhadap ketentuan dalam Pasal ini memberikan hak kepada PIHAK PERTAMA untuk mencabut hak penggunaan merek, menghentikan kerja sama, menuntut ganti rugi, dan/atau menempuh upaya hukum sesuai dengan ketentuan Perjanjian dan peraturan perundang-undangan yang berlaku.',
                             'blocks' => [
                                 [
-                                    'p' => 'Seluruh hak atas merek, logo, nama dagang, hak cipta, perangkat lunak, desain, dokumentasi, sistem, aplikasi, jaringan, serta Hak Kekayaan Intelektual lainnya yang digunakan dalam penyelenggaraan Layanan merupakan milik PIHAK PERTAMA atau pihak lain yang memberikan hak penggunaannya kepada PIHAK PERTAMA.',
+                                    'p' => 'Seluruh hak atas merek, logo, nama dagang, hak cipta, perangkat lunak, desain, dokumentasi, sistem, aplikasi, jaringan, serta Hak Kekayaan Intelektual lainnya yang digunakan dalam penyelenggaraan Layanan merupakan milik PIHAK PERTAMA atau pihak lain yang memberikan hak penggunaannya kepada PIHAK PERTAMA. Dalam rangka pelaksanaan Perjanjian ini:',
                                 ],
                                 [
-                                    'p' => 'PIHAK PERTAMA memberikan kepada PIHAK KEDUA hak yang terbatas, tidak eksklusif, tidak dapat dialihkan, dan tidak dapat disublisensikan untuk menggunakan merek, logo, dan materi promosi milik PIHAK PERTAMA semata-mata dalam rangka pelaksanaan Perjanjian ini.',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA wajib menggunakan merek, logo, dan identitas perusahaan milik PIHAK PERTAMA sesuai dengan pedoman, standar, dan ketentuan yang ditetapkan oleh PIHAK PERTAMA serta tidak melakukan perubahan, penghapusan, atau penggunaan yang dapat merugikan nama baik PIHAK PERTAMA.',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA dilarang mendaftarkan, menggunakan, meniru, atau mengklaim kepemilikan atas merek, logo, nama dagang, nama domain, desain, atau Hak Kekayaan Intelektual lainnya yang mempunyai persamaan atau kemiripan dengan milik PIHAK PERTAMA tanpa persetujuan tertulis dari PIHAK PERTAMA.',
-                                ],
-                                [
-                                    'p' => 'Berakhirnya Perjanjian ini mengakibatkan seluruh hak penggunaan merek, logo, dan Hak Kekayaan Intelektual yang diberikan kepada PIHAK KEDUA berakhir secara otomatis. PIHAK KEDUA wajib segera menghentikan seluruh penggunaan serta menghapus atau mengembalikan seluruh materi yang memuat identitas PIHAK PERTAMA, kecuali diwajibkan lain oleh ketentuan peraturan perundang-undangan.',
-                                ],
-                                [
-                                    'p' => 'Pelanggaran terhadap ketentuan dalam Pasal ini memberikan hak kepada PIHAK PERTAMA untuk mencabut hak penggunaan merek, menghentikan kerja sama, menuntut ganti rugi, dan/atau menempuh upaya hukum sesuai dengan ketentuan Perjanjian dan peraturan perundang-undangan yang berlaku.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PIHAK PERTAMA memberikan kepada PIHAK KEDUA hak yang terbatas, tidak eksklusif, tidak dapat dialihkan, dan tidak dapat disublisensikan untuk menggunakan merek, logo, dan materi promosi milik PIHAK PERTAMA semata-mata dalam rangka pelaksanaan Perjanjian ini.',
+                                            'PIHAK KEDUA wajib menggunakan merek, logo, dan identitas perusahaan milik PIHAK PERTAMA sesuai dengan pedoman, standar, dan ketentuan yang ditetapkan oleh PIHAK PERTAMA serta tidak melakukan perubahan, penghapusan, atau penggunaan yang dapat merugikan nama baik PIHAK PERTAMA.',
+                                            'PIHAK KEDUA dilarang mendaftarkan, menggunakan, meniru, atau mengklaim kepemilikan atas merek, logo, nama dagang, nama domain, desain, atau Hak Kekayaan Intelektual lainnya yang mempunyai persamaan atau kemiripan dengan milik PIHAK PERTAMA tanpa persetujuan tertulis dari PIHAK PERTAMA.',
+                                            'Berakhirnya Perjanjian ini mengakibatkan seluruh hak penggunaan merek, logo, dan Hak Kekayaan Intelektual yang diberikan kepada PIHAK KEDUA berakhir secara otomatis. PIHAK KEDUA wajib segera menghentikan seluruh penggunaan serta menghapus atau mengembalikan seluruh materi yang memuat identitas PIHAK PERTAMA, kecuali diwajibkan lain oleh ketentuan peraturan perundang-undangan.',
+                                            'Pelanggaran terhadap ketentuan dalam Pasal ini memberikan hak kepada PIHAK PERTAMA untuk mencabut hak penggunaan merek, menghentikan kerja sama, menuntut ganti rugi, dan/atau menempuh upaya hukum sesuai dengan ketentuan Perjanjian dan peraturan perundang-undangan yang berlaku.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -573,53 +564,55 @@ PIHAK PERTAMA berhak menagih seluruh kerugian yang timbul akibat wanprestasi PIH
 Apabila PIHAK KEDUA tidak memperbaiki wanprestasi dalam jangka waktu yang ditetapkan oleh PIHAK PERTAMA atau melakukan pelanggaran yang bersifat material, PIHAK PERTAMA berhak mengakhiri Perjanjian secara sepihak melalui pemberitahuan tertulis tanpa mengurangi hak PIHAK PERTAMA untuk menuntut pemenuhan kewajiban, ganti rugi, maupun upaya hukum lainnya sesuai dengan ketentuan Perjanjian dan peraturan perundang-undangan yang berlaku.',
                             'blocks' => [
                                 [
-                                    'p' => 'PIHAK KEDUA dinyatakan melakukan wanprestasi apabila:',
-                                ],
-                                [
-                                    'p' => 'tidak memenuhi kewajibannya berdasarkan Perjanjian;',
-                                ],
-                                [
-                                    'p' => 'terlambat melakukan pembayaran sesuai dengan ketentuan Perjanjian;',
-                                ],
-                                [
-                                    'p' => 'memberikan data atau informasi yang tidak benar;',
-                                ],
-                                [
-                                    'p' => 'melanggar ketentuan mengenai penggunaan Layanan, perangkat, data, atau Hak Kekayaan Intelektual;',
-                                ],
-                                [
-                                    'p' => 'menggunakan Layanan untuk kegiatan yang melanggar hukum; atau',
-                                ],
-                                [
-                                    'p' => 'melakukan tindakan lain yang mengakibatkan kerugian bagi PIHAK PERTAMA.',
-                                ],
-                                [
-                                    'p' => 'Dalam hal PIHAK KEDUA melakukan wanprestasi, PIHAK PERTAMA berhak memberikan sanksi secara bertahap sesuai dengan tingkat pelanggaran berupa:
-a. teguran tertulis;
-b. penangguhan aktivasi atau layanan tertentu;
-c. pembatasan atau isolir Layanan;
-d. pengenaan denda atau penalti;
-e. pemutusan sebagian atau seluruh Layanan; dan/atau
-f. pengakhiran Perjanjian.',
-                                ],
-                                [
-                                    'p' => 'PIHAK PERTAMA berhak menjatuhkan salah satu atau beberapa sanksi sebagaimana dimaksud pada ayat (2) tanpa harus menerapkannya secara berurutan, apabila menurut penilaian PIHAK PERTAMA pelanggaran yang dilakukan bersifat material atau berpotensi menimbulkan kerugian bagi PIHAK PERTAMA, Pelanggan, atau pihak lain.',
-                                ],
-                                [
-                                    'p' => 'Dalam hal PIHAK KEDUA mengakhiri Perjanjian sebelum berakhirnya jangka waktu yang disepakati atau menyebabkan Perjanjian diakhiri karena wanprestasi PIHAK KEDUA, maka PIHAK KEDUA wajib membayar penalti sesuai dengan ketentuan yang tercantum dalam Lampiran atau addendum yang merupakan bagian tidak terpisahkan dari Perjanjian ini.',
-                                ],
-                                [
-                                    'p' => 'Pengenaan sanksi, denda, atau penalti tidak menghapus kewajiban PIHAK KEDUA untuk:
-a. melunasi seluruh kewajiban pembayaran;
-b. mengembalikan perangkat milik PIHAK PERTAMA;
-c. mengganti kerugian yang timbul akibat pelanggaran; dan
-d. memenuhi kewajiban lain berdasarkan Perjanjian.',
-                                ],
-                                [
-                                    'p' => 'PIHAK PERTAMA berhak menagih seluruh kerugian yang timbul akibat wanprestasi PIHAK KEDUA, termasuk biaya penagihan, biaya pemulihan jaringan, biaya hukum, dan kerugian lain yang dapat dibuktikan sesuai dengan ketentuan peraturan perundang-undangan.',
-                                ],
-                                [
-                                    'p' => 'Apabila PIHAK KEDUA tidak memperbaiki wanprestasi dalam jangka waktu yang ditetapkan oleh PIHAK PERTAMA atau melakukan pelanggaran yang bersifat material, PIHAK PERTAMA berhak mengakhiri Perjanjian secara sepihak melalui pemberitahuan tertulis tanpa mengurangi hak PIHAK PERTAMA untuk menuntut pemenuhan kewajiban, ganti rugi, maupun upaya hukum lainnya sesuai dengan ketentuan Perjanjian dan peraturan perundang-undangan yang berlaku.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            [
+                                                'text' => 'PIHAK KEDUA dinyatakan melakukan wanprestasi apabila:',
+                                                'children' => [
+                                                    'type' => 'a',
+                                                    'items' => [
+                                                        'tidak memenuhi kewajibannya berdasarkan Perjanjian;',
+                                                        'terlambat melakukan pembayaran sesuai dengan ketentuan Perjanjian;',
+                                                        'memberikan data atau informasi yang tidak benar;',
+                                                        'melanggar ketentuan mengenai penggunaan Layanan, perangkat, data, atau Hak Kekayaan Intelektual;',
+                                                        'menggunakan Layanan untuk kegiatan yang melanggar hukum; atau',
+                                                        'melakukan tindakan lain yang mengakibatkan kerugian bagi PIHAK PERTAMA.',
+                                                    ],
+                                                ],
+                                            ],
+                                            [
+                                                'text' => 'Dalam hal PIHAK KEDUA melakukan wanprestasi, PIHAK PERTAMA berhak memberikan sanksi secara bertahap sesuai dengan tingkat pelanggaran berupa:',
+                                                'children' => [
+                                                    'type' => 'a',
+                                                    'items' => [
+                                                        'teguran tertulis;',
+                                                        'penangguhan aktivasi atau layanan tertentu;',
+                                                        'pembatasan atau isolir Layanan;',
+                                                        'pengenaan denda atau penalti;',
+                                                        'pemutusan sebagian atau seluruh Layanan; dan/atau',
+                                                        'pengakhiran Perjanjian.',
+                                                    ],
+                                                ],
+                                            ],
+                                            'PIHAK PERTAMA berhak menjatuhkan salah satu atau beberapa sanksi sebagaimana dimaksud pada ayat (2) tanpa harus menerapkannya secara berurutan, apabila menurut penilaian PIHAK PERTAMA pelanggaran yang dilakukan bersifat material atau berpotensi menimbulkan kerugian bagi PIHAK PERTAMA, Pelanggan, atau pihak lain.',
+                                            'Dalam hal PIHAK KEDUA mengakhiri Perjanjian sebelum berakhirnya jangka waktu yang disepakati atau menyebabkan Perjanjian diakhiri karena wanprestasi PIHAK KEDUA, maka PIHAK KEDUA wajib membayar penalti sesuai dengan ketentuan yang tercantum dalam Lampiran atau addendum yang merupakan bagian tidak terpisahkan dari Perjanjian ini.',
+                                            [
+                                                'text' => 'Pengenaan sanksi, denda, atau penalti tidak menghapus kewajiban PIHAK KEDUA untuk:',
+                                                'children' => [
+                                                    'type' => 'a',
+                                                    'items' => [
+                                                        'melunasi seluruh kewajiban pembayaran;',
+                                                        'mengembalikan perangkat milik PIHAK PERTAMA;',
+                                                        'mengganti kerugian yang timbul akibat pelanggaran; dan',
+                                                        'memenuhi kewajiban lain berdasarkan Perjanjian.',
+                                                    ],
+                                                ],
+                                            ],
+                                            'PIHAK PERTAMA berhak menagih seluruh kerugian yang timbul akibat wanprestasi PIHAK KEDUA, termasuk biaya penagihan, biaya pemulihan jaringan, biaya hukum, dan kerugian lain yang dapat dibuktikan sesuai dengan ketentuan peraturan perundang-undangan.',
+                                            'Apabila PIHAK KEDUA tidak memperbaiki wanprestasi dalam jangka waktu yang ditetapkan oleh PIHAK PERTAMA atau melakukan pelanggaran yang bersifat material, PIHAK PERTAMA berhak mengakhiri Perjanjian secara sepihak melalui pemberitahuan tertulis tanpa mengurangi hak PIHAK PERTAMA untuk menuntut pemenuhan kewajiban, ganti rugi, maupun upaya hukum lainnya sesuai dengan ketentuan Perjanjian dan peraturan perundang-undangan yang berlaku.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -720,16 +713,15 @@ PIHAK KEDUA menjamin bahwa Pelanggan telah memperoleh informasi mengenai kemungk
 Pelaksanaan ketentuan dalam Pasal ini tidak menghapus kewajiban PARA PIHAK yang masih harus diselesaikan berdasarkan Perjanjian ini.',
                             'blocks' => [
                                 [
-                                    'p' => 'Dalam hal terjadi Pemutusan Layanan Permanen sebagaimana dimaksud dalam Pasal 13 ayat (2), PIHAK PERTAMA tidak bertanggung jawab atas hubungan hukum, hak, kewajiban, kerugian, maupun tuntutan antara PIHAK KEDUA dan Pelanggan.',
-                                ],
-                                [
-                                    'p' => 'Untuk menjaga keberlangsungan Layanan Akses Internet kepada Pelanggan, PIHAK PERTAMA berhak menawarkan layanan secara langsung kepada Pelanggan atau memfasilitasi pengalihan layanan kepada Penyelenggara Jasa Layanan Akses Internet lainnya, sepanjang memungkinkan secara teknis dan sesuai dengan ketentuan yang berlaku.',
-                                ],
-                                [
-                                    'p' => 'PIHAK KEDUA menjamin bahwa Pelanggan telah memperoleh informasi mengenai kemungkinan pengalihan layanan sebagaimana dimaksud pada ayat (2), serta membebaskan dan melepaskan PIHAK PERTAMA dari setiap tuntutan, gugatan, atau klaim yang timbul sehubungan dengan berakhirnya Perjanjian ini atau berakhirnya hubungan hukum antara PIHAK KEDUA dan Pelanggan.',
-                                ],
-                                [
-                                    'p' => 'Pelaksanaan ketentuan dalam Pasal ini tidak menghapus kewajiban PARA PIHAK yang masih harus diselesaikan berdasarkan Perjanjian ini.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'Dalam hal terjadi Pemutusan Layanan Permanen sebagaimana dimaksud dalam Pasal 13 ayat (2), PIHAK PERTAMA tidak bertanggung jawab atas hubungan hukum, hak, kewajiban, kerugian, maupun tuntutan antara PIHAK KEDUA dan Pelanggan.',
+                                            'Untuk menjaga keberlangsungan Layanan Akses Internet kepada Pelanggan, PIHAK PERTAMA berhak menawarkan layanan secara langsung kepada Pelanggan atau memfasilitasi pengalihan layanan kepada Penyelenggara Jasa Layanan Akses Internet lainnya, sepanjang memungkinkan secara teknis dan sesuai dengan ketentuan yang berlaku.',
+                                            'PIHAK KEDUA menjamin bahwa Pelanggan telah memperoleh informasi mengenai kemungkinan pengalihan layanan sebagaimana dimaksud pada ayat (2), serta membebaskan dan melepaskan PIHAK PERTAMA dari setiap tuntutan, gugatan, atau klaim yang timbul sehubungan dengan berakhirnya Perjanjian ini atau berakhirnya hubungan hukum antara PIHAK KEDUA dan Pelanggan.',
+                                            'Pelaksanaan ketentuan dalam Pasal ini tidak menghapus kewajiban PARA PIHAK yang masih harus diselesaikan berdasarkan Perjanjian ini.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -756,31 +748,25 @@ Hasil evaluasi dituangkan dalam berita acara atau dokumen tertulis yang menjadi 
 Dalam hal hasil evaluasi menunjukkan adanya kondisi yang dapat menjadi dasar pengakhiran Perjanjian, pelaksanaannya tetap mengacu pada ketentuan mengenai pemutusan Perjanjian sebagaimana diatur dalam Perjanjian ini',
                             'blocks' => [
                                 [
-                                    'p' => 'PARA PIHAK sepakat melakukan evaluasi atas pelaksanaan Perjanjian ini setiap 6 (enam) bulan sejak Perjanjian mulai berlaku.',
-                                ],
-                                [
-                                    'p' => 'Evaluasi dilakukan melalui Forum Konsultasi yang dihadiri oleh wakil PARA PIHAK yang berwenang.',
-                                ],
-                                [
-                                    'p' => 'evaluasi meliputi antara lain:',
-                                ],
-                                [
                                     'ol' => [
-                                        'type' => 'a',
+                                        'type' => '1',
                                         'items' => [
-                                            'pelaksanaan operasional layanan;',
-                                            'pemasaran dan penjualan;',
-                                            'pengaduan Pelanggan;',
-                                            'kendala teknis; dan',
-                                            'hal lain yang disepakati PARA PIHAK.',
+                                            [
+                                                'text' => 'PARA PIHAK sepakat melakukan evaluasi atas pelaksanaan Perjanjian ini setiap 6 (enam) bulan sejak Perjanjian mulai berlaku. Evaluasi dilakukan melalui Forum Konsultasi yang dihadiri oleh wakil PARA PIHAK yang berwenang. Evaluasi meliputi antara lain:',
+                                                'children' => [
+                                                    'type' => 'a',
+                                                    'items' => [
+                                                        'pelaksanaan operasional layanan;',
+                                                        'pemasaran dan penjualan;',
+                                                        'pengaduan Pelanggan;',
+                                                        'kendala teknis; dan',
+                                                        'hal lain yang disepakati PARA PIHAK.',
+                                                    ],
+                                                ],
+                                            ],
+                                            'Hasil evaluasi dituangkan dalam berita acara atau dokumen tertulis yang menjadi dasar bagi PARA PIHAK untuk melakukan perbaikan pelaksanaan Perjanjian atau perubahan Perjanjian berdasarkan kesepakatan PARA PIHAK. Dalam hal hasil evaluasi menunjukkan adanya kondisi yang dapat menjadi dasar pengakhiran Perjanjian, pelaksanaannya tetap mengacu pada ketentuan mengenai pemutusan Perjanjian sebagaimana diatur dalam Perjanjian ini.',
                                         ],
                                     ],
-                                ],
-                                [
-                                    'p' => 'Hasil evaluasi dituangkan dalam berita acara atau dokumen tertulis yang menjadi dasar bagi PARA PIHAK untuk melakukan perbaikan pelaksanaan Perjanjian atau perubahan Perjanjian berdasarkan kesepakatan PARA PIHAK.',
-                                ],
-                                [
-                                    'p' => 'Dalam hal hasil evaluasi menunjukkan adanya kondisi yang dapat menjadi dasar pengakhiran Perjanjian, pelaksanaannya tetap mengacu pada ketentuan mengenai pemutusan Perjanjian sebagaimana diatur dalam Perjanjian ini',
                                 ],
                             ],
                         ],
@@ -797,25 +783,26 @@ PARA PIHAK wajib melakukan upaya yang wajar untuk mengurangi dampak Keadaan Mema
 Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender secara berturut-turut dan PARA PIHAK tidak mencapai kesepakatan mengenai kelanjutan Perjanjian, masing-masing pihak berhak mengakhiri Perjanjian dengan pemberitahuan tertulis tanpa dikenakan penalti, dengan tetap menyelesaikan seluruh hak dan kewajiban yang telah timbul sebelum tanggal efektif pengakhiran.',
                             'blocks' => [
                                 [
-                                    'p' => 'Keadaan Memaksa (Force Majeure) adalah setiap peristiwa di luar kendali dan kemampuan wajar PARA PIHAK yang secara langsung mengakibatkan sebagian atau seluruh kewajiban dalam Perjanjian ini tidak dapat dilaksanakan, termasuk namun tidak terbatas pada bencana alam, kebakaran, perang, kerusuhan, wabah penyakit, pemogokan, gangguan jaringan berskala besar, kegagalan sistem di luar kendali PARA PIHAK, kebijakan Pemerintah, atau peristiwa lain yang sejenis.',
+                                    'p' => 'Keadaan Memaksa (Force Majeure) adalah setiap peristiwa di luar kendali dan kemampuan wajar PARA PIHAK yang secara langsung mengakibatkan sebagian atau seluruh kewajiban dalam Perjanjian ini tidak dapat dilaksanakan, termasuk namun tidak terbatas pada bencana alam, kebakaran, perang, kerusuhan, wabah penyakit, pemogokan, gangguan jaringan berskala besar, kegagalan sistem di luar kendali PARA PIHAK, kebijakan Pemerintah, atau peristiwa lain yang sejenis. Sehubungan dengan hal tersebut:',
                                 ],
                                 [
-                                    'p' => 'PIHAK yang mengalami Keadaan Memaksa wajib memberitahukan secara tertulis kepada pihak lainnya paling lambat 14 (empat belas) Hari Kalender sejak diketahui atau seharusnya diketahui terjadinya Keadaan Memaksa, disertai penjelasan mengenai dampak terhadap pelaksanaan Perjanjian.',
-                                ],
-                                [
-                                    'p' => 'Selama Keadaan Memaksa berlangsung, kewajiban PARA PIHAK yang terdampak ditangguhkan sepanjang tidak dapat dilaksanakan akibat Keadaan Memaksa. Penangguhan tersebut tidak menghapus kewajiban yang telah timbul sebelum terjadinya Keadaan Memaksa.',
-                                ],
-                                [
-                                    'p' => 'PARA PIHAK wajib melakukan upaya yang wajar untuk mengurangi dampak Keadaan Memaksa dan melanjutkan pelaksanaan Perjanjian segera setelah keadaan tersebut berakhir.',
-                                ],
-                                [
-                                    'p' => 'Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender secara berturut-turut dan PARA PIHAK tidak mencapai kesepakatan mengenai kelanjutan Perjanjian, masing-masing pihak berhak mengakhiri Perjanjian dengan pemberitahuan tertulis tanpa dikenakan penalti, dengan tetap menyelesaikan seluruh hak dan kewajiban yang telah timbul sebelum tanggal efektif pengakhiran.',
+                                    'ol' => [
+                                        'type' => '1',
+                                        'items' => [
+                                            'PIHAK yang mengalami Keadaan Memaksa wajib memberitahukan secara tertulis kepada pihak lainnya paling lambat 14 (empat belas) Hari Kalender sejak diketahui atau seharusnya diketahui terjadinya Keadaan Memaksa, disertai penjelasan mengenai dampak terhadap pelaksanaan Perjanjian.',
+                                            'Selama Keadaan Memaksa berlangsung, kewajiban PARA PIHAK yang terdampak ditangguhkan sepanjang tidak dapat dilaksanakan akibat Keadaan Memaksa. Penangguhan tersebut tidak menghapus kewajiban yang telah timbul sebelum terjadinya Keadaan Memaksa.',
+                                            'PARA PIHAK wajib melakukan upaya yang wajar untuk mengurangi dampak Keadaan Memaksa dan melanjutkan pelaksanaan Perjanjian segera setelah keadaan tersebut berakhir.',
+                                            'Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender secara berturut-turut dan PARA PIHAK tidak mencapai kesepakatan mengenai kelanjutan Perjanjian, masing-masing pihak berhak mengakhiri Perjanjian dengan pemberitahuan tertulis tanpa dikenakan penalti, dengan tetap menyelesaikan seluruh hak dan kewajiban yang telah timbul sebelum tanggal efektif pengakhiran.',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
                         [
                             'judul' => 'KOMUNIKASI/PEMBERITAHUAN',
-                            'text' => '',
+                            'text' => 'Segala pemberitahuan yang diisyaratkan atau diperkenankan menurut perjanjian kerjasama ini harus dibuat secara tertulis dan dapat dikirimkan melalui email, surat tercatat atau dikirimkan secara langsung melalui kurir kepada alamat-alamat dibawah ini: PIHAK PERTAMA dan PIHAK KEDUA.
+
+Jika salah satu pihak mengganti atau mengubah alamatnya atau hal-hal terkait lainnya sehubungan dengan alamat ini, maka pihak tersebut harus memberitahukan penggantian dan perubahan tersebut kepada pihak lainnya.',
                             'blocks' => [
                                 [
                                     'ol' => [
@@ -860,35 +847,28 @@ Perjanjian ini dibuat tanpa adanya paksaan, kekhilafan, atau penipuan dari pihak
 Perjanjian ini dibuat dalam 2 (dua) rangkap asli yang masing-masing mempunyai kekuatan hukum yang sama, dan mulai berlaku sejak tanggal ditandatangani oleh PARA PIHAK.',
                             'blocks' => [
                                 [
-                                    'p' => 'Setiap perselisihan yang timbul sehubungan dengan pelaksanaan atau penafsiran Perjanjian ini akan diselesaikan terlebih dahulu secara musyawarah untuk mufakat dalam waktu paling lama 30 (tiga puluh) Hari Kalender sejak salah satu pihak menyampaikan pemberitahuan tertulis mengenai adanya perselisihan.',
-                                ],
-                                [
-                                    'p' => 'Apabila musyawarah sebagaimana dimaksud pada ayat (1) tidak mencapai kesepakatan, PARA PIHAK sepakat untuk menyelesaikan perselisihan melalui Pengadilan Negeri Cirebon di wilayah hukum kedudukan PIHAK PERTAMA, tanpa mengurangi hak PIHAK PERTAMA untuk mengajukan gugatan atau tuntutan lain sesuai dengan ketentuan peraturan perundang-undangan.',
-                                ],
-                                [
-                                    'p' => 'Selama proses penyelesaian perselisihan berlangsung, PARA PIHAK tetap wajib melaksanakan bagian Perjanjian yang tidak menjadi objek perselisihan.',
-                                ],
-                                [
-                                    'p' => 'Setiap perubahan, penambahan, atau pengurangan terhadap Perjanjian ini hanya sah apabila dibuat addendum/amandemen secara tertulis dan ditandatangani oleh PARA PIHAK atau wakilnya yang sah, serta menjadi bagian yang tidak terpisahkan dari Perjanjian ini.',
-                                ],
-                                [
-                                    'p' => 'Apabila terdapat ketentuan dalam Perjanjian ini yang dinyatakan tidak sah, tidak berlaku, atau tidak dapat dilaksanakan berdasarkan putusan pengadilan atau ketentuan peraturan perundang-undangan, ketentuan lainnya tetap berlaku dan mengikat PARA PIHAK.',
-                                ],
-                                [
-                                    'p' => 'PARA PIHAK menyatakan bahwa:',
-                                ],
-                                [
                                     'ol' => [
                                         'type' => '1',
                                         'items' => [
-                                            'telah membaca, memahami, dan menyetujui seluruh isi Perjanjian ini;',
-                                            'memiliki kewenangan yang sah untuk menandatangani dan melaksanakan Perjanjian ini;',
-                                            'Perjanjian ini dibuat tanpa adanya paksaan, kekhilafan, atau penipuan dari pihak mana pun.',
+                                            'Setiap perselisihan yang timbul sehubungan dengan pelaksanaan atau penafsiran Perjanjian ini akan diselesaikan terlebih dahulu secara musyawarah untuk mufakat dalam waktu paling lama 30 (tiga puluh) Hari Kalender sejak salah satu pihak menyampaikan pemberitahuan tertulis mengenai adanya perselisihan.',
+                                            'Apabila musyawarah sebagaimana dimaksud pada ayat (1) tidak mencapai kesepakatan, PARA PIHAK sepakat untuk menyelesaikan perselisihan melalui Pengadilan Negeri Cirebon di wilayah hukum kedudukan PIHAK PERTAMA, tanpa mengurangi hak PIHAK PERTAMA untuk mengajukan gugatan atau tuntutan lain sesuai dengan ketentuan peraturan perundang-undangan.',
+                                            'Selama proses penyelesaian perselisihan berlangsung, PARA PIHAK tetap wajib melaksanakan bagian Perjanjian yang tidak menjadi objek perselisihan.',
+                                            'Setiap perubahan, penambahan, atau pengurangan terhadap Perjanjian ini hanya sah apabila dibuat addendum/amandemen secara tertulis dan ditandatangani oleh PARA PIHAK atau wakilnya yang sah, serta menjadi bagian yang tidak terpisahkan dari Perjanjian ini.',
+                                            'Apabila terdapat ketentuan dalam Perjanjian ini yang dinyatakan tidak sah, tidak berlaku, atau tidak dapat dilaksanakan berdasarkan putusan pengadilan atau ketentuan peraturan perundang-undangan, ketentuan lainnya tetap berlaku dan mengikat PARA PIHAK.',
+                                            [
+                                                'text' => 'PARA PIHAK menyatakan bahwa:',
+                                                'children' => [
+                                                    'type' => 'a',
+                                                    'items' => [
+                                                        'telah membaca, memahami, dan menyetujui seluruh isi Perjanjian ini;',
+                                                        'memiliki kewenangan yang sah untuk menandatangani dan melaksanakan Perjanjian ini;',
+                                                        'Perjanjian ini dibuat tanpa adanya paksaan, kekhilafan, atau penipuan dari pihak mana pun.',
+                                                    ],
+                                                ],
+                                            ],
+                                            'Perjanjian ini dibuat dalam 2 (dua) rangkap asli yang masing-masing mempunyai kekuatan hukum yang sama, dan mulai berlaku sejak tanggal ditandatangani oleh PARA PIHAK.',
                                         ],
                                     ],
-                                ],
-                                [
-                                    'p' => 'Perjanjian ini dibuat dalam 2 (dua) rangkap asli yang masing-masing mempunyai kekuatan hukum yang sama, dan mulai berlaku sejak tanggal ditandatangani oleh PARA PIHAK.',
                                 ],
                             ],
                         ],
@@ -1255,7 +1235,8 @@ Fibertrust memberikan tanggapan, diteksi dan perbaikan dengan ketentuan sebagai 
                                 ],
                                 [
                                     'table' => [
-                                        'cols' => [7, 23, 20, 49],
+                                        'cols' => [7, 23, 20, 50],
+                                        'columnGroup' => true,
                                         'atomic' => true,
                                         'rows' => [
                                             [

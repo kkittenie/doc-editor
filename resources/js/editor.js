@@ -2134,7 +2134,15 @@ const normalizeTableGrid = (table) => {
     });
     if (maxCols < 1) maxCols = 1;
 
-    if (colWidths.length < maxCols) {
+    // Colgroup adalah sumber kebenaran lebar kolom (mis. Matriks Eskalasi
+    // kemitraan 7/23/20/50). Jika valid, kunci dan jangan ditimpa inferensi
+    // per-sel — baris rowspan hanya punya 1 sel nyata sehingga inferensi
+    // selalu inkonsisten untuk tabel seperti ini.
+    const colgroupTotal = colWidths.reduce((sum, w) => sum + (w || 0), 0);
+    const colgroupLocked = colWidths.length === maxCols
+        && Math.abs(colgroupTotal - 100) <= 1;
+
+    if (!colgroupLocked && colWidths.length < maxCols) {
         const inferredWidths = Array(maxCols).fill(null);
         grid.forEach((rowData) => {
             rowData.forEach((cell, ci) => {
@@ -2193,6 +2201,20 @@ const normalizeTableGrid = (table) => {
         tblStyle += ' width:100%;';
     }
     table.setAttribute('style', tblStyle.trim());
+
+    // Tulis ulang colgroup agar proporsi kolom terkunci di DOM preview
+    // (Quill membuang colgroup asli saat paste tanpa ini).
+    if (colWidths.length === maxCols && maxCols > 0) {
+        const existing = table.querySelector('colgroup');
+        if (existing) existing.remove();
+        const cg = document.createElement('colgroup');
+        colWidths.forEach((w) => {
+            const col = document.createElement('col');
+            col.setAttribute('width', Number(w).toFixed(2) + '%');
+            cg.appendChild(col);
+        });
+        table.insertBefore(cg, table.firstChild);
+    }
 };
 
 const preprocessContractTables = (html) => {

@@ -45,6 +45,16 @@ class Col {
     this.style = {};
   }
   getAttribute(name) { return this.attributes[name] || null; }
+  setAttribute(name, value) { this.attributes[name] = value; }
+}
+
+class ColgroupMock {
+  constructor(widths) {
+    this.cols = widths.map((width) => new Col(width));
+  }
+  querySelectorAll() { return this.cols; }
+  appendChild(col) { this.cols.push(col); }
+  remove() { this.removed = true; }
 }
 
 class Row {
@@ -59,6 +69,7 @@ class Colgroup {
     this.cols = widths.map((width) => new Col(width));
   }
   querySelectorAll() { return this.cols; }
+  appendChild(col) { this.cols.push(col); }
   remove() { this.removed = true; }
 }
 
@@ -67,20 +78,24 @@ function createTable(widths, colgroup = null) {
   return {
     rows,
     colgroup,
+    firstChild: null,
     attributes: {},
     querySelector(selector) { return selector === 'colgroup' ? this.colgroup : null; },
     getAttribute(name) { return this.attributes[name] || null; },
     setAttribute(name, value) { this.attributes[name] = value; },
+    insertBefore(node) { this.colgroup = node; },
   };
 }
+
+const fakeDocument = {
+  createDocumentFragment: () => new Fragment(),
+  createElement: (tag) => (String(tag).toLowerCase() === 'colgroup' ? new Colgroup([]) : new Cell()),
+};
 
 const normalize = new Function(
   'document',
   `${src.slice(start, end)}; return normalizeTableGrid;`
-)({
-  createDocumentFragment: () => new Fragment(),
-  createElement: () => new Cell(),
-});
+)(fakeDocument);
 
 test('keeps inline proportional widths when normalizing a table without colgroup', () => {
   const table = createTable([7, 13, 22, 12, 14, 14, 18]);
@@ -110,10 +125,24 @@ test('retains proportional column groups when normalizing editor tables', () => 
 
   normalize(table);
 
-  assert.strictEqual(table.colgroup, colgroup);
-  assert.strictEqual(colgroup.removed, undefined);
+  assert.deepStrictEqual(
+    table.colgroup.cols.map((col) => col.getAttribute('width')),
+    ['7.00%', '13.00%', '22.00%', '12.00%', '14.00%', '14.00%', '18.00%']
+  );
   assert.deepStrictEqual(
     table.rows[0].children.map((cell) => cell.style.width),
     ['7.00%', '13.00%', '22.00%', '12.00%', '14.00%', '14.00%', '18.00%']
+  );
+});
+
+test('locks colgroup widths for rowspan tables instead of inferring per-cell', () => {
+  const colgroup = new Colgroup([7, 23, 20, 50]);
+  const table = createTable([null, null, null, null], colgroup);
+
+  normalize(table);
+
+  assert.deepStrictEqual(
+    table.colgroup.cols.map((col) => col.getAttribute('width')),
+    ['7.00%', '23.00%', '20.00%', '50.00%']
   );
 });
