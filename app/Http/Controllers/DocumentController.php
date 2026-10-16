@@ -1001,14 +1001,8 @@ class DocumentController extends Controller
 
     private function sanitizePayungTableLayout(string $html): string
     {
-        $doc = new \DOMDocument('1.0', 'UTF-8');
-        // Paksa libxml membaca input sebagai UTF-8. Tanpa deklarasi ini libxml
-        // mengasumsikan ISO-8859-1 sehingga NBSP (C2 A0) terbelah jadi dua char
-        // dan saveHTML merusaknya jadi "&Acirc;&nbsp;" (juga merusak “ ”, €, dll).
-        @$doc->loadHTML(
-            '<?xml encoding="UTF-8">' . $html,
-            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
-        );
+        $doc = new \DOMDocument();
+        @$doc->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
         $xpath = new \DOMXPath($doc);
         $tables = $xpath->query('//table');
 
@@ -1091,11 +1085,7 @@ class DocumentController extends Controller
 
         $doc->normalize();
 
-        $out = $doc->saveHTML() ?? $html;
-        // Buang PI encoding yang ikut ter-serialize, lalu kembalikan NBSP mentah
-        // (saveHTML mengeluarkannya sebagai entitas &nbsp;).
-        $out = str_replace('<?xml encoding="UTF-8">', '', $out);
-        return str_replace('&nbsp;', "\u{00A0}", $out);
+        return $doc->saveHTML();
     }
 
     private function styleContractPartyNames(string $text): string
@@ -1946,6 +1936,64 @@ class DocumentController extends Controller
         }
 
         return response()->json($data);
+    }
+
+    public function devPreviewIndex()
+    {
+        abort_unless(Auth::user()->hasRole('admin'), 403);
+
+        $labels = [
+            'kontrak-kemitraan'       => ['name' => 'Kontrak Kemitraan',       'code' => 'TPL-KM-05'],
+            'kontrak-colocation'      => ['name' => 'Kontrak Colocation',      'code' => 'TPL-CO-06'],
+            'kontrak-managed-service' => ['name' => 'Kontrak Managed Service', 'code' => 'TPL-MS-07'],
+            'kontrak-soho'            => ['name' => 'Jasa SOHO',               'code' => 'TPL-SH-08'],
+            'kontrak-payung'          => ['name' => 'Kontrak Payung Metro',    'code' => 'TPL-KP-09'],
+        ];
+
+        $cards = [];
+        foreach (\App\Data\ContractTemplates::all() as $key => $tpl) {
+            $cards[] = [
+                'key'   => $key,
+                'name'  => $labels[$key]['name'] ?? $key,
+                'code'  => $labels[$key]['code'] ?? '',
+                'title' => (string) ($tpl['title'] ?? $key),
+            ];
+        }
+
+        return view('pages.dev-preview', [
+            'title' => 'Uji Coba Template (DEV)',
+            'cards' => $cards,
+        ]);
+    }
+
+    public function devPreview(string $template)
+    {
+        abort_unless(Auth::user()->hasRole('admin'), 403);
+
+        $data = $this->templateData($template);
+
+        if (!$data) {
+            abort(404, 'Template tidak ditemukan.');
+        }
+
+        $nomorSurat = (string) ($data['header_data']['nomorSurat'] ?? '');
+        if (preg_match('/^([A-Z]+)\//', $nomorSurat, $m)) {
+            $nomorSurat = $this->nextDocumentNumber($m[1]);
+        }
+
+        $request = Request::create('/documents', 'POST', [
+            'title'       => 'UJI — ' . (string) ($data['title'] ?? $template),
+            'header_data' => [
+                'nomorSurat' => $nomorSurat,
+                'content'    => $this->buildDefaultHeaderHtml(),
+            ],
+            'footer_data' => ['content' => ''],
+            'body_html'   => '',
+            'type'        => 'surat',
+            'template'    => $template,
+        ]);
+
+        return $this->store($request);
     }
 
     public function uploadLogo(Request $request)
