@@ -411,7 +411,8 @@ test('render numbering selektif: blok yang memang list me-render menjadi <ol>', 
     expect($html)->toContain('list-style-type:lower-alpha');
     expect(strpos($html, '<ol'))->toBeInt();
     // rincian hak PIHAK PERTAMA adalah daftar (nama pihak di-bold oleh renderer)
-    expect($html)->toContain('<li>menerima pembayaran dari ');
+    expect($html)->toContain('<li value=');
+    expect($html)->toContain('menerima pembayaran dari ');
 
     // colocation: ayat pasal bernomor + sub-list A + lanjutan start
     $tpl  = ContractTemplates::find('kontrak-colocation');
@@ -645,16 +646,16 @@ test('bug kolom ketiga menjaga rekening dalam tabel dan poin pembayaran yang dim
     expect($payungItems[9]['children']['items'])->toHaveCount(2);
     $payungHtml = contractBuildBodyHtml($payung, true);
     expect($payungHtml)->toContain('page-break-before:always;');
-    expect($payungHtml)->toContain('<li value="1">');
-    expect($payungHtml)->toContain('<li value="2" style="page-break-before:always;">');
-    expect($payungHtml)->toContain('<li value="10">');
+    expect($payungHtml)->toContain('<li value="1" style="list-style-type:decimal;">');
+    expect($payungHtml)->toContain('<li value="2" style="list-style-type:decimal; page-break-before:always;">');
+    expect($payungHtml)->toContain('<li value="10" style="list-style-type:decimal;">');
     expect($payungHtml)->toContain('1340001209104');
     expect($payungHtml)->toContain('010701003038305');
     expect($payungHtml)->toContain('ql-liststyle-alpha');
     expect($payungHtml)->toContain('class="ct-list ql-liststyle-upperalpha"');
-    expect($payungHtml)->toContain('start="2" class="ct-list ql-liststyle-upperalpha contract-keep-with-next"');
-    expect($payungHtml)->toContain('start="3" class="ct-list ql-liststyle-upperalpha contract-keep-with-next"');
-    expect($payungHtml)->toContain('start="4" class="ct-list ql-liststyle-upperalpha contract-keep-with-next"');
+    expect($payungHtml)->toContain('start="2" class="ct-list ql-liststyle-upperalpha contract-keep-with-next" type="A"');
+    expect($payungHtml)->toContain('start="3" class="ct-list ql-liststyle-upperalpha contract-keep-with-next" type="A"');
+    expect($payungHtml)->toContain('start="4" class="ct-list ql-liststyle-upperalpha contract-keep-with-next" type="A"');
     expect($payungHtml)->toContain('<thead><tr><th');
     expect($payungHtml)->toContain('</thead><tbody>');
     expect($payungHtml)->toContain('padding:2pt 2pt;');
@@ -702,7 +703,7 @@ test('bug kolom ketiga menjaga rekening dalam tabel dan poin pembayaran yang dim
     expect($detailTableHtml[0] ?? '')->toContain('Masa Berlaku');
     expect($detailHtml)->toContain('<p class="contract-keep-with-next">SLA Availability = 99,5%</p>');
     expect($detailHtml)->toContain('class="ct-list ql-liststyle-upperalpha contract-keep-with-next"');
-    expect($detailHtml)->toContain('start="4" class="ct-list ql-liststyle-upperalpha contract-keep-with-next"');
+    expect($detailHtml)->toContain('start="4" class="ct-list ql-liststyle-upperalpha contract-keep-with-next" type="A"');
     expect($payungHtml)->toContain('contract-payung-attachment-grid');
     expect(substr_count($payungHtml, 'class="contract-table-bordered contract-payung-attachment-grid"'))->toBe(1);
     preg_match_all('/<table class="contract-table-bordered contract-table-keep-rows contract-payung-attachment-grid[^"]*"/', $payungHtml, $serviceTableTags);
@@ -955,11 +956,11 @@ test('managed service: pasal 14 lengkap dan lampiran A muncul sebelum lampiran B
     $html = contractBuildBodyHtml($tpl, true);
 
     // Verifikasi Pasal 14 ter-render lengkap dengan nilai 1..5
-    expect($html)->toContain('<li value="1">Setiap perubahan, penambahan');
-    expect($html)->toContain('<li value="2" style="page-break-before:always;">Seluruh Lampiran dalam Perjanjian');
-    expect($html)->toContain('<li value="3"><strong>PARA PIHAK</strong> sepakat dan setuju');
-    expect($html)->toContain('<li value="4"><strong>Para pihak</strong> menjamin bahwa');
-    expect($html)->toContain('<li value="5">Perjanjian ini dibuat dan ditandatangani');
+    expect($html)->toContain('<li value="1" style="list-style-type:decimal;">Setiap perubahan, penambahan');
+    expect($html)->toContain('<li value="2" style="list-style-type:decimal; page-break-before:always;">Seluruh Lampiran dalam Perjanjian');
+    expect($html)->toContain('<li value="3" style="list-style-type:decimal;"><strong>PARA PIHAK</strong> sepakat dan setuju');
+    expect($html)->toContain('<li value="4" style="list-style-type:decimal;"><strong>Para pihak</strong> menjamin bahwa');
+    expect($html)->toContain('<li value="5" style="list-style-type:decimal;">Perjanjian ini dibuat dan ditandatangani');
 
     // Urutan Lampiran: Lampiran A harus sebelum Lampiran B
     $posLampA = strpos($html, 'LAMPIRAN A');

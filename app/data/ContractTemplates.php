@@ -93,6 +93,7 @@ Aplikasi Reseller adalah sistem aplikasi yang disediakan oleh PIHAK PERTAMA untu
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'Perjanjian adalah Perjanjian Kerja Sama Jual Kembali Jasa Layanan Akses Internet beserta seluruh lampiran, perubahan, addendum, dan dokumen lain yang merupakan satu kesatuan yang tidak terpisahkan dengan Perjanjian ini.',
                                             'Layanan adalah jasa akses internet yang diselenggarakan oleh PIHAK PERTAMA berdasarkan izin penyelenggaraan yang berlaku, termasuk seluruh fasilitas, jaringan, sistem, aplikasi, perangkat, dan layanan pendukung yang berkaitan.',
@@ -123,6 +124,7 @@ Paket Jasa Layanan Akses Internet yang akan dijual kembali oleh PIHAK KEDUA kepa
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'Ruang lingkup dalam Perjanjian ini adalah kerjasama Jual Kembali Jasa Layanan Akses Internet milik PIHAK PERTAMA oleh PIHAK KEDUA;',
                                             'Lokasi/wilayah serta Konfigurasi Teknis Jasa Layanan Akses Internet yang akan dijual kembali oleh PIHAK KEDUA kepada Pelanggan sebagaimana tercantum pada Lampiran I Perjanjian ini;',
@@ -145,6 +147,7 @@ tidak ada pemberitahuan tertulis mengenai pengakhiran Perjanjian dari Pihak Kedu
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'Perjanjian ini berlaku sejak tanggal ditandatangani oleh PARA PIHAK dan tetap berlaku untuk jangka waktu 1 (satu) tahun, sebagaimana tercantum dalam Lampiran I, kecuali diakhiri lebih dahulu sesuai ketentuan dalam Perjanjian ini.',
                                             [
@@ -239,6 +242,7 @@ Hak dan kewajiban yang diatur dalam Pasal ini tidak mengurangi hak dan kewajiban
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'menerima pembayaran dari PIHAK KEDUA sesuai dengan ketentuan Perjanjian;',
                                             'melakukan verifikasi, audit, dan pengawasan terhadap pelaksanaan kerja sama, termasuk data pelanggan, data penjualan, penggunaan jaringan, dan kepatuhan PIHAK KEDUA terhadap Perjanjian;',
@@ -258,6 +262,7 @@ Hak dan kewajiban yang diatur dalam Pasal ini tidak mengurangi hak dan kewajiban
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'menyediakan Layanan sesuai spesifikasi layanan yang disepakati;',
                                             'memberikan dukungan teknis, aktivasi layanan, pemeliharaan jaringan, dan penanganan gangguan sesuai ketentuan SLA;',
@@ -276,6 +281,7 @@ Hak dan kewajiban yang diatur dalam Pasal ini tidak mengurangi hak dan kewajiban
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'memperoleh Layanan sesuai spesifikasi layanan yang disepakati;',
                                             'memperoleh dukungan teknis, pelatihan, dan pendampingan operasional sesuai kebutuhan pelaksanaan kerja sama;',
@@ -293,6 +299,7 @@ Hak dan kewajiban yang diatur dalam Pasal ini tidak mengurangi hak dan kewajiban
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'memasarkan dan menjual Layanan sesuai ketentuan Perjanjian, standar operasional, dan kebijakan PIHAK PERTAMA;',
                                             'membayar seluruh kewajiban finansial kepada PIHAK PERTAMA tepat waktu;',
@@ -344,6 +351,7 @@ Atas Nama   : PT Bina Informatika Solusi',
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'Biaya yang wajib dibayarkan oleh PIHAK KEDUA kepada PIHAK PERTAMA meliputi biaya Layanan Akses Internet internet dan biaya administrasi bulanan;',
                                             'Biaya Layanan dan Instalasi jasa Layanan Akses Internet sebagaimana diuraikan dalam Lampiran I;',
@@ -387,6 +395,7 @@ Penagihan kepada Pelanggan menjadi dasar bagi PARA PIHAK untuk melakukan perhitu
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'Penagihan biaya Layanan Akses Internet dari Pelanggan dilakukan oleh PIHAK KEDUA;',
                                             'PIHAK KEDUA bertanggungjawab atas upaya-upaya penagihan kepada Pelanggan;',
@@ -405,6 +414,7 @@ Mekanisme dan Standar Operasional Prosedur (S.O.P) untuk pengaduan Pelanggan ter
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'PIHAK KEDUA wajib untuk menyediakan form pengaduan Pelanggan;',
                                             'Mekanisme dan Standar Operasional Prosedur (S.O.P) untuk pengaduan Pelanggan tercantum dalam Lampiran III.',
@@ -426,6 +436,7 @@ Dalam hal terjadi Pemutusan Layanan Permanen sebagaimana dimaksud dalam ayat (3)
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'Apabila PIHAK KEDUA melalaikan kewajiban sebagaimana   dimaksud dalam Pasal 5 ayat (5), maka PIHAK PERTAMA akan memberikan Surat Peringatan kepada PIHAK KEDUA sebanyak 3 (tiga) kali dengan jangka waktu masing-masing Surat Peringatan selama 7 (tujuh) hari kerja. Apabila sampai Surat Peringatan ke-2, PIHAK KEDUA belum melakukan pembayaran, maka PIHAK PERTAMA berhak melakukan Isolir terhadap Layanan Akses Internet;',
                                             'PIHAK PERTAMA akan membuka Isolir dalam waktu selambat-lambatnya 3 (tiga) Hari Kerja setelah PIHAK KEDUA membayar seluruh kewajibannya;',
@@ -451,6 +462,7 @@ Pelanggaran terhadap ketentuan dalam Pasal ini merupakan wanprestasi yang dapat 
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'PARA PIHAK wajib menjaga kerahasiaan seluruh data, informasi, dokumen, sistem, maupun informasi lain yang diperoleh sehubungan dengan pelaksanaan Perjanjian ini dan tidak mengungkapkannya kepada pihak lain tanpa persetujuan tertulis dari pihak yang berhak, kecuali diwajibkan berdasarkan ketentuan peraturan perundang-undangan atau perintah instansi yang berwenang.',
                                             'Seluruh data operasional jaringan, data penggunaan layanan, konfigurasi sistem, dokumentasi teknis, serta data lain yang dihasilkan atau tersimpan dalam sistem milik PIHAK PERTAMA merupakan milik PIHAK PERTAMA.',
@@ -481,6 +493,7 @@ Ketentuan mengenai spesifikasi perangkat, instalasi, pemeliharaan, penggantian, 
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'Seluruh perangkat, jaringan, infrastruktur, aplikasi, sistem, dan fasilitas pendukung yang disediakan oleh PIHAK PERTAMA untuk penyelenggaraan Layanan tetap menjadi milik PIHAK PERTAMA, kecuali disepakati lain secara tertulis.',
                                             'PIHAK KEDUA wajib menggunakan, menjaga, dan memelihara seluruh perangkat yang dikuasainya sesuai dengan petunjuk penggunaan serta tidak mengalihkan, memindahtangankan, menyewakan, menjaminkan, memodifikasi, atau menggunakannya untuk kepentingan selain pelaksanaan Perjanjian tanpa persetujuan tertulis dari PIHAK PERTAMA.',
@@ -514,6 +527,7 @@ Pelanggaran terhadap ketentuan dalam Pasal ini memberikan hak kepada PIHAK PERTA
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'PIHAK PERTAMA memberikan kepada PIHAK KEDUA hak yang terbatas, tidak eksklusif, tidak dapat dialihkan, dan tidak dapat disublisensikan untuk menggunakan merek, logo, dan materi promosi milik PIHAK PERTAMA semata-mata dalam rangka pelaksanaan Perjanjian ini.',
                                             'PIHAK KEDUA wajib menggunakan merek, logo, dan identitas perusahaan milik PIHAK PERTAMA sesuai dengan pedoman, standar, dan ketentuan yang ditetapkan oleh PIHAK PERTAMA serta tidak melakukan perubahan, penghapusan, atau penggunaan yang dapat merugikan nama baik PIHAK PERTAMA.',
@@ -566,6 +580,7 @@ Apabila PIHAK KEDUA tidak memperbaiki wanprestasi dalam jangka waktu yang diteta
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             [
                                                 'text' => 'PIHAK KEDUA dinyatakan melakukan wanprestasi apabila:',
@@ -658,6 +673,7 @@ PARA PIHAK sepakat dan setuju untuk mengesampikan berlakunya Pasal 1266 KUHPerda
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'jangka waktu Perjanjian berakhir dan tidak diperpanjang;',
                                             'PARA PIHAK sepakat secara tertulis untuk mengakhiri Perjanjian;',
@@ -672,6 +688,7 @@ PARA PIHAK sepakat dan setuju untuk mengesampikan berlakunya Pasal 1266 KUHPerda
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'melakukan wanprestasi yang tidak diperbaiki dalam jangka waktu yang ditentukan;',
                                             'melakukan pelanggaran yang bersifat material;',
@@ -690,6 +707,7 @@ PARA PIHAK sepakat dan setuju untuk mengesampikan berlakunya Pasal 1266 KUHPerda
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'PIHAK KEDUA wajib menghentikan penggunaan merek, logo, sistem, aplikasi, dan fasilitas milik PIHAK PERTAMA;',
                                             'PIHAK KEDUA wajib mengembalikan seluruh perangkat, dokumen, data, dan aset milik PIHAK PERTAMA yang berada dalam penguasaannya; dan',
@@ -715,6 +733,7 @@ Pelaksanaan ketentuan dalam Pasal ini tidak menghapus kewajiban PARA PIHAK yang 
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'Dalam hal terjadi Pemutusan Layanan Permanen sebagaimana dimaksud dalam Pasal 13 ayat (2), PIHAK PERTAMA tidak bertanggung jawab atas hubungan hukum, hak, kewajiban, kerugian, maupun tuntutan antara PIHAK KEDUA dan Pelanggan.',
                                             'Untuk menjaga keberlangsungan Layanan Akses Internet kepada Pelanggan, PIHAK PERTAMA berhak menawarkan layanan secara langsung kepada Pelanggan atau memfasilitasi pengalihan layanan kepada Penyelenggara Jasa Layanan Akses Internet lainnya, sepanjang memungkinkan secara teknis dan sesuai dengan ketentuan yang berlaku.',
@@ -750,6 +769,7 @@ Dalam hal hasil evaluasi menunjukkan adanya kondisi yang dapat menjadi dasar pen
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             [
                                                 'text' => 'PARA PIHAK sepakat melakukan evaluasi atas pelaksanaan Perjanjian ini setiap 6 (enam) bulan sejak Perjanjian mulai berlaku. Evaluasi dilakukan melalui Forum Konsultasi yang dihadiri oleh wakil PARA PIHAK yang berwenang. Evaluasi meliputi antara lain:',
@@ -788,6 +808,7 @@ Apabila Keadaan Memaksa berlangsung lebih dari 90 (sembilan puluh) Hari Kalender
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'PIHAK yang mengalami Keadaan Memaksa wajib memberitahukan secara tertulis kepada pihak lainnya paling lambat 14 (empat belas) Hari Kalender sejak diketahui atau seharusnya diketahui terjadinya Keadaan Memaksa, disertai penjelasan mengenai dampak terhadap pelaksanaan Perjanjian.',
                                             'Selama Keadaan Memaksa berlangsung, kewajiban PARA PIHAK yang terdampak ditangguhkan sepanjang tidak dapat dilaksanakan akibat Keadaan Memaksa. Penangguhan tersebut tidak menghapus kewajiban yang telah timbul sebelum terjadinya Keadaan Memaksa.',
@@ -807,6 +828,7 @@ Jika salah satu pihak mengganti atau mengubah alamatnya atau hal-hal terkait lai
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             [
                                                 'text' => 'Segala pemberitahuan yang diisyaratkan atau diperkenankan menurut perjanjian kerjasama ini harus dibuat secara tertulis dan dapat dikirimkan melalui email, surat tercatat atau dikirimkan secara langsung melalui kurir kepada alamat-alamat dibawah ini:',
@@ -849,6 +871,7 @@ Perjanjian ini dibuat dalam 2 (dua) rangkap asli yang masing-masing mempunyai ke
                                 [
                                     'ol' => [
                                         'type' => '1',
+                                        'preserveNumbering' => true,
                                         'items' => [
                                             'Setiap perselisihan yang timbul sehubungan dengan pelaksanaan atau penafsiran Perjanjian ini akan diselesaikan terlebih dahulu secara musyawarah untuk mufakat dalam waktu paling lama 30 (tiga puluh) Hari Kalender sejak salah satu pihak menyampaikan pemberitahuan tertulis mengenai adanya perselisihan.',
                                             'Apabila musyawarah sebagaimana dimaksud pada ayat (1) tidak mencapai kesepakatan, PARA PIHAK sepakat untuk menyelesaikan perselisihan melalui Pengadilan Negeri Cirebon di wilayah hukum kedudukan PIHAK PERTAMA, tanpa mengurangi hak PIHAK PERTAMA untuk mengajukan gugatan atau tuntutan lain sesuai dengan ketentuan peraturan perundang-undangan.',
@@ -859,6 +882,7 @@ Perjanjian ini dibuat dalam 2 (dua) rangkap asli yang masing-masing mempunyai ke
                                                 'text' => 'PARA PIHAK menyatakan bahwa:',
                                                 'children' => [
                                                     'type' => 'a',
+                                                    'preserveNumbering' => true,
                                                     'items' => [
                                                         'telah membaca, memahami, dan menyetujui seluruh isi Perjanjian ini;',
                                                         'memiliki kewenangan yang sah untuk menandatangani dan melaksanakan Perjanjian ini;',

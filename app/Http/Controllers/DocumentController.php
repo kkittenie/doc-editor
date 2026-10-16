@@ -560,6 +560,12 @@ class DocumentController extends Controller
             . '((?:<(?!\/(?:p|h[1-6])\b)[^>]+>\s*)*)'
             . '(<\/(?:p|h[1-6])>)/iu';
 
+        // ── Proteksi tabel: ekstrak semua <table> sebelum regex ──
+        $tableStore = [];
+        foreach ($pages as $key => $html) {
+            $pages[$key] = $this->extractTables($html, $tableStore);
+        }
+
         foreach ($pages as $key => $html) {
             $pages[$key] = preg_replace_callback(
                 $pattern,
@@ -597,7 +603,42 @@ class DocumentController extends Controller
             );
         }
 
+        // ── Kembalikan tabel yang telah diekstrak ke tempatnya. ──
+        foreach ($pages as $key => $html) {
+            $pages[$key] = $this->restoreTables($html, $tableStore);
+        }
+
         return $pages;
+    }
+
+    /**
+     * Ekstrak semua elemen <table> dari HTML dan ganti dengan placeholder unik.
+     * Tabel disimpan di $tableStore (referensi) untuk dikembalikan nanti.
+     */
+    private function extractTables(string $html, array &$tableStore): string
+    {
+        $placeholder = 0;
+        $html = preg_replace_callback(
+            '/<table\b[^>]*>.*?<\/table>/is',
+            function ($m) use (&$tableStore, &$placeholder) {
+                $key = '{{TABLE_PLACEHOLDER_' . $placeholder++ . '}}';
+                $tableStore[$key] = $m[0];
+                return $key;
+            },
+            $html
+        );
+        return $html;
+    }
+
+    /**
+     * Kembalikan elemen <table> dari placeholder ke dalam HTML.
+     */
+    private function restoreTables(string $html, array $tableStore): string
+    {
+        foreach ($tableStore as $key => $table) {
+            $html = str_replace($key, $table, $html);
+        }
+        return $html;
     }
 
     private function listSplitChainState(\DOMElement $ol): array
@@ -1220,6 +1261,7 @@ class DocumentController extends Controller
 
         $html = '<ol'.$startAttr
             .' class="'.implode(' ', $classes).'"'
+            .' type="'.$type.'"'
             .' style="'.ContractStyle::listStyle($type, $level).'">';
         $hasItems = false;
 
@@ -1230,7 +1272,8 @@ class DocumentController extends Controller
                     continue;
                 }
                 $valueAttr = $preserveNumbering ? ' value="'.$itemNumber.'"' : '';
-                $html .= '<li'.$valueAttr.'>'.nl2br($this->styleContractPartyNames(e($item))).'</li>';
+                $liStyle   = $preserveNumbering ? ' style="list-style-type:'.ContractStyle::listCssType($type).';"' : '';
+                $html .= '<li'.$valueAttr.$liStyle.'>'.nl2br($this->styleContractPartyNames(e($item))).'</li>';
                 $itemNumber++;
                 $hasItems = true;
                 continue;
@@ -1242,10 +1285,15 @@ class DocumentController extends Controller
                     continue;
                 }
                 $valueAttr = $preserveNumbering ? ' value="'.$itemNumber.'"' : '';
-                $pageBreakStyle = !empty($item['pageBreakBefore'])
-                    ? ' style="page-break-before:always;"'
-                    : '';
-                $html .= '<li'.$valueAttr.$pageBreakStyle.'>'.nl2br($this->styleContractPartyNames(e($text)));
+                $liStyles  = [];
+                if ($preserveNumbering) {
+                    $liStyles[] = 'list-style-type:'.ContractStyle::listCssType($type).';';
+                }
+                if (!empty($item['pageBreakBefore'])) {
+                    $liStyles[] = 'page-break-before:always;';
+                }
+                $liStyle = !empty($liStyles) ? ' style="'.implode(' ', $liStyles).'"' : '';
+                $html .= '<li'.$valueAttr.$liStyle.'>'.nl2br($this->styleContractPartyNames(e($text)));
                 if (!empty($item['children']) && is_array($item['children'])) {
                     $nested = $this->contractListHtml($item['children'], $level + 1);
                     if (trim(strip_tags($nested)) !== '') {
@@ -1510,7 +1558,7 @@ class DocumentController extends Controller
             $items .= '<li>'.$this->styleContractPartyNames(e($line)).'</li>';
         }
 
-        return '<ol class="'.ContractStyle::LIST_CLASS.' ql-liststyle-'
+        return '<ol type="'.$type.'" class="'.ContractStyle::LIST_CLASS.' ql-liststyle-'
             .ContractStyle::listQuillValue($type).'" style="'
             .ContractStyle::listStyle($type).'">'.$items.'</ol>';
     }
