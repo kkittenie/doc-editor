@@ -423,7 +423,42 @@ test('render numbering selektif: blok yang memang list me-render menjadi <ol>', 
     expect(strpos($html, '<ol'))->toBeInt();
 
     // lampiran: Syarat (decimal) + Fasilitas (A..D nested decimal)
-    expect($html)->toContain('<li>Harga diatas belum termasuk PPN');
+    expect($html)->toContain('<li value="1" style="list-style-type:decimal;">Harga diatas belum termasuk PPN');
+});
+
+test('semua blok ol type 1 di setiap template memakai preserveNumbering', function () use ($keys) {
+    foreach ($keys as $key) {
+        $tpl  = ContractTemplates::find($key);
+        $body = $tpl['body_content'];
+
+        // Kumpulkan semua blok 'ol' di seluruh struktur body_content.
+        $ols  = [];
+        $walk = function ($node) use (&$walk, &$ols) {
+            if (!is_array($node)) {
+                return;
+            }
+            if (isset($node['ol']) && is_array($node['ol'])) {
+                $ols[] = $node['ol'];
+            }
+            foreach ($node as $child) {
+                if (is_array($child)) {
+                    $walk($child);
+                }
+            }
+        };
+        $walk($body);
+
+        foreach ($ols as $ol) {
+            $type = $ol['type'] ?? null;
+            if ($type === '1') {
+                // Daftar ayat bernomor wajib stabil penomorannya.
+                expect($ol['preserveNumbering'] ?? false)->toBeTrue();
+            } elseif ($type === 'A') {
+                // Penanda lampiran tetap <li> polos (lihat ContractWorkflowTest).
+                expect($ol['preserveNumbering'] ?? false)->toBeFalse();
+            }
+        }
+    }
 });
 
 test('house style kanonik: heading, judul, body, list & tabel dari token ContractStyle', function () use ($keys) {
@@ -745,13 +780,14 @@ test('bug kolom ketiga menjaga rekening dalam tabel dan poin pembayaran yang dim
     expect($sohoItems[6]['children']['items'])->toHaveCount(2);
     expect(contractBuildBodyHtml($soho, true))->toContain('1340001209104');
     expect(contractBuildBodyHtml($soho, true))->toContain('010701003038305');
+    expect(contractBuildBodyHtml($soho, true))->toContain('<li value="1" style="list-style-type:decimal;">');
 
     $managed = ContractTemplates::find('kontrak-managed-service');
     $definitions = $managed['body_content']['isi'][0]['blocks'][0]['ol'];
     expect($definitions['items'])->toHaveCount(4);
     $managedHtml = contractBuildBodyHtml($managed, true);
     expect($managedHtml)->toContain('<ol class="ct-list ql-liststyle-decimal"');
-    expect($managedHtml)->toContain('<li>“Perjanjian” adalah Perjanjian ini');
+    expect($managedHtml)->toContain('<li value="1" style="list-style-type:decimal;">“Perjanjian” adalah Perjanjian ini');
     expect($managedHtml)->toContain(
         '<p class="contract-keep-together">Apabila Layanan tidak sesuai dengan yang disepakati dalam Service Order Form, maka akan berlaku rumusan Restitusi sebagai berikut:</p>'
     );

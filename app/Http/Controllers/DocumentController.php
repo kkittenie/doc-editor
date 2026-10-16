@@ -1001,8 +1001,14 @@ class DocumentController extends Controller
 
     private function sanitizePayungTableLayout(string $html): string
     {
-        $doc = new \DOMDocument();
-        @$doc->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $doc = new \DOMDocument('1.0', 'UTF-8');
+        // Paksa libxml membaca input sebagai UTF-8. Tanpa deklarasi ini libxml
+        // mengasumsikan ISO-8859-1 sehingga NBSP (C2 A0) terbelah jadi dua char
+        // dan saveHTML merusaknya jadi "&Acirc;&nbsp;" (juga merusak “ ”, €, dll).
+        @$doc->loadHTML(
+            '<?xml encoding="UTF-8">' . $html,
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+        );
         $xpath = new \DOMXPath($doc);
         $tables = $xpath->query('//table');
 
@@ -1085,7 +1091,11 @@ class DocumentController extends Controller
 
         $doc->normalize();
 
-        return $doc->saveHTML();
+        $out = $doc->saveHTML() ?? $html;
+        // Buang PI encoding yang ikut ter-serialize, lalu kembalikan NBSP mentah
+        // (saveHTML mengeluarkannya sebagai entitas &nbsp;).
+        $out = str_replace('<?xml encoding="UTF-8">', '', $out);
+        return str_replace('&nbsp;', "\u{00A0}", $out);
     }
 
     private function styleContractPartyNames(string $text): string
