@@ -44,9 +44,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/documents/template/{template}', [DocumentController::class, 'createFromTemplate'])->name('documents.template');
     Route::post('/documents/save-as', [DocumentController::class, 'saveAsNew'])->name('documents.saveAs');
 
-    Route::get('/dev-preview', [DocumentController::class, 'devPreviewIndex'])->name('documents.devPreview.index');
-    Route::get('/dev-preview/{template}', [DocumentController::class, 'devPreview'])->name('documents.devPreview');
-
     Route::get('/', [DocumentController::class, 'chooseStart'])->name('editor.start');
 
     Route::get('/studio/{customer}', [DocumentController::class, 'chooseStart'])->name('studio.customer');
