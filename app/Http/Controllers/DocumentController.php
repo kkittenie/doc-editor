@@ -1001,8 +1001,13 @@ class DocumentController extends Controller
 
     private function sanitizePayungTableLayout(string $html): string
     {
-        $doc = new \DOMDocument();
-        @$doc->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $doc = new \DOMDocument('1.0', 'UTF-8');
+        libxml_use_internal_errors(true);
+        $doc->loadHTML(
+            '<?xml encoding="utf-8" ?>' . $html,
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+        );
+        libxml_clear_errors();
         $xpath = new \DOMXPath($doc);
         $tables = $xpath->query('//table');
 
@@ -1084,6 +1089,12 @@ class DocumentController extends Controller
         $commercialTable->parentNode->replaceChild($fragment, $identityTable);
 
         $doc->normalize();
+
+        foreach (iterator_to_array($doc->childNodes) as $node) {
+            if ($node->nodeType === XML_PI_NODE) {
+                $doc->removeChild($node);
+            }
+        }
 
         return $doc->saveHTML();
     }
