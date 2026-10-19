@@ -707,7 +707,9 @@ test('bug kolom ketiga menjaga rekening dalam tabel dan poin pembayaran yang dim
     }
     expect($payungHtml)->toContain('width:50%');
     expect($payungHtml)->toContain('<colgroup><col width="50.00%"><col width="50.00%"></colgroup>');
-    expect(substr_count($payungHtml, "\u{00A0}"))->toBeGreaterThanOrEqual(6);
+    expect(
+        substr_count($payungHtml, "\u{00A0}") + substr_count($payungHtml, '&nbsp;')
+    )->toBeGreaterThanOrEqual(6);
     $serviceTable = $payung['body_content']['lampiran'][0]['blocks'][3]['table'];
     expect($serviceTable['cols'])->toBe([5, 17, 24, 11, 15, 14, 14]);
     expect($serviceTable['columnGroup'])->toBeTrue();

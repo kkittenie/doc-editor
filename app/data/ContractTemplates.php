@@ -4,12 +4,19 @@ namespace App\Data;
 
 class ContractTemplates
 {
+    private static ?array $cache = null;
+
     public static function find(string $key): ?array
     {
         return self::all()[$key] ?? null;
     }
 
     public static function all(): array
+    {
+        return self::$cache ??= self::build();
+    }
+
+    private static function build(): array
     {
         return [
             'kontrak-kemitraan' => [

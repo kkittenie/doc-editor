@@ -308,7 +308,7 @@ class DocumentController extends Controller
 
     private function templateData(string $key): ?array
     {
-        return \App\Data\ContractTemplates::all()[$key] ?? null;
+        return ContractTemplates::find($key);
     }
 
     private function coverTemplateKeys(): array
@@ -579,7 +579,7 @@ class DocumentController extends Controller
                     $suffixVis = str_replace(["\xC2\xA0", '&nbsp;'], ' ', $suffixVis);
 
                     $empty = trim($suffixVis) === '';
-                    $sepLed = preg_match('/^\sy*[\x{2013}\x{2014}.;,:-]/u', $suffixVis) === 1;
+                    $sepLed = preg_match('/^\s*[\x{2013}\x{2014}.;,:-]/u', $suffixVis) === 1;
                     $lead = ltrim($suffixVis);
                     $upperTitle = preg_match('/^[A-Z]/u', $lead) === 1
                         && preg_match('/^[A-Z][A-Z0-9]*\b/u', $lead) === 1;
@@ -1809,14 +1809,6 @@ class DocumentController extends Controller
         $headerHtml = $this->resolveImagePathsForPdf($document->header_data['content'] ?? '');
         $isContract = (bool) ($document->body_content['contractTemplate'] ?? false);
 
-        if ($isContract) {
-            $headerHtml = str_replace(
-                'border:none; padding:0; text-align:left; font-size:',
-                'border:none; padding:0 0 0 32mm; text-align:left; font-size:',
-                $headerHtml
-            );
-        }
-
         $footerHtml = $this->resolveImagePathsForPdf($this->resolveFooterHtml($document));
         $footerHasTable = (bool) preg_match('/<table/i', $footerHtml);
         $isFibertrustFooter = str_contains($footerHtml, 'fibertrust-footer');
@@ -2060,7 +2052,7 @@ class DocumentController extends Controller
             'header_data' => ['required', 'array'],
             'body_content' => ['nullable', 'array'],
             'footer_data' => ['nullable', 'array'],
-            'signature' => ['nullable', 'array'],
+            'signature_data' => ['nullable', 'array'],
         ]);
 
         $newDocument = Document::create([
