@@ -2966,9 +2966,11 @@ Apabila terdapat istilah yang belum diatur dalam Perjanjian ini, maka akan ditaf
                                             '“Hari Kerja” adalah hari selain hari Minggu dan hari libur nasional yang ditetapkan Pemerintah Republik Indonesia.',
                                             '“Pemberitahuan Tertulis” adalah komunikasi resmi PARA PIHAK melalui surat atau media elektronik.',
                                             '“SLA (Service Level Agreement)” adalah standar tingkat layanan minimum yang dijamin oleh PIHAK PERTAMA sebagaimana tercantum dalam Lampiran SLA.',
-                                            'Apabila terdapat istilah yang belum diatur dalam Perjanjian ini, maka akan ditafsirkan sesuai ketentuan peraturan perundang-undangan yang berlaku.',
                                         ],
                                     ],
+                                ],
+                                [
+                                    'p' => 'Apabila terdapat istilah yang belum diatur dalam Perjanjian ini, maka akan ditafsirkan sesuai ketentuan peraturan perundang-undangan yang berlaku.',
                                 ],
                             ],
                         ],
