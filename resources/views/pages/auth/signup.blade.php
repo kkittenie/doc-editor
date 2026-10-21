@@ -3,22 +3,18 @@
 @section('content')
 <div class="min-h-screen grid lg:grid-cols-2 bg-white dark:bg-slate-warm-950">
 
-    <!-- ═══ LEFT : form daftar (putih, tanpa card) ═══ -->
     <div class="relative flex items-center justify-center px-6 py-12 sm:px-12 overflow-hidden">
-        <!-- tekstur grain sangat halus agar putih tidak flat -->
         <div class="absolute inset-0 pointer-events-none opacity-[0.025]"
             style="background-image: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);">
         </div>
 
         <div class="w-full max-w-[400px] relative z-10">
 
-            <!-- mini brand — hanya tampil di mobile (panel kanan tersembunyi) -->
             <div class="lg:hidden mb-10">
                 <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-crimson-700 dark:text-crimson-300">Aplikasi Legal</p>
                 <p class="text-xs text-slate-warm-500 dark:text-parchment-400 mt-1">Kelola Dokumen Resmi</p>
             </div>
 
-            <!-- Sapaan form -->
             <div class="mb-9">
                 <h1 class="font-bold text-[28px] leading-9 text-ink-900 dark:text-parchment-50 tracking-tight">
                     Buat Akun Baru
@@ -28,7 +24,6 @@
                 </p>
             </div>
 
-            <!-- Register Form tanpa card -->
         <div>
             @if ($errors->any())
             <div
@@ -108,7 +103,7 @@
                 </div>
 
                 <button type="submit"
-                    class="w-full rounded-lg bg-bronze-950 text-white py-3 text-sm font-semibold shadow-lg shadow-bronze-950/30 hover:bg-bronze-900 hover:brightness-90 active:scale-[0.98] transition-all !mt-5">
+                    class="w-full rounded-lg bg-crimson-900 text-white py-3 text-sm font-semibold shadow-lg shadow-crimson-900/30 hover:bg-crimson-950 active:scale-[0.98] transition-all !mt-5 dark:bg-crimson-800 dark:hover:bg-crimson-700 dark:shadow-black/30">
                     Buat Akun
                 </button>
             </form>
@@ -122,10 +117,8 @@
     </div>
     </div>
 
-    <!-- ═══ RIGHT : panel brand merah (partial bersama, ubah di brand-panel.blade.php) ═══ -->
     @include('pages.auth.brand-panel')
 
-    <!-- Theme Toggle (bottom-right, minimal) -->
     <div class="fixed bottom-6 right-6 z-50">
         <button @click="$store.theme.toggle()"
             class="h-10 w-10 rounded-full border border-parchment-300 bg-white text-slate-warm-500 shadow-theme-sm flex items-center justify-center hover:bg-parchment-100 transition-colors dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-300 dark:hover:bg-slate-warm-700"
