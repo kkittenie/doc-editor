@@ -501,8 +501,13 @@
   box-shadow: var(--shadow-paper-hover);
 }
 .dark .paper-sheet {
-  background: #1E2128;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.3), 0 12px 36px rgba(0,0,0,0.2);
+  color : var(--color-parchment-100);
+}
+.dark .paper-sheet .text-ink-900,
+.dark .paper-sheet .text-ink-800,
+.dark .paper-sheet .text-slate-warm-500,
+.dark .paper-sheet .text-slate-warm-600 {
+  color: var(--color-parchment-200);
 }
 
 /* A4 Page Proportions (210mm × 297mm = 1:1.4142) */
@@ -1286,4 +1291,7 @@
 }
 .contract-table-cell {
   vertical-align: top !important;
+}
+.dark body {
+  color: var(--color-parchment-200);
 }

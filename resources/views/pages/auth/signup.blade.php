@@ -121,7 +121,7 @@
 
     <div class="fixed bottom-6 right-6 z-50">
         <button @click="$store.theme.toggle()"
-            class="h-10 w-10 rounded-full border border-parchment-300 bg-white text-slate-warm-500 shadow-theme-sm flex items-center justify-center hover:bg-parchment-100 transition-colors dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-300 dark:hover:bg-slate-warm-700"
+            class="h-10 w-10 rounded-full border border-parchment-300 bg-white text-slate-warm-500 dark:text-parchment-400 shadow-theme-sm flex items-center justify-center hover:bg-parchment-100 transition-colors dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-300 dark:hover:bg-slate-warm-700"
             aria-label="Ganti tema">
                 <svg class="dark:hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="1.5">

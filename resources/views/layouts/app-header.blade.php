@@ -29,7 +29,7 @@
 
                 <!-- Theme Toggle Button -->
                 <button
-                    class="flex items-center justify-center h-9 w-9 text-slate-warm-500 rounded-lg border border-parchment-300 bg-white hover:bg-parchment-100 dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-400 dark:hover:bg-slate-warm-700 transition-colors"
+                    class="flex items-center justify-center h-9 w-9 text-slate-warm-500 dark:text-parchment-400 rounded-lg border border-parchment-300 bg-white hover:bg-parchment-100 dark:border-slate-warm-700 dark:bg-slate-warm-800 dark:text-parchment-400 dark:hover:bg-slate-warm-700 transition-colors"
                     @click="$store.theme.toggle()" title="Ganti Mode Terang/Gelap">
                     <!-- Sun icon -->
                     <svg class="hidden dark:block" width="18" height="18" viewBox="0 0 24 24" fill="none"

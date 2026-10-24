@@ -14,24 +14,24 @@
     @endif
     <div class="rounded-2xl border border-parchment-300 bg-white p-6 shadow-sm dark:border-slate-warm-800 dark:bg-slate-warm-900">
         <div class="mb-4 pb-3 border-b border-parchment-200 dark:border-slate-warm-800">
-            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-warm-500">Order Number</h2>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-warm-500 dark:text-parchment-400">Order Number</h2>
             <p class="mt-1 font-mono text-lg text-ink-900 dark:text-parchment-50">{{ $sof->order_number }}</p>
         </div>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div><span class="text-xs font-semibold uppercase text-slate-warm-500">Nomer Pelanggan</span><p class="mt-1 text-sm text-ink-900 dark:text-parchment-100">{{ $sof->customer_number ?: "—" }}</p></div>
-            <div><span class="text-xs font-semibold uppercase text-slate-warm-500">Nama Pelanggan</span><p class="mt-1 text-sm text-ink-900 dark:text-parchment-100">{{ $sof->customer_name ?: "—" }}</p></div>
-            <div><span class="text-xs font-semibold uppercase text-slate-warm-500">Nomor Kontrak</span><p class="mt-1 text-sm text-ink-900 dark:text-parchment-100">{{ $sof->contract_number ?: "—" }}</p></div>
-            <div><span class="text-xs font-semibold uppercase text-slate-warm-500">Nama Kontrak</span><p class="mt-1 text-sm text-ink-900 dark:text-parchment-100">{{ $sof->contract_name ?: "—" }}</p></div>
-            <div><span class="text-xs font-semibold uppercase text-slate-warm-500">Periode</span><p class="mt-1 text-sm text-ink-900 dark:text-parchment-100">
+            <div><span class="text-xs font-semibold uppercase text-slate-warm-500 dark:text-parchment-400">Nomer Pelanggan</span><p class="mt-1 text-sm text-ink-900 dark:text-parchment-100">{{ $sof->customer_number ?: "—" }}</p></div>
+            <div><span class="text-xs font-semibold uppercase text-slate-warm-500 dark:text-parchment-400">Nama Pelanggan</span><p class="mt-1 text-sm text-ink-900 dark:text-parchment-100">{{ $sof->customer_name ?: "—" }}</p></div>
+            <div><span class="text-xs font-semibold uppercase text-slate-warm-500 dark:text-parchment-400">Nomor Kontrak</span><p class="mt-1 text-sm text-ink-900 dark:text-parchment-100">{{ $sof->contract_number ?: "—" }}</p></div>
+            <div><span class="text-xs font-semibold uppercase text-slate-warm-500 dark:text-parchment-400">Nama Kontrak</span><p class="mt-1 text-sm text-ink-900 dark:text-parchment-100">{{ $sof->contract_name ?: "—" }}</p></div>
+            <div><span class="text-xs font-semibold uppercase text-slate-warm-500 dark:text-parchment-400">Periode</span><p class="mt-1 text-sm text-ink-900 dark:text-parchment-100">
                 @if($sof->active_date)
                     {{ $sof->active_date->format("d M Y") }}
                     @if($sof->finish_date) — {{ $sof->finish_date->format("d M Y") }} @endif
                     @if($sof->active_months) ({{ $sof->active_months }} bln) @endif
                 @else — @endif
             </p></div>
-            <div><span class="text-xs font-semibold uppercase text-slate-warm-500">Nilai Total</span>
+            <div><span class="text-xs font-semibold uppercase text-slate-warm-500 dark:text-parchment-400">Nilai Total</span>
                 <p class="mt-1 text-sm text-ink-900 dark:text-parchment-100">{{ $sof->total_value ? "Rp " . number_format((float) $sof->total_value, 0, ",", ".") : "—" }}</p></div>
-            <div class="sm:col-span-2"><span class="text-xs font-semibold uppercase text-slate-warm-500">Status</span>
+            <div class="sm:col-span-2"><span class="text-xs font-semibold uppercase text-slate-warm-500 dark:text-parchment-400">Status</span>
                 <div class="mt-2">
                     @include('partials.sof.row-status', [
                         'status' => strtolower($sof->status ?? 'draft'),
@@ -42,20 +42,20 @@
         </div>
     </div>
     <div class="mt-6 rounded-2xl border border-parchment-300 bg-white p-6 shadow-sm dark:border-slate-warm-800 dark:bg-slate-warm-900">
-        <h2 class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-warm-500">Berkas PDF</h2>
+        <h2 class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-warm-500 dark:text-parchment-400">Berkas PDF</h2>
         @if($sof->hasFile())
             <div class="flex items-center justify-between rounded-xl border border-parchment-300 bg-parchment-50/60 p-4">
-                <div><p class="text-sm font-medium text-ink-900 dark:text-parchment-100">{{ $sof->file_name ?: "berkas.pdf" }}</p><p class="text-[11px] text-slate-warm-500">Di-upload: {{ $sof->file_uploaded_at ? $sof->file_uploaded_at->format("d M Y H:i") : "—" }}</p></div>
+                <div><p class="text-sm font-medium text-ink-900 dark:text-parchment-100">{{ $sof->file_name ?: "berkas.pdf" }}</p><p class="text-[11px] text-slate-warm-500 dark:text-parchment-400">Di-upload: {{ $sof->file_uploaded_at ? $sof->file_uploaded_at->format("d M Y H:i") : "—" }}</p></div>
                 <a href="{{ route("sof.download", $sof) }}" target="_blank" class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-ink-900 px-4 text-xs font-semibold text-white hover:opacity-90">📥 Unduh</a>
             </div>
         @else
-            <p class="text-sm text-slate-warm-500">Belum ada berkas PDF. Klik "Edit" untuk meng‑upload.</p>
+            <p class="text-sm text-slate-warm-500 dark:text-parchment-400">Belum ada berkas PDF. Klik "Edit" untuk meng‑upload.</p>
         @endif
     </div>
     @if($sof->revision_notes && is_array($sof->revision_notes) && ($sof->revision_notes["reason"] ?? ""))
         <div class="mt-6 rounded-2xl border border-parchment-300 bg-white p-6 shadow-sm dark:border-slate-warm-800 dark:bg-slate-warm-900">
-            <h2 class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-warm-500">Catatan Revisi</h2>
-            <p class="text-xs text-slate-warm-500">{{ $sof->revision_notes["reason"] }}</p>
+            <h2 class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-warm-500 dark:text-parchment-400">Catatan Revisi</h2>
+            <p class="text-xs text-slate-warm-500 dark:text-parchment-400">{{ $sof->revision_notes["reason"] }}</p>
         </div>
     @endif
     <div class="mt-8 flex items-center justify-end gap-3 border-t border-parchment-200 pt-6 dark:border-slate-warm-800">

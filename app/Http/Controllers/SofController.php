@@ -77,7 +77,7 @@ class SofController extends Controller
         ->editColumn('customer_name', fn (Sof $s) => $s->customer_name ?: '—')
         ->editColumn('contract_number', fn (Sof $s) =>
             '<span class="text-xs text-slate-warm-600 dark:text-parchment-400">' . e($s->contract_number ?: '—') . '</span>'
-            . ($s->contract_name ? '<span class="block text-xs text-slate-warm-500">' . e($s->contract_name) . '</span>' : ''))
+            . ($s->contract_name ? '<span class="block text-xs text-slate-warm-500 dark:text-parchment-400">' . e($s->contract_name) . '</span>' : ''))
         ->editColumn('active_date', function (Sof $s) {
             if (! $s->active_date) {
                 return '—';

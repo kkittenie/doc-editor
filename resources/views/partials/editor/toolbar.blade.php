@@ -75,7 +75,7 @@
                 class="absolute right-0 mt-2 w-64 rounded-xl border border-parchment-300 bg-white shadow-lg dark:bg-slate-warm-900 dark:border-slate-warm-700 z-50 p-3 space-y-2">
                 <p class="text-xs font-semibold text-ink-900 dark:text-parchment-100 mb-1">Pilih Tanda Tangan</p>
 
-                <div x-show="availableSignatures.length === 0" class="text-[11px] text-slate-warm-500 py-2">
+                <div x-show="availableSignatures.length === 0" class="text-[11px] text-slate-warm-500 dark:text-parchment-400 py-2">
                     Belum ada tanda tangan. <a href="{{ route('signatures') }}" class="text-bronze-600 underline">Buat
                         di Studio TTD →</a>
                 </div>

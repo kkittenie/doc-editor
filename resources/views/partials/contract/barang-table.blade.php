@@ -1,5 +1,5 @@
 <div class="rounded-2xl border border-parchment-300 bg-white p-5 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
-    <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-warm-500">
+    <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-warm-500 dark:text-parchment-400">
         Data Barang (dari Form Pelanggan)
     </p>
 

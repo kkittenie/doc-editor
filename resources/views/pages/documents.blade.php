@@ -264,7 +264,7 @@
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
                 <div>
-                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500 dark:text-parchment-400">
                         Total Dokumen
                     </p>
 
@@ -288,7 +288,7 @@
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
                 <div>
-                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500 dark:text-parchment-400">
                         Draft
                     </p>
 
@@ -313,7 +313,7 @@
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
                 <div>
-                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500 dark:text-parchment-400">
                         Revisi
                     </p>
 
@@ -338,7 +338,7 @@
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
                 <div>
-                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500 dark:text-parchment-400">
                         Pending Review
                     </p>
 
@@ -363,7 +363,7 @@
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
                 <div>
-                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500 dark:text-parchment-400">
                         Disetujui
                     </p>
 
@@ -399,7 +399,7 @@
                     @click="filterStatus = 'all'"
                     :class="filterStatus === 'all'
                         ? 'bg-crimson-700 text-white shadow-sm'
-                        : 'text-slate-warm-500 hover:text-crimson-700 dark:hover:text-crimson-300'"
+                        : 'text-slate-warm-500 dark:text-parchment-400 hover:text-crimson-700 dark:hover:text-crimson-300'"
                     class="whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition"
                 >
                     Semua
@@ -409,7 +409,7 @@
                     @click="filterStatus = 'draft'"
                     :class="filterStatus === 'draft'
                         ? 'bg-crimson-700 text-white shadow-sm'
-                        : 'text-slate-warm-500 hover:text-crimson-700 dark:hover:text-crimson-300'"
+                        : 'text-slate-warm-500 dark:text-parchment-400 hover:text-crimson-700 dark:hover:text-crimson-300'"
                     class="whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition"
                 >
                     Draft
@@ -419,7 +419,7 @@
                     @click="filterStatus = 'pending'"
                     :class="filterStatus === 'pending'
                         ? 'bg-crimson-700 text-white shadow-sm'
-                        : 'text-slate-warm-500 hover:text-crimson-700 dark:hover:text-crimson-300'"
+                        : 'text-slate-warm-500 dark:text-parchment-400 hover:text-crimson-700 dark:hover:text-crimson-300'"
                     class="whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition"
                 >
                     Pending Review
@@ -429,7 +429,7 @@
                     @click="filterStatus = 'signed'"
                     :class="filterStatus === 'signed'
                         ? 'bg-crimson-700 text-white shadow-sm'
-                        : 'text-slate-warm-500 hover:text-crimson-700 dark:hover:text-crimson-300'"
+                        : 'text-slate-warm-500 dark:text-parchment-400 hover:text-crimson-700 dark:hover:text-crimson-300'"
                     class="whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition"
                 >
                     Disetujui
@@ -480,7 +480,7 @@
                     Daftar Dokumen
                 </h2>
 
-                <p class="mt-0.5 text-[11px] text-slate-warm-500">
+                <p class="mt-0.5 text-[11px] text-slate-warm-500 dark:text-parchment-400">
                     Dokumen yang tersimpan pada akun Anda
                 </p>
             </div>
@@ -524,23 +524,23 @@
 
                     <tr>
 
-                        <th class="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500">
+                        <th class="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500 dark:text-parchment-400">
                             Dokumen
                         </th>
 
-                        <th class="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500">
+                        <th class="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500 dark:text-parchment-400">
                             Nomor
                         </th>
 
-                        <th class="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500">
+                        <th class="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500 dark:text-parchment-400">
                             Tanggal
                         </th>
 
-                        <th class="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500">
+                        <th class="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500 dark:text-parchment-400">
                             Status
                         </th>
 
-                        <th class="px-5 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500">
+                        <th class="px-5 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500 dark:text-parchment-400">
                             Aksi
                         </th>
 
@@ -583,7 +583,7 @@
                                         ></div>
 
                                         <div
-                                            class="mt-0.5 text-[11px] text-slate-warm-500"
+                                            class="mt-0.5 text-[11px] text-slate-warm-500 dark:text-parchment-400"
                                             x-text="doc.category"
                                         ></div>
 
@@ -762,7 +762,7 @@
                 Dokumen tidak ditemukan
             </h3>
 
-            <p class="mt-1 text-xs text-slate-warm-500">
+            <p class="mt-1 text-xs text-slate-warm-500 dark:text-parchment-400">
                 Coba ubah kata pencarian atau filter status.
             </p>
 

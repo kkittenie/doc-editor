@@ -43,12 +43,12 @@
 
         {{-- BAGIAN 1: DATA PELANGGAN --}}
         <div class="rounded-2xl border border-parchment-300 bg-white p-6 shadow-sm">
-            <h2 class="mb-4 text-xs font-semibold uppercase text-slate-warm-500">Data Pelanggan</h2>
+            <h2 class="mb-4 text-xs font-semibold uppercase text-slate-warm-500 dark:text-parchment-400">Data Pelanggan</h2>
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div class="sm:col-span-2">
                     <label class="mb-1 block text-xs text-ink-900">Order Number</label>
                     <input type="text" name="order_number" value="{{ $sof->order_number ?? $orderNumberPlaceholder }}" readonly
-                        class="w-full cursor-default rounded-xl border bg-parchment-50 px-4 py-2.5 text-sm text-slate-warm-500">
+                        class="w-full cursor-default rounded-xl border bg-parchment-50 px-4 py-2.5 text-sm text-slate-warm-500 dark:text-parchment-400">
                     <p class="mt-1 text-[10px] text-slate-warm-400">Auto-generate {{ $sof->order_number ?? $orderNumberPlaceholder}}</p>
                 </div>
                 <div>
@@ -82,7 +82,7 @@
                             class="w-full rounded-xl border bg-white px-4 py-2.5 pr-11 text-sm text-ink-900">
                         {{-- Flatpickr dibuka lewat tombol kalender (tema sudah di app.css). --}}
                         <button type="button" id="active_date_picker_btn" aria-label="Pilih tanggal" title="Pilih tanggal"
-                            class="absolute right-1 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-warm-500 hover:bg-parchment-100 hover:text-ink-900">
+                            class="absolute right-1 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-warm-500 dark:text-parchment-400 hover:bg-parchment-100 hover:text-ink-900">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -103,7 +103,7 @@
 
         {{-- BAGIAN 2: NILAI & UPLOAD FILE --}}
         <div class="mt-6 rounded-2xl border border-parchment-300 bg-white p-6 shadow-sm">
-            <h2 class="mb-4 text-xs font-semibold uppercase text-slate-warm-500">Nilai &amp; Berkas</h2>
+            <h2 class="mb-4 text-xs font-semibold uppercase text-slate-warm-500 dark:text-parchment-400">Nilai &amp; Berkas</h2>
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div>
                     <label for="total_value" class="mb-1 block text-xs text-ink-900">Nilai Total</label>
@@ -113,7 +113,7 @@
                 <div>
                     <label class="mb-1 block text-xs text-ink-900">Tanggal Selesai</label>
                     <input type="text" id="finish_date" value="{{ $finishDate }}" readonly
-                        class="w-full cursor-default rounded-xl border bg-parchment-50 px-4 py-2.5 text-sm text-slate-warm-500">
+                        class="w-full cursor-default rounded-xl border bg-parchment-50 px-4 py-2.5 text-sm text-slate-warm-500 dark:text-parchment-400">
                 </div>
                 <div class="sm:col-span-2">
                     <label class="mb-1 block text-xs text-ink-900">Upload PDF</label>
@@ -136,7 +136,7 @@
 
         {{-- CATATAN REVISI --}}
         <div class="mt-6 rounded-2xl border border-parchment-300 bg-white p-6 shadow-sm">
-            <h2 class="mb-4 text-xs font-semibold uppercase text-slate-warm-500">Catatan Revisi</h2>
+            <h2 class="mb-4 text-xs font-semibold uppercase text-slate-warm-500 dark:text-parchment-400">Catatan Revisi</h2>
             <textarea name="revision_notes[reason]" rows="3"
                 class="w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-ink-900 dark:border-slate-warm-700"
                 placeholder="Misal: perlu update harga barang Okt 2026...">{{ $sof->revision_notes['reason'] ?? '' }}</textarea>
@@ -144,7 +144,7 @@
 
         {{-- SUBMIT --}}
         <div class="mt-8 flex items-center justify-between">
-            <a href="{{ route('sof.index') }}" class="text-xs text-slate-warm-500 hover:text-ink-900">← Batal</a>
+            <a href="{{ route('sof.index') }}" class="text-xs text-slate-warm-500 dark:text-parchment-400 hover:text-ink-900">← Batal</a>
             <button type="submit" class="btn-primary px-8 py-3 text-sm">
                 {{ $isEdit ? 'Simpan Perubahan' : 'Simpan S.O.F' }}
             </button>
@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function () {
             icon: 'question',
             title: 'Upload berkas ini?',
             html: '<p class="text-sm font-medium text-ink-900">' + file.name + '</p>' +
-                  '<p class="mt-1 text-xs text-slate-warm-500">' + sizeMb + ' MB — Format PDF</p>',
+                  '<p class="mt-1 text-xs text-slate-warm-500 dark:text-parchment-400">' + sizeMb + ' MB — Format PDF</p>',
             showCancelButton: true,
             confirmButtonText: 'Ya, Upload',
             cancelButtonText: 'Batal',

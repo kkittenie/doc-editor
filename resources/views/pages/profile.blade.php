@@ -96,15 +96,15 @@
                 <!-- Certificate Metadata Pill -->
                 <div class="mt-4 pt-4 border-t border-parchment-200 dark:border-slate-warm-800 text-left space-y-2 text-xs">
                     <div class="flex items-center justify-between">
-                        <span class="text-slate-warm-500">ID Sertifikat:</span>
+                        <span class="text-slate-warm-500 dark:text-parchment-400">ID Sertifikat:</span>
                         <span class="font-mono font-semibold text-ink-900 dark:text-parchment-200" x-text="certificateId"></span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-slate-warm-500">Otoritas Penerbit:</span>
+                        <span class="text-slate-warm-500 dark:text-parchment-400">Otoritas Penerbit:</span>
                         <span class="font-semibold text-ink-900 dark:text-parchment-200">BSRE / BSSN RI</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-slate-warm-500">Masa Kuasa TTD:</span>
+                        <span class="text-slate-warm-500 dark:text-parchment-400">Masa Kuasa TTD:</span>
                         <span class="font-mono text-success-600 font-medium" x-text="certStatus"></span>
                     </div>
                 </div>
@@ -119,7 +119,7 @@
                         <div class="w-7 h-7 rounded-full border border-seal-700 flex items-center justify-center text-[8px] font-bold text-seal-700">PT</div>
                         <div>
                             <span class="font-semibold block text-ink-900 dark:text-parchment-100">Stempel Basah Utama</span>
-                            <span class="text-[10px] text-slate-warm-500">Format PNG Transparan</span>
+                            <span class="text-[10px] text-slate-warm-500 dark:text-parchment-400">Format PNG Transparan</span>
                         </div>
                     </div>
                     <span class="text-success-600 font-bold text-xs">✓ Ready</span>
@@ -130,7 +130,7 @@
                         <div class="w-7 h-7 rounded bg-bronze-100 flex items-center justify-center text-[8px] font-bold text-bronze-800">10k</div>
                         <div>
                             <span class="font-semibold block text-ink-900 dark:text-parchment-100">e-Materai Peruri</span>
-                            <span class="text-[10px] text-slate-warm-500">Saldo: 24 Kuota</span>
+                            <span class="text-[10px] text-slate-warm-500 dark:text-parchment-400">Saldo: 24 Kuota</span>
                         </div>
                     </div>
                     <span class="text-bronze-700 font-bold text-xs">Aktif</span>
@@ -159,7 +159,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="font-serif font-bold text-base text-ink-900 dark:text-parchment-100">Canvas Gores Tanda Tangan Tinta</h3>
-                        <p class="text-xs text-slate-warm-500">Goreskan tanda tangan Anda menggunakan kursor mouse atau layar sentuh.</p>
+                        <p class="text-xs text-slate-warm-500 dark:text-parchment-400">Goreskan tanda tangan Anda menggunakan kursor mouse atau layar sentuh.</p>
                     </div>
                     <button @click="clearCanvas()" class="btn-ghost text-xs text-error-600 hover:bg-error-50">
                         Bersihkan Canvas
@@ -194,7 +194,7 @@
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
                     </svg>
                     <p class="text-xs font-semibold text-ink-900 dark:text-parchment-100 mb-1">Tarik & Lepas Gambar TTD atau Klik untuk Cari</p>
-                    <p class="text-[11px] text-slate-warm-500">Mendukung format PNG Transparan, SVG, atau JPG (Max 5MB)</p>
+                    <p class="text-[11px] text-slate-warm-500 dark:text-parchment-400">Mendukung format PNG Transparan, SVG, atau JPG (Max 5MB)</p>
                 </div>
             </div>
 

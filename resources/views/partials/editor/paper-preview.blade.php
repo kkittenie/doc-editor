@@ -39,7 +39,7 @@
 
                 <h2 class="font-serif font-bold text-xl uppercase tracking-wide text-ink-900" x-text="kopInstansi"></h2>
                 <p class="text-xs font-sans text-slate-warm-600 mt-1 leading-snug" x-text="kopAlamat"></p>
-                <p class="text-[10px] font-mono text-slate-warm-500 mt-0.5" x-text="kopKontrak"></p>
+                <p class="text-[10px] font-mono text-slate-warm-500 dark:text-parchment-400 mt-0.5" x-text="kopKontrak"></p>
 
                 <!-- Double rule beneath kop -->
                 <div class="border-b border-ink-900 mt-2"></div>

@@ -175,7 +175,7 @@ $sortOptions = [
                     </svg>
                 </span>
 
-                <span class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-warm-500">
+                <span class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-warm-500 dark:text-parchment-400">
                     Contract Management
                 </span>
             </div>
@@ -192,7 +192,7 @@ $sortOptions = [
             class="w-full rounded-2xl border border-parchment-300 bg-white p-4 text-left shadow-theme-xs transition hover:border-ink-900 dark:border-slate-warm-800 dark:bg-slate-warm-900 dark:hover:border-bronze-500">
             <div class="flex items-start justify-between">
                 <div>
-                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500 dark:text-parchment-400">
                         {{ $card['label'] }}
                     </p>
 
@@ -311,7 +311,7 @@ $sortOptions = [
                     {{-- Flatpickr dibuka lewat tombol kalender (tema di app.css). --}}
                     <button type="button" id="customer-active-date-picker" aria-label="Pilih tanggal"
                         title="Pilih tanggal"
-                        class="absolute right-1 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-warm-500 transition hover:bg-parchment-100 hover:text-ink-900 dark:text-parchment-400 dark:hover:bg-slate-warm-800 dark:hover:text-parchment-100">
+                        class="absolute right-1 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-warm-500 dark:text-parchment-400 transition hover:bg-parchment-100 hover:text-ink-900 dark:text-parchment-400 dark:hover:bg-slate-warm-800 dark:hover:text-parchment-100">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             viewBox="0 0 24 24">

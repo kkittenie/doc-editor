@@ -107,7 +107,7 @@
     <div class="mb-6">
         <div class="w-40 rounded-xl border border-parchment-300 bg-white p-4 text-center dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <p class="text-2xl font-bold text-ink-900 dark:text-parchment-50">{{ $totalUsers }}</p>
-            <p class="text-[10px] uppercase text-slate-warm-500">Jumlah User</p>
+            <p class="text-[10px] uppercase text-slate-warm-500 dark:text-parchment-400">Jumlah User</p>
         </div>
     </div>
 
@@ -142,10 +142,10 @@
             <table class="min-w-full text-left">
                 <thead class="bg-parchment-50 dark:bg-slate-warm-800/50">
                     <tr>
-                        <th class="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500">Nama</th>
-                        <th class="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500">Email</th>
-                        <th class="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500">Role</th>
-                        <th class="px-5 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500">Aksi</th>
+                        <th class="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500 dark:text-parchment-400">Nama</th>
+                        <th class="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500 dark:text-parchment-400">Email</th>
+                        <th class="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500 dark:text-parchment-400">Role</th>
+                        <th class="px-5 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-warm-500 dark:text-parchment-400">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -230,7 +230,7 @@
                 </svg>
             </div>
             <h3 class="mt-4 text-sm font-semibold text-ink-900 dark:text-parchment-50">User tidak ditemukan</h3>
-            <p class="mt-1 text-xs text-slate-warm-500">Coba ubah kata pencarian atau tambahkan user baru.</p>
+            <p class="mt-1 text-xs text-slate-warm-500 dark:text-parchment-400">Coba ubah kata pencarian atau tambahkan user baru.</p>
         </div>
 
     </div>

@@ -21,7 +21,7 @@
                         {{ $document->title }}
                     </h1>
 
-                    <p class="text-xs text-slate-warm-500">
+                    <p class="text-xs text-slate-warm-500 dark:text-parchment-400">
                         Dokumen #{{ $document->id }}
                     </p>
                 </div>
@@ -46,7 +46,7 @@
                     </button>
                 </span>
 
-                <span x-show="saveStatus === 'saving'" class="text-xs text-slate-warm-500">
+                <span x-show="saveStatus === 'saving'" class="text-xs text-slate-warm-500 dark:text-parchment-400">
                     Menyimpan...
                 </span>
 

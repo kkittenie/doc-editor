@@ -1,5 +1,5 @@
 <div class="rounded-2xl border border-parchment-300 bg-white p-5 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
-    <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-warm-500">
+    <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-warm-500 dark:text-parchment-400">
         Data Service (dari Form Pelanggan)
     </p>
 
@@ -48,14 +48,14 @@
 
     <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div class="rounded-xl bg-parchment-50 px-4 py-3 dark:bg-slate-warm-800">
-            <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-warm-500">Total One Time</p>
+            <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-warm-500 dark:text-parchment-400">Total One Time</p>
             <p class="mt-1 font-mono text-sm font-bold text-ink-900 dark:text-parchment-50">
                 Rp {{ number_format((float) ($contractTotals['one_time'] ?? 0), 0, ',', '.') }}
             </p>
         </div>
 
         <div class="rounded-xl bg-parchment-50 px-4 py-3 dark:bg-slate-warm-800">
-            <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-warm-500">Total Bulanan</p>
+            <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-warm-500 dark:text-parchment-400">Total Bulanan</p>
             <p class="mt-1 font-mono text-sm font-bold text-ink-900 dark:text-parchment-50">
                 Rp {{ number_format((float) ($contractTotals['monthly'] ?? 0), 0, ',', '.') }}
             </p>

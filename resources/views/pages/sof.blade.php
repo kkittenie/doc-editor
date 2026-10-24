@@ -21,12 +21,12 @@ $isAdmin = auth()->user()->hasRole('admin');
         <div
             class="rounded-xl border border-parchment-300 bg-white p-4 text-center dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <p class="text-2xl font-bold text-ink-900 dark:text-parchment-50" data-count="total">0</p>
-            <p class="text-[10px] uppercase text-slate-warm-500">Total S.O.F</p>
+            <p class="text-[10px] uppercase text-slate-warm-500 dark:text-parchment-400">Total S.O.F</p>
         </div>
         <div
             class="rounded-xl border border-parchment-300 bg-white p-4 text-center dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <p class="text-2xl font-bold text-green-700" data-count="selesai">0</p>
-            <p class="text-[10px] uppercase text-slate-warm-500">Selesai</p>
+            <p class="text-[10px] uppercase text-slate-warm-500 dark:text-parchment-400">Selesai</p>
         </div>
     </div>
 

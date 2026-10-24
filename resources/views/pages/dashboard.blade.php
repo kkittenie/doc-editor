@@ -23,7 +23,7 @@
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
                 <div>
-                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500 dark:text-parchment-400">
                         Total Dokumen
                     </p>
 
@@ -47,7 +47,7 @@
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
                 <div>
-                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500 dark:text-parchment-400">
                         Draft
                     </p>
 
@@ -71,7 +71,7 @@
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
                 <div>
-                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500 dark:text-parchment-400">
                         On Progress
                     </p>
 
@@ -95,7 +95,7 @@
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
                 <div>
-                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500 dark:text-parchment-400">
                         Revisi
                     </p>
 
@@ -119,7 +119,7 @@
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
                 <div>
-                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500 dark:text-parchment-400">
                         On Review
                     </p>
 
@@ -143,7 +143,7 @@
         <div class="rounded-2xl border border-parchment-300 bg-white p-4 shadow-theme-xs dark:border-slate-warm-800 dark:bg-slate-warm-900">
             <div class="flex items-start justify-between">
                 <div>
-                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-slate-warm-500 dark:text-parchment-400">
                         Disetujui
                     </p>
 
